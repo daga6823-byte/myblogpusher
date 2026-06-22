@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8">
+	<title>添削</title>
+	<link rel="stylesheet" th:href="@{/css/article_edit.css}">
+</head>
+
+<body>
+	<div class="edit-box">
+		<h1>添削</h1>
+
+		<form th:action="@{/article/save}" method="post">
+
+			<div th:replace="~{fragments/article_form :: formFields}"></div>
+
+			<div class="button-row">
+				<button type="submit" formaction="/article/save" class="btn-save" disabled>一時保存</button>
+				<button type="button" id="backButton" class="btn-back">戻る</button>
+			</div>
+
+			<div style="margin-top: 16px; padding: 16px; background-color: #fff3cd; border-radius: 4px;">
+				<p th:if="${#lists.isEmpty(typoMatches)}">誤字は見つかりませんでした。</p>
+
+				<div th:unless="${#lists.isEmpty(typoMatches)}">
+					<table>
+						<thead>
+							<tr>
+								<th><input type="checkbox" id="selectAllCheckbox"></th>
+								<th>誤字</th>
+								<th>修正後</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr th:each="m : ${typoMatches}">
+								<td>
+									<input type="checkbox" class="typo-checkbox" th:data-wrong="${m.wrongWord}"
+										th:data-correct="${m.correctWord}" checked>
+								</td>
+								<td th:text="${m.wrongWord}"></td>
+								<td th:text="${m.correctWord}"></td>
+							</tr>
+						</tbody>
+					</table>
+
+					<button type="button" id="applyFixesButton" class="btn-correct">選択した項目を修正</button>
+				</div>
+			</div>
+
+			<div style="margin-top: 24px; padding: 16px; background-color: #e9ecef; border-radius: 4px;">
+				<h3 style="font-size: 14px; margin-bottom: 12px;">誤字パターンを追加</h3>
+
+				<label for="newWrongWord">誤字</label>
+				<input type="text" id="newWrongWord" name="newWrongWord" placeholder="例：ご角煮">
+
+				<label for="newCorrectWord">正しい表記</label>
+				<input type="text" id="newCorrectWord" name="newCorrectWord" placeholder="例：ご確認">
+
+				<label>
+					<input type="checkbox" id="newTypoIsGeneral" checked>
+					全カテゴリー共通の誤字として登録する
+				</label>
+
+				<button type="button" id="addTypoButton" class="btn-correct">この誤字パターンを登録</button>
+			</div>
+
+		</form>
+	</div>
+
+	<script th:src="@{/js/article_correct.js}"></script>
+</body>
+
+</html>

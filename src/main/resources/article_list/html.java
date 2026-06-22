@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>下書き一覧</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            background-color: #f2f2f2;
+            margin: 0;
+            padding: 40px;
+        }
+        .list-box {
+            background: #fff;
+            padding: 32px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            font-size: 20px;
+            margin-bottom: 24px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 24px;
+        }
+        th, td {
+            text-align: left;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            font-size: 14px;
+        }
+        th {
+            background-color: #f7f7f7;
+        }
+        a.edit-link {
+            color: #0366d6;
+            text-decoration: none;
+        }
+        a.edit-link:hover {
+            text-decoration: underline;
+        }
+        a.new-button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #333;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+        a.new-button:hover {
+            background-color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="list-box">
+        <h1>下書き一覧</h1>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>タイトル</th>
+                    <th>カテゴリー</th>
+                    <th>更新日時</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="w : ${works}">
+                    <td th:text="${w.title}"></td>
+                    <td th:text="${w.categoryName}"></td>
+                    <td th:text="${#temporals.format(w.updatedAt, 'yyyy-MM-dd HH:mm')}"></td>
+                    <td>
+                        <a class="edit-link" th:href="@{/article/edit(workId=${w.workId})}">編集</a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <a class="new-button" th:href="@{/article/edit}">新規作成</a>
+    </div>
+</body>
+</html>

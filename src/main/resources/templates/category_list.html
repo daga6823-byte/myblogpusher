@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8">
+	<title>カテゴリー辞典</title>
+	<link rel="stylesheet" th:href="@{/css/article_edit.css}">
+	<link rel="stylesheet" th:href="@{/css/home.css}">
+</head>
+
+<body>
+	<div class="home-header">
+		<h1>カテゴリー辞典</h1>
+		<form th:action="@{/logout}" method="post">
+			<button type="submit" class="btn-logout-link">ログアウト</button>
+		</form>
+	</div>
+
+	<table>
+		<thead>
+			<tr>
+				<th>カテゴリー名</th>
+				<th>使用中の誤字数</th>
+				<th></th>
+			</tr>
+		</thead>
+		
+		<tbody>
+			<tr th:each="c : ${categories}">
+				<td th:text="${c.categoryName}"></td>
+				<td th:text="${c.typoCount}"></td>
+				<td>
+					<form th:if="${c.deletable}" th:action="@{/category/delete}" method="post" style="display:inline;"
+						onsubmit="return confirm('このカテゴリーを削除してもよろしいですか？');">
+						<input type="hidden" name="categoryId" th:value="${c.categoryId}">
+						<button type="submit" class="btn-delete">削除</button>
+					</form>
+					<span th:unless="${c.deletable}" style="color:#999; font-size:13px;">使用中</span>
+					<button type="button" class="btn-correct btn-rename"
+            th:data-category-id="${c.categoryId}"
+            th:data-category-name="${c.categoryName}">
+        リネーム
+    </button>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+
+	<button type="button" id="backButton" class="btn-back">戻る</button>
+	</div>
+
+	<script th:src="@{/js/category_list.js}"></script>
+</body>
+
+</html>

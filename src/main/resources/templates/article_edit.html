@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>記事編集</title>
+    <link rel="stylesheet" th:href="@{/css/article_edit.css}">
+</head>
+<body>
+    <div class="edit-box">
+        <h1>記事編集</h1>
+
+        <div id="savedMessage" th:if="${saved}" style="background-color:#d4edda; color:#155724; padding:12px 16px; border-radius:4px; margin-bottom:16px;">
+            下書きが保存されました。
+        </div>
+
+        <form th:action="@{/article/save}" method="post">
+
+            <div th:replace="~{fragments/article_form :: formFields}"></div>
+
+            <div class="button-row">
+                <button type="submit" formaction="/article/save" class="btn-save" disabled>一時保存</button>
+                <button type="button" id="listButton" class="btn-back">下書き一覧</button>
+                <button type="submit" formaction="/article/correct" class="btn-publish" disabled>添削</button>
+                <button type="button" class="btn-publish" disabled>投稿</button>
+                <button type="button" id="backButton" class="btn-back">戻る</button>
+            </div>
+
+        </form>
+    </div>
+
+    <script th:src="@{/js/article_edit.js}"></script>
+</body>
+</html>

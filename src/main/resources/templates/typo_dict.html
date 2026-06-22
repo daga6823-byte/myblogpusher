@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8">
+	<title>誤字辞典</title>
+	<link rel="stylesheet" th:href="@{/css/article_edit.css}">
+	<link rel="stylesheet" th:href="@{/css/home.css}">
+</head>
+
+<body>
+	<div class="home-header">
+		<h1>誤字辞典</h1>
+		<form th:action="@{/logout}" method="post">
+			<button type="submit" class="btn-logout-link">ログアウト</button>
+		</form>
+	</div>
+
+	<div style="margin-bottom: 16px;">
+		<label for="categoryFilter">カテゴリーで絞り込み</label>
+		<select id="categoryFilter">
+			<option value="">すべて表示</option>
+			<option th:each="name : ${categoryNames}" th:value="${name}" th:text="${name}"></option>
+		</select>
+	</div>
+
+	<table>
+		<thead>
+			<tr>
+				<th class="sortable" data-sort="category">カテゴリー <span class="sort-icon"></span></th>
+				<th class="sortable" data-sort="wrong">誤字 <span class="sort-icon"></span></th>
+				<th class="sortable" data-sort="correct">正しい表記 <span class="sort-icon"></span></th>
+				<th></th>
+			</tr>
+		</thead>
+		<tbody id="typoTableBody">
+			<tr th:each="t : ${typos}" th:data-category="${t.categoryName}" th:data-wrong="${t.wrongWord}"
+				th:data-correct="${t.correctWord}">
+				<td th:text="${t.categoryName}"></td>
+				<td th:text="${t.wrongWord}"></td>
+				<td th:text="${t.correctWord}"></td>
+				<td>
+					<button type="button" class="btn-correct btn-edit-typo" th:data-typo-id="${t.typoId}"
+						th:data-wrong-word="${t.wrongWord}" th:data-correct-word="${t.correctWord}">
+						編集
+					</button>
+					<form th:action="@{/typo-dict/delete}" method="post" style="display:inline;"
+						onsubmit="return confirm('この誤字パターンを削除してもよろしいですか？');">
+						<input type="hidden" name="typoId" th:value="${t.typoId}">
+						<button type="submit" class="btn-delete">削除</button>
+					</form>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+
+	<button type="button" id="backButton" class="btn-back">戻る</button>
+	</div>
+
+	<script th:src="@{/js/typo_dict.js}"></script>
+</body>
+
+</html>
