@@ -405,10 +405,12 @@ let proofreadRanges = [];
 
 function renderProofreadHighlight(content, results) {
 	const emptyMessage = document.getElementById('proofreadEmptyMessage');
+	const listEl = document.getElementById('proofreadList');
 
 	if (results.length === 0) {
 		proofreadRanges = [];
 		emptyMessage.style.display = 'block';
+		listEl.innerHTML = '';
 		renderHighlight();
 		return;
 	}
@@ -419,6 +421,12 @@ function renderProofreadHighlight(content, results) {
 		end: r.toPos,
 		message: r.message
 	}));
+
+	listEl.innerHTML = results.map(r => {
+		const matchedText = content.slice(r.fromPos, r.toPos);
+		const suggestionText = r.suggestion ? `（候補：${escapeHtml(r.suggestion)}）` : '';
+		return `<li><strong>${escapeHtml(matchedText)}</strong>：${escapeHtml(r.message)}${suggestionText}</li>`;
+	}).join('');
 
 	renderHighlight();
 }

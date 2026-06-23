@@ -51,6 +51,10 @@
 			<div style="margin-top: 24px; padding: 16px; background-color: #e9ecef; border-radius: 4px;">
 				<h3 style="font-size: 14px; margin-bottom: 12px;">誤字パターンを追加</h3>
 
+				<button type="button" id="scanTypoButton" class="btn-correct">誤字検索</button>
+
+				<div id="ltTypoResults" style="margin-top: 12px;"></div>
+
 				<label for="newWrongWord">誤字</label>
 				<input type="text" id="newWrongWord" name="newWrongWord" placeholder="例：ご角煮">
 
@@ -63,18 +67,18 @@
 				</label>
 
 				<button type="button" id="addTypoButton" class="btn-correct">この誤字パターンを登録</button>
+				<button type="button" id="addSelectedTyposButton" class="btn-correct"
+					style="display:none;">選択した誤字を一括登録</button>
 			</div>
 
 			<div style="margin-top: 24px; padding: 16px; background-color: #e9ecef; border-radius: 4px;">
 				<h3 style="font-size: 14px; margin-bottom: 12px;">推敲</h3>
 				<button type="button" id="proofreadButton" class="btn-correct">推敲</button>
 				<p id="proofreadEmptyMessage" style="display:none;">指摘事項は見つかりませんでした。</p>
+				<ul id="proofreadList" style="margin-top: 12px; padding-left: 20px;"></ul>
 			</div>
 
-		</form>
-	</div>
-
-	<script th:src="@{/js/article_correct.js}"></script>
+			<script th:src="@{/js/article_correct.js}"></script>
 </body>
 
 </html>
