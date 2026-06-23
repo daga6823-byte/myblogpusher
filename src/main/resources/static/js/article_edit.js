@@ -15,17 +15,21 @@ window.addEventListener('DOMContentLoaded', () => {
     if (msg) {
         setTimeout(() => { msg.style.display = 'none'; }, 3000);
     }
+
+    const textarea = document.getElementById('content');
+    if (textarea && textarea.value.trim() === '') {
+        updateFrontMatterFields(true);
+    }
 });
 
 let contentChanged = false;
 
-['categorySelect', 'newCategoryName', 'title', 'content'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) {
-        el.addEventListener('input', () => { contentChanged = true; });
-        el.addEventListener('change', () => { contentChanged = true; });
-    }
-});
+const content = document.getElementById('content');
+if (content) {
+    content.addEventListener('input', () => {
+        contentChanged = true;
+    });
+}
 
 document.getElementById('listButton').addEventListener('click', () => {
     if (contentChanged) {
@@ -83,3 +87,59 @@ function updateButtonState() {
 });
 
 window.addEventListener('DOMContentLoaded', updateButtonState);
+
+function parseFrontMatter(text) {
+    const match = text.match(/^\+\+\+\n([\s\S]*?)\+\+\+\n*/);
+    if (!match) return null;
+    return match[1];
+}
+
+function buildDateString() {
+    const now = new Date();
+    const offset = -now.getTimezoneOffset();
+    const sign = offset >= 0 ? '+' : '-';
+    const pad = (n) => String(Math.abs(n)).padStart(2, '0');
+    const offsetStr = `${sign}${pad(offset / 60)}:${pad(offset % 60)}`;
+    return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}${offsetStr}`;
+}
+
+function updateFrontMatterFields(updateDate) {
+    const textarea = document.getElementById('content');
+    const title = document.getElementById('title').value;
+    const categorySelect = document.getElementById('categorySelect').value;
+    const newCategoryName = document.getElementById('newCategoryName').value.trim();
+    const category = (categorySelect === '__new__') ? newCategoryName : categorySelect;
+
+    const currentText = textarea.value;
+    const frontMatterPattern = /^\+\+\+[\s\S]*?\+\+\+\n*/;
+
+    const existingFrontMatterBody = parseFrontMatter(currentText);
+
+    let dateLine;
+    if (updateDate || !existingFrontMatterBody) {
+        dateLine = `date = '${buildDateString()}'`;
+    } else {
+        const dateMatch = existingFrontMatterBody.match(/^date = .+$/m);
+        dateLine = dateMatch ? dateMatch[0] : `date = '${buildDateString()}'`;
+    }
+
+    const bodyText = currentText.replace(frontMatterPattern, '');
+
+    const newFrontMatter =
+`+++
+title = '${title}'
+${dateLine}
+categories = ["${category}"]
+draft = false
+comments = true
++++
+`;
+
+    textarea.value = newFrontMatter + bodyText;
+}
+
+document.querySelectorAll('[formaction]').forEach(btn => {
+    btn.addEventListener('click', () => {
+        updateFrontMatterFields(true);
+    });
+});
