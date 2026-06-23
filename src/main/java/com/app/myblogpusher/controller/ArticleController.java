@@ -6,21 +6,25 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.app.myblogpusher.dto.ArticleWorkView;
 import com.app.myblogpusher.dto.ProofreadResultView;
 import com.app.myblogpusher.dto.TypoScanResultView;
+import com.app.myblogpusher.dto.WorkspaceSaveRequest;
 import com.app.myblogpusher.entity.ArticleCategory;
 import com.app.myblogpusher.entity.ArticleWork;
 import com.app.myblogpusher.entity.UserMaster;
 import com.app.myblogpusher.service.ArticleCategoryService;
 import com.app.myblogpusher.service.ArticleWorkService;
+import com.app.myblogpusher.service.ArticleWorkspaceService;
 import com.app.myblogpusher.service.HomophoneTypoScanService;
 import com.app.myblogpusher.service.LanguageToolService;
 import com.app.myblogpusher.service.TypoCorrectionService;
@@ -38,6 +42,9 @@ public class ArticleController {
 
 	@Autowired
 	private TypoCorrectionService typoCorrectionService;
+
+	@Autowired
+	private ArticleWorkspaceService workspaceService;
 
 	@GetMapping("/article/edit")
 	public String editForm(@RequestParam(required = false) Long workId,
@@ -59,6 +66,27 @@ public class ArticleController {
 					.map(ArticleCategory::getCategoryName)
 					.orElse("");
 			model.addAttribute("categoryName", categoryName);
+		} else {
+
+			workspaceService.find(userId)
+					.ifPresent(ws -> {
+
+						ArticleWork work = new ArticleWork();
+
+						work.setTitle(ws.getTitle());
+						work.setContent(ws.getContent());
+						work.setCategoryId(ws.getCategoryId());
+
+						model.addAttribute("work", work);
+
+						if (ws.getCategoryId() != null) {
+							articleCategoryService
+									.findById(ws.getCategoryId())
+									.ifPresent(category -> model.addAttribute(
+											"categoryName",
+											category.getCategoryName()));
+						}
+					});
 		}
 
 		model.addAttribute("saved", saved != null && saved);
@@ -316,5 +344,22 @@ public class ArticleController {
 		session.setAttribute(SESSION_KEY_LT_CONTENT, content);
 		session.setAttribute(SESSION_KEY_TYPO_RESULTS, typoResults);
 		session.setAttribute(SESSION_KEY_PROOF_RESULTS, proofResults);
+	}
+
+	@PostMapping("/article/workspace/save")
+	@ResponseBody
+	public ResponseEntity<Void> saveWorkspace(
+			@RequestBody WorkspaceSaveRequest req,
+			HttpSession session) {
+
+		Long userId = (Long) session.getAttribute("userId");
+
+		workspaceService.save(
+				userId,
+				req.getCategoryId(),
+				req.getTitle(),
+				req.getContent());
+
+		return ResponseEntity.ok().build();
 	}
 }
