@@ -21,6 +21,7 @@ import com.app.myblogpusher.entity.ArticleWork;
 import com.app.myblogpusher.entity.UserMaster;
 import com.app.myblogpusher.service.ArticleCategoryService;
 import com.app.myblogpusher.service.ArticleWorkService;
+import com.app.myblogpusher.service.HomophoneTypoScanService;
 import com.app.myblogpusher.service.LanguageToolService;
 import com.app.myblogpusher.service.TypoCorrectionService;
 
@@ -238,6 +239,8 @@ public class ArticleController {
 	private static final String SESSION_KEY_TYPO_RESULTS = "ltTypoResultsCache";
 	private static final String SESSION_KEY_PROOF_RESULTS = "ltProofResultsCache";
 	private static final String SESSION_KEY_LT_CONTENT = "ltCachedContent";
+	@Autowired
+	private HomophoneTypoScanService homophoneTypoScanService;
 
 	@PostMapping("/article/typo/scan")
 	@ResponseBody
@@ -292,7 +295,7 @@ public class ArticleController {
 
 		List<LanguageToolService.LanguageToolMatch> allMatches = languageToolService.checkText(content);
 
-		List<LanguageToolService.LanguageToolMatch> typoMatches = languageToolService.filterTypos(allMatches);
+		List<LanguageToolService.LanguageToolMatch> typoMatches = homophoneTypoScanService.scan(content);
 		List<LanguageToolService.LanguageToolMatch> filteredTypos = typoCorrectionService.excludeKnownTypos(categoryId,
 				typoMatches);
 
