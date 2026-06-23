@@ -232,21 +232,6 @@ public class ArticleController {
 	@PostMapping("/article/typo/scan")
 	@ResponseBody
 	public List<TypoScanResultView> scanTypos(@RequestParam String content,
-			@RequestParam(required = false) Long categoryId) {
-
-		List<LanguageToolService.LanguageToolMatch> allMatches = languageToolService.checkText(content);
-		List<LanguageToolService.LanguageToolMatch> typoMatches = languageToolService.filterTypos(allMatches);
-		List<LanguageToolService.LanguageToolMatch> filtered = typoCorrectionService.excludeKnownTypos(categoryId,
-				typoMatches);
-
-		return filtered.stream()
-				.map(m -> new TypoScanResultView(m.getMatchedText(), m.getSuggestion(), m.getMessage()))
-				.toList();
-	}
-
-	@PostMapping("/article/proofread/scan")
-	@ResponseBody
-	public List<TypoScanResultView> scanTypos(@RequestParam String content,
 			@RequestParam String categorySelect,
 			@RequestParam(required = false) String newCategoryName,
 			HttpSession session) {
