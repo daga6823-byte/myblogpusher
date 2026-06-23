@@ -1,5 +1,6 @@
 package com.app.myblogpusher.controller;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -123,6 +124,11 @@ public class ArticleController {
 			HttpSession session,
 			Model model) {
 
+		// LanguageToolのキャッシュをクリア（本文が更新されたため）
+		session.removeAttribute("ltTypoResultsCache");
+		session.removeAttribute("ltProofResultsCache");
+		session.removeAttribute("ltCachedContent");
+
 		Long savedWorkId = doSaveDraft(workId, categorySelect, newCategoryName, title, content, session);
 
 		if (savedWorkId == null) {
@@ -229,12 +235,49 @@ public class ArticleController {
 	@Autowired
 	private LanguageToolService languageToolService;
 
+	private static final String SESSION_KEY_TYPO_RESULTS = "ltTypoResultsCache";
+	private static final String SESSION_KEY_PROOF_RESULTS = "ltProofResultsCache";
+	private static final String SESSION_KEY_LT_CONTENT = "ltCachedContent";
+
 	@PostMapping("/article/typo/scan")
 	@ResponseBody
 	public List<TypoScanResultView> scanTypos(@RequestParam String content,
 			@RequestParam String categorySelect,
 			@RequestParam(required = false) String newCategoryName,
 			HttpSession session) {
+
+		ensureLanguageToolCache(content, categorySelect, newCategoryName, session);
+
+		@SuppressWarnings("unchecked")
+		List<TypoScanResultView> cached = (List<TypoScanResultView>) session.getAttribute(SESSION_KEY_TYPO_RESULTS);
+		return cached;
+	}
+
+	@PostMapping("/article/proofread/scan")
+	@ResponseBody
+	public List<ProofreadResultView> scanProofreading(@RequestParam String content,
+			@RequestParam String categorySelect,
+			@RequestParam(required = false) String newCategoryName,
+			HttpSession session) {
+
+		ensureLanguageToolCache(content, categorySelect, newCategoryName, session);
+
+		@SuppressWarnings("unchecked")
+		List<ProofreadResultView> cached = (List<ProofreadResultView>) session.getAttribute(SESSION_KEY_PROOF_RESULTS);
+		return cached;
+	}
+
+	private void ensureLanguageToolCache(String content, String categorySelect, String newCategoryName,
+			HttpSession session) {
+
+		String cachedContent = (String) session.getAttribute(SESSION_KEY_LT_CONTENT);
+
+		// 本文が前回と同じであれば再解析しない
+		if (content.equals(cachedContent)
+				&& session.getAttribute(SESSION_KEY_TYPO_RESULTS) != null
+				&& session.getAttribute(SESSION_KEY_PROOF_RESULTS) != null) {
+			return;
+		}
 
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 		Long userId = loginUser.getUserId();
@@ -248,25 +291,27 @@ public class ArticleController {
 						.orElse(null);
 
 		List<LanguageToolService.LanguageToolMatch> allMatches = languageToolService.checkText(content);
+
 		List<LanguageToolService.LanguageToolMatch> typoMatches = languageToolService.filterTypos(allMatches);
-		List<LanguageToolService.LanguageToolMatch> filtered = typoCorrectionService.excludeKnownTypos(categoryId,
+		List<LanguageToolService.LanguageToolMatch> filteredTypos = typoCorrectionService.excludeKnownTypos(categoryId,
 				typoMatches);
 
-		return filtered.stream()
+		List<TypoScanResultView> typoResults = filteredTypos.stream()
 				.map(m -> new TypoScanResultView(m.getMatchedText(), m.getSuggestion(), m.getMessage()))
 				.toList();
-	}
 
-	@PostMapping("/article/proofread/scan")
-	@ResponseBody
-	public List<ProofreadResultView> scanProofreading(@RequestParam String content) {
-
-		List<LanguageToolService.LanguageToolMatch> allMatches = languageToolService.checkText(content);
 		List<LanguageToolService.LanguageToolMatch> proofMatches = languageToolService.filterProofreading(allMatches);
 
-		return proofMatches.stream()
-				.map(m -> new ProofreadResultView(m.getFromPos(), m.getToPos(), m.getMatchedText(), m.getMessage(),
-						m.getSuggestion()))
-				.toList();
+		List<ProofreadResultView> proofResults = new ArrayList<>();
+		int idx = 0;
+		for (LanguageToolService.LanguageToolMatch m : proofMatches) {
+			proofResults.add(new ProofreadResultView(idx, m.getFromPos(), m.getToPos(), m.getMatchedText(),
+					m.getMessage(), m.getSuggestion()));
+			idx++;
+		}
+
+		session.setAttribute(SESSION_KEY_LT_CONTENT, content);
+		session.setAttribute(SESSION_KEY_TYPO_RESULTS, typoResults);
+		session.setAttribute(SESSION_KEY_PROOF_RESULTS, proofResults);
 	}
 }

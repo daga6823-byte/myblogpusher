@@ -12,79 +12,99 @@ import org.springframework.stereotype.Service;
 @Service
 public class LanguageToolService {
 
-    private static final String CATEGORY_TYPOS = "TYPOS";
+	private static final String CATEGORY_TYPOS = "TYPOS";
 
-    public List<LanguageToolMatch> checkText(String content) {
+	public List<LanguageToolMatch> checkText(String content) {
 
-        JLanguageTool langTool = new JLanguageTool(new Japanese());
+		JLanguageTool langTool = new JLanguageTool(new Japanese());
 
-        List<RuleMatch> matches;
-        try {
-            matches = langTool.check(content);
-        } catch (IOException e) {
-            throw new RuntimeException("LanguageToolによる解析に失敗しました", e);
-        }
+		List<RuleMatch> matches;
+		try {
+			matches = langTool.check(content);
+		} catch (IOException e) {
+			throw new RuntimeException("LanguageToolによる解析に失敗しました", e);
+		}
 
-        List<LanguageToolMatch> result = new ArrayList<>();
+		List<LanguageToolMatch> result = new ArrayList<>();
 
-        for (RuleMatch match : matches) {
-            String categoryId = match.getRule().getCategory().getId().toString();
-            String matchedText = content.substring(match.getFromPos(), match.getToPos());
+		for (RuleMatch match : matches) {
+			String categoryId = match.getRule().getCategory().getId().toString();
+			String matchedText = content.substring(match.getFromPos(), match.getToPos());
 
-            String suggestion = match.getSuggestedReplacements().isEmpty()
-                ? ""
-                : match.getSuggestedReplacements().get(0);
+			// デバッグ用：検出された全件のカテゴリを出力
+			System.out.println(
+					"[LT検出] category=" + categoryId + " text=" + matchedText + " rule=" + match.getRule().getId());
 
-            result.add(new LanguageToolMatch(
-                match.getFromPos(),
-                match.getToPos(),
-                matchedText,
-                suggestion,
-                match.getMessage(),
-                categoryId
-            ));
-        }
+			String suggestion = match.getSuggestedReplacements().isEmpty()
+					? ""
+					: match.getSuggestedReplacements().get(0);
 
-        return result;
-    }
+			result.add(new LanguageToolMatch(
+					match.getFromPos(),
+					match.getToPos(),
+					matchedText,
+					suggestion,
+					match.getMessage(),
+					categoryId));
+		}
 
-    /** 誤字（スペルミス系）のみ抽出 */
-    public List<LanguageToolMatch> filterTypos(List<LanguageToolMatch> matches) {
-        return matches.stream()
-            .filter(m -> CATEGORY_TYPOS.equals(m.getCategory()))
-            .toList();
-    }
+		return result;
+	}
 
-    /** 推敲対象（文法・表現系、誤字以外すべて）を抽出 */
-    public List<LanguageToolMatch> filterProofreading(List<LanguageToolMatch> matches) {
-        return matches.stream()
-            .filter(m -> !CATEGORY_TYPOS.equals(m.getCategory()))
-            .toList();
-    }
+	/** 誤字（スペルミス系）のみ抽出 */
+	public List<LanguageToolMatch> filterTypos(List<LanguageToolMatch> matches) {
+		return matches.stream()
+				.filter(m -> CATEGORY_TYPOS.equals(m.getCategory()))
+				.toList();
+	}
 
-    public static class LanguageToolMatch {
-        private final int fromPos;
-        private final int toPos;
-        private final String matchedText;
-        private final String suggestion;
-        private final String message;
-        private final String category;
+	/** 推敲対象（文法・表現系、誤字以外すべて）を抽出 */
+	public List<LanguageToolMatch> filterProofreading(List<LanguageToolMatch> matches) {
+		return matches.stream()
+				.filter(m -> !CATEGORY_TYPOS.equals(m.getCategory()))
+				.toList();
+	}
 
-        public LanguageToolMatch(int fromPos, int toPos, String matchedText,
-                                  String suggestion, String message, String category) {
-            this.fromPos = fromPos;
-            this.toPos = toPos;
-            this.matchedText = matchedText;
-            this.suggestion = suggestion;
-            this.message = message;
-            this.category = category;
-        }
+	public static class LanguageToolMatch {
+		private final int fromPos;
+		private final int toPos;
+		private final String matchedText;
+		private final String suggestion;
+		private final String message;
+		private final String category;
 
-        public int getFromPos() { return fromPos; }
-        public int getToPos() { return toPos; }
-        public String getMatchedText() { return matchedText; }
-        public String getSuggestion() { return suggestion; }
-        public String getMessage() { return message; }
-        public String getCategory() { return category; }
-    }
+		public LanguageToolMatch(int fromPos, int toPos, String matchedText,
+				String suggestion, String message, String category) {
+			this.fromPos = fromPos;
+			this.toPos = toPos;
+			this.matchedText = matchedText;
+			this.suggestion = suggestion;
+			this.message = message;
+			this.category = category;
+		}
+
+		public int getFromPos() {
+			return fromPos;
+		}
+
+		public int getToPos() {
+			return toPos;
+		}
+
+		public String getMatchedText() {
+			return matchedText;
+		}
+
+		public String getSuggestion() {
+			return suggestion;
+		}
+
+		public String getMessage() {
+			return message;
+		}
+
+		public String getCategory() {
+			return category;
+		}
+	}
 }
