@@ -54,14 +54,14 @@ public class LanguageToolService {
 	/** 誤字（スペルミス系）のみ抽出 */
 	public List<LanguageToolMatch> filterTypos(List<LanguageToolMatch> matches) {
 		return matches.stream()
-				.filter(m -> CATEGORY_TYPOS.equals(m.getCategory()))
+				.filter(m -> "Misspelling".equals(m.getCategory()))
 				.toList();
 	}
 
-	/** 推敲対象（文法・表現系、誤字以外すべて）を抽出 */
+	/** 推敲対象（誤字以外すべて） */
 	public List<LanguageToolMatch> filterProofreading(List<LanguageToolMatch> matches) {
 		return matches.stream()
-				.filter(m -> !CATEGORY_TYPOS.equals(m.getCategory()))
+				.filter(m -> !"Misspelling".equals(m.getCategory()))
 				.toList();
 	}
 
