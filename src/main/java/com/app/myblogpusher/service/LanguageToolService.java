@@ -6,13 +6,12 @@ import java.util.List;
 
 import org.languagetool.JLanguageTool;
 import org.languagetool.language.Japanese;
+import org.languagetool.rules.ITSIssueType;
 import org.languagetool.rules.RuleMatch;
 import org.springframework.stereotype.Service;
 
 @Service
 public class LanguageToolService {
-
-	private static final String CATEGORY_TYPOS = "TYPOS";
 
 	public List<LanguageToolMatch> checkText(String content) {
 
@@ -28,12 +27,11 @@ public class LanguageToolService {
 		List<LanguageToolMatch> result = new ArrayList<>();
 
 		for (RuleMatch match : matches) {
-			String categoryId = match.getRule().getCategory().getId().toString();
+			ITSIssueType issueType = match.getRule().getLocQualityIssueType();
 			String matchedText = content.substring(match.getFromPos(), match.getToPos());
 
-			// デバッグ用：検出された全件のカテゴリを出力
 			System.out.println(
-					"[LT検出] category=" + categoryId + " text=" + matchedText + " rule=" + match.getRule().getId());
+					"[LT検出] issueType=" + issueType + " text=" + matchedText + " rule=" + match.getRule().getId());
 
 			String suggestion = match.getSuggestedReplacements().isEmpty()
 					? ""
@@ -45,7 +43,7 @@ public class LanguageToolService {
 					matchedText,
 					suggestion,
 					match.getMessage(),
-					categoryId));
+					issueType.toString()));
 		}
 
 		return result;
