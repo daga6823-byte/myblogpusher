@@ -6,8 +6,8 @@ import java.util.List;
 
 import org.languagetool.JLanguageTool;
 import org.languagetool.language.Japanese;
-import org.languagetool.rules.ITSIssueType;
 import org.languagetool.rules.RuleMatch;
+import org.languagetool.rules.spelling.SpellingCheckRule;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -27,11 +27,13 @@ public class LanguageToolService {
 		List<LanguageToolMatch> result = new ArrayList<>();
 
 		for (RuleMatch match : matches) {
-			ITSIssueType issueType = match.getRule().getLocQualityIssueType();
+			boolean isSpelling = match.getRule() instanceof SpellingCheckRule;
 			String matchedText = content.substring(match.getFromPos(), match.getToPos());
 
-			System.out.println(
-					"[LT検出] issueType=" + issueType + " text=" + matchedText + " rule=" + match.getRule().getId());
+			System.out.println("[LT検出] isSpelling=" + isSpelling
+					+ " ruleClass=" + match.getRule().getClass().getName()
+					+ " text=" + matchedText
+					+ " rule=" + match.getRule().getId());
 
 			String suggestion = match.getSuggestedReplacements().isEmpty()
 					? ""
@@ -43,20 +45,18 @@ public class LanguageToolService {
 					matchedText,
 					suggestion,
 					match.getMessage(),
-					issueType.toString()));
+					isSpelling ? "Misspelling" : "Other"));
 		}
 
 		return result;
 	}
 
-	/** 誤字（スペルミス系）のみ抽出 */
 	public List<LanguageToolMatch> filterTypos(List<LanguageToolMatch> matches) {
 		return matches.stream()
 				.filter(m -> "Misspelling".equals(m.getCategory()))
 				.toList();
 	}
 
-	/** 推敲対象（誤字以外すべて） */
 	public List<LanguageToolMatch> filterProofreading(List<LanguageToolMatch> matches) {
 		return matches.stream()
 				.filter(m -> !"Misspelling".equals(m.getCategory()))
