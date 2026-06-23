@@ -13,11 +13,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.app.myblogpusher.dto.ArticleWorkView;
+import com.app.myblogpusher.dto.ProofreadResultView;
+import com.app.myblogpusher.dto.TypoScanResultView;
 import com.app.myblogpusher.entity.ArticleCategory;
 import com.app.myblogpusher.entity.ArticleWork;
 import com.app.myblogpusher.entity.UserMaster;
 import com.app.myblogpusher.service.ArticleCategoryService;
 import com.app.myblogpusher.service.ArticleWorkService;
+import com.app.myblogpusher.service.LanguageToolService;
 import com.app.myblogpusher.service.TypoCorrectionService;
 
 import jakarta.servlet.http.HttpSession;
@@ -63,28 +66,28 @@ public class ArticleController {
 
 	@PostMapping("/article/save")
 	public String saveDraft(@RequestParam(required = false) Long workId,
-	                         @RequestParam String categorySelect,
-	                         @RequestParam(required = false) String newCategoryName,
-	                         @RequestParam String title,
-	                         @RequestParam String content,
-	                         @RequestParam(required = false) String redirectTo,
-	                         HttpSession session) {
+			@RequestParam String categorySelect,
+			@RequestParam(required = false) String newCategoryName,
+			@RequestParam String title,
+			@RequestParam String content,
+			@RequestParam(required = false) String redirectTo,
+			HttpSession session) {
 
-	    Long savedWorkId = doSaveDraft(workId, categorySelect, newCategoryName, title, content, session);
+		Long savedWorkId = doSaveDraft(workId, categorySelect, newCategoryName, title, content, session);
 
-	    if (savedWorkId == null) {
-	        // タイトル・本文ともに空だったため保存されなかった
-	        return "redirect:/article/edit";
-	    }
+		if (savedWorkId == null) {
+			// タイトル・本文ともに空だったため保存されなかった
+			return "redirect:/article/edit";
+		}
 
-	    if ("home".equals(redirectTo)) {
-	        return "redirect:/home";
-	    }
-	    if ("list".equals(redirectTo)) {
-	        return "redirect:/article/list";
-	    }
+		if ("home".equals(redirectTo)) {
+			return "redirect:/home";
+		}
+		if ("list".equals(redirectTo)) {
+			return "redirect:/article/list";
+		}
 
-	    return "redirect:/article/edit?workId=" + savedWorkId + "&saved=true";
+		return "redirect:/article/edit?workId=" + savedWorkId + "&saved=true";
 	}
 
 	//下書き一覧画面
@@ -113,114 +116,172 @@ public class ArticleController {
 	//添削画面
 	@PostMapping("/article/correct")
 	public String correct(@RequestParam(required = false) Long workId,
-	                       @RequestParam String categorySelect,
-	                       @RequestParam(required = false) String newCategoryName,
-	                       @RequestParam String title,
-	                       @RequestParam String content,
-	                       HttpSession session,
-	                       Model model) {
+			@RequestParam String categorySelect,
+			@RequestParam(required = false) String newCategoryName,
+			@RequestParam String title,
+			@RequestParam String content,
+			HttpSession session,
+			Model model) {
 
-	    Long savedWorkId = doSaveDraft(workId, categorySelect, newCategoryName, title, content, session);
+		Long savedWorkId = doSaveDraft(workId, categorySelect, newCategoryName, title, content, session);
 
-	    if (savedWorkId == null) {
-	        // タイトル・本文ともに空だったため保存されなかった
-	        return "redirect:/article/edit";
-	    }
+		if (savedWorkId == null) {
+			// タイトル・本文ともに空だったため保存されなかった
+			return "redirect:/article/edit";
+		}
 
-	    ArticleWork work = articleWorkService.findById(savedWorkId);
-	    Long categoryId = work.getCategoryId();
+		ArticleWork work = articleWorkService.findById(savedWorkId);
+		Long categoryId = work.getCategoryId();
 
-	    List<TypoCorrectionService.TypoMatch> matches =
-	        typoCorrectionService.findMatches(categoryId, content);
+		List<TypoCorrectionService.TypoMatch> matches = typoCorrectionService.findMatches(categoryId, content);
 
-	    UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
-	    Long userId = loginUser.getUserId();
-	    model.addAttribute("categories", articleCategoryService.findByUserId(userId));
-	    model.addAttribute("work", work);
-	    model.addAttribute("typoMatches", matches);
+		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
+		Long userId = loginUser.getUserId();
+		model.addAttribute("categories", articleCategoryService.findByUserId(userId));
+		model.addAttribute("work", work);
+		model.addAttribute("typoMatches", matches);
 
-	    String categoryName = articleCategoryService.findById(categoryId)
-	        .map(ArticleCategory::getCategoryName)
-	        .orElse("");
-	    model.addAttribute("categoryName", categoryName);
+		String categoryName = articleCategoryService.findById(categoryId)
+				.map(ArticleCategory::getCategoryName)
+				.orElse("");
+		model.addAttribute("categoryName", categoryName);
 
-	    return "article_correct";
+		return "article_correct";
 	}
 
 	@PostMapping("/article/typo/add")
 	@ResponseBody
 	public Map<String, String> addTypo(@RequestParam String wrongWord,
-	                                    @RequestParam String correctWord,
-	                                    @RequestParam String categorySelect,
-	                                    @RequestParam(required = false) String newCategoryName,
-	                                    @RequestParam(required = false) Boolean isGeneral,
-	                                    HttpSession session) {
+			@RequestParam String correctWord,
+			@RequestParam String categorySelect,
+			@RequestParam(required = false) String newCategoryName,
+			@RequestParam(required = false) Boolean isGeneral,
+			HttpSession session) {
 
-	    UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
-	    Long userId = loginUser.getUserId();
+		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
+		Long userId = loginUser.getUserId();
 
-	    Long targetCategoryId = null;
+		Long targetCategoryId = null;
 
-	    if (isGeneral == null || !isGeneral) {
-	        String categoryName = "__new__".equals(categorySelect) ? newCategoryName : categorySelect;
+		if (isGeneral == null || !isGeneral) {
+			String categoryName = "__new__".equals(categorySelect) ? newCategoryName : categorySelect;
 
-	        if (categoryName != null && !categoryName.isBlank()) {
-	            targetCategoryId = articleCategoryService.findByUserIdAndName(userId, categoryName)
-	                .map(ArticleCategory::getCategoryId)
-	                .orElseGet(() -> articleCategoryService.insertCategory(userId, categoryName));
-	        }
-	    }
+			if (categoryName != null && !categoryName.isBlank()) {
+				targetCategoryId = articleCategoryService.findByUserIdAndName(userId, categoryName)
+						.map(ArticleCategory::getCategoryId)
+						.orElseGet(() -> articleCategoryService.insertCategory(userId, categoryName));
+			}
+		}
 
-	    boolean inserted = typoCorrectionService.insertTypo(targetCategoryId, wrongWord, correctWord, userId);
+		boolean inserted = typoCorrectionService.insertTypo(targetCategoryId, wrongWord, correctWord, userId);
 
-	    if (!inserted) {
-	        return Map.of("result", "duplicate", "message", "この誤字パターンは既に登録されています");
-	    }
+		if (!inserted) {
+			return Map.of("result", "duplicate", "message", "この誤字パターンは既に登録されています");
+		}
 
-	    return Map.of("result", "ok");
+		return Map.of("result", "ok");
 
 	}
 
 	private Long doSaveDraft(Long workId, String categorySelect, String newCategoryName,
-            String title, String content, HttpSession session) {
+			String title, String content, HttpSession session) {
 
-UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
-Long userId = loginUser.getUserId();
+		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
+		Long userId = loginUser.getUserId();
 
-String categoryName = "__new__".equals(categorySelect) ? newCategoryName : categorySelect;
+		String categoryName = "__new__".equals(categorySelect) ? newCategoryName : categorySelect;
 
-Long categoryId = articleCategoryService.findByUserIdAndName(userId, categoryName)
-.map(ArticleCategory::getCategoryId)
-.orElseGet(() -> articleCategoryService.insertCategory(userId, categoryName));
+		Long categoryId = articleCategoryService.findByUserIdAndName(userId, categoryName)
+				.map(ArticleCategory::getCategoryId)
+				.orElseGet(() -> articleCategoryService.insertCategory(userId, categoryName));
 
-if (workId == null) {
+		if (workId == null) {
 
-// 空のまま保存させない
-if ((title == null || title.isBlank()) && (content == null || content.isBlank())) {
-return null; // 呼び出し元で null チェックが必要
-}
+			// 空のまま保存させない
+			if ((title == null || title.isBlank()) && (content == null || content.isBlank())) {
+				return null; // 呼び出し元で null チェックが必要
+			}
 
-// 完全一致の重複チェック
-Optional<ArticleWork> existing = articleWorkService.findDuplicate(userId, categoryId, title, content);
-if (existing.isPresent()) {
-return existing.get().getWorkId();
-}
+			// 完全一致の重複チェック
+			Optional<ArticleWork> existing = articleWorkService.findDuplicate(userId, categoryId, title, content);
+			if (existing.isPresent()) {
+				return existing.get().getWorkId();
+			}
 
-return articleWorkService.insertArticleWork(userId, categoryId, title, content);
-} else {
-articleWorkService.updateArticleWork(workId, categoryId, title, content, userId);
-return workId;
-}
-}
-	
+			return articleWorkService.insertArticleWork(userId, categoryId, title, content);
+		} else {
+			articleWorkService.updateArticleWork(workId, categoryId, title, content, userId);
+			return workId;
+		}
+	}
+
 	@PostMapping("/article/delete")
 	public String delete(@RequestParam Long workId, HttpSession session) {
 
-	    UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
-	    Long userId = loginUser.getUserId();
+		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
+		Long userId = loginUser.getUserId();
 
-	    articleWorkService.delete(workId, userId);
+		articleWorkService.delete(workId, userId);
 
-	    return "redirect:/article/list";
+		return "redirect:/article/list";
+	}
+
+	@Autowired
+	private LanguageToolService languageToolService;
+
+	@PostMapping("/article/typo/scan")
+	@ResponseBody
+	public List<TypoScanResultView> scanTypos(@RequestParam String content,
+			@RequestParam(required = false) Long categoryId) {
+
+		List<LanguageToolService.LanguageToolMatch> allMatches = languageToolService.checkText(content);
+		List<LanguageToolService.LanguageToolMatch> typoMatches = languageToolService.filterTypos(allMatches);
+		List<LanguageToolService.LanguageToolMatch> filtered = typoCorrectionService.excludeKnownTypos(categoryId,
+				typoMatches);
+
+		return filtered.stream()
+				.map(m -> new TypoScanResultView(m.getMatchedText(), m.getSuggestion(), m.getMessage()))
+				.toList();
+	}
+
+	@PostMapping("/article/proofread/scan")
+	@ResponseBody
+	public List<TypoScanResultView> scanTypos(@RequestParam String content,
+			@RequestParam String categorySelect,
+			@RequestParam(required = false) String newCategoryName,
+			HttpSession session) {
+
+		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
+		Long userId = loginUser.getUserId();
+
+		String categoryName = "__new__".equals(categorySelect) ? newCategoryName : categorySelect;
+
+		Long categoryId = (categoryName == null || categoryName.isBlank())
+				? null
+				: articleCategoryService.findByUserIdAndName(userId, categoryName)
+						.map(ArticleCategory::getCategoryId)
+						.orElse(null);
+
+		List<LanguageToolService.LanguageToolMatch> allMatches = languageToolService.checkText(content);
+		List<LanguageToolService.LanguageToolMatch> typoMatches = languageToolService.filterTypos(allMatches);
+		List<LanguageToolService.LanguageToolMatch> filtered = typoCorrectionService.excludeKnownTypos(categoryId,
+				typoMatches);
+
+		return filtered.stream()
+				.map(m -> new TypoScanResultView(m.getMatchedText(), m.getSuggestion(), m.getMessage()))
+				.toList();
+	}
+
+	@PostMapping("/article/proofread/scan")
+	@ResponseBody
+	public List<ProofreadResultView> scanProofreading(@RequestParam String content) {
+
+		List<LanguageToolService.LanguageToolMatch> allMatches = languageToolService.checkText(content);
+		List<LanguageToolService.LanguageToolMatch> proofMatches = languageToolService.filterProofreading(allMatches);
+
+		return proofMatches.stream()
+				.map(m -> new ProofreadResultView(m.getFromPos(), m.getToPos(), m.getMatchedText(), m.getMessage(),
+						m.getSuggestion()))
+				.toList();
 	}
 }

@@ -1,125 +1,163 @@
         body {
-            font-family: sans-serif;
-            background-color: #f2f2f2;
-            margin: 0;
-            padding: 40px;
+        	font-family: sans-serif;
+        	background-color: #f2f2f2;
+        	margin: 0;
+        	padding: 40px;
         }
+
         .edit-box {
-            background: #fff;
-            padding: 32px;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            margin: 0 auto;
+        	background: #fff;
+        	padding: 32px;
+        	border-radius: 8px;
+        	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        	margin: 0 auto;
         }
+
         h1 {
-            font-size: 20px;
-            margin-bottom: 24px;
+        	font-size: 20px;
+        	margin-bottom: 24px;
         }
+
         label {
-            display: block;
-            margin-bottom: 6px;
-            font-size: 14px;
+        	display: block;
+        	margin-bottom: 6px;
+        	font-size: 14px;
         }
+
         input[type="text"] {
-            width: 100%;
-            padding: 8px;
-            margin-bottom: 16px;
-            box-sizing: border-box;
-            border: 1px solid #ccc;
-            border-radius: 4px;
+        	width: 100%;
+        	padding: 8px;
+        	margin-bottom: 16px;
+        	box-sizing: border-box;
+        	border: 1px solid #ccc;
+        	border-radius: 4px;
         }
+
         textarea {
-    width: 100%;
-    min-height: 400px;
-    padding: 8px;
-    margin-bottom: 16px;
-    box-sizing: border-box;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-family: monospace;
-    font-size: 14px;
-    line-height: 1.6;
-    resize: vertical;
-}
+        	width: 100%;
+        	min-height: 400px;
+        	padding: 8px;
+        	margin-bottom: 16px;
+        	box-sizing: border-box;
+        	border: 1px solid #ccc;
+        	border-radius: 4px;
+        	font-family: monospace;
+        	font-size: 14px;
+        	line-height: 1.6;
+        	resize: vertical;
+        }
+
         .button-row {
-            display: flex;
-            gap: 12px;
+        	display: flex;
+        	gap: 12px;
         }
+
         button {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            color: #fff;
+        	padding: 10px 20px;
+        	border: none;
+        	border-radius: 4px;
+        	cursor: pointer;
+        	color: #fff;
         }
-        .btn-save { background-color: #555; }
-        .btn-save:hover { background-color: #777; }
-        .btn-publish { background-color: #1a7f37; }
-        .btn-publish:hover { background-color: #218838; }
-        .btn-correct { background-color: #0366d6; }
-        .btn-correct:hover { background-color: #0454b0; }
-        
-        .btn-back { background-color: #6c757d; }
-.btn-back:hover { background-color: #5a6268; }
 
-.content-wrapper {
-    position: relative;
-}
+        .btn-save {
+        	background-color: #555;
+        }
 
-.content-highlight {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 400px;
-    padding: 8px;
-    box-sizing: border-box;
-    border: 1px solid transparent;
-    font-family: monospace;
-    font-size: 14px;
-    line-height: 1.6;
-    white-space: pre-wrap;
-    word-wrap: break-word;
-    color: transparent;
-    pointer-events: none;
-    overflow-y: auto;
-}
+        .btn-save:hover {
+        	background-color: #777;
+        }
 
-.content-highlight mark {
-    background-color: yellow;
-    color: transparent;
-}
+        .btn-publish {
+        	background-color: #1a7f37;
+        }
 
-textarea#content {
-    position: relative;
-    background: transparent;
-    z-index: 1;
-}
+        .btn-publish:hover {
+        	background-color: #218838;
+        }
 
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 16px;
-}
-th, td {
-    text-align: left;
-    padding: 8px 12px;
-    border-bottom: 1px solid #ddd;
-    font-size: 14px;
-}
-th {
-    background-color: #f7f7f7;
-}
+        .btn-correct {
+        	background-color: #0366d6;
+        }
 
-button:disabled {
-    background-color: #ccc !important;
-    cursor: not-allowed;
-}
+        .btn-correct:hover {
+        	background-color: #0454b0;
+        }
 
-.btn-delete {
-    background-color: #c0392b;
-}
-.btn-delete:hover {
-    background-color: #962d22;
-}
+        .btn-back {
+        	background-color: #6c757d;
+        }
 
+        .btn-back:hover {
+        	background-color: #5a6268;
+        }
+
+        .content-wrapper {
+        	position: relative;
+        }
+
+        .content-highlight {
+        	position: absolute;
+        	top: 0;
+        	left: 0;
+        	width: 100%;
+        	height: 400px;
+        	padding: 8px;
+        	box-sizing: border-box;
+        	border: 1px solid transparent;
+        	font-family: monospace;
+        	font-size: 14px;
+        	line-height: 1.6;
+        	white-space: pre-wrap;
+        	word-wrap: break-word;
+        	color: transparent;
+        	pointer-events: none;
+        	overflow-y: auto;
+        }
+
+        .content-highlight mark {
+        	background-color: yellow;
+        	color: transparent;
+        }
+
+        textarea#content {
+        	position: relative;
+        	background: transparent;
+        	z-index: 1;
+        }
+
+        table {
+        	width: 100%;
+        	border-collapse: collapse;
+        	margin-bottom: 16px;
+        }
+
+        th,
+        td {
+        	text-align: left;
+        	padding: 8px 12px;
+        	border-bottom: 1px solid #ddd;
+        	font-size: 14px;
+        }
+
+        th {
+        	background-color: #f7f7f7;
+        }
+
+        button:disabled {
+        	background-color: #ccc !important;
+        	cursor: not-allowed;
+        }
+
+        .btn-delete {
+        	background-color: #c0392b;
+        }
+
+        .btn-delete:hover {
+        	background-color: #962d22;
+        }
+
+        .content-highlight mark.proof {
+        	background-color: #87ceeb;
+        	color: transparent;
+        }
