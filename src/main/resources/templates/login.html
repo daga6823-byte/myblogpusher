@@ -1,29 +1,36 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+
 <head>
-    <meta charset="UTF-8">
-    <title>ログイン</title>
-    <link rel="stylesheet" th:href="@{/css/login.css}">
+	<meta charset="UTF-8">
+	<title>ログイン</title>
+	<link rel="stylesheet" th:href="@{/css/login.css}">
 </head>
+
 <body>
-    <div class="login-box">
-        <h1>ログイン</h1>
+	<div class="login-box">
+		<h1>ログイン</h1>
 
-        <p class="error" th:if="${error}" th:text="${error}"></p>
+		<p class="error" th:if="${error}" th:text="${error}"></p>
 
-        <form th:action="@{/login}" method="post">
-            <label for="loginId">ログインID</label>
-            <input type="text" id="loginId" name="loginId" required>
+		<form th:action="@{/login}" method="post">
+			<label for="loginId">ログインID</label>
+			<input type="text" id="loginId" name="loginId" required>
 
-            <label for="password">パスワード</label>
-            <input type="password" id="password" name="password" required>
+			<label for="password">パスワード</label>
+			<input type="password" id="password" name="password" required>
 
-            <button type="submit">ログイン</button>
-        </form>
+			<button type="submit">ログイン</button>
+		</form>
 
-        <div class="register-link">
-            <a th:href="@{/register}">新規登録はこちら</a>
-        </div>
-    </div>
+		<div class="register-link">
+			<a th:href="@{/register}">新規登録はこちら</a>
+		</div>
+	</div>
+
+	<div class="register-link">
+		<a th:href="@{/login/forgot}">パスワードをお忘れの方はこちら</a>
+	</div>
 </body>
+
 </html>
