@@ -5,6 +5,7 @@
 	<meta charset="UTF-8">
 	<title>ログイン</title>
 	<link rel="stylesheet" th:href="@{/css/login.css}">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 
 <body>
@@ -25,11 +26,8 @@
 
 		<div class="register-link">
 			<a th:href="@{/register}">新規登録はこちら</a>
+			<a th:href="@{/login/forgot}">パスワードをお忘れの方はこちら</a>
 		</div>
-	</div>
-
-	<div class="register-link">
-		<a th:href="@{/login/forgot}">パスワードをお忘れの方はこちら</a>
 	</div>
 </body>
 
