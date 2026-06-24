@@ -36,7 +36,6 @@ public class ArticleFormatService {
 	}
 
 	private String formatBody(String body) {
-		// 既存の改行は一度取り除き、句点単位で再構築する
 		String normalized = body.replace("\r\n", "\n").replace("\n", "");
 
 		StringBuilder result = new StringBuilder();
@@ -45,27 +44,24 @@ public class ArticleFormatService {
 		for (int i = 0; i < normalized.length(); i++) {
 			char c = normalized.charAt(i);
 			currentSentence.append(c);
-			
+
 			if (SENTENCE_END_CHARS.indexOf(c) >= 0) {
-                appendSentence(result, currentSentence.toString());
-                currentSentence.setLength(0);
-            }
-        }
-
-	// 句点で終わっていない残りの文字列（末尾の不完全な文）
-	if(!currentSentence.isEmpty())
-
-	{
-		String remaining = currentSentence.toString().trim();
-		if (!remaining.isEmpty()) {
-			if (result.length() > 0) {
-				result.append(startsWithTrigger(remaining) ? "\n\n" : "\n");
+				appendSentence(result, currentSentence.toString());
+				currentSentence.setLength(0);
 			}
-			result.append(remaining);
 		}
-	}
 
-	return result.toString();
+		if (!currentSentence.isEmpty()) {
+			String remaining = currentSentence.toString().trim();
+			if (!remaining.isEmpty()) {
+				if (result.length() > 0) {
+					result.append(startsWithTrigger(remaining) ? "\n\n\n" : "\n\n");
+				}
+				result.append(remaining);
+			}
+		}
+
+		return result.toString();
 	}
 
 	private void appendSentence(StringBuilder result, String sentence) {
@@ -75,7 +71,7 @@ public class ArticleFormatService {
 		}
 
 		if (result.length() > 0) {
-			result.append(startsWithTrigger(trimmed) ? "\n\n" : "\n");
+			result.append(startsWithTrigger(trimmed) ? "\n\n\n" : "\n\n");
 		}
 
 		result.append(trimmed);
