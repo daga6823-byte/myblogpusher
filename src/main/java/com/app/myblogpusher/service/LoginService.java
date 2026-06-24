@@ -13,27 +13,55 @@ import com.app.myblogpusher.repository.UserMasterRepository;
 public class LoginService {
 
 	@Autowired
-    private UserMasterRepository userMasterRepository;
+	private UserMasterRepository userMasterRepository;
 	@Autowired
 	private PasswordEncoder passwordEncoder;
 
 	public Optional<UserMaster> findAuthenticatedUser(String loginId, String password) {
-        Optional<UserMaster> userOpt = userMasterRepository.findByLoginId(loginId);
+		Optional<UserMaster> userOpt = userMasterRepository.findByLoginId(loginId);
 
-        if (userOpt.isEmpty()) {
-            return Optional.empty();
-        }
+		if (userOpt.isEmpty()) {
+			return Optional.empty();
+		}
 
-        UserMaster user = userOpt.get();
+		UserMaster user = userOpt.get();
 
-        if ("BANNED".equals(user.getStatus())) {
-            return Optional.empty();
-        }
+		if ("BANNED".equals(user.getStatus())) {
+			return Optional.empty();
+		}
 
-        if (!passwordEncoder.matches(password, user.getPassword())) {
-            return Optional.empty();
-        }
+		if (!passwordEncoder.matches(password, user.getPassword())) {
+			return Optional.empty();
+		}
 
-        return Optional.of(user);
-    }
+		return Optional.of(user);
+	}
+
+	public Optional<UserMaster> findUserForPasswordReset(String loginId, String email) {
+		Optional<UserMaster> userOpt = userMasterRepository.findByLoginIdAndEmail(loginId, email);
+
+		if (userOpt.isEmpty()) {
+			return Optional.empty();
+		}
+
+		UserMaster user = userOpt.get();
+		if ("BANNED".equals(user.getStatus())) {
+			return Optional.empty();
+		}
+
+		return Optional.of(user);
+	}
+
+	public boolean resetPassword(Long userId, String newPassword) {
+		Optional<UserMaster> userOpt = userMasterRepository.findById(userId);
+
+		if (userOpt.isEmpty()) {
+			return false;
+		}
+
+		UserMaster user = userOpt.get();
+		user.setPassword(passwordEncoder.encode(newPassword));
+		userMasterRepository.save(user);
+		return true;
+	}
 }

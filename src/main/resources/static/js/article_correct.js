@@ -43,35 +43,35 @@ window.addEventListener('DOMContentLoaded', syncSelectAllState);
 
 //選択中のチェックボックス
 function isAlreadyCorrect(text, start, matchedLength, correctWord) {
-    if (!correctWord) return false;
-    const searchFrom = Math.max(0, start - correctWord.length);
-    let idx = text.indexOf(correctWord, searchFrom);
-    while (idx !== -1 && idx <= start) {
-        const correctEnd = idx + correctWord.length;
-        if (start + matchedLength <= correctEnd) {
-            return true; // すでに正しい単語の内部に収まっている
-        }
-        idx = text.indexOf(correctWord, idx + 1);
-    }
-    return false;
+	if (!correctWord) return false;
+	const searchFrom = Math.max(0, start - correctWord.length);
+	let idx = text.indexOf(correctWord, searchFrom);
+	while (idx !== -1 && idx <= start) {
+		const correctEnd = idx + correctWord.length;
+		if (start + matchedLength <= correctEnd) {
+			return true; // すでに正しい単語の内部に収まっている
+		}
+		idx = text.indexOf(correctWord, idx + 1);
+	}
+	return false;
 }
 
 function safeReplaceAll(text, wrong, correct) {
-    let result = '';
-    let cursor = 0;
-    let idx = text.indexOf(wrong, cursor);
+	let result = '';
+	let cursor = 0;
+	let idx = text.indexOf(wrong, cursor);
 
-    while (idx !== -1) {
-        if (isAlreadyCorrect(text, idx, wrong.length, correct)) {
-            result += text.slice(cursor, idx + wrong.length);
-        } else {
-            result += text.slice(cursor, idx) + correct;
-        }
-        cursor = idx + wrong.length;
-        idx = text.indexOf(wrong, cursor);
-    }
-    result += text.slice(cursor);
-    return result;
+	while (idx !== -1) {
+		if (isAlreadyCorrect(text, idx, wrong.length, correct)) {
+			result += text.slice(cursor, idx + wrong.length);
+		} else {
+			result += text.slice(cursor, idx) + correct;
+		}
+		cursor = idx + wrong.length;
+		idx = text.indexOf(wrong, cursor);
+	}
+	result += text.slice(cursor);
+	return result;
 }
 
 document.getElementById('applyFixesButton')?.addEventListener('click', () => {
@@ -141,8 +141,8 @@ document.getElementById('addTypoButton')?.addEventListener('click', () => {
 				document.querySelector('form').action = '/article/correct';
 				document.querySelector('form').submit();
 			} else if (data.result === 'duplicate') {
-        alert(data.message);
-    }
+				alert(data.message);
+			}
 		});
 });
 
@@ -194,13 +194,22 @@ function renderHighlight() {
 	const typoPairs = Array.from(document.querySelectorAll('.typo-checkbox'))
 		.map(cb => ({ wrong: cb.dataset.wrong, correct: cb.dataset.correct }));
 
-	const matches = getHighlightMatches(text, typoPairs);
+	const typoMatches = getHighlightMatches(text, typoPairs)
+		.map(m => ({ ...m, type: 'typo' }));
+
+	// 推敲範囲のうち、誤字範囲と重ならないものだけ採用（誤字優先）
+	const proofMatches = (proofreadRanges || [])
+		.filter(p => !typoMatches.some(t => p.start < t.end && p.end > t.start))
+		.map(p => ({ start: p.start, end: p.end, type: 'proof' }));
+
+	const allMatches = [...typoMatches, ...proofMatches].sort((a, b) => a.start - b.start);
 
 	let html = '';
 	let cursor = 0;
-	matches.forEach(({ start, end }) => {
+	allMatches.forEach(({ start, end, type }) => {
 		html += escapeHtml(text.slice(cursor, start));
-		html += '<mark>' + escapeHtml(text.slice(start, end)) + '</mark>';
+		const cls = type === 'proof' ? ' class="proof"' : '';
+		html += `<mark${cls}>` + escapeHtml(text.slice(start, end)) + '</mark>';
 		cursor = end;
 	});
 	html += escapeHtml(text.slice(cursor));
@@ -243,3 +252,252 @@ function updateButtonState() {
 });
 
 window.addEventListener('DOMContentLoaded', updateButtonState);
+
+// ===== 誤字検索（LanguageTool） =====
+
+document.getElementById('scanTypoButton')?.addEventListener('click', async () => {
+	const content = document.getElementById('content').value;
+	const categorySelect = document.getElementById('categorySelect').value;
+	const newCategoryName = document.getElementById('newCategoryName').value;
+
+	const params = new URLSearchParams();
+	params.append('content', content);
+	params.append('categorySelect', categorySelect);
+	params.append('newCategoryName', newCategoryName);
+
+	const button = document.getElementById('scanTypoButton');
+	const originalLabel = button.textContent;
+	button.textContent = '検索中...';
+	button.disabled = true;
+
+	try {
+		const res = await fetch('/article/typo/scan', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+			body: params.toString()
+		});
+
+		if (!res.ok) {
+			alert('誤字検索に失敗しました。');
+			return;
+		}
+
+		const results = await res.json();
+		renderTypoScanResults(results);
+
+	} catch (err) {
+		alert('誤字検索に失敗しました。');
+	} finally {
+		button.textContent = originalLabel;
+		button.disabled = false;
+	}
+});
+
+function renderTypoScanResults(results) {
+	const container = document.getElementById('ltTypoResults');
+	const addSelectedButton = document.getElementById('addSelectedTyposButton');
+
+	if (results.length === 0) {
+		container.innerHTML = '<p>新たな誤字は見つかりませんでした。</p>';
+		addSelectedButton.style.display = 'none';
+		return;
+	}
+
+	let html = '<table><thead><tr>' +
+		'<th><input type="checkbox" id="ltSelectAllCheckbox"></th>' +
+		'<th>誤字</th><th>修正候補</th><th>説明</th>' +
+		'</tr></thead><tbody>';
+
+	results.forEach((r, i) => {
+		html += `<tr>
+            <td><input type="checkbox" class="lt-typo-checkbox" data-wrong="${escapeAttr(r.wrongWord)}" data-correct="${escapeAttr(r.suggestion)}" checked></td>
+            <td>${escapeHtml(r.wrongWord)}</td>
+            <td>${escapeHtml(r.suggestion)}</td>
+            <td>${escapeHtml(r.message)}</td>
+        </tr>`;
+	});
+
+	html += '</tbody></table>';
+	container.innerHTML = html;
+	addSelectedButton.style.display = 'inline-block';
+
+	document.getElementById('ltSelectAllCheckbox')?.addEventListener('change', (e) => {
+		document.querySelectorAll('.lt-typo-checkbox').forEach(cb => {
+			cb.checked = e.target.checked;
+		});
+	});
+}
+
+function escapeAttr(text) {
+	return (text || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+}
+
+document.getElementById('addSelectedTyposButton')?.addEventListener('click', async () => {
+	const checkboxes = document.querySelectorAll('.lt-typo-checkbox:checked');
+
+	if (checkboxes.length === 0) {
+		alert('登録する項目が選択されていません。');
+		return;
+	}
+
+	const categorySelect = document.getElementById('categorySelect').value;
+	const newCategoryName = document.getElementById('newCategoryName').value;
+	const isGeneral = document.getElementById('newTypoIsGeneral').checked;
+
+	for (const cb of checkboxes) {
+		const params = new URLSearchParams();
+		params.append('wrongWord', cb.dataset.wrong);
+		params.append('correctWord', cb.dataset.correct);
+		params.append('categorySelect', categorySelect);
+		params.append('newCategoryName', newCategoryName);
+		params.append('isGeneral', isGeneral);
+
+		await fetch('/article/typo/add', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+			body: params.toString()
+		});
+	}
+
+	alert('選択した誤字パターンを登録しました。');
+	document.querySelector('form').action = '/article/correct';
+	document.querySelector('form').submit();
+});
+
+
+// ===== 推敲（LanguageTool） =====
+
+document.getElementById('proofreadButton')?.addEventListener('click', async () => {
+	const content = document.getElementById('content').value;
+	const categorySelect = document.getElementById('categorySelect').value;
+	const newCategoryName = document.getElementById('newCategoryName').value;
+
+	const params = new URLSearchParams();
+	params.append('content', content);
+	params.append('categorySelect', categorySelect);
+	params.append('newCategoryName', newCategoryName);
+
+	const button = document.getElementById('proofreadButton');
+	const originalLabel = button.textContent;
+	button.textContent = '解析中...';
+	button.disabled = true;
+
+	try {
+		const res = await fetch('/article/proofread/scan', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+			body: params.toString()
+		});
+
+		if (!res.ok) {
+			alert('推敲処理に失敗しました。');
+			return;
+		}
+
+		const results = await res.json();
+		renderProofreadResults(content, results);
+
+	} catch (err) {
+		alert('推敲処理に失敗しました。');
+	} finally {
+		button.textContent = originalLabel;
+		button.disabled = false;
+	}
+});
+
+let proofreadRanges = [];
+let proofreadContentSnapshot = '';
+
+function renderProofreadResults(content, results) {
+	const emptyMessage = document.getElementById('proofreadEmptyMessage');
+	const container = document.getElementById('proofreadListContainer');
+	const applyButton = document.getElementById('applyProofreadButton');
+
+	proofreadContentSnapshot = content;
+
+	if (results.length === 0) {
+		proofreadRanges = [];
+		emptyMessage.style.display = 'block';
+		container.innerHTML = '';
+		applyButton.style.display = 'none';
+		renderHighlight();
+		return;
+	}
+
+	emptyMessage.style.display = 'none';
+	proofreadRanges = results.map(r => ({ start: r.fromPos, end: r.toPos, message: r.message }));
+
+	let html = '<table><thead><tr>' +
+		'<th><input type="checkbox" id="proofSelectAllCheckbox"></th>' +
+		'<th>該当箇所</th><th>指摘内容</th><th>修正候補</th>' +
+		'</tr></thead><tbody>';
+
+	results.forEach(r => {
+		const hasSuggestion = r.suggestion && r.suggestion.trim() !== '';
+		const disabledAttr = hasSuggestion ? '' : 'disabled';
+		const checkedAttr = hasSuggestion ? 'checked' : '';
+
+		html += `<tr>
+            <td><input type="checkbox" class="proof-checkbox" data-index="${r.index}" data-from="${r.fromPos}" data-to="${r.toPos}" data-suggestion="${escapeAttr(r.suggestion)}" ${checkedAttr} ${disabledAttr}></td>
+            <td>${escapeHtml(r.matchedText)}</td>
+            <td>${escapeHtml(r.message)}</td>
+            <td>${hasSuggestion ? escapeHtml(r.suggestion) : '（候補なし）'}</td>
+        </tr>`;
+	});
+
+	html += '</tbody></table>';
+	container.innerHTML = html;
+	applyButton.style.display = 'inline-block';
+
+	document.getElementById('proofSelectAllCheckbox')?.addEventListener('change', (e) => {
+		document.querySelectorAll('.proof-checkbox:not(:disabled)').forEach(cb => {
+			cb.checked = e.target.checked;
+		});
+	});
+
+	renderHighlight();
+}
+
+document.getElementById('applyProofreadButton')?.addEventListener('click', () => {
+	const checkboxes = Array.from(document.querySelectorAll('.proof-checkbox:checked'));
+
+	if (checkboxes.length === 0) {
+		alert('修正する項目が選択されていません。');
+		return;
+	}
+
+	const textarea = document.getElementById('content');
+
+	if (textarea.value !== proofreadContentSnapshot) {
+		alert('本文が変更されています。お手数ですが再度「推敲」を実行してください。');
+		return;
+	}
+
+	// 位置がずれないよう、後ろの箇所から処理する
+	const sorted = checkboxes
+		.map(cb => ({
+			from: parseInt(cb.dataset.from, 10),
+			to: parseInt(cb.dataset.to, 10),
+			suggestion: cb.dataset.suggestion
+		}))
+		.sort((a, b) => b.from - a.from);
+
+	const confirmList = sorted
+		.map(c => `「${textarea.value.slice(c.from, c.to)}」→「${c.suggestion}」`)
+		.join('\n');
+
+	const ok = confirm('以下の内容を修正してもよろしいですか？\n\n' + confirmList);
+	if (!ok) return;
+
+	let text = textarea.value;
+	sorted.forEach(c => {
+		text = text.slice(0, c.from) + c.suggestion + text.slice(c.to);
+	});
+
+	textarea.value = text;
+	contentChanged = true;
+	alert('修正しました。');
+
+	document.querySelector('form').action = '/article/correct';
+	document.querySelector('form').submit();
+});
