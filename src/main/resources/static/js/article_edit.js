@@ -163,3 +163,38 @@ if (copyAllButton) {
         }
     });
 }
+
+//自動保存機能
+let workspaceTimer;
+
+function saveWorkspace() {
+
+    const data = {
+        title: document.getElementById('title').value,
+        content: document.getElementById('content').value
+    };
+
+    fetch('/article/workspace/save', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    }).catch(err => console.error(err));
+}
+
+function scheduleWorkspaceSave() {
+    clearTimeout(workspaceTimer);
+
+    workspaceTimer = setTimeout(() => {
+        saveWorkspace();
+    }, 5000);
+}
+
+['title', 'content'].forEach(id => {
+    const el = document.getElementById(id);
+
+    if (el) {
+        el.addEventListener('input', scheduleWorkspaceSave);
+    }
+});

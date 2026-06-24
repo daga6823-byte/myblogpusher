@@ -23,6 +23,7 @@ import com.app.myblogpusher.entity.ArticleCategory;
 import com.app.myblogpusher.entity.ArticleWork;
 import com.app.myblogpusher.entity.UserMaster;
 import com.app.myblogpusher.service.ArticleCategoryService;
+import com.app.myblogpusher.service.ArticleFormatService;
 import com.app.myblogpusher.service.ArticleWorkService;
 import com.app.myblogpusher.service.ArticleWorkspaceService;
 import com.app.myblogpusher.service.HomophoneTypoScanService;
@@ -45,6 +46,9 @@ public class ArticleController {
 
 	@Autowired
 	private ArticleWorkspaceService workspaceService;
+	
+	@Autowired
+	private ArticleFormatService articleFormatService;
 
 	@GetMapping("/article/edit")
 	public String editForm(@RequestParam(required = false) Long workId,
@@ -219,35 +223,35 @@ public class ArticleController {
 	}
 
 	private Long doSaveDraft(Long workId, String categorySelect, String newCategoryName,
-			String title, String content, HttpSession session) {
+	        String title, String content, HttpSession session) {
 
-		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
-		Long userId = loginUser.getUserId();
+	    UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
+	    Long userId = loginUser.getUserId();
 
-		String categoryName = "__new__".equals(categorySelect) ? newCategoryName : categorySelect;
+	    String categoryName = "__new__".equals(categorySelect) ? newCategoryName : categorySelect;
 
-		Long categoryId = articleCategoryService.findByUserIdAndName(userId, categoryName)
-				.map(ArticleCategory::getCategoryId)
-				.orElseGet(() -> articleCategoryService.insertCategory(userId, categoryName));
+	    Long categoryId = articleCategoryService.findByUserIdAndName(userId, categoryName)
+	            .map(ArticleCategory::getCategoryId)
+	            .orElseGet(() -> articleCategoryService.insertCategory(userId, categoryName));
 
-		if (workId == null) {
+	    String formattedContent = articleFormatService.formatContent(content);
 
-			// 空のまま保存させない
-			if ((title == null || title.isBlank()) && (content == null || content.isBlank())) {
-				return null; // 呼び出し元で null チェックが必要
-			}
+	    if (workId == null) {
 
-			// 完全一致の重複チェック
-			Optional<ArticleWork> existing = articleWorkService.findDuplicate(userId, categoryId, title, content);
-			if (existing.isPresent()) {
-				return existing.get().getWorkId();
-			}
+	        if ((title == null || title.isBlank()) && (formattedContent == null || formattedContent.isBlank())) {
+	            return null;
+	        }
 
-			return articleWorkService.insertArticleWork(userId, categoryId, title, content);
-		} else {
-			articleWorkService.updateArticleWork(workId, categoryId, title, content, userId);
-			return workId;
-		}
+	        Optional<ArticleWork> existing = articleWorkService.findDuplicate(userId, categoryId, title, formattedContent);
+	        if (existing.isPresent()) {
+	            return existing.get().getWorkId();
+	        }
+
+	        return articleWorkService.insertArticleWork(userId, categoryId, title, formattedContent);
+	    } else {
+	        articleWorkService.updateArticleWork(workId, categoryId, title, formattedContent, userId);
+	        return workId;
+	    }
 	}
 
 	@PostMapping("/article/delete")
