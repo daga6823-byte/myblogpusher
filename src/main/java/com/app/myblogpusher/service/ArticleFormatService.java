@@ -11,6 +11,7 @@ public class ArticleFormatService {
 	private static final Pattern FRONT_MATTER_PATTERN = Pattern.compile("^\\+\\+\\+[\\s\\S]*?\\+\\+\\+\\n*");
 	private static final String PARAGRAPH_BREAK_TRIGGER = "さて";
 	private static final String SENTENCE_END_CHARS = "。？！";
+	private static final String INDENT = "　";
 
 	/**
 	 * フロントマターを保持したまま、本文部分のみを句点区切りで整形する。
@@ -26,8 +27,10 @@ public class ArticleFormatService {
 		String body = content;
 
 		if (matcher.find()) {
-			frontMatter = matcher.group();
+			String rawFrontMatter = matcher.group();
 			body = content.substring(matcher.end());
+			// 末尾の改行をすべて取り除いてから、空行をひとつ確実に補う
+			frontMatter = rawFrontMatter.replaceAll("\\n+$", "") + "\n\n";
 		}
 
 		String formattedBody = formatBody(body);
@@ -36,7 +39,7 @@ public class ArticleFormatService {
 	}
 
 	private String formatBody(String body) {
-		String normalized = body.replace("\r\n", "\n").replace("\n", "");
+		String normalized = body.replace("\r\n", "\n").replace("\n", "").replace(INDENT, "");
 
 		StringBuilder result = new StringBuilder();
 		StringBuilder currentSentence = new StringBuilder();
