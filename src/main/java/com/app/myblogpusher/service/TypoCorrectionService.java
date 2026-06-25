@@ -35,6 +35,10 @@ public class TypoCorrectionService {
 
 		for (TypoCorrection rule : rules) {
 
+			if (rule.getWrongWord().equals(rule.getCorrectWord())) {
+	            continue; // 除外指定の行はそのまま検出ルールにはしない
+	        }
+			
 			Pattern pattern = buildPattern(rule.getWrongWord());
 			Matcher matcher = pattern.matcher(content);
 
