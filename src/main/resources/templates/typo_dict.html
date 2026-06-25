@@ -6,6 +6,7 @@
 	<title>誤字辞典</title>
 	<link rel="stylesheet" th:href="@{/css/article_edit.css}">
 	<link rel="stylesheet" th:href="@{/css/home.css}">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 
 <body>
@@ -13,6 +14,27 @@
 		<h1>誤字辞典</h1>
 		<form th:action="@{/logout}" method="post">
 			<button type="submit" class="btn-logout-link">ログアウト</button>
+		</form>
+	</div>
+
+	<!-- 新規登録フォーム -->
+	<div style="margin-bottom: 24px; padding: 16px; background-color: #e9ecef; border-radius: 4px;">
+		<h3 style="font-size: 14px; margin-bottom: 12px;">誤字パターンを新規登録</h3>
+		<form th:action="@{/typo-dict/add}" method="post">
+			<label for="newWrongWord">誤字</label>
+			<input type="text" id="newWrongWord" name="wrongWord" required>
+
+			<label for="newCorrectWord">正しい表記</label>
+			<input type="text" id="newCorrectWord" name="correctWord" required>
+
+			<label for="newCategoryId">カテゴリー</label>
+			<select id="newCategoryId" name="categoryId">
+				<option value="">汎用（全カテゴリー共通）</option>
+				<option th:each="cat : ${categories}" th:value="${cat.categoryId}" th:text="${cat.categoryName}">
+				</option>
+			</select>
+
+			<button type="submit" class="btn-correct">登録する</button>
 		</form>
 	</div>
 
@@ -24,9 +46,24 @@
 		</select>
 	</div>
 
+	<!-- 一括操作バー -->
+	<div style="margin-bottom: 16px; padding: 12px; background-color: #fff3cd; border-radius: 4px;">
+		<label for="bulkCategorySelect">選択項目のカテゴリーを変更</label>
+		<select id="bulkCategorySelect">
+			<option value="">汎用（全カテゴリー共通）</option>
+			<option th:each="cat : ${categories}" th:value="${cat.categoryId}" th:text="${cat.categoryName}"></option>
+		</select>
+		<button type="button" id="bulkCategoryButton" class="btn-correct">カテゴリーを変更</button>
+		<button type="button" id="bulkDeleteButton" class="btn-delete">選択項目を削除</button>
+	</div>
+
+	<form id="bulkCategoryForm" th:action="@{/typo-dict/bulk-category}" method="post" style="display:none;"></form>
+	<form id="bulkDeleteForm" th:action="@{/typo-dict/bulk-delete}" method="post" style="display:none;"></form>
+
 	<table>
 		<thead>
 			<tr>
+				<th><input type="checkbox" id="selectAllTypoCheckbox"></th>
 				<th class="sortable" data-sort="category">カテゴリー <span class="sort-icon"></span></th>
 				<th class="sortable" data-sort="wrong">誤字 <span class="sort-icon"></span></th>
 				<th class="sortable" data-sort="correct">正しい表記 <span class="sort-icon"></span></th>
@@ -36,6 +73,7 @@
 		<tbody id="typoTableBody">
 			<tr th:each="t : ${typos}" th:data-category="${t.categoryName}" th:data-wrong="${t.wrongWord}"
 				th:data-correct="${t.correctWord}">
+				<td><input type="checkbox" class="bulk-typo-checkbox" th:value="${t.typoId}"></td>
 				<td th:text="${t.categoryName}"></td>
 				<td th:text="${t.wrongWord}"></td>
 				<td th:text="${t.correctWord}"></td>
@@ -55,7 +93,6 @@
 	</table>
 
 	<button type="button" id="backButton" class="btn-back">戻る</button>
-	</div>
 
 	<script th:src="@{/js/typo_dict.js}"></script>
 </body>

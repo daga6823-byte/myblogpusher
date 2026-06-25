@@ -70,3 +70,79 @@ document.getElementById('categoryFilter').addEventListener('change', () => {
 		row.style.display = (selected === '' || category === selected) ? '' : 'none';
 	});
 });
+
+// ===== 一括選択・一括操作 =====
+
+const selectAllTypoCheckbox = document.getElementById('selectAllTypoCheckbox');
+
+selectAllTypoCheckbox?.addEventListener('change', () => {
+	document.querySelectorAll('.bulk-typo-checkbox').forEach(cb => {
+		cb.checked = selectAllTypoCheckbox.checked;
+	});
+});
+
+function getSelectedTypoIds() {
+	return Array.from(document.querySelectorAll('.bulk-typo-checkbox:checked'))
+		.map(cb => cb.value);
+}
+
+document.getElementById('bulkCategoryButton')?.addEventListener('click', () => {
+	const selectedIds = getSelectedTypoIds();
+
+	if (selectedIds.length === 0) {
+		alert('変更する項目が選択されていません。');
+		return;
+	}
+
+	const categoryId = document.getElementById('bulkCategorySelect').value;
+	const categoryLabel = document.getElementById('bulkCategorySelect').selectedOptions[0].textContent;
+
+	const ok = confirm(`選択した${selectedIds.length}件のカテゴリーを「${categoryLabel}」に変更してもよろしいですか？`);
+	if (!ok) return;
+
+	const form = document.getElementById('bulkCategoryForm');
+	form.innerHTML = '';
+
+	selectedIds.forEach(id => {
+		const input = document.createElement('input');
+		input.type = 'hidden';
+		input.name = 'typoIds';
+		input.value = id;
+		form.appendChild(input);
+	});
+
+	if (categoryId) {
+		const categoryInput = document.createElement('input');
+		categoryInput.type = 'hidden';
+		categoryInput.name = 'categoryId';
+		categoryInput.value = categoryId;
+		form.appendChild(categoryInput);
+	}
+
+	form.submit();
+});
+
+document.getElementById('bulkDeleteButton')?.addEventListener('click', () => {
+	const selectedIds = getSelectedTypoIds();
+
+	if (selectedIds.length === 0) {
+		alert('削除する項目が選択されていません。');
+		return;
+	}
+
+	const ok = confirm(`選択した${selectedIds.length}件を削除してもよろしいですか？`);
+	if (!ok) return;
+
+	const form = document.getElementById('bulkDeleteForm');
+	form.innerHTML = '';
+
+	selectedIds.forEach(id => {
+		const input = document.createElement('input');
+		input.type = 'hidden';
+		input.name = 'typoIds';
+		input.value = id;
+		form.appendChild(input);
+	});
+
+	form.submit();
+});

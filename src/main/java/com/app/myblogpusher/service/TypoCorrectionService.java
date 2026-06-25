@@ -216,6 +216,39 @@ public class TypoCorrectionService {
 	        .filter(m -> !knownWrongWords.contains(m.getMatchedText()))
 	        .toList();
 	}
+	
+	public boolean updateCategory(List<Long> typoIds, Long categoryId, Long userId) {
+
+	    List<TypoCorrection> typos = typoCorrectionRepository.findAllById(typoIds);
+
+	    for (TypoCorrection typo : typos) {
+	        if (!typo.getCreateUser().equals(userId)) {
+	            throw new IllegalStateException("他のユーザーの誤字パターンは編集できません");
+	        }
+	    }
+
+	    for (TypoCorrection typo : typos) {
+	        typo.setCategoryId(categoryId);
+	        typo.setUpdateUser(userId);
+	        typo.setUpdateDate(LocalDateTime.now());
+	    }
+
+	    typoCorrectionRepository.saveAll(typos);
+	    return true;
+	}
+
+	public void deleteAll(List<Long> typoIds, Long userId) {
+
+	    List<TypoCorrection> typos = typoCorrectionRepository.findAllById(typoIds);
+
+	    for (TypoCorrection typo : typos) {
+	        if (!typo.getCreateUser().equals(userId)) {
+	            throw new IllegalStateException("他のユーザーの誤字パターンは削除できません");
+	        }
+	    }
+
+	    typoCorrectionRepository.deleteAll(typos);
+	}
 
 	public static class TypoMatch {
 		private final int index;

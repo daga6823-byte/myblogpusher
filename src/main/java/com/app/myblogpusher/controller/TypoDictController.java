@@ -12,7 +12,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.app.myblogpusher.dto.TypoDictionaryView;
+import com.app.myblogpusher.entity.ArticleCategory;
 import com.app.myblogpusher.entity.UserMaster;
+import com.app.myblogpusher.service.ArticleCategoryService;
 import com.app.myblogpusher.service.TypoCorrectionService;
 
 import jakarta.servlet.http.HttpSession;
@@ -23,6 +25,9 @@ public class TypoDictController {
 	@Autowired
 	private TypoCorrectionService typoCorrectionService;
 
+	@Autowired
+	private ArticleCategoryService articleCategoryService;
+	
 	@GetMapping("/typo-dict/list")
 	public String list(HttpSession session, Model model) {
 
@@ -38,6 +43,10 @@ public class TypoDictController {
 				.sorted()
 				.toList();
 		model.addAttribute("categoryNames", categoryNames);
+
+		// 新規登録・一括カテゴリー変更用：ユーザーの全カテゴリー一覧
+		List<ArticleCategory> categories = articleCategoryService.findByUserId(userId);
+		model.addAttribute("categories", categories);
 
 		return "typo_dict";
 	}
@@ -64,6 +73,48 @@ public class TypoDictController {
 		Long userId = loginUser.getUserId();
 
 		typoCorrectionService.delete(typoId, userId);
+
+		return "redirect:/typo-dict/list";
+	}
+
+	// 新規登録（この画面から直接）
+	@PostMapping("/typo-dict/add")
+	public String add(@RequestParam String wrongWord,
+			@RequestParam String correctWord,
+			@RequestParam(required = false) Long categoryId,
+			HttpSession session,
+			Model model) {
+
+		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
+		Long userId = loginUser.getUserId();
+
+		typoCorrectionService.insertTypo(categoryId, wrongWord, correctWord, userId);
+
+		return "redirect:/typo-dict/list";
+	}
+
+	// 一括カテゴリー変更
+	@PostMapping("/typo-dict/bulk-category")
+	public String bulkUpdateCategory(@RequestParam List<Long> typoIds,
+			@RequestParam(required = false) Long categoryId,
+			HttpSession session) {
+
+		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
+		Long userId = loginUser.getUserId();
+
+		typoCorrectionService.updateCategory(typoIds, categoryId, userId);
+
+		return "redirect:/typo-dict/list";
+	}
+
+	// 一括削除
+	@PostMapping("/typo-dict/bulk-delete")
+	public String bulkDelete(@RequestParam List<Long> typoIds, HttpSession session) {
+
+		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
+		Long userId = loginUser.getUserId();
+
+		typoCorrectionService.deleteAll(typoIds, userId);
 
 		return "redirect:/typo-dict/list";
 	}
