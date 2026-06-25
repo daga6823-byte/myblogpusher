@@ -30,6 +30,11 @@ public class TypoCorrectionService {
 		// wrong_wordの文字数が長い順に並べ替える（範囲が広いルールを優先）
 		rules.sort((a, b) -> b.getWrongWord().length() - a.getWrongWord().length());
 
+		List<String> excludeWords = rules.stream()
+		        .filter(r -> r.getWrongWord().equals(r.getCorrectWord()))
+		        .map(TypoCorrection::getWrongWord)
+		        .toList();
+		
 		List<TypoMatch> matches = new ArrayList<>();
 		int idx = 0;
 
@@ -46,9 +51,22 @@ public class TypoCorrectionService {
 				String matchedText = matcher.group();
 				int start = matcher.start();
 
-				if (isAlreadyCorrect(content, start, matchedText.length(), rule.getCorrectWord())) {
-				    continue;
-				}
+				int correctLength = rule.getCorrectWord().length();
+	            int endForCheck = Math.min(content.length(), start + correctLength);
+	            String surroundingText = content.substring(start, endForCheck);
+
+	            if (surroundingText.equals(rule.getCorrectWord())) {
+	                continue;
+	            }
+
+	            if (excludeWords.contains(matchedText)) {
+	                continue;
+	            }
+
+	            //				if (isAlreadyCorrect(content, start, matchedText.length(), rule.getCorrectWord())) {
+//				    continue;
+//				}
+			
 
 				String contextHtml = buildContextHtml(content, start, matchedText);
 				matches.add(new TypoMatch(idx, matchedText, rule.getCorrectWord(), contextHtml));
