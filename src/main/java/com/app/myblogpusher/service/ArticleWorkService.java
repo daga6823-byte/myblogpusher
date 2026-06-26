@@ -40,7 +40,7 @@ public class ArticleWorkService {
 		work.setCategoryId(categoryId);
 		work.setTitle(title);
 		work.setContent(content);
-		work.setContent(slug);
+		work.setSlug(slug);
 		work.setUpdateUser(userId);
 		work.setUpdateDate(LocalDateTime.now());
 		articleWorkRepository.save(work);

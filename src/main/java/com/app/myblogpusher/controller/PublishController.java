@@ -121,8 +121,10 @@ public class PublishController {
 			gitHubPushService.pushArticle(
 					repo,
 					loginUser.getCipherKey(),
-					userId, slug,
-					content, slug);
+					categoryId,
+					title,
+					content,
+					slug);
 
 			// article_workに保存
 			if (workId != null) {

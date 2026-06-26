@@ -49,6 +49,9 @@ public class GitHubPushService {
 				repoEntity.getAccessToken(),
 				repoEntity.getTokenIv(),
 				cipherKey);
+		
+		System.out.println("Decrypted token length: " + accessToken.length());
+		System.out.println("Token starts with: " + accessToken.substring(0, Math.min(10, accessToken.length())));
 
 		String repoPath = System.getProperty("java.io.tmpdir")
 				+ "/myblogpusher_"
@@ -101,8 +104,8 @@ public class GitHubPushService {
 			git.push()
 					.setCredentialsProvider(
 							new UsernamePasswordCredentialsProvider(
-									"git",
-									accessToken))
+								    repoEntity.getRepoOwner(),
+								    accessToken))
 					.call();
 
 		} finally {
