@@ -32,7 +32,7 @@ public class RepositorySettingController {
 		this.tokenCipherService = tokenCipherService;
 	}
 
-	@GetMapping("/repository-setting")
+	@GetMapping("/repository/setting")
 	public String showSettingForm(Model model, HttpSession session) {
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 
