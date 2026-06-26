@@ -85,7 +85,7 @@ public class RepositorySettingController {
 
 		// バリデーションエラーがあれば画面に戻す
 		if (bindingResult.hasErrors()) {
-			model.addAttribute("registered", false);
+			model.addAttribute("registered", !isNew);
 			return "repository/setting";
 		}
 

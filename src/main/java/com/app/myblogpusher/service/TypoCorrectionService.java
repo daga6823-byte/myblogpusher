@@ -2,6 +2,7 @@ package com.app.myblogpusher.service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -28,7 +29,11 @@ public class TypoCorrectionService {
 		List<TypoCorrection> rules = typoCorrectionRepository.findByCategoryIdOrCategoryIdIsNull(categoryId);
 
 		// wrong_wordの文字数が長い順に並べ替える（範囲が広いルールを優先）
-		rules.sort((a, b) -> b.getWrongWord().length() - a.getWrongWord().length());
+		rules.sort(
+			    Comparator.comparingInt(
+			        (TypoCorrection r) -> r.getWrongWord().length()
+			    ).reversed()
+			);
 
 		List<String> excludeWords = rules.stream()
 		        .filter(r -> r.getWrongWord().equals(r.getCorrectWord()))
