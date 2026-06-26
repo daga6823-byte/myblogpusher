@@ -40,7 +40,37 @@ public class ArticleFormatService {
 	}
 
 	private String formatBody(String body) {
-		String normalized = body.replace("\r\n", "\n").replace("\n", "").replace(INDENT, "");
+
+	    String[] lines = body.replace("\r\n", "\n").split("\n", -1);
+
+	    StringBuilder result = new StringBuilder();
+
+	    for (String line : lines) {
+
+	        // 空行はそのまま
+	        if (line.isBlank()) {
+	            result.append("\n");
+	            continue;
+	        }
+
+	        // 箇条書きはそのまま
+	        if (line.startsWith("・")
+	                || line.startsWith("-")
+	                || line.startsWith("*")
+	                || line.matches("^\\d+\\..*")) {
+	            result.append(line).append("\n");
+	            continue;
+	        }
+
+	        // 普通の文章だけ整形
+	        result.append(formatParagraph(line));
+	    }
+
+	    return result.toString();
+	}
+	
+	private String formatParagraph(String body) {
+		String normalized = body.replace(INDENT, "");
 
 		StringBuilder result = new StringBuilder();
 		StringBuilder currentSentence = new StringBuilder();
@@ -65,7 +95,7 @@ public class ArticleFormatService {
 
 				appendSentence(result, currentSentence.toString());
 				currentSentence.setLength(0);
-				i = j;i = j - 1; // for文側のi++で次のjに進むよう調整
+				i = j - 1;; // for文側のi++で次のjに進むよう調整
 				continue;
 			}
 		}
@@ -80,7 +110,7 @@ public class ArticleFormatService {
 			}
 		}
 
-		return result.toString();
+		return result.append("\n").toString();
 	}
 
 	private void appendSentence(StringBuilder result, String sentence) {
