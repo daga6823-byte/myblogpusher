@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8">
+	<title>投稿確認</title>
+	<link rel="stylesheet" th:href="@{/css/common.css}">
+</head>
+
+<body>
+	<div class="box">
+		<h1>投稿確認</h1>
+
+		<div class="preview-section">
+			<h2 th:text="${form.articleTitle}"></h2>
+			<p class="repo-info">
+				リポジトリ：<span th:text="${form.repoOwner}"></span> / <span th:text="${form.repoName}"></span>
+			</p>
+		</div>
+
+		<div class="content-preview">
+			<h3>プレビュー</h3>
+			<pre th:text="${form.articleContent}"></pre>
+		</div>
+
+		<div class="button-row">
+			<form th:action="@{/publish/execute}" method="post" style="display: inline;">
+				<input type="hidden" name="articleId" th:value="${form.articleId}">
+				<button type="submit" class="btn-publish">投稿</button>
+			</form>
+			<a th:href="@{/article/edit(id=${form.articleId})}" class="btn-back"
+				style="text-decoration: none; display: inline-block;">戻る</a>
+		</div>
+	</div>
+</body>
+
+</html>

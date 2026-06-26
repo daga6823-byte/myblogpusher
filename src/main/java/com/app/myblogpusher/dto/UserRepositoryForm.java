@@ -2,6 +2,8 @@ package com.app.myblogpusher.dto;
 
 import java.time.LocalDate;
 
+import org.springframework.format.annotation.DateTimeFormat;
+
 import jakarta.validation.constraints.NotBlank;
 
 
@@ -15,6 +17,7 @@ public class UserRepositoryForm {
 
 	private String accessToken; // 新規時のみ必須判定はコントローラーで行う
 
+	@DateTimeFormat(pattern = "yyyy-MM-dd")
 	private LocalDate tokenExpiresAt;
 
 	public String getRepoOwner() {
@@ -41,6 +44,7 @@ public class UserRepositoryForm {
 		this.accessToken = accessToken;
 	}
 
+	
 	public LocalDate getTokenExpiresAt() {
 		return tokenExpiresAt;
 	}
