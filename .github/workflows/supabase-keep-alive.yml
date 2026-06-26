@@ -2,15 +2,14 @@ name: Supabase Keep Alive
 
 on:
   schedule:
-    # 6日ごとの午前0時に自動実行 (UTC)
     - cron: '0 0 */6 * *'
-  workflow_dispatch: # 手動実行用ボタンを有効化
+  workflow_dispatch:
 
 jobs:
   ping:
     runs-on: ubuntu-latest
     steps:
-      - name: Ping Supabase Rest API
+      - name: Ping
         run: |
           curl -X GET "${{ secrets.SUPABASE_URL }}/rest/v1/" \
             -H "apikey: ${{ secrets.SUPABASE_KEY }}" \
