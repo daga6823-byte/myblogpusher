@@ -11,6 +11,5 @@ jobs:
     steps:
       - name: Ping
         run: |
-          curl -X GET "${{ secrets.SUPABASE_URL }}" \
-            -H "apikey: ${{ secrets.SUPABASE_KEY }}" \
+          curl -X GET "${{ secrets.SUPABASE_URL }}/rest/v1/?apikey=${{ secrets.SUPABASE_KEY }}" \
             -H "Authorization: Bearer ${{ secrets.SUPABASE_KEY }}"
