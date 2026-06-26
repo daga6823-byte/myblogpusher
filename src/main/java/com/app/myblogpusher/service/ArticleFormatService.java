@@ -30,6 +30,10 @@ public class ArticleFormatService {
 		if (matcher.find()) {
 			String rawFrontMatter = matcher.group();
 			body = content.substring(matcher.end());
+			
+			 // 本文先頭の空行を除去
+		    body = body.replaceFirst("^\\n+", "");
+			
 			// 末尾の改行をすべて取り除いてから、空行をひとつ確実に補う
 			frontMatter = rawFrontMatter.replaceAll("\\n+$", "") + "\n\n";
 		}

@@ -21,6 +21,10 @@ public class ArticleWorkspaceService {
 			String title,
 			String content) {
 
+		if (userId == null) {
+		    return;
+		}
+		
 		ArticleWorkspace workspace = repository.findById(userId)
 				.orElse(new ArticleWorkspace());
 

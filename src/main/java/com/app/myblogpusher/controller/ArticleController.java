@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -356,13 +357,17 @@ public class ArticleController {
 			@RequestBody WorkspaceSaveRequest req,
 			HttpSession session) {
 
-		Long userId = (Long) session.getAttribute("userId");
+		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
+
+		if (loginUser == null) {
+		    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+		}
 
 		workspaceService.save(
-				userId,
-				req.getCategoryId(),
-				req.getTitle(),
-				req.getContent());
+		        loginUser.getUserId(),
+		        req.getCategoryId(),
+		        req.getTitle(),
+		        req.getContent());
 
 		return ResponseEntity.ok().build();
 	}
