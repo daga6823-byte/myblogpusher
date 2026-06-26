@@ -57,7 +57,7 @@ public class RepositorySettingController {
 
 		model.addAttribute("form", form);
 		model.addAttribute("registered", registered);
-		return "repository-setting";
+		return "repository_setting";
 	}
 
 	@PostMapping("/repository/setting")
@@ -86,7 +86,7 @@ public class RepositorySettingController {
 		// バリデーションエラーがあれば画面に戻す
 		if (bindingResult.hasErrors()) {
 			model.addAttribute("registered", !isNew);
-			return "repository-setting";
+			return "repository_setting";
 		}
 
 		UserRepositoryEntity entity = existing.orElseGet(UserRepositoryEntity::new);
@@ -105,7 +105,7 @@ public class RepositorySettingController {
 			} catch (Exception e) {
 				model.addAttribute("error", "トークンの暗号化に失敗しました");
 				model.addAttribute("registered", !isNew);
-				return "repository-setting";
+				return "repository_setting";
 			}
 		}
 
