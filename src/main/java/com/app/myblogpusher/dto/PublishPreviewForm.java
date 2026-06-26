@@ -3,6 +3,7 @@ package com.app.myblogpusher.dto;
 public class PublishPreviewForm {
 
 	private Long articleId;
+	private Long categoryId;
 	private String articleTitle;
 	private String articleContent;
 	private String repoOwner;
@@ -47,4 +48,9 @@ public class PublishPreviewForm {
 	public void setRepoName(String repoName) {
 		this.repoName = repoName;
 	}
+
+	public Long getCategoryId() {
+		return categoryId;
+	}
+	public void setCategoryId(Long categoryId) { this.categoryId = categoryId; }
 }

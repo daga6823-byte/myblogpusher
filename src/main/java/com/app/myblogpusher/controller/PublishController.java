@@ -4,16 +4,17 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.app.myblogpusher.dto.PublishPreviewForm;
-import com.app.myblogpusher.entity.ArticleWork;
+import com.app.myblogpusher.entity.ArticleCategory;
 import com.app.myblogpusher.entity.UserMaster;
 import com.app.myblogpusher.entity.UserRepositoryEntity;
 import com.app.myblogpusher.repository.ArticleWorkRepository;
 import com.app.myblogpusher.repository.UserRepositoryRepository;
+import com.app.myblogpusher.service.ArticleCategoryService;
+import com.app.myblogpusher.service.ArticleWorkService;
 import com.app.myblogpusher.service.GitHubPushService;
 
 import jakarta.servlet.http.HttpSession;
@@ -22,19 +23,31 @@ import jakarta.servlet.http.HttpSession;
 public class PublishController {
 
 	private final ArticleWorkRepository articleWorkRepository;
+	private final ArticleWorkService articleWorkService;
 	private final UserRepositoryRepository userRepositoryRepository;
+	private final ArticleCategoryService articleCategoryService;
 	private final GitHubPushService gitHubPushService;
 
 	public PublishController(ArticleWorkRepository articleWorkRepository,
+			ArticleWorkService articleWorkService,
 			UserRepositoryRepository userRepositoryRepository,
+			ArticleCategoryService articleCategoryService,
 			GitHubPushService gitHubPushService) {
 		this.articleWorkRepository = articleWorkRepository;
+		this.articleWorkService = articleWorkService;
 		this.userRepositoryRepository = userRepositoryRepository;
+		this.articleCategoryService = articleCategoryService;
 		this.gitHubPushService = gitHubPushService;
 	}
 
-	@GetMapping("/publish/preview")
-	public String showPreview(@RequestParam Long workId, HttpSession session, Model model) {
+	@PostMapping("/publish/preview")
+	public String showPreview(@RequestParam(required = false) Long workId,
+			@RequestParam String title,
+			@RequestParam String content,
+			@RequestParam String categorySelect,
+			@RequestParam(required = false) String newCategoryName,
+			HttpSession session,
+			Model model) {
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 
 		if (loginUser == null) {
@@ -43,20 +56,11 @@ public class PublishController {
 
 		Long userId = loginUser.getUserId();
 
-		// 記事取得
-		Optional<ArticleWork> articleOpt = articleWorkRepository.findById(workId);
-		if (articleOpt.isEmpty()) {
-			model.addAttribute("error", "記事が見つかりません");
-			return "error";
-		}
-
-		ArticleWork article = articleOpt.get();
-
-		// ユーザー確認（他ユーザーの記事を投稿されない対策）
-		if (!article.getUserId().equals(userId)) {
-			model.addAttribute("error", "権限がありません");
-			return "error";
-		}
+		// カテゴリーIDを取得
+		String categoryName = "__new__".equals(categorySelect) ? newCategoryName : categorySelect;
+		Long categoryId = articleCategoryService.findByUserIdAndName(userId, categoryName)
+				.map(ArticleCategory::getCategoryId)
+				.orElseGet(() -> articleCategoryService.insertCategory(userId, categoryName));
 
 		// リポジトリ情報取得
 		Optional<UserRepositoryEntity> repoOpt = userRepositoryRepository.findByUserId(userId);
@@ -69,8 +73,9 @@ public class PublishController {
 
 		PublishPreviewForm form = new PublishPreviewForm();
 		form.setArticleId(workId);
-		form.setArticleTitle(article.getTitle());
-		form.setArticleContent(article.getContent());
+		form.setArticleTitle(title);
+		form.setArticleContent(content);
+		form.setCategoryId(categoryId);
 		form.setRepoOwner(repo.getRepoOwner());
 		form.setRepoName(repo.getRepoName());
 
@@ -79,7 +84,12 @@ public class PublishController {
 	}
 
 	@PostMapping("/publish/execute")
-	public String executePublish(@RequestParam Long workId, HttpSession session, Model model) {
+	public String executePublish(@RequestParam(required = false) Long workId,
+			@RequestParam String title,
+			@RequestParam String content,
+			@RequestParam Long categoryId,
+			HttpSession session,
+			Model model) {
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 
 		if (loginUser == null) {
@@ -87,21 +97,6 @@ public class PublishController {
 		}
 
 		Long userId = loginUser.getUserId();
-
-		// 記事取得
-		Optional<ArticleWork> articleOpt = articleWorkRepository.findById(workId);
-		if (articleOpt.isEmpty()) {
-			model.addAttribute("error", "記事が見つかりません");
-			return "error";
-		}
-
-		ArticleWork article = articleOpt.get();
-
-		// ユーザー確認
-		if (!article.getUserId().equals(userId)) {
-			model.addAttribute("error", "権限がありません");
-			return "error";
-		}
 
 		// リポジトリ情報取得
 		Optional<UserRepositoryEntity> repoOpt = userRepositoryRepository.findByUserId(userId);
@@ -113,11 +108,23 @@ public class PublishController {
 		UserRepositoryEntity repo = repoOpt.get();
 
 		try {
+			// GitHub プッシュ実行
 			gitHubPushService.pushArticle(
 					repo,
 					loginUser.getCipherKey(),
-					article.getTitle(),
-					article.getContent());
+					categoryId,
+					title,
+					content);
+
+			// article_workに保存
+			if (workId != null) {
+				// 既存レコードを更新
+				articleWorkService.updateArticleWork(workId, categoryId, title, content, userId);
+			} else {
+				// 新規作成
+				articleWorkService.insertArticleWork(userId, categoryId, title, content);
+			}
+
 			return "redirect:/article/list?published";
 		} catch (Exception e) {
 			model.addAttribute("error", "投稿に失敗しました: " + e.getMessage());

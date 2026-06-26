@@ -25,11 +25,13 @@
 
 		<div class="button-row">
 			<form th:action="@{/publish/execute}" method="post" style="display: inline;">
-				<input type="hidden" name="articleId" th:value="${form.articleId}">
+				<input type="hidden" name="workId" th:value="${form.articleId}">
+				<input type="hidden" name="title" th:value="${form.articleTitle}">
+				<input type="hidden" name="content" th:value="${form.articleContent}">
+				<input type="hidden" name="categoryId" th:value="${form.categoryId}">
 				<button type="submit" class="btn-publish">投稿</button>
 			</form>
-			<a th:href="@{/article/edit(id=${form.articleId})}" class="btn-back"
-				style="text-decoration: none; display: inline-block;">戻る</a>
+			<button type="button" class="btn-back" onclick="window.history.back()">戻る</button>
 		</div>
 	</div>
 </body>
