@@ -65,11 +65,9 @@ public class ArticleFormatService {
 
 				appendSentence(result, currentSentence.toString());
 				currentSentence.setLength(0);
-				i = j;
+				i = j;i = j - 1; // for文側のi++で次のjに進むよう調整
 				continue;
 			}
-
-			i++;
 		}
 
 		if (!currentSentence.isEmpty()) {
