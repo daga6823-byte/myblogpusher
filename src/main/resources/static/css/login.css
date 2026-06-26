@@ -16,18 +16,6 @@ body {
 	width: 320px;
 }
 
-h1 {
-	font-size: 20px;
-	margin-bottom: 24px;
-	text-align: center;
-}
-
-label {
-	display: block;
-	margin-bottom: 6px;
-	font-size: 14px;
-}
-
 input[type="text"],
 input[type="password"] {
 	width: 100%;

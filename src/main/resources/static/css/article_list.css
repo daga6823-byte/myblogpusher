@@ -1,40 +1,9 @@
-body {
-	font-family: sans-serif;
-	background-color: #f2f2f2;
-	margin: 0;
-	padding: 40px;
-}
-
-.list-box {
-	background: #fff;
-	padding: 32px;
-	border-radius: 8px;
-	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-	max-width: 800px;
-	margin: 0 auto;
-}
-
-h1 {
-	font-size: 20px;
-	margin-bottom: 24px;
-}
-
-table {
-	width: 100%;
-	border-collapse: collapse;
-	margin-bottom: 24px;
-}
-
 th,
 td {
 	text-align: left;
 	padding: 10px;
 	border-bottom: 1px solid #ddd;
 	font-size: 14px;
-}
-
-th {
-	background-color: #f7f7f7;
 }
 
 a.edit-link {

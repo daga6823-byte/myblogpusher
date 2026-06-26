@@ -31,6 +31,9 @@ public class UserRepositoryEntity {
     @Column(name = "access_token", nullable = false)
     private String accessToken;
 
+    @Column(name = "token_iv", nullable = false)
+    private String tokenIv;
+    
     @Column(name = "token_expires_at")
     private LocalDate tokenExpiresAt;
 
@@ -61,6 +64,9 @@ public class UserRepositoryEntity {
     public String getAccessToken() { return accessToken; }
     public void setAccessToken(String accessToken) { this.accessToken = accessToken; }
 
+    public String getTokenIv() { return tokenIv; }
+    public void setTokenIv(String tokenIv) { this.tokenIv = tokenIv; }
+    
     public LocalDate getTokenExpiresAt() { return tokenExpiresAt; }
     public void setTokenExpiresAt(LocalDate tokenExpiresAt) { this.tokenExpiresAt = tokenExpiresAt; }
 
