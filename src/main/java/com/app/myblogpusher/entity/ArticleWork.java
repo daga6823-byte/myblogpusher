@@ -27,6 +27,9 @@ public class ArticleWork {
     @Column(name = "title")
     private String title;
 
+    @Column(name = "slug")
+    private String slug;
+
     @Column(name = "content")
     private String content;
 
@@ -53,6 +56,9 @@ public class ArticleWork {
 
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
+
+    public String getSlug() { return slug; }
+    public void setSlug(String slug) { this.slug = slug; }
 
     public String getContent() { return content; }
     public void setContent(String content) { this.content = content; }

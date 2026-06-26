@@ -20,12 +20,13 @@ public class ArticleWorkService {
 		return articleWorkRepository.findByUserId(userId);
 	}
 
-	public Long insertArticleWork(Long userId, Long categoryId, String title, String content) {
+	public Long insertArticleWork(Long userId, Long categoryId, String title, String content, String slug) {
 		ArticleWork work = new ArticleWork();
 		work.setUserId(userId);
 		work.setCategoryId(categoryId);
 		work.setTitle(title);
 		work.setContent(content);
+		work.setSlug(slug);
 		work.setCreateUser(userId);
 		work.setUpdateUser(userId);
 		work.setCreateDate(LocalDateTime.now());
@@ -34,11 +35,12 @@ public class ArticleWorkService {
 		return work.getWorkId();
 	}
 
-	public void updateArticleWork(Long workId, Long categoryId, String title, String content, Long userId) {
+	public void updateArticleWork(Long workId, Long categoryId, String title, String content, Long userId, String slug) {
 		ArticleWork work = articleWorkRepository.findById(workId).orElseThrow();
 		work.setCategoryId(categoryId);
 		work.setTitle(title);
 		work.setContent(content);
+		work.setContent(slug);
 		work.setUpdateUser(userId);
 		work.setUpdateDate(LocalDateTime.now());
 		articleWorkRepository.save(work);

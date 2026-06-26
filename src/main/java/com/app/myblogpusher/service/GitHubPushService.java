@@ -22,10 +22,13 @@ import com.app.myblogpusher.repository.ArticleCategoryRepository;
 public class GitHubPushService {
 
 	private final TokenCipherService tokenCipherService;
+
 	private final ArticleCategoryRepository articleCategoryRepository;
 
-	public GitHubPushService(TokenCipherService tokenCipherService,
+	public GitHubPushService(
+			TokenCipherService tokenCipherService,
 			ArticleCategoryRepository articleCategoryRepository) {
+
 		this.tokenCipherService = tokenCipherService;
 		this.articleCategoryRepository = articleCategoryRepository;
 	}
@@ -33,56 +36,73 @@ public class GitHubPushService {
 	/**
 	 * 記事をMarkdownファイルとしてGitHubにプッシュ
 	 */
-	public void pushArticle(UserRepositoryEntity repoEntity, String cipherKey,
-			Long categoryId, String articleTitle, String articleContent)
+	public void pushArticle(
+			UserRepositoryEntity repoEntity,
+			String cipherKey,
+			Long categoryId,
+			String articleTitle,
+			String articleContent,
+			String slug)
 			throws IOException, GitAPIException {
 
-		// トークン復号
 		String accessToken = tokenCipherService.decrypt(
 				repoEntity.getAccessToken(),
 				repoEntity.getTokenIv(),
 				cipherKey);
 
-		// カテゴリー情報取得
-		ArticleCategory category = articleCategoryRepository.findById(categoryId)
-				.orElseThrow(() -> new IllegalArgumentException("カテゴリーが見つかりません"));
+		String repoPath = System.getProperty("java.io.tmpdir")
+				+ "/myblogpusher_"
+				+ repoEntity.getRepoId();
 
-		String categorySlug = generateCategorySlug(category.getCategoryName());
-
-		// ローカルリポジトリ初期化
-		String repoPath = System.getProperty("java.io.tmpdir") + "/myblogpusher_" + repoEntity.getRepoId();
 		File repoDir = new File(repoPath);
 
 		if (!repoDir.exists()) {
 			repoDir.mkdirs();
 		}
 
+		ArticleCategory category = articleCategoryRepository.findById(categoryId)
+				.orElseThrow(() -> new IllegalArgumentException("カテゴリーが見つかりません"));
+
+		String categorySlug = generateCategorySlug(category.getCategoryName());
+
 		Git git = initializeRepository(repoDir, repoEntity, accessToken);
 
 		try {
-			// カテゴリーの_index.mdを作成（初回のみ）
-			createCategoryIndexIfNotExists(git, repoPath, categorySlug, category.getCategoryName());
 
-			// 記事ファイルを作成
-			String fileName = articleTitle + ".md";
-			Path contentPath = Paths.get(repoPath, "content", "categories", categorySlug, fileName);
+			createCategoryIndexIfNotExists(
+					git,
+					repoPath,
+					categorySlug,
+					category.getCategoryName());
+
+			Path contentPath = Paths.get(
+					repoPath,
+					"content",
+					"posts",
+					slug + ".md");
+
 			contentPath.getParent().toFile().mkdirs();
 
-			Files.write(contentPath, articleContent.getBytes(StandardCharsets.UTF_8));
+			Files.write(
+					contentPath,
+					articleContent.getBytes(StandardCharsets.UTF_8));
 
-			// Git add
-			git.add().addFilepattern("content/categories/" + categorySlug + "/" + fileName).call();
-
-			// Git commit
-			String commitMessage = "Add article: " + articleTitle;
-			git.commit()
-					.setMessage(commitMessage)
-					.setAuthor("Myblogpusher", "noreply@myblogpusher.local")
+			git.add()
+					.addFilepattern("content")
 					.call();
 
-			// Git push
+			git.commit()
+					.setMessage("Add article: " + slug)
+					.setAuthor(
+							"Myblogpusher",
+							"noreply@myblogpusher.local")
+					.call();
+
 			git.push()
-					.setCredentialsProvider(new UsernamePasswordCredentialsProvider("git", accessToken))
+					.setCredentialsProvider(
+							new UsernamePasswordCredentialsProvider(
+									"git",
+									accessToken))
 					.call();
 
 		} finally {
@@ -119,11 +139,27 @@ public class GitHubPushService {
 		File gitDir = new File(repoDir, ".git");
 
 		if (gitDir.exists()) {
+
 			Repository repository = new FileRepositoryBuilder()
 					.setGitDir(gitDir)
+					.readEnvironment()
+					.findGitDir()
 					.build();
-			return new Git(repository);
-		} else {
+
+			Git git = new Git(repository);
+
+			git.pull()
+					.setCredentialsProvider(
+							new UsernamePasswordCredentialsProvider(
+									"git",
+									accessToken))
+					.call();
+
+			return git;
+
+		} else
+
+		{
 			String remoteUrl = String.format("https://github.com/%s/%s.git",
 					repoEntity.getRepoOwner(),
 					repoEntity.getRepoName());

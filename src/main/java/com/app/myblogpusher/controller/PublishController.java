@@ -22,7 +22,6 @@ import jakarta.servlet.http.HttpSession;
 @Controller
 public class PublishController {
 
-	private final ArticleWorkRepository articleWorkRepository;
 	private final ArticleWorkService articleWorkService;
 	private final UserRepositoryRepository userRepositoryRepository;
 	private final ArticleCategoryService articleCategoryService;
@@ -33,7 +32,6 @@ public class PublishController {
 			UserRepositoryRepository userRepositoryRepository,
 			ArticleCategoryService articleCategoryService,
 			GitHubPushService gitHubPushService) {
-		this.articleWorkRepository = articleWorkRepository;
 		this.articleWorkService = articleWorkService;
 		this.userRepositoryRepository = userRepositoryRepository;
 		this.articleCategoryService = articleCategoryService;
@@ -75,6 +73,7 @@ public class PublishController {
 		form.setArticleId(workId);
 		form.setArticleTitle(title);
 		form.setArticleContent(content);
+		form.setSlug(generateSlug(title));
 		form.setCategoryId(categoryId);
 		form.setRepoOwner(repo.getRepoOwner());
 		form.setRepoName(repo.getRepoName());
@@ -83,10 +82,20 @@ public class PublishController {
 		return "publish_preview";
 	}
 
+	private String generateSlug(String title) {
+
+		return title
+				.toLowerCase()
+				.replaceAll("[^a-zA-Z0-9ぁ-んァ-ン一-龥ー]", "-")
+				.replaceAll("-+", "-")
+				.replaceAll("^-|-$", "");
+	}
+
 	@PostMapping("/publish/execute")
 	public String executePublish(@RequestParam(required = false) Long workId,
 			@RequestParam String title,
 			@RequestParam String content,
+			@RequestParam String slug,
 			@RequestParam Long categoryId,
 			HttpSession session,
 			Model model) {
@@ -112,17 +121,22 @@ public class PublishController {
 			gitHubPushService.pushArticle(
 					repo,
 					loginUser.getCipherKey(),
-					categoryId,
-					title,
-					content);
+					userId, slug,
+					content, slug);
 
 			// article_workに保存
 			if (workId != null) {
 				// 既存レコードを更新
-				articleWorkService.updateArticleWork(workId, categoryId, title, content, userId);
+				articleWorkService.updateArticleWork(
+						workId,
+						categoryId,
+						title,
+						content,
+						userId,
+						slug);
 			} else {
 				// 新規作成
-				articleWorkService.insertArticleWork(userId, categoryId, title, content);
+				articleWorkService.insertArticleWork(userId, categoryId, title, content, slug);
 			}
 
 			return "redirect:/article/list?published";

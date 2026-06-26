@@ -6,6 +6,7 @@ public class PublishPreviewForm {
 	private Long categoryId;
 	private String articleTitle;
 	private String articleContent;
+	private String slug;
 	private String repoOwner;
 	private String repoName;
 
@@ -31,6 +32,14 @@ public class PublishPreviewForm {
 
 	public void setArticleContent(String articleContent) {
 		this.articleContent = articleContent;
+	}
+
+	public String getSlug() {
+		return slug;
+	}
+
+	public void setSlug(String slug) {
+		this.slug = slug;
 	}
 
 	public String getRepoOwner() {

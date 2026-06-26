@@ -82,22 +82,6 @@ public class TypoCorrectionService {
 		return matches;
 	}
 
-	private boolean isAlreadyCorrect(String content, int start, int matchedLength, String correctWord) {
-	    if (correctWord == null || correctWord.isEmpty()) {
-	        return false;
-	    }
-	    int searchFrom = Math.max(0, start - correctWord.length());
-	    int idx = content.indexOf(correctWord, searchFrom);
-	    while (idx != -1 && idx <= start) {
-	        int correctEnd = idx + correctWord.length();
-	        if (start + matchedLength <= correctEnd) {
-	            return true; // マッチ範囲が「正しい単語」の出現範囲に完全に収まっている
-	        }
-	        idx = content.indexOf(correctWord, idx + 1);
-	    }
-	    return false;
-	}
-	
 	private Pattern buildPattern(String wrongWordPattern) {
 		StringBuilder regex = new StringBuilder();
 		for (char c : wrongWordPattern.toCharArray()) {
@@ -126,26 +110,6 @@ public class TypoCorrectionService {
 		return text.replace("&", "&amp;")
 				.replace("<", "&lt;")
 				.replace(">", "&gt;");
-	}
-
-	private String generateWildcardPattern(String correctWord) {
-		StringBuilder pattern = new StringBuilder();
-		for (char c : correctWord.toCharArray()) {
-			if (c == 'ー' || c == '・') {
-				pattern.append('〇'); // 長音符・中点は区切り文字として扱う
-			} else if (isJapaneseChar(c) || Character.isLetterOrDigit(c)) {
-				pattern.append(c);
-			} else {
-				pattern.append('〇');
-			}
-		}
-		return pattern.toString();
-	}
-
-	private boolean isJapaneseChar(char c) {
-		return (c >= 0x3040 && c <= 0x309F) // ひらがな
-				|| (c >= 0x30A0 && c <= 0x30FF) // カタカナ（ーを含む範囲だが、上のif文で先に判定済み）
-				|| (c >= 0x4E00 && c <= 0x9FFF); // 漢字
 	}
 
 	public boolean insertTypo(Long categoryId, String wrongWord, String correctWord, Long userId) {

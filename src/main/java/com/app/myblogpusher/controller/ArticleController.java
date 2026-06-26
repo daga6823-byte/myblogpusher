@@ -30,6 +30,7 @@ import com.app.myblogpusher.service.ArticleWorkspaceService;
 import com.app.myblogpusher.service.HomophoneTypoScanService;
 import com.app.myblogpusher.service.LanguageToolService;
 import com.app.myblogpusher.service.TypoCorrectionService;
+import com.app.myblogpusher.util.SlugUtil;
 
 import jakarta.servlet.http.HttpSession;
 
@@ -47,7 +48,7 @@ public class ArticleController {
 
 	@Autowired
 	private ArticleWorkspaceService workspaceService;
-	
+
 	@Autowired
 	private ArticleFormatService articleFormatService;
 
@@ -224,35 +225,49 @@ public class ArticleController {
 	}
 
 	private Long doSaveDraft(Long workId, String categorySelect, String newCategoryName,
-	        String title, String content, HttpSession session) {
+			String title, String content, HttpSession session) {
 
-	    UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
-	    Long userId = loginUser.getUserId();
+		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
+		Long userId = loginUser.getUserId();
 
-	    String categoryName = "__new__".equals(categorySelect) ? newCategoryName : categorySelect;
+		String categoryName = "__new__".equals(categorySelect) ? newCategoryName : categorySelect;
 
-	    Long categoryId = articleCategoryService.findByUserIdAndName(userId, categoryName)
-	            .map(ArticleCategory::getCategoryId)
-	            .orElseGet(() -> articleCategoryService.insertCategory(userId, categoryName));
+		Long categoryId = articleCategoryService.findByUserIdAndName(userId, categoryName)
+				.map(ArticleCategory::getCategoryId)
+				.orElseGet(() -> articleCategoryService.insertCategory(userId, categoryName));
 
-	    String formattedContent = articleFormatService.formatContent(content);
+		String formattedContent = articleFormatService.formatContent(content);
+		
+		String slug = SlugUtil.generateSlug(title);
 
-	    if (workId == null) {
+		if (workId == null) {
 
-	        if ((title == null || title.isBlank()) && (formattedContent == null || formattedContent.isBlank())) {
-	            return null;
-	        }
+			if ((title == null || title.isBlank()) && (formattedContent == null || formattedContent.isBlank())) {
+				return null;
+			}
 
-	        Optional<ArticleWork> existing = articleWorkService.findDuplicate(userId, categoryId, title, formattedContent);
-	        if (existing.isPresent()) {
-	            return existing.get().getWorkId();
-	        }
+			Optional<ArticleWork> existing = articleWorkService.findDuplicate(userId, categoryId, title,
+					formattedContent);
+			if (existing.isPresent()) {
+				return existing.get().getWorkId();
+			}
 
-	        return articleWorkService.insertArticleWork(userId, categoryId, title, formattedContent);
-	    } else {
-	        articleWorkService.updateArticleWork(workId, categoryId, title, formattedContent, userId);
-	        return workId;
-	    }
+			return articleWorkService.insertArticleWork(
+					userId,
+					categoryId,
+					title,
+					content,
+					slug);
+		} else {
+			articleWorkService.updateArticleWork(
+			        workId,
+			        categoryId,
+			        title,
+			        content,
+			        userId,
+			        slug);
+			return workId;
+		}
 	}
 
 	@PostMapping("/article/delete")
@@ -360,15 +375,16 @@ public class ArticleController {
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 
 		if (loginUser == null) {
-		    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 		}
 
 		workspaceService.save(
-		        loginUser.getUserId(),
-		        req.getCategoryId(),
-		        req.getTitle(),
-		        req.getContent());
+				loginUser.getUserId(),
+				req.getCategoryId(),
+				req.getTitle(),
+				req.getContent());
 
 		return ResponseEntity.ok().build();
 	}
+	
 }
