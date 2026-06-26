@@ -1,3 +1,8 @@
+//デバッグ用
+window.onerror = function(message, source, lineno, colno, error) {
+    alert('JSエラー: ' + message + ' (行: ' + lineno + ')');
+};
+
 let contentChanged = false;
 
 ['categorySelect', 'newCategoryName', 'title', 'content'].forEach(id => {

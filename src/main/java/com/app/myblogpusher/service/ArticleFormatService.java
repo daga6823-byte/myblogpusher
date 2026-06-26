@@ -11,6 +11,7 @@ public class ArticleFormatService {
 	private static final Pattern FRONT_MATTER_PATTERN = Pattern.compile("^\\+\\+\\+[\\s\\S]*?\\+\\+\\+\\n*");
 	private static final String PARAGRAPH_BREAK_TRIGGER = "さて";
 	private static final String SENTENCE_END_CHARS = "。？！";
+	private static final String CLOSING_BRACKET_CHARS = "」』";
 	private static final String INDENT = "　";
 
 	/**
@@ -49,9 +50,26 @@ public class ArticleFormatService {
 			currentSentence.append(c);
 
 			if (SENTENCE_END_CHARS.indexOf(c) >= 0) {
+				// 区切り文字が連続している場合は、続けて同じ文に含める
+				int j = i + 1;
+				while (j < normalized.length() && SENTENCE_END_CHARS.indexOf(normalized.charAt(j)) >= 0) {
+					currentSentence.append(normalized.charAt(j));
+					j++;
+				}
+
+				// 区切り文字の直後に閉じ括弧が続く場合も、同じ文に含める
+				while (j < normalized.length() && CLOSING_BRACKET_CHARS.indexOf(normalized.charAt(j)) >= 0) {
+					currentSentence.append(normalized.charAt(j));
+					j++;
+				}
+
 				appendSentence(result, currentSentence.toString());
 				currentSentence.setLength(0);
+				i = j;
+				continue;
 			}
+
+			i++;
 		}
 
 		if (!currentSentence.isEmpty()) {
@@ -60,7 +78,7 @@ public class ArticleFormatService {
 				if (result.length() > 0) {
 					result.append(startsWithTrigger(remaining) ? "\n\n\n" : "\n\n");
 				}
-				result.append(remaining);
+				result.append(INDENT).append(remaining);
 			}
 		}
 
