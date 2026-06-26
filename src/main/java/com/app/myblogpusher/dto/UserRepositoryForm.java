@@ -2,11 +2,19 @@ package com.app.myblogpusher.dto;
 
 import java.time.LocalDate;
 
+import jakarta.validation.constraints.NotBlank;
+
+
 public class UserRepositoryForm {
 
+	@NotBlank(message = "GitHubユーザー名は必須です")
 	private String repoOwner;
+
+	@NotBlank(message = "リポジトリ名は必須です")
 	private String repoName;
-	private String accessToken; // 入力時のみ平文。未入力なら「変更しない」扱い
+
+	private String accessToken; // 新規時のみ必須判定はコントローラーで行う
+
 	private LocalDate tokenExpiresAt;
 
 	public String getRepoOwner() {

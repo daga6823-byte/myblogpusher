@@ -110,3 +110,23 @@ td {
 th {
 	background-color: #f7f7f7;
 }
+
+.error-message {
+	color: #c0392b;
+	padding: 10px;
+	background-color: #fadbd8;
+	border-radius: 4px;
+	margin-bottom: 16px;
+}
+
+.error-text {
+	color: #c0392b;
+	font-size: 12px;
+	display: block;
+	margin-top: 4px;
+}
+
+input.error {
+	border-color: #c0392b;
+	background-color: #fff5f5;
+}

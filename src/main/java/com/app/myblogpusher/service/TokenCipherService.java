@@ -25,11 +25,11 @@ public class TokenCipherService {
 		this.secretKey = new SecretKeySpec(keyBytes, "AES");
 	}
 
-	/**
-	 * 平文トークンを暗号化し、暗号文とIVをそれぞれBase64文字列で返す。
-	 */
-	public EncryptedToken encrypt(String plainToken) {
+	public EncryptedToken encrypt(String plainToken, String base64CipherKey) {
 		try {
+			byte[] keyBytes = Base64.getDecoder().decode(base64CipherKey);
+			SecretKeySpec secretKey = new SecretKeySpec(keyBytes, "AES");
+
 			byte[] iv = new byte[IV_LENGTH_BYTES];
 			new SecureRandom().nextBytes(iv);
 
@@ -45,11 +45,11 @@ public class TokenCipherService {
 		}
 	}
 
-	/**
-	 * 暗号文とIV（いずれもBase64文字列）から平文トークンを復元する。
-	 */
-	public String decrypt(String encryptedBase64, String ivBase64) {
+	public String decrypt(String encryptedBase64, String ivBase64, String base64CipherKey) {
 		try {
+			byte[] keyBytes = Base64.getDecoder().decode(base64CipherKey);
+			SecretKeySpec secretKey = new SecretKeySpec(keyBytes, "AES");
+
 			byte[] iv = Base64.getDecoder().decode(ivBase64);
 			byte[] encrypted = Base64.getDecoder().decode(encryptedBase64);
 

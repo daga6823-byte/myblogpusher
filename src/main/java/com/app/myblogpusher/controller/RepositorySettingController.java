@@ -1,9 +1,11 @@
 package com.app.myblogpusher.controller;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,6 +18,7 @@ import com.app.myblogpusher.service.TokenCipherService;
 import com.app.myblogpusher.service.TokenCipherService.EncryptedToken;
 
 import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
 
 @Controller
 public class RepositorySettingController {
@@ -32,12 +35,18 @@ public class RepositorySettingController {
 	@GetMapping("/repository/setting")
 	public String showSettingForm(Model model, HttpSession session) {
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
-		Long userId = loginUser.getUserId(); // UserMasterのID取得メソッド名に合わせて調整してください
+
+		// ログイン状態確認
+		if (loginUser == null) {
+			return "redirect:/login";
+		}
+
+		Long userId = loginUser.getUserId();
 
 		UserRepositoryForm form = new UserRepositoryForm();
 		boolean registered = false;
 
-		var existing = userRepositoryRepository.findByUserId(userId);
+		Optional<UserRepositoryEntity> existing = userRepositoryRepository.findByUserId(userId);
 		if (existing.isPresent()) {
 			UserRepositoryEntity entity = existing.get();
 			form.setRepoOwner(entity.getRepoOwner());
@@ -52,24 +61,52 @@ public class RepositorySettingController {
 	}
 
 	@PostMapping("/repository/setting")
-	public String saveSetting(@ModelAttribute("form") UserRepositoryForm form, HttpSession session) {
+	public String saveSetting(@Valid @ModelAttribute("form") UserRepositoryForm form,
+			BindingResult bindingResult,
+			HttpSession session,
+			Model model) {
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
+
+		// ログイン状態確認
+		if (loginUser == null) {
+			return "redirect:/login";
+		}
+
 		Long userId = loginUser.getUserId();
 
-		UserRepositoryEntity entity = userRepositoryRepository.findByUserId(userId)
-				.orElseGet(UserRepositoryEntity::new);
+		// 既存レコード取得
+		Optional<UserRepositoryEntity> existing = userRepositoryRepository.findByUserId(userId);
+		boolean isNew = existing.isEmpty();
 
-		boolean isNew = entity.getRepoId() == null;
+		// 新規登録時のアクセストークン必須チェック
+		if (isNew && (form.getAccessToken() == null || form.getAccessToken().isBlank())) {
+			bindingResult.rejectValue("accessToken", "NotBlank", "新規登録時はアクセストークンが必須です");
+		}
+
+		// バリデーションエラーがあれば画面に戻す
+		if (bindingResult.hasErrors()) {
+			model.addAttribute("registered", false);
+			return "repository/setting";
+		}
+
+		UserRepositoryEntity entity = existing.orElseGet(UserRepositoryEntity::new);
 
 		entity.setUserId(userId);
 		entity.setRepoOwner(form.getRepoOwner());
 		entity.setRepoName(form.getRepoName());
 		entity.setTokenExpiresAt(form.getTokenExpiresAt());
 
+		// トークンが入力された場合のみ暗号化して更新
 		if (form.getAccessToken() != null && !form.getAccessToken().isBlank()) {
-			EncryptedToken encrypted = tokenCipherService.encrypt(form.getAccessToken());
-			entity.setAccessToken(encrypted.cipherText());
-			entity.setTokenIv(encrypted.iv());
+			try {
+				EncryptedToken encrypted = tokenCipherService.encrypt(form.getAccessToken(), loginUser.getCipherKey());
+				entity.setAccessToken(encrypted.cipherText());
+				entity.setTokenIv(encrypted.iv());
+			} catch (Exception e) {
+				model.addAttribute("error", "トークンの暗号化に失敗しました");
+				model.addAttribute("registered", !isNew);
+				return "repository/setting";
+			}
 		}
 
 		LocalDateTime now = LocalDateTime.now();
