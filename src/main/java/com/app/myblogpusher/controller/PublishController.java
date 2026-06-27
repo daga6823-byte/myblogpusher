@@ -80,6 +80,9 @@ public class PublishController {
 		form.setRepoName(repo.getRepoName());
 
 		model.addAttribute("form", form);
+		
+		System.out.println("preview slug=[" + form.getSlug() + "]");
+
 		return "publish_preview";
 	}
 
