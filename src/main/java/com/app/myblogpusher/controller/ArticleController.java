@@ -128,7 +128,10 @@ public class ArticleController {
 
 	//下書き一覧画面
 	@GetMapping("/article/list")
-	public String list(HttpSession session, Model model) {
+	public String list(
+			@RequestParam(required = false) Boolean published,
+			HttpSession session,
+			Model model) {
 
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 		Long userId = loginUser.getUserId();
@@ -145,6 +148,7 @@ public class ArticleController {
 				.toList();
 
 		model.addAttribute("works", workViews);
+		model.addAttribute("published", published != null && published);
 
 		return "article_list";
 	}
@@ -237,7 +241,7 @@ public class ArticleController {
 				.orElseGet(() -> articleCategoryService.insertCategory(userId, categoryName));
 
 		String formattedContent = articleFormatService.formatContent(content);
-		
+
 		String slug = SlugUtil.generateSlug(title);
 
 		if (workId == null) {
@@ -260,12 +264,12 @@ public class ArticleController {
 					slug);
 		} else {
 			articleWorkService.updateArticleWork(
-			        workId,
-			        categoryId,
-			        title,
-			        content,
-			        userId,
-			        slug);
+					workId,
+					categoryId,
+					title,
+					content,
+					userId,
+					slug);
 			return workId;
 		}
 	}
@@ -386,5 +390,5 @@ public class ArticleController {
 
 		return ResponseEntity.ok().build();
 	}
-	
+
 }

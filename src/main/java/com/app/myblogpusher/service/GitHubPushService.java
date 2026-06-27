@@ -45,13 +45,15 @@ public class GitHubPushService {
 			String slug)
 			throws IOException, GitAPIException {
 
+		long start = System.currentTimeMillis();
+		
 		String accessToken = tokenCipherService.decrypt(
 				repoEntity.getAccessToken(),
 				repoEntity.getTokenIv(),
 				cipherKey);
-
-		System.out.println("Decrypted token length: " + accessToken.length());
-		System.out.println("Token starts with: " + accessToken.substring(0, Math.min(10, accessToken.length())));
+//
+//		System.out.println("Decrypted token length: " + accessToken.length());
+//		System.out.println("Token starts with: " + accessToken.substring(0, Math.min(10, accessToken.length())));
 
 		String repoPath = System.getProperty("java.io.tmpdir")
 				+ "/myblogpusher_"
@@ -70,6 +72,8 @@ public class GitHubPushService {
 
 		Git git = initializeRepository(repoDir, repoEntity, accessToken);
 
+		System.out.println("initialize: " + (System.currentTimeMillis() - start) + "ms");
+		
 		try {
 
 			createCategoryIndexIfNotExists(
@@ -90,10 +94,14 @@ public class GitHubPushService {
 					contentPath,
 					articleContent.getBytes(StandardCharsets.UTF_8));
 
+			System.out.println("write: " + (System.currentTimeMillis() - start) + "ms");
+			
 			git.add()
 					.addFilepattern("content")
 					.call();
 
+			System.out.println("add: " + (System.currentTimeMillis() - start) + "ms");
+			
 			git.commit()
 					.setMessage("Add article: " + slug)
 					.setAuthor(
@@ -101,11 +109,15 @@ public class GitHubPushService {
 							"noreply@myblogpusher.local")
 					.call();
 
+			System.out.println("commit: " + (System.currentTimeMillis() - start) + "ms");
+			
 			// Git push
 			git.push()
 					.setCredentialsProvider(new UsernamePasswordCredentialsProvider("git", accessToken))
 					.setRefSpecs(new org.eclipse.jgit.transport.RefSpec("HEAD:refs/heads/main"))
 					.call();
+			
+			System.out.println("push: " + (System.currentTimeMillis() - start) + "ms");
 
 		} finally {
 			git.close();

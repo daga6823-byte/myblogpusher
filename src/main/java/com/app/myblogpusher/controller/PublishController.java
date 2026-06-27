@@ -16,6 +16,7 @@ import com.app.myblogpusher.repository.UserRepositoryRepository;
 import com.app.myblogpusher.service.ArticleCategoryService;
 import com.app.myblogpusher.service.ArticleWorkService;
 import com.app.myblogpusher.service.GitHubPushService;
+import com.app.myblogpusher.util.SlugUtil;
 
 import jakarta.servlet.http.HttpSession;
 
@@ -73,22 +74,13 @@ public class PublishController {
 		form.setArticleId(workId);
 		form.setArticleTitle(title);
 		form.setArticleContent(content);
-		form.setSlug(generateSlug(title));
+		form.setSlug(SlugUtil.generateSlug(title));
 		form.setCategoryId(categoryId);
 		form.setRepoOwner(repo.getRepoOwner());
 		form.setRepoName(repo.getRepoName());
 
 		model.addAttribute("form", form);
 		return "publish_preview";
-	}
-
-	private String generateSlug(String title) {
-
-		return title
-				.toLowerCase()
-				.replaceAll("[^a-zA-Z0-9ぁ-んァ-ン一-龥ー]", "-")
-				.replaceAll("-+", "-")
-				.replaceAll("^-|-$", "");
 	}
 
 	@PostMapping("/publish/execute")
