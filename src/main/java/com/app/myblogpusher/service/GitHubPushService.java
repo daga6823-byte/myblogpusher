@@ -72,6 +72,8 @@ public class GitHubPushService {
 
 		Git git = initializeRepository(repoDir, repoEntity, accessToken);
 
+		System.out.println(repoDir.getAbsolutePath());
+		System.out.println(repoDir.exists());
 		System.out.println("initialize: " + (System.currentTimeMillis() - start) + "ms");
 		
 		try {
