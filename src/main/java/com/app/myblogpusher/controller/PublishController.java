@@ -94,6 +94,7 @@ public class PublishController {
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 
 		System.out.println("executePublish start");
+		System.out.println("slug=[" + slug + "]");
 		
 		if (loginUser == null) {
 			return "redirect:/login";
