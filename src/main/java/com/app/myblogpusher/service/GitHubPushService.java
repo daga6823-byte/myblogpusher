@@ -45,6 +45,8 @@ public class GitHubPushService {
 			String slug)
 			throws IOException, GitAPIException {
 
+		 System.out.println("pushArticle start");
+		
 //		long start = System.currentTimeMillis();
 		
 		String accessToken = tokenCipherService.decrypt(

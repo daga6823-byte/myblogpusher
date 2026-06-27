@@ -93,6 +93,8 @@ public class PublishController {
 			Model model) {
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 
+		System.out.println("executePublish start");
+		
 		if (loginUser == null) {
 			return "redirect:/login";
 		}
@@ -133,6 +135,8 @@ public class PublishController {
 				articleWorkService.insertArticleWork(userId, categoryId, title, content, slug);
 			}
 
+			System.out.println("push finished");
+			
 			return "redirect:/article/list?published";
 		} catch (Exception e) {
 			model.addAttribute("error", "投稿に失敗しました: " + e.getMessage());
