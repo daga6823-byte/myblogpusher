@@ -45,15 +45,15 @@ public class GitHubPushService {
 			String slug)
 			throws IOException, GitAPIException {
 
-		long start = System.currentTimeMillis();
+//		long start = System.currentTimeMillis();
 		
 		String accessToken = tokenCipherService.decrypt(
 				repoEntity.getAccessToken(),
 				repoEntity.getTokenIv(),
 				cipherKey);
-//
-//		System.out.println("Decrypted token length: " + accessToken.length());
-//		System.out.println("Token starts with: " + accessToken.substring(0, Math.min(10, accessToken.length())));
+
+		System.out.println("Decrypted token length: " + accessToken.length());
+		System.out.println("Token starts with: " + accessToken.substring(0, Math.min(10, accessToken.length())));
 
 		String repoPath = System.getProperty("java.io.tmpdir")
 				+ "/myblogpusher_"
@@ -72,9 +72,7 @@ public class GitHubPushService {
 
 		Git git = initializeRepository(repoDir, repoEntity, accessToken);
 
-		System.out.println(repoDir.getAbsolutePath());
-		System.out.println(repoDir.exists());
-		System.out.println("initialize: " + (System.currentTimeMillis() - start) + "ms");
+//		System.out.println("initialize: " + (System.currentTimeMillis() - start) + "ms");
 		
 		try {
 
@@ -96,13 +94,13 @@ public class GitHubPushService {
 					contentPath,
 					articleContent.getBytes(StandardCharsets.UTF_8));
 
-			System.out.println("write: " + (System.currentTimeMillis() - start) + "ms");
+//			System.out.println("write: " + (System.currentTimeMillis() - start) + "ms");
 			
 			git.add()
 					.addFilepattern("content")
 					.call();
 
-			System.out.println("add: " + (System.currentTimeMillis() - start) + "ms");
+//			System.out.println("add: " + (System.currentTimeMillis() - start) + "ms");
 			
 			git.commit()
 					.setMessage("Add article: " + slug)
@@ -111,7 +109,7 @@ public class GitHubPushService {
 							"noreply@myblogpusher.local")
 					.call();
 
-			System.out.println("commit: " + (System.currentTimeMillis() - start) + "ms");
+//			System.out.println("commit: " + (System.currentTimeMillis() - start) + "ms");
 			
 			// Git push
 			git.push()
@@ -119,7 +117,7 @@ public class GitHubPushService {
 					.setRefSpecs(new org.eclipse.jgit.transport.RefSpec("HEAD:refs/heads/main"))
 					.call();
 			
-			System.out.println("push: " + (System.currentTimeMillis() - start) + "ms");
+//			System.out.println("push: " + (System.currentTimeMillis() - start) + "ms");
 
 		} finally {
 			git.close();
@@ -152,6 +150,8 @@ public class GitHubPushService {
 	private Git initializeRepository(File repoDir, UserRepositoryEntity repoEntity, String accessToken)
 			throws IOException, GitAPIException {
 
+		long start = System.currentTimeMillis();
+		
 		File gitDir = new File(repoDir, ".git");
 
 		if (gitDir.exists()) {
@@ -162,8 +162,12 @@ public class GitHubPushService {
 					.findGitDir()
 					.build();
 
+			System.out.println("build: " + (System.currentTimeMillis() - start) + "ms");
+			
 			Git git = new Git(repository);
 
+			System.out.println("new Git: " + (System.currentTimeMillis() - start) + "ms");
+			
 			git.pull()
 					.setCredentialsProvider(
 							new UsernamePasswordCredentialsProvider(
@@ -171,6 +175,8 @@ public class GitHubPushService {
 									accessToken))
 					.call();
 
+			System.out.println("pull: " + (System.currentTimeMillis() - start) + "ms");
+			
 			return git;
 
 		} else
