@@ -49,7 +49,7 @@ public class GitHubPushService {
 				repoEntity.getAccessToken(),
 				repoEntity.getTokenIv(),
 				cipherKey);
-		
+
 		System.out.println("Decrypted token length: " + accessToken.length());
 		System.out.println("Token starts with: " + accessToken.substring(0, Math.min(10, accessToken.length())));
 
@@ -101,11 +101,10 @@ public class GitHubPushService {
 							"noreply@myblogpusher.local")
 					.call();
 
+			// Git push
 			git.push()
-					.setCredentialsProvider(
-							new UsernamePasswordCredentialsProvider(
-								    repoEntity.getRepoOwner(),
-								    accessToken))
+					.setCredentialsProvider(new UsernamePasswordCredentialsProvider("git", accessToken))
+					.setRefSpecs(new org.eclipse.jgit.transport.RefSpec("HEAD:refs/heads/main"))
 					.call();
 
 		} finally {
