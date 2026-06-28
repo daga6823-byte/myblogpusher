@@ -37,23 +37,24 @@ public class ArticlePublishedController {
 	 */
 	@GetMapping("/article/published")
 	public String publishedList(HttpSession session, Model model) {
-		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
-		Long userId = loginUser.getUserId();
+	    UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
+	    Long userId = loginUser.getUserId();
+	    String cipherKey = loginUser.getCipherKey(); // ここで取得
 
-		Optional<UserRepositoryEntity> repoOpt = userRepositoryRepository.findByUserId(userId);
-		if (repoOpt.isEmpty()) {
-			model.addAttribute("error", "リポジトリが設定されていません");
-			return "error";
-		}
+	    Optional<UserRepositoryEntity> repoOpt = userRepositoryRepository.findByUserId(userId);
+	    if (repoOpt.isEmpty()) {
+	        model.addAttribute("error", "リポジトリが設定されていません");
+	        return "error";
+	    }
 
-		try {
-			List<PublishedArticleDto> articles = publishedArticleService.getPublishedArticles(repoOpt.get().getRepoId());
-			model.addAttribute("articles", articles);
-		} catch (IOException e) {
-			model.addAttribute("error", "記事の取得に失敗しました");
-		}
+	    try {
+	        List<PublishedArticleDto> articles = publishedArticleService.getPublishedArticles(repoOpt.get(), cipherKey);
+	        model.addAttribute("articles", articles);
+	    } catch (IOException e) {
+	        model.addAttribute("error", "記事の取得に失敗しました");
+	    }
 
-		return "article/article_published_list";
+	    return "article/article_published_list";
 	}
 
 	/**

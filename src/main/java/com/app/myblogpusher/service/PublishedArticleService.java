@@ -1,57 +1,76 @@
 package com.app.myblogpusher.service;
 
-import java.io.File;
 import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Stream;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import com.app.myblogpusher.entity.UserRepositoryEntity;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
 public class PublishedArticleService {
 
-	public List<PublishedArticleDto> getPublishedArticles(Long repoId) throws IOException {
-		String repoPath = System.getProperty("java.io.tmpdir") + "/myblogpusher_" + repoId;
-		Path postsDir = Paths.get(repoPath, "content", "posts");
+	@Autowired
+    private TokenCipherService tokenCipherService;
+	
+	public List<PublishedArticleDto> getPublishedArticles(UserRepositoryEntity repo, String cipherKey)
+			throws IOException {
 
-		List<PublishedArticleDto> articles = new ArrayList<>();
+		String accessToken = tokenCipherService.decrypt(
+				repo.getAccessToken(),
+				repo.getTokenIv(),
+				cipherKey);
 
-		if (!Files.exists(postsDir)) {
-			return articles;
+		String apiUrl = "https://api.github.com/repos/"
+				+ repo.getRepoOwner() + "/" + repo.getRepoName()
+				+ "/contents/content/posts";
+
+		HttpURLConnection conn = (HttpURLConnection) new URL(apiUrl).openConnection();
+		conn.setRequestProperty("Authorization", "Bearer " + repo.getAccessToken());
+		conn.setRequestProperty("Accept", "application/vnd.github.v3+json");
+
+		if (conn.getResponseCode() != 200) {
+			return new ArrayList<>();
 		}
 
-		try (Stream<Path> paths = Files.list(postsDir)) {
-			paths.filter(p -> p.toString().endsWith(".md"))
-				.forEach(p -> {
-					try {
-						File file = p.toFile();
-						String fileName = file.getName().replace(".md", "");
-						long lastModified = file.lastModified();
-						LocalDateTime updateDate = LocalDateTime.ofInstant(
-							java.time.Instant.ofEpochMilli(lastModified),
-							ZoneId.systemDefault()
-						);
+		// ファイル一覧をパース
+		String response = new String(conn.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+		List<PublishedArticleDto> articles = new ArrayList<>();
 
-						String content = new String(Files.readAllBytes(p), StandardCharsets.UTF_8);
-						String title = extractTitle(content);
+		// JSONパース（org.json or Jackson）
+		ObjectMapper mapper = new ObjectMapper();
+		JsonNode files = mapper.readTree(response);
 
-						articles.add(new PublishedArticleDto(fileName, title, updateDate, content));
-					} catch (IOException e) {
-						throw new RuntimeException(e);
-					}
-				});
+		for (JsonNode file : files) {
+			String fileName = file.get("name").asText();
+			if (!fileName.endsWith(".md"))
+				continue;
+
+			String downloadUrl = file.get("download_url").asText();
+			String mdContent = fetchRawContent(downloadUrl, repo.getAccessToken());
+			String slug = fileName.replace(".md", "");
+			String title = extractTitle(mdContent);
+
+			articles.add(new PublishedArticleDto(slug, title, LocalDateTime.now(), mdContent));
 		}
 
 		return articles.stream()
-			.sorted((a, b) -> b.getUpdateDate().compareTo(a.getUpdateDate()))
-			.toList();
+				.sorted((a, b) -> b.getUpdateDate().compareTo(a.getUpdateDate()))
+				.toList();
+	}
+
+	private String fetchRawContent(String url, String token) throws IOException {
+		HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
+		conn.setRequestProperty("Authorization", "Bearer " + token);
+		return new String(conn.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
 	}
 
 	private String extractTitle(String content) {
@@ -83,9 +102,20 @@ public class PublishedArticleService {
 			this.content = content;
 		}
 
-		public String getSlug() { return slug; }
-		public String getTitle() { return title; }
-		public LocalDateTime getUpdateDate() { return updateDate; }
-		public String getContent() { return content; }
+		public String getSlug() {
+			return slug;
+		}
+
+		public String getTitle() {
+			return title;
+		}
+
+		public LocalDateTime getUpdateDate() {
+			return updateDate;
+		}
+
+		public String getContent() {
+			return content;
+		}
 	}
 }
