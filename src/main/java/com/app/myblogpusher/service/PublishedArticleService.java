@@ -32,10 +32,14 @@ public class PublishedArticleService {
 		String apiUrl = "https://api.github.com/repos/"
 				+ repo.getRepoOwner() + "/" + repo.getRepoName()
 				+ "/contents/content/posts";
+		
+		System.out.println("GitHub API URL: " + apiUrl);
 
 		HttpURLConnection conn = (HttpURLConnection) new URL(apiUrl).openConnection();
 		conn.setRequestProperty("Authorization", "Bearer " + repo.getAccessToken());
 		conn.setRequestProperty("Accept", "application/vnd.github.v3+json");
+		
+		System.out.println("Response code: " + conn.getResponseCode());
 
 		if (conn.getResponseCode() != 200) {
 			return new ArrayList<>();
