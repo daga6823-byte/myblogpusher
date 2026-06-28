@@ -8,4 +8,6 @@ import com.app.myblogpusher.entity.EnglishDictionary;
 
 public interface EnglishDictionaryRepository extends JpaRepository<EnglishDictionary, Long> {
 	Optional<EnglishDictionary> findByJapanese(String japanese);
+	
+	Optional<EnglishDictionary> findByJapaneseIgnoreCase(String japanese);
 }
