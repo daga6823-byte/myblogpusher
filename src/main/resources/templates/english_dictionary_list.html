@@ -28,7 +28,7 @@
 			</thead>
 			<tbody>
 				<tr th:each="dict : ${dictionaries}">
-					<td th:text="${dict.japaneseWord}"></td>
+					<td th:text="${dict.japanese}"></td>
 					<td th:text="${dict.english}"></td>
 					<td>
 						<a th:href="@{/english-dictionary/form(id=${dict.id})}" class="btn-save"
