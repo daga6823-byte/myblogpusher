@@ -12,25 +12,29 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import com.app.myblogpusher.entity.ArticleCategory;
 import com.app.myblogpusher.entity.UserRepositoryEntity;
 import com.app.myblogpusher.repository.ArticleCategoryRepository;
+import com.app.myblogpusher.util.SlugUtil;
 
 @Service
 public class GitHubPushService {
 
 	private final TokenCipherService tokenCipherService;
-
 	private final ArticleCategoryRepository articleCategoryRepository;
+	private final ArticleWorkService articleWorkService;
 
 	public GitHubPushService(
 			TokenCipherService tokenCipherService,
-			ArticleCategoryRepository articleCategoryRepository) {
+			ArticleCategoryRepository articleCategoryRepository,
+			ArticleWorkService articleWorkService) {
 
 		this.tokenCipherService = tokenCipherService;
 		this.articleCategoryRepository = articleCategoryRepository;
+		this.articleWorkService = articleWorkService;
 	}
 
 	/**
@@ -45,10 +49,10 @@ public class GitHubPushService {
 			String slug)
 			throws IOException, GitAPIException {
 
-		 System.out.println("pushArticle start");
-		
-//		long start = System.currentTimeMillis();
-		
+		System.out.println("pushArticle start");
+
+		//		long start = System.currentTimeMillis();
+
 		String accessToken = tokenCipherService.decrypt(
 				repoEntity.getAccessToken(),
 				repoEntity.getTokenIv(),
@@ -70,12 +74,12 @@ public class GitHubPushService {
 		ArticleCategory category = articleCategoryRepository.findById(categoryId)
 				.orElseThrow(() -> new IllegalArgumentException("カテゴリーが見つかりません"));
 
-		String categorySlug = generateCategorySlug(category.getCategoryName());
+		String categorySlug = SlugUtil.generateCategorySlug(category.getCategoryName());
 
 		Git git = initializeRepository(repoDir, repoEntity, accessToken);
 
-//		System.out.println("initialize: " + (System.currentTimeMillis() - start) + "ms");
-		
+		//		System.out.println("initialize: " + (System.currentTimeMillis() - start) + "ms");
+
 		try {
 
 			createCategoryIndexIfNotExists(
@@ -96,14 +100,14 @@ public class GitHubPushService {
 					contentPath,
 					articleContent.getBytes(StandardCharsets.UTF_8));
 
-//			System.out.println("write: " + (System.currentTimeMillis() - start) + "ms");
-			
+			//			System.out.println("write: " + (System.currentTimeMillis() - start) + "ms");
+
 			git.add()
 					.addFilepattern("content")
 					.call();
 
-//			System.out.println("add: " + (System.currentTimeMillis() - start) + "ms");
-			
+			//			System.out.println("add: " + (System.currentTimeMillis() - start) + "ms");
+
 			git.commit()
 					.setMessage("Add article: " + slug)
 					.setAuthor(
@@ -111,15 +115,15 @@ public class GitHubPushService {
 							"noreply@myblogpusher.local")
 					.call();
 
-//			System.out.println("commit: " + (System.currentTimeMillis() - start) + "ms");
-			
+			//			System.out.println("commit: " + (System.currentTimeMillis() - start) + "ms");
+
 			// Git push
 			git.push()
 					.setCredentialsProvider(new UsernamePasswordCredentialsProvider("git", accessToken))
 					.setRefSpecs(new org.eclipse.jgit.transport.RefSpec("HEAD:refs/heads/main"))
 					.call();
-			
-//			System.out.println("push: " + (System.currentTimeMillis() - start) + "ms");
+
+			//			System.out.println("push: " + (System.currentTimeMillis() - start) + "ms");
 
 		} finally {
 			git.close();
@@ -153,23 +157,21 @@ public class GitHubPushService {
 			throws IOException, GitAPIException {
 
 		long start = System.currentTimeMillis();
-		
+
 		File gitDir = new File(repoDir, ".git");
 
 		if (gitDir.exists()) {
 
 			Repository repository = new FileRepositoryBuilder()
 					.setGitDir(gitDir)
-					.readEnvironment()
-					.findGitDir()
 					.build();
 
 			System.out.println("build: " + (System.currentTimeMillis() - start) + "ms");
-			
+
 			Git git = new Git(repository);
 
 			System.out.println("new Git: " + (System.currentTimeMillis() - start) + "ms");
-			
+
 			git.pull()
 					.setCredentialsProvider(
 							new UsernamePasswordCredentialsProvider(
@@ -178,12 +180,10 @@ public class GitHubPushService {
 					.call();
 
 			System.out.println("pull: " + (System.currentTimeMillis() - start) + "ms");
-			
+
 			return git;
 
-		} else
-
-		{
+		} else {
 			String remoteUrl = String.format("https://github.com/%s/%s.git",
 					repoEntity.getRepoOwner(),
 					repoEntity.getRepoName());
@@ -196,11 +196,23 @@ public class GitHubPushService {
 		}
 	}
 
-	private String generateCategorySlug(String categoryName) {
-		// カテゴリー名をスラッグ化（例：「バンビ～ノ！レビュー」→「bambino-review」）
-		// 簡易版：スペースをハイフンに、記号を削除
-		return categoryName.toLowerCase()
-				.replaceAll("[^a-z0-9\\s]", "")
-				.replaceAll("\\s+", "_");
+	@Async
+	public void pushArticleAsync(UserRepositoryEntity repoEntity, String cipherKey,
+			Long categoryId, String articleTitle, String articleContent,
+			String slug, Long workId, Long userId) {
+		try {
+			pushArticle(repoEntity, cipherKey, categoryId, articleTitle, articleContent, slug);
+
+			// GitHub プッシュ成功後、article_workに保存
+			if (workId != null) {
+				this.articleWorkService.updateArticleWork(workId, categoryId, articleTitle, articleContent, userId, slug);
+			} else {
+				this.articleWorkService.insertArticleWork(userId, categoryId, articleTitle, articleContent, slug);
+			}
+		} catch (Exception e) {
+			System.err.println("投稿処理に失敗しました: " + e.getMessage());
+			e.printStackTrace();
+		}
 	}
+
 }

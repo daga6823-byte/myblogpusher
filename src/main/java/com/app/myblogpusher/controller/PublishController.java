@@ -80,7 +80,7 @@ public class PublishController {
 		form.setRepoName(repo.getRepoName());
 
 		model.addAttribute("form", form);
-		
+
 		System.out.println("preview slug=[" + form.getSlug() + "]");
 
 		return "publish_preview";
@@ -98,7 +98,7 @@ public class PublishController {
 
 		System.out.println("executePublish start");
 		System.out.println("slug=[" + slug + "]");
-		
+
 		if (loginUser == null) {
 			return "redirect:/login";
 		}
@@ -113,38 +113,17 @@ public class PublishController {
 		}
 
 		UserRepositoryEntity repo = repoOpt.get();
-
-		try {
-			// GitHub プッシュ実行
-			gitHubPushService.pushArticle(
-					repo,
-					loginUser.getCipherKey(),
-					categoryId,
-					title,
-					content,
-					slug);
-
-			// article_workに保存
-			if (workId != null) {
-				// 既存レコードを更新
-				articleWorkService.updateArticleWork(
-						workId,
-						categoryId,
-						title,
-						content,
-						userId,
-						slug);
-			} else {
-				// 新規作成
-				articleWorkService.insertArticleWork(userId, categoryId, title, content, slug);
-			}
-
-			System.out.println("push finished");
-			
-			return "redirect:/article/list?published";
-		} catch (Exception e) {
-			model.addAttribute("error", "投稿に失敗しました: " + e.getMessage());
-			return "error";
-		}
+		// 非同期処理を呼び出す（ここでは即座にリダイレクト）
+		// 非同期処理を呼び出す
+		gitHubPushService.pushArticleAsync(
+				repo,
+				loginUser.getCipherKey(),
+				categoryId,
+				title,
+				content,
+				slug,
+				workId,
+				userId);
+		return "redirect:/article/list?published";
 	}
 }
