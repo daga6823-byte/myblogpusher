@@ -30,10 +30,6 @@ document.querySelectorAll('.btn-edit-typo').forEach(btn => {
 	});
 });
 
-document.getElementById('backButton').addEventListener('click', () => {
-	window.location.href = '/home';
-});
-
 let sortState = {};
 
 document.querySelectorAll('.sortable').forEach(th => {

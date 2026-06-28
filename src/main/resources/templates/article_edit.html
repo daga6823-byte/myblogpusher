@@ -29,44 +29,6 @@
 				<button type="submit" formaction="/article/correct" class="btn-publish" disabled>添削</button>
 				<button type="button" class="btn-publish" id="publishButton">投稿</button>
 
-				<script>
-					document.getElementById('publishButton').addEventListener('click', function () {
-						const workId = new URLSearchParams(window.location.search).get('workId');
-						const title = document.querySelector('input[name="title"]').value;
-						const content = document.querySelector('textarea[name="content"]').value;
-						const categorySelect = document.querySelector('select[name="categorySelect"]').value;
-						const newCategoryName = document.querySelector('input[name="newCategoryName"]')?.value || '';
-
-						if (!title || !content) {
-							alert('タイトルと本文を入力してください');
-							return;
-						}
-
-						// フォームを作成して投稿確認画面に遷移
-						const form = document.createElement('form');
-						form.method = 'POST';
-						form.action = '/publish/preview';
-
-						const fields = {
-							workId: workId || '',
-							title: title,
-							content: content,
-							categorySelect: categorySelect,
-							newCategoryName: newCategoryName
-						};
-
-						for (const [key, value] of Object.entries(fields)) {
-							const input = document.createElement('input');
-							input.type = 'hidden';
-							input.name = key;
-							input.value = value;
-							form.appendChild(input);
-						}
-
-						document.body.appendChild(form);
-						form.submit();
-					});
-				</script>
 				<button type="button" id="backButton" class="btn-back">戻る</button>
 			</div>
 

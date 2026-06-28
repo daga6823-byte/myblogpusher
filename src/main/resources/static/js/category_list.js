@@ -1,7 +1,3 @@
-document.getElementById('backButton').addEventListener('click', () => {
-	window.location.href = '/home';
-});
-
 document.getElementById('addCategoryButton').addEventListener('click', () => {
 	const categoryName = document.getElementById('newCategoryNameInput').value.trim();
 
