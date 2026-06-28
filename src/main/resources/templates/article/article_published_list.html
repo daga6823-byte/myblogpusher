@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+
 <head>
 	<meta charset="UTF-8">
 	<title>投稿済み記事一覧</title>
 	<link rel="stylesheet" th:href="@{/css/common.css}">
 </head>
+
 <body>
 	<div class="box">
 		<h1>投稿済み記事一覧</h1>
@@ -22,15 +24,21 @@
 					<td th:text="${article.title}"></td>
 					<td th:text="${#temporals.format(article.updateDate, 'yyyy-MM-dd HH:mm')}"></td>
 					<td>
-						<a th:href="@{/article/published/edit(slug=${article.slug})}" class="btn-save" style="text-decoration: none; display: inline-block; margin-right: 8px;">編集</a>
+						<a th:href="@{/article/published/edit(slug=${article.slug})}" class="btn-save"
+							style="text-decoration: none; display: inline-block; margin-right: 8px;">編集</a>
 						<form th:action="@{/article/published/delete}" method="post" style="display: inline;">
 							<input type="hidden" name="slug" th:value="${article.slug}">
-							<button type="submit" class="btn-delete" onclick="return confirm('削除してもよろしいですか？');"></button>
+							<button type="submit" class="btn-delete"
+								onclick="return confirm('削除してもよろしいですか？');"></button>
 						</form>
 					</td>
 				</tr>
 			</tbody>
 		</table>
+		<button type="button" id="backButton" class="btn-back">戻る</button>
 	</div>
+
+	<script th:src="@{/js/common.js}"></script>
 </body>
+
 </html>

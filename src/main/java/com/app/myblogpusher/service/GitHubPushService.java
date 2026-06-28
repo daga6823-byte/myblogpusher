@@ -207,14 +207,21 @@ public class GitHubPushService {
 			Long categoryId, String articleTitle, String articleContent,
 			String slug, Long workId, Long userId) {
 		try {
-			pushArticle(repoEntity, cipherKey, categoryId, articleTitle, articleContent, slug);
+			// 本文内の画像URLをSupabase Storage URLに変換
+			String supabaseBaseUrl = "https://fiobrqfdsebtpbgnhdpz.supabase.co/storage/v1/object/public/blog-images";
+			String convertedContent = articleContent.replaceAll(
+					"!\\[([^]]*)\\]\\(/images/([^/]+)/([^)]+)\\)",
+					"![](" + supabaseBaseUrl + "/$2/$3)");
+
+			// 変換後のcontentでプッシュ
+			pushArticle(repoEntity, cipherKey, categoryId, articleTitle, convertedContent, slug);
 
 			// GitHub プッシュ成功後、article_workに保存
 			if (workId != null) {
-				this.articleWorkService.updateArticleWork(workId, categoryId, articleTitle, articleContent, userId,
+				this.articleWorkService.updateArticleWork(workId, categoryId, articleTitle, convertedContent, userId,
 						slug);
 			} else {
-				this.articleWorkService.insertArticleWork(userId, categoryId, articleTitle, articleContent, slug);
+				this.articleWorkService.insertArticleWork(userId, categoryId, articleTitle, convertedContent, slug);
 			}
 		} catch (Exception e) {
 			System.err.println("投稿処理に失敗しました: " + e.getMessage());
@@ -244,14 +251,14 @@ public class GitHubPushService {
 
 		String finalSlug = result
 				.toLowerCase()
-				.replaceAll("[^a-z0-9\\s]", "")  // 英数字とスペース以外削除
-				.replaceAll("\\s+", "-")          // スペースをハイフンに
-				.replaceAll("^-+|-+$", "")        // 前後のハイフン削除
+				.replaceAll("[^a-z0-9\\s]", "") // 英数字とスペース以外削除
+				.replaceAll("\\s+", "-") // スペースをハイフンに
+				.replaceAll("^-+|-+$", "") // 前後のハイフン削除
 				.trim();
 
 		System.out.println("Final slug: " + finalSlug);
 
 		return finalSlug;
-	
+
 	}
 }
