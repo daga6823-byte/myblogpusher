@@ -2,15 +2,21 @@ package com.app.myblogpusher.util;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import com.app.myblogpusher.entity.EnglishDictionary;
+import com.app.myblogpusher.repository.EnglishDictionaryRepository;
 import com.atilika.kuromoji.ipadic.Token;
 import com.atilika.kuromoji.ipadic.Tokenizer;
 
+@Component
 public class SlugUtil {
 
 	private static final Tokenizer tokenizer = new Tokenizer();
 
-	private SlugUtil() {
-	}
+	@Autowired
+	private static EnglishDictionaryRepository englishDictionaryRepository;
 
 	public static String generateSlug(String title) {
 
@@ -18,7 +24,7 @@ public class SlugUtil {
 			return "no-title";
 		}
 
-		// 日本語をカタカナに変換してからローマ字化
+		// 日本語をローマ字に変換
 		String romanized = toRomanized(title);
 
 		return romanized
@@ -36,53 +42,35 @@ public class SlugUtil {
 		for (Token token : tokens) {
 			String reading = token.getReading();
 			if (reading != null && !reading.isEmpty() && !reading.equals("*")) {
-				result.append(katakanaToRomaji(reading)).append(" ");
+				// 辞書検索
+				String english = searchEnglishDictionary(reading);
+				if (english != null) {
+					result.append(english).append(" ");
+				} else {
+					result.append(katakanaToRomaji(reading)).append(" ");
+				}
 			} else {
-				result.append(token.getSurface());
+				result.append(token.getSurface()).append(" ");
 			}
 		}
 
 		return result.toString().trim();
 	}
 
-	private static String katakanaToRomaji(String katakana) {
-		return katakana
-				.replaceAll("ア", "a").replaceAll("イ", "i").replaceAll("ウ", "u").replaceAll("エ", "e")
-				.replaceAll("オ", "o")
-				.replaceAll("カ", "ka").replaceAll("キ", "ki").replaceAll("ク", "ku").replaceAll("ケ", "ke")
-				.replaceAll("コ", "ko")
-				.replaceAll("サ", "sa").replaceAll("シ", "si").replaceAll("ス", "su").replaceAll("セ", "se")
-				.replaceAll("ソ", "so")
-				.replaceAll("タ", "ta").replaceAll("チ", "ti").replaceAll("ツ", "tu").replaceAll("テ", "te")
-				.replaceAll("ト", "to")
-				.replaceAll("ナ", "na").replaceAll("ニ", "ni").replaceAll("ヌ", "nu").replaceAll("ネ", "ne")
-				.replaceAll("ノ", "no")
-				.replaceAll("ハ", "ha").replaceAll("ヒ", "hi").replaceAll("フ", "hu").replaceAll("ヘ", "he")
-				.replaceAll("ホ", "ho")
-				.replaceAll("マ", "ma").replaceAll("ミ", "mi").replaceAll("ム", "mu").replaceAll("メ", "me")
-				.replaceAll("モ", "mo")
-				.replaceAll("ヤ", "ya").replaceAll("ユ", "yu").replaceAll("ヨ", "yo")
-				.replaceAll("ラ", "ra").replaceAll("リ", "ri").replaceAll("ル", "ru").replaceAll("レ", "re")
-				.replaceAll("ロ", "ro")
-				.replaceAll("ワ", "wa").replaceAll("ヲ", "wo").replaceAll("ン", "n")
-				.replaceAll("ガ", "ga").replaceAll("ギ", "gi").replaceAll("グ", "gu").replaceAll("ゲ", "ge")
-				.replaceAll("ゴ", "go")
-				.replaceAll("ザ", "za").replaceAll("ジ", "zi").replaceAll("ズ", "zu").replaceAll("ゼ", "ze")
-				.replaceAll("ゾ", "zo")
-				.replaceAll("ダ", "da").replaceAll("ヂ", "di").replaceAll("ヅ", "du").replaceAll("デ", "de")
-				.replaceAll("ド", "do")
-				.replaceAll("バ", "ba").replaceAll("ビ", "bi").replaceAll("ブ", "bu").replaceAll("ベ", "be")
-				.replaceAll("ボ", "bo")
-				.replaceAll("パ", "pa").replaceAll("ピ", "pi").replaceAll("プ", "pu").replaceAll("ペ", "pe")
-				.replaceAll("ポ", "po");
+	private static String searchEnglishDictionary(String japaneseWord) {
+		if (englishDictionaryRepository == null) {
+			return null;
+		}
+		return englishDictionaryRepository.findByJapaneseWord(japaneseWord)
+				.map(EnglishDictionary::getEnglish)
+				.orElse(null);
 	}
-	
+
 	public static String generateCategorySlug(String categoryName) {
 		if (categoryName == null || categoryName.isBlank()) {
 			return "no-category";
 		}
 
-		// 日本語をローマ字化
 		String romanized = toRomanized(categoryName);
 
 		return romanized
@@ -91,5 +79,38 @@ public class SlugUtil {
 				.replaceAll("\\s+", "_")
 				.replaceAll("^_+|_+$", "")
 				.trim();
+	}
+
+	private static String katakanaToRomaji(String hiragana) {
+		return hiragana
+				.replaceAll("あ", "a").replaceAll("い", "i").replaceAll("う", "u").replaceAll("え", "e")
+				.replaceAll("お", "o")
+				.replaceAll("か", "ka").replaceAll("き", "ki").replaceAll("く", "ku").replaceAll("け", "ke")
+				.replaceAll("こ", "ko")
+				.replaceAll("が", "ga").replaceAll("ぎ", "gi").replaceAll("ぐ", "gu").replaceAll("げ", "ge")
+				.replaceAll("ご", "go")
+				.replaceAll("さ", "sa").replaceAll("し", "shi").replaceAll("す", "su").replaceAll("せ", "se")
+				.replaceAll("そ", "so")
+				.replaceAll("ざ", "za").replaceAll("じ", "ji").replaceAll("ず", "zu").replaceAll("ぜ", "ze")
+				.replaceAll("ぞ", "zo")
+				.replaceAll("た", "ta").replaceAll("ち", "chi").replaceAll("つ", "tsu").replaceAll("て", "te")
+				.replaceAll("と", "to")
+				.replaceAll("だ", "da").replaceAll("ぢ", "di").replaceAll("づ", "du").replaceAll("で", "de")
+				.replaceAll("ど", "do")
+				.replaceAll("な", "na").replaceAll("に", "ni").replaceAll("ぬ", "nu").replaceAll("ね", "ne")
+				.replaceAll("の", "no")
+				.replaceAll("は", "ha").replaceAll("ひ", "hi").replaceAll("ふ", "fu").replaceAll("へ", "he")
+				.replaceAll("ほ", "ho")
+				.replaceAll("ば", "ba").replaceAll("び", "bi").replaceAll("ぶ", "bu").replaceAll("べ", "be")
+				.replaceAll("ぼ", "bo")
+				.replaceAll("ぱ", "pa").replaceAll("ぴ", "pi").replaceAll("ぷ", "pu").replaceAll("ぺ", "pe")
+				.replaceAll("ぽ", "po")
+				.replaceAll("ま", "ma").replaceAll("み", "mi").replaceAll("む", "mu").replaceAll("め", "me")
+				.replaceAll("も", "mo")
+				.replaceAll("や", "ya").replaceAll("ゆ", "yu").replaceAll("よ", "yo")
+				.replaceAll("ら", "ra").replaceAll("り", "ri").replaceAll("る", "ru").replaceAll("れ", "re")
+				.replaceAll("ろ", "ro")
+				.replaceAll("わ", "wa").replaceAll("ゐ", "wi").replaceAll("ゑ", "we").replaceAll("を", "wo")
+				.replaceAll("ん", "n");
 	}
 }

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8">
+	<title>英単語辞書</title>
+	<link rel="stylesheet" th:href="@{/css/common.css}">
+</head>
+
+<body>
+	<div class="box">
+		<h1>英単語辞書</h1>
+
+		<p th:if="${param.saved}" class="success-message">保存しました。</p>
+
+		<div class="button-row">
+			<a th:href="@{/english-dictionary/form}" class="btn-save"
+				style="text-decoration: none; display: inline-block;">新規登録</a>
+		</div>
+
+		<table>
+			<thead>
+				<tr>
+					<th>日本語</th>
+					<th>英単語</th>
+					<th>操作</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr th:each="dict : ${dictionaries}">
+					<td th:text="${dict.japaneseWord}"></td>
+					<td th:text="${dict.english}"></td>
+					<td>
+						<a th:href="@{/english-dictionary/form(id=${dict.id})}" class="btn-save"
+							style="text-decoration: none; display: inline-block; margin-right: 8px;">編集</a>
+						<form th:action="@{/english-dictionary/delete}" method="post" style="display: inline;">
+							<input type="hidden" name="id" th:value="${dict.id}">
+							<button type="submit" class="btn-delete"
+								onclick="return confirm('削除してもよろしいですか？');">削除</button>
+						</form>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+
+	<button type="button" id="backButton" class="btn-back">戻る</button>
+</body>
+
+</html>

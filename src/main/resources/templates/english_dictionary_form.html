@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8">
+	<title>英単語登録</title>
+	<link rel="stylesheet" th:href="@{/css/common.css}">
+</head>
+
+<body>
+	<div class="box">
+		<h1 th:if="${form.id == null}">英単語新規登録</h1>
+		<h1 th:if="${form.id != null}">英単語編集</h1>
+
+		<form th:action="@{/english-dictionary/save}" th:object="${form}" method="post">
+			<input type="hidden" name="id" th:field="*{id}">
+
+			<div class="form-group">
+				<label for="japaneseWord">日本語（ひらがな）</label>
+				<input type="text" id="japaneseWord" th:field="*{japaneseWord}" th:disabled="${form.id != null}"
+					required>
+			</div>
+
+			<div class="form-group">
+				<label for="english">英単語</label>
+				<input type="text" id="english" th:field="*{english}" required>
+			</div>
+
+			<div class="button-row">
+				<button type="submit" class="btn-save">保存</button>
+				<a th:href="@{/english-dictionary/list}" class="btn-back"
+					style="text-decoration: none; display: inline-block;">キャンセル</a>
+			</div>
+		</form>
+	</div>
+
+	<button type="button" id="backButton" class="btn-back">戻る</button>
+</body>
+
+</html>
