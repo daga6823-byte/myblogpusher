@@ -22,8 +22,6 @@ import com.app.myblogpusher.entity.UserRepositoryEntity;
 import com.app.myblogpusher.repository.ArticleCategoryRepository;
 import com.app.myblogpusher.repository.EnglishDictionaryRepository;
 import com.app.myblogpusher.util.SlugUtil;
-import com.atilika.kuromoji.ipadic.Token;
-import com.atilika.kuromoji.ipadic.Tokenizer;
 
 @Service
 public class GitHubPushService {
@@ -244,59 +242,16 @@ public class GitHubPushService {
 
 		System.out.println("After dictionary replace: " + result);
 
-		// 残りの文字を kuromoji でローマ字化
-		List<Token> tokens = new Tokenizer().tokenize(result);
-		StringBuilder finalResult = new StringBuilder();
-
-		for (Token token : tokens) {
-			String reading = token.getReading();
-			if (reading != null && !reading.isEmpty() && !reading.equals("*")) {
-				String hiragana = katakanaToHiragana(reading);
-				finalResult.append(SlugUtil.katakanaToRomaji(hiragana)).append("-");
-			}
-		}
-
-		String finalSlug = finalResult.toString()
+		String finalSlug = result
 				.toLowerCase()
-				.replaceAll("[^a-z0-9-]", "")
-				.replaceAll("-+", "-")
-				.replaceAll("^-+|-+$", "")
+				.replaceAll("[^a-z0-9\\s]", "")  // 英数字とスペース以外削除
+				.replaceAll("\\s+", "-")          // スペースをハイフンに
+				.replaceAll("^-+|-+$", "")        // 前後のハイフン削除
 				.trim();
 
 		System.out.println("Final slug: " + finalSlug);
 
 		return finalSlug;
-	}
-
-	private String katakanaToHiragana(String katakana) {
-		return katakana
-				.replaceAll("ア", "あ").replaceAll("イ", "い").replaceAll("ウ", "う").replaceAll("エ", "え")
-				.replaceAll("オ", "お")
-				.replaceAll("カ", "か").replaceAll("キ", "き").replaceAll("ク", "く").replaceAll("ケ", "け")
-				.replaceAll("コ", "こ")
-				.replaceAll("ガ", "が").replaceAll("ギ", "ぎ").replaceAll("グ", "ぐ").replaceAll("ゲ", "げ")
-				.replaceAll("ゴ", "ご")
-				.replaceAll("サ", "さ").replaceAll("シ", "し").replaceAll("ス", "す").replaceAll("セ", "せ")
-				.replaceAll("ソ", "そ")
-				.replaceAll("ザ", "ざ").replaceAll("ジ", "じ").replaceAll("ズ", "ず").replaceAll("ゼ", "ぜ")
-				.replaceAll("ゾ", "ぞ")
-				.replaceAll("タ", "た").replaceAll("チ", "ち").replaceAll("ツ", "つ").replaceAll("テ", "て")
-				.replaceAll("ト", "と")
-				.replaceAll("ダ", "だ").replaceAll("ヂ", "ぢ").replaceAll("ヅ", "づ").replaceAll("デ", "で")
-				.replaceAll("ド", "ど")
-				.replaceAll("ナ", "な").replaceAll("ニ", "に").replaceAll("ヌ", "ぬ").replaceAll("ネ", "ね")
-				.replaceAll("ノ", "の")
-				.replaceAll("ハ", "は").replaceAll("ヒ", "ひ").replaceAll("フ", "ふ").replaceAll("ヘ", "へ")
-				.replaceAll("ホ", "ほ")
-				.replaceAll("バ", "ば").replaceAll("ビ", "び").replaceAll("ブ", "ぶ").replaceAll("ベ", "べ")
-				.replaceAll("ボ", "ぼ")
-				.replaceAll("パ", "ぱ").replaceAll("ピ", "ぴ").replaceAll("プ", "ぷ").replaceAll("ペ", "ぺ")
-				.replaceAll("ポ", "ぽ")
-				.replaceAll("マ", "ま").replaceAll("ミ", "み").replaceAll("ム", "む").replaceAll("メ", "め")
-				.replaceAll("モ", "も")
-				.replaceAll("ヤ", "や").replaceAll("ユ", "ゆ").replaceAll("ヨ", "よ")
-				.replaceAll("ラ", "ら").replaceAll("リ", "り").replaceAll("ル", "る").replaceAll("レ", "れ")
-				.replaceAll("ロ", "ろ")
-				.replaceAll("ワ", "わ").replaceAll("ヲ", "を").replaceAll("ン", "ん");
+	
 	}
 }
