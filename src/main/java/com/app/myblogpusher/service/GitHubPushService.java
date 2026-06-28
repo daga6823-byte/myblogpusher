@@ -229,27 +229,38 @@ public class GitHubPushService {
 			return "no-title";
 		}
 
+		System.out.println("Title: " + title);
+
 		// kuromojiでトークン化
 		List<Token> tokens = new Tokenizer().tokenize(title);
 		StringBuilder result = new StringBuilder();
 
 		for (Token token : tokens) {
+			System.out.println("Token surface: " + token.getSurface() + ", Reading: " + token.getReading());
+			
 			String reading = token.getReading();
 			if (reading != null && !reading.isEmpty() && !reading.equals("*")) {
 				// 辞書検索
 				String english = englishDictionaryRepository.findByJapanese(reading)
 						.map(EnglishDictionary::getEnglish)
-						.orElse(SlugUtil.katakanaToRomaji(reading)); // 見つからなければローマ字化
+						.orElse(SlugUtil.katakanaToRomaji(reading));
+
+				System.out.println("Result for " + reading + ": " + english);
 				result.append(english).append("-");
+			} else {
+				System.out.println("Skipped: " + token.getSurface());
 			}
 		}
 
-		return result.toString()
+		String finalSlug = result.toString()
 				.toLowerCase()
 				.replaceAll("[^a-z0-9-]", "")
 				.replaceAll("-+", "-")
 				.replaceAll("^-+|-+$", "")
 				.trim();
-	}
 
-}
+		System.out.println("Final slug: " + finalSlug);
+
+		return finalSlug;
+	}
+	}
