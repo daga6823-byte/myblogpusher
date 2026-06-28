@@ -17,8 +17,8 @@ public class EnglishDictionary {
 	@Column(name = "id")
 	private Long id;
 
-	@Column(name = "japanese_word", nullable = false, unique = true)
-	private String japaneseWord;
+	@Column(name = "japanese", nullable = false, unique = true)
+	private String japanese;
 
 	@Column(name = "english", nullable = false)
 	private String english;
@@ -43,12 +43,12 @@ public class EnglishDictionary {
 		this.id = id;
 	}
 
-	public String getJapaneseWord() {
-		return japaneseWord;
+	public String getJapanese() {
+		return japanese;
 	}
 
-	public void setJapaneseWord(String japaneseWord) {
-		this.japaneseWord = japaneseWord;
+	public void setJapanese(String japanese) {
+		this.japanese = japanese;
 	}
 
 	public String getEnglish() {
