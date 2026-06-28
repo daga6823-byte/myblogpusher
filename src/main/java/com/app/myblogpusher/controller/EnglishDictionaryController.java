@@ -43,7 +43,7 @@ public class EnglishDictionaryController {
 			if (existing.isPresent()) {
 				EnglishDictionary dict = existing.get();
 				form.setId(dict.getId());
-				form.setJapaneseWord(dict.getJapaneseWord());
+				form.setJapaneseWord(dict.getJapanese());
 				form.setEnglish(dict.getEnglish());
 			}
 		}
@@ -66,7 +66,7 @@ public class EnglishDictionaryController {
 			dictionary.setUpdateUser(userId);
 		} else {
 			dictionary = new EnglishDictionary();
-			dictionary.setJapaneseWord(form.getJapaneseWord());
+			dictionary.setJapanese(form.getJapaneseWord());
 			dictionary.setEnglish(form.getEnglish());
 			dictionary.setCreateDate(LocalDateTime.now());
 			dictionary.setCreateUser(userId);
