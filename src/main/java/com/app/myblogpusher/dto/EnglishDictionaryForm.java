@@ -3,7 +3,7 @@ package com.app.myblogpusher.dto;
 public class EnglishDictionaryForm {
 
 	private Long id;
-	private String japaneseWord;
+	private String japanese;
 	private String english;
 
 	public Long getId() {
@@ -14,12 +14,12 @@ public class EnglishDictionaryForm {
 		this.id = id;
 	}
 
-	public String getJapaneseWord() {
-		return japaneseWord;
+	public String getJapanese() {
+		return japanese;
 	}
 
-	public void setJapaneseWord(String japaneseWord) {
-		this.japaneseWord = japaneseWord;
+	public void setJapanese(String japanese) {
+		this.japanese = japanese;
 	}
 
 	public String getEnglish() {
