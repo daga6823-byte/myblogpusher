@@ -39,7 +39,7 @@ public class PublishedArticleService {
 		System.out.println("GitHub API URL: " + apiUrl);
 
 		HttpURLConnection conn = (HttpURLConnection) new URL(apiUrl).openConnection();
-		conn.setRequestProperty("Authorization", "Bearer " + repo.getAccessToken());
+		conn.setRequestProperty("Authorization", "token " + accessToken);
 		conn.setRequestProperty("Accept", "application/vnd.github.v3+json");
 		
 		System.out.println("Response code: " + conn.getResponseCode());
