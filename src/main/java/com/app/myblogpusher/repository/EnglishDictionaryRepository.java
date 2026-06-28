@@ -7,5 +7,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import com.app.myblogpusher.entity.EnglishDictionary;
 
 public interface EnglishDictionaryRepository extends JpaRepository<EnglishDictionary, Long> {
-	Optional<EnglishDictionary> findByJapaneseWord(String japaneseWord);
+	Optional<EnglishDictionary> findByJapanese(String japanese);
 }

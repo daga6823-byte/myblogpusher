@@ -61,7 +61,7 @@ public class SlugUtil {
 		if (englishDictionaryRepository == null) {
 			return null;
 		}
-		return englishDictionaryRepository.findByJapaneseWord(japaneseWord)
+		return englishDictionaryRepository.findByJapanese(japaneseWord)
 				.map(EnglishDictionary::getEnglish)
 				.orElse(null);
 	}
