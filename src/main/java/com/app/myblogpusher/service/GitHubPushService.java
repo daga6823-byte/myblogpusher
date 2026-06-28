@@ -16,8 +16,10 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import com.app.myblogpusher.entity.ArticleCategory;
+import com.app.myblogpusher.entity.EnglishDictionary;
 import com.app.myblogpusher.entity.UserRepositoryEntity;
 import com.app.myblogpusher.repository.ArticleCategoryRepository;
+import com.app.myblogpusher.repository.EnglishDictionaryRepository;
 import com.app.myblogpusher.util.SlugUtil;
 
 @Service
@@ -26,15 +28,18 @@ public class GitHubPushService {
 	private final TokenCipherService tokenCipherService;
 	private final ArticleCategoryRepository articleCategoryRepository;
 	private final ArticleWorkService articleWorkService;
+	private final EnglishDictionaryRepository englishDictionaryRepository;
 
 	public GitHubPushService(
 			TokenCipherService tokenCipherService,
 			ArticleCategoryRepository articleCategoryRepository,
-			ArticleWorkService articleWorkService) {
+			ArticleWorkService articleWorkService,
+			EnglishDictionaryRepository englishDictionaryRepository) {
 
 		this.tokenCipherService = tokenCipherService;
 		this.articleCategoryRepository = articleCategoryRepository;
 		this.articleWorkService = articleWorkService;
+		this.englishDictionaryRepository = englishDictionaryRepository;
 	}
 
 	/**
@@ -213,6 +218,23 @@ public class GitHubPushService {
 			System.err.println("投稿処理に失敗しました: " + e.getMessage());
 			e.printStackTrace();
 		}
+	}
+	
+	public String generateSlugWithDictionary(String title) {
+		String romanized = SlugUtil.generateSlug(title); // ローマ字化のみ
+		
+		// 単語を分割して辞書検索
+		String[] words = romanized.split("-");
+		StringBuilder result = new StringBuilder();
+		
+		for (String word : words) {
+			String english = englishDictionaryRepository.findByJapanese(word)
+				.map(EnglishDictionary::getEnglish)
+				.orElse(word);
+			result.append(english).append("-");
+		}
+		
+		return result.toString().replaceAll("-$", "");
 	}
 
 }

@@ -90,14 +90,12 @@ public class PublishController {
 	public String executePublish(@RequestParam(required = false) Long workId,
 			@RequestParam String title,
 			@RequestParam String content,
-			@RequestParam String slug,
 			@RequestParam Long categoryId,
 			HttpSession session,
 			Model model) {
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 
 		System.out.println("executePublish start");
-		System.out.println("slug=[" + slug + "]");
 
 		if (loginUser == null) {
 			return "redirect:/login";
@@ -114,16 +112,18 @@ public class PublishController {
 
 		UserRepositoryEntity repo = repoOpt.get();
 		// 非同期処理を呼び出す（ここでは即座にリダイレクト）
-		// 非同期処理を呼び出す
+		String slug = gitHubPushService.generateSlugWithDictionary(title);
+
 		gitHubPushService.pushArticleAsync(
-				repo,
-				loginUser.getCipherKey(),
-				categoryId,
-				title,
-				content,
-				slug,
-				workId,
-				userId);
+			repo,
+			loginUser.getCipherKey(),
+			categoryId,
+			title,
+			content,
+			slug,
+			workId,
+			userId
+		);
 		return "redirect:/article/list?published";
 	}
 }
