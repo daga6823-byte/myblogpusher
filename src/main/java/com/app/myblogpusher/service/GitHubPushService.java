@@ -6,6 +6,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -21,6 +22,8 @@ import com.app.myblogpusher.entity.UserRepositoryEntity;
 import com.app.myblogpusher.repository.ArticleCategoryRepository;
 import com.app.myblogpusher.repository.EnglishDictionaryRepository;
 import com.app.myblogpusher.util.SlugUtil;
+import com.atilika.kuromoji.ipadic.Token;
+import com.atilika.kuromoji.ipadic.Tokenizer;
 
 @Service
 public class GitHubPushService {
@@ -210,7 +213,8 @@ public class GitHubPushService {
 
 			// GitHub プッシュ成功後、article_workに保存
 			if (workId != null) {
-				this.articleWorkService.updateArticleWork(workId, categoryId, articleTitle, articleContent, userId, slug);
+				this.articleWorkService.updateArticleWork(workId, categoryId, articleTitle, articleContent, userId,
+						slug);
 			} else {
 				this.articleWorkService.insertArticleWork(userId, categoryId, articleTitle, articleContent, slug);
 			}
@@ -219,22 +223,33 @@ public class GitHubPushService {
 			e.printStackTrace();
 		}
 	}
-	
+
 	public String generateSlugWithDictionary(String title) {
-		String romanized = SlugUtil.generateSlug(title); // ローマ字化のみ
-		
-		// 単語を分割して辞書検索
-		String[] words = romanized.split("-");
-		StringBuilder result = new StringBuilder();
-		
-		for (String word : words) {
-			String english = englishDictionaryRepository.findByJapanese(word)
-				.map(EnglishDictionary::getEnglish)
-				.orElse(word);
-			result.append(english).append("-");
+		if (title == null || title.isBlank()) {
+			return "no-title";
 		}
-		
-		return result.toString().replaceAll("-$", "");
+
+		// kuromojiでトークン化
+		List<Token> tokens = new Tokenizer().tokenize(title);
+		StringBuilder result = new StringBuilder();
+
+		for (Token token : tokens) {
+			String reading = token.getReading();
+			if (reading != null && !reading.isEmpty() && !reading.equals("*")) {
+				// 辞書検索
+				String english = englishDictionaryRepository.findByJapanese(reading)
+						.map(EnglishDictionary::getEnglish)
+						.orElse(SlugUtil.katakanaToRomaji(reading)); // 見つからなければローマ字化
+				result.append(english).append("-");
+			}
+		}
+
+		return result.toString()
+				.toLowerCase()
+				.replaceAll("[^a-z0-9-]", "")
+				.replaceAll("-+", "-")
+				.replaceAll("^-+|-+$", "")
+				.trim();
 	}
 
 }

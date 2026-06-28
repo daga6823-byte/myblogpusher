@@ -81,7 +81,7 @@ public class SlugUtil {
 				.trim();
 	}
 
-	private static String katakanaToRomaji(String hiragana) {
+	public static String katakanaToRomaji(String hiragana) {
 		return hiragana
 				.replaceAll("あ", "a").replaceAll("い", "i").replaceAll("う", "u").replaceAll("え", "e")
 				.replaceAll("お", "o")
