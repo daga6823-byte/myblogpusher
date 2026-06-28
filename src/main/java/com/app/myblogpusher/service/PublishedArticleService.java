@@ -69,6 +69,8 @@ public class PublishedArticleService {
 			articles.add(new PublishedArticleDto(slug, title, LocalDateTime.now(), mdContent));
 		}
 
+		System.out.println("articles size: " + articles.size());
+		
 		return articles.stream()
 				.sorted((a, b) -> b.getUpdateDate().compareTo(a.getUpdateDate()))
 				.toList();
