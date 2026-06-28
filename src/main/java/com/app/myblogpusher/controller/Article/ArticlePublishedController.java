@@ -51,6 +51,8 @@ public class ArticlePublishedController {
 	        List<PublishedArticleDto> articles = publishedArticleService.getPublishedArticles(repoOpt.get(), cipherKey);
 	        model.addAttribute("articles", articles);
 	    } catch (IOException e) {
+	        System.err.println("記事取得エラー: " + e.getMessage());
+	        e.printStackTrace();
 	        model.addAttribute("error", "記事の取得に失敗しました");
 	    }
 
