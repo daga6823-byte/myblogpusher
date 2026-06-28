@@ -29,6 +29,9 @@ public class PublishedArticleService {
 				repo.getTokenIv(),
 				cipherKey);
 
+		System.out.println("Token length: " + accessToken.length());
+		System.out.println("Token prefix: " + accessToken.substring(0, Math.min(10, accessToken.length())));
+		
 		String apiUrl = "https://api.github.com/repos/"
 				+ repo.getRepoOwner() + "/" + repo.getRepoName()
 				+ "/contents/content/posts";
