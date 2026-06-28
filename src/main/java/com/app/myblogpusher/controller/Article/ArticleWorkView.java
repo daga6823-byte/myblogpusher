@@ -1,4 +1,4 @@
-package com.app.myblogpusher.controller;
+package com.app.myblogpusher.controller.Article;
 
 import java.time.LocalDateTime;
 

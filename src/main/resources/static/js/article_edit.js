@@ -235,3 +235,25 @@ document.getElementById('publishButton').addEventListener('click', function() {
 	document.body.appendChild(form);
 	form.submit();
 });
+
+document.getElementById('imageButton').addEventListener('click', function() {
+	fetch('/article/images')
+		.then(res => res.json())
+		.then(images => {
+			const list = document.getElementById('imageList');
+			list.innerHTML = '';
+			images.forEach(img => {
+				const div = document.createElement('div');
+				div.style.cursor = 'pointer';
+				div.innerHTML = `<img src="${img}" style="width: 100%; height: 150px; object-fit: cover;" onclick="insertImage('${img}')">`;
+				list.appendChild(div);
+			});
+			document.getElementById('imageModal').style.display = 'block';
+		});
+});
+
+function insertImage(url) {
+	const textarea = document.querySelector('textarea[name="content"]');
+	textarea.value += '\n![image](' + url + ')\n';
+	document.getElementById('imageModal').style.display = 'none';
+}
