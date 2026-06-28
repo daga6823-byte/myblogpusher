@@ -81,7 +81,7 @@ public class ArticleEditController {
 		}
 
 		model.addAttribute("saved", saved != null && saved);
-		return "article_edit";
+		return "article/article_edit";
 	}
 
 	/**

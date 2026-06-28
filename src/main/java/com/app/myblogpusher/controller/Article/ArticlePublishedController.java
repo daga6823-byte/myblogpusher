@@ -53,7 +53,7 @@ public class ArticlePublishedController {
 			model.addAttribute("error", "記事の取得に失敗しました");
 		}
 
-		return "article_published_list";
+		return "article/article_published_list";
 	}
 
 	/**

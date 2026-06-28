@@ -57,7 +57,7 @@ public class ArticleListController {
 		model.addAttribute("works", workViews);
 		model.addAttribute("published", published != null && published);
 
-		return "article_list";
+		return "article/article_list";
 	}
 
 	/**
