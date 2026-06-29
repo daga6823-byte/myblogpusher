@@ -106,7 +106,7 @@ document.getElementById('applyFixesButton')?.addEventListener('click', () => {
 		alert('修正しました。');
 
 		// 修正後、フォームを再送信して添削画面を最新の状態で再表示する
-		document.querySelector('form').action = '/article/article/correct';
+		document.querySelector('form').action = '/article/correct';
 		document.querySelector('form').submit();
 	}
 });
@@ -130,7 +130,7 @@ document.getElementById('addTypoButton')?.addEventListener('click', () => {
 	params.append('newCategoryName', newCategoryName);
 	params.append('isGeneral', isGeneral);
 
-	fetch('/article/article/typo/add', {
+	fetch('/article/typo/add', {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
 		body: params.toString()
@@ -143,7 +143,7 @@ document.getElementById('addTypoButton')?.addEventListener('click', () => {
 				document.getElementById('newCorrectWord').value = '';
 
 				// 修正後、フォームを再送信して添削画面を最新の状態で再表示する
-				document.querySelector('form').action = '/article/article/correct';
+				document.querySelector('form').action = '/article/correct';
 				document.querySelector('form').submit();
 			} else if (data.result === 'duplicate') {
 				alert(data.message);
@@ -153,13 +153,13 @@ document.getElementById('addTypoButton')?.addEventListener('click', () => {
 
 document.getElementById('backButton').addEventListener('click', () => {
 	const workId = document.getElementById('workId').value;
-	const editUrl = workId ? ('/article/article/edit?workId=' + workId) : '/article/article/edit';
+	const editUrl = workId ? ('/article/edit?workId=' + workId) : '/article/edit';
 
 	if (contentChanged) {
 		const wantSave = confirm('保存していない変更があります。保存しますか？');
 		if (wantSave) {
 			const form = document.querySelector('form');
-			form.action = '/article/article/save';
+			form.action = '/article/save';
 			form.submit();
 		} else {
 			window.location.href = editUrl;
@@ -245,7 +245,7 @@ function updateButtonState() {
 
 	const enabled = hasCategory && hasContent;
 
-	document.querySelector('[formaction="/article/article/save"]').disabled = !enabled;
+	document.querySelector('[formaction="/article/save"]').disabled = !enabled;
 }
 
 ['categorySelect', 'newCategoryName', 'content'].forEach(id => {
@@ -276,7 +276,7 @@ document.getElementById('scanTypoButton')?.addEventListener('click', async () =>
 	button.disabled = true;
 
 	try {
-		const res = await fetch('/article/article/typo/scan', {
+		const res = await fetch('/article/typo/scan', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
 			body: params.toString()
@@ -357,7 +357,7 @@ document.getElementById('addSelectedTyposButton')?.addEventListener('click', asy
 		params.append('newCategoryName', newCategoryName);
 		params.append('isGeneral', isGeneral);
 
-		await fetch('/article/article/typo/add', {
+		await fetch('/article/typo/add', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
 			body: params.toString()
@@ -365,7 +365,7 @@ document.getElementById('addSelectedTyposButton')?.addEventListener('click', asy
 	}
 
 	alert('選択した誤字パターンを登録しました。');
-	document.querySelector('form').action = '/article/article/correct';
+	document.querySelector('form').action = '/article/correct';
 	document.querySelector('form').submit();
 });
 
@@ -388,7 +388,7 @@ document.getElementById('proofreadButton')?.addEventListener('click', async () =
 	button.disabled = true;
 
 	try {
-		const res = await fetch('/article/article/proofread/scan', {
+		const res = await fetch('/article/proofread/scan', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
 			body: params.toString()
@@ -503,6 +503,6 @@ document.getElementById('applyProofreadButton')?.addEventListener('click', () =>
 	contentChanged = true;
 	alert('修正しました。');
 
-	document.querySelector('form').action = '/article/article/correct';
+	document.querySelector('form').action = '/article/correct';
 	document.querySelector('form').submit();
 });

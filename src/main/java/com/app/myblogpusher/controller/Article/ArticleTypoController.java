@@ -41,7 +41,7 @@ public class ArticleTypoController {
 	private ArticleSaveUtil articleSaveUtil;
 
 	//添削画面
-	@PostMapping("/article/article/correct")
+	@PostMapping("/article/correct")
 	public String correct(@RequestParam(required = false) Long workId,
 			@RequestParam String categorySelect,
 			@RequestParam(required = false) String newCategoryName,
@@ -62,7 +62,7 @@ public class ArticleTypoController {
 
 		if (savedWorkId == null) {
 			// タイトル・本文ともに空だったため保存されなかった
-			return "redirect:/article/article/edit";
+			return "redirect:/article/edit";
 		}
 
 		ArticleWork work = articleWorkService.findById(savedWorkId);
@@ -82,7 +82,7 @@ public class ArticleTypoController {
 		return "article/article_correct";
 	}
 
-	@PostMapping("/article/article/typo/add")
+	@PostMapping("/article/typo/add")
 	@ResponseBody
 	public Map<String, String> addTypo(@RequestParam String wrongWord,
 			@RequestParam String correctWord,
@@ -125,7 +125,7 @@ public class ArticleTypoController {
 	@Autowired
 	private HomophoneTypoScanService homophoneTypoScanService;
 
-	@PostMapping("/article/article/typo/scan")
+	@PostMapping("/article/typo/scan")
 	@ResponseBody
 	public List<TypoScanResultView> scanTypos(@RequestParam String content,
 			@RequestParam String categorySelect,
@@ -139,7 +139,7 @@ public class ArticleTypoController {
 		return cached;
 	}
 
-	@PostMapping("/article/article/proofread/scan")
+	@PostMapping("/article/proofread/scan")
 	@ResponseBody
 	public List<ProofreadResultView> scanProofreading(@RequestParam String content,
 			@RequestParam String categorySelect,
