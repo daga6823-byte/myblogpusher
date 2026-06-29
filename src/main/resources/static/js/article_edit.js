@@ -37,13 +37,13 @@ document.getElementById('listButton').addEventListener('click', () => {
 		if (wantSave) {
 			document.getElementById('redirectTo').value = 'list';
 			const form = document.querySelector('form');
-			form.action = '/article/save';
+			form.action = '/article/article/save';
 			form.submit();
 		} else {
-			window.location.href = '/article/list';
+			window.location.href = '/article/article/list';
 		}
 	} else {
-		window.location.href = '/article/list';
+		window.location.href = '/article/article/list';
 	}
 });
 
@@ -53,7 +53,7 @@ document.getElementById('backButton').addEventListener('click', () => {
 		if (wantSave) {
 			document.getElementById('redirectTo').value = 'home';
 			const form = document.querySelector('form');
-			form.action = '/article/save';
+			form.action = '/article/article/save';
 			form.submit();
 		} else {
 			window.location.href = '/home';
@@ -74,8 +74,8 @@ function updateButtonState() {
 
 	const enabled = hasCategory && hasContent;
 
-	document.querySelector('[formaction="/article/save"]').disabled = !enabled;
-	document.querySelector('[formaction="/article/correct"]').disabled = !enabled;
+	document.querySelector('[formaction="/article/article/save"]').disabled = !enabled;
+	document.querySelector('[formaction="/article/article/correct"]').disabled = !enabled;
 }
 
 ['categorySelect', 'newCategoryName', 'content'].forEach(id => {
@@ -174,7 +174,7 @@ function saveWorkspace() {
 		content: document.getElementById('content').value
 	};
 
-	fetch('/article/workspace/save', {
+	fetch('/article/article/workspace/save', {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json'
@@ -237,7 +237,7 @@ document.getElementById('publishButton').addEventListener('click', function() {
 });
 
 document.getElementById('imageButton').addEventListener('click', function() {
-	fetch('/article/images')
+	fetch('/article/article/images')
 		.then(res => res.json())
 		.then(images => {
 			const list = document.getElementById('imageList');

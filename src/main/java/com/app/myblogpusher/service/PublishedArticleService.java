@@ -61,25 +61,31 @@ public class PublishedArticleService {
 			if (!fileName.endsWith(".md"))
 				continue;
 
-			String downloadUrl = file.get("download_url").asText();
-			String mdContent = fetchRawContent(downloadUrl, repo.getAccessToken());
+			// download_urlではなくAPIのurlを使う
+			String fileApiUrl = file.get("url").asText();
+			String mdContent = fetchContentViaApi(fileApiUrl, accessToken);
 			String slug = fileName.replace(".md", "");
 			String title = extractTitle(mdContent);
 
 			articles.add(new PublishedArticleDto(slug, title, LocalDateTime.now(), mdContent));
 		}
-
-		System.out.println("articles size: " + articles.size());
-
 		return articles.stream()
 				.sorted((a, b) -> b.getUpdateDate().compareTo(a.getUpdateDate()))
 				.toList();
 	}
 
-	private String fetchRawContent(String url, String token) throws IOException {
+	private String fetchContentViaApi(String url, String token) throws IOException {
 		HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
 		conn.setRequestProperty("Authorization", "token " + token);
-		return new String(conn.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+		conn.setRequestProperty("Accept", "application/vnd.github.v3+json");
+
+		String response = new String(conn.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+
+		// Base64デコード
+		ObjectMapper mapper = new ObjectMapper();
+		JsonNode json = mapper.readTree(response);
+		String encoded = json.get("content").asText().replaceAll("\\s", "");
+		return new String(java.util.Base64.getDecoder().decode(encoded), StandardCharsets.UTF_8);
 	}
 
 	private String extractTitle(String content) {
