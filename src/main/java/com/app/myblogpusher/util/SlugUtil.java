@@ -2,7 +2,6 @@ package com.app.myblogpusher.util;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.app.myblogpusher.entity.EnglishDictionary;
@@ -14,11 +13,13 @@ import com.atilika.kuromoji.ipadic.Tokenizer;
 public class SlugUtil {
 
 	private static final Tokenizer tokenizer = new Tokenizer();
+	private final EnglishDictionaryRepository englishDictionaryRepository;
 
-	@Autowired
-	private static EnglishDictionaryRepository englishDictionaryRepository;
+	public SlugUtil(EnglishDictionaryRepository englishDictionaryRepository) {
+		this.englishDictionaryRepository = englishDictionaryRepository;
+	}
 
-	public static String generateSlug(String title) {
+	public String generateSlug(String title) { // staticを削除
 
 		if (title == null || title.isBlank()) {
 			return "no-title";
@@ -35,7 +36,7 @@ public class SlugUtil {
 				.trim();
 	}
 
-	private static String toRomanized(String text) {
+	private String toRomanized(String text) { // staticを削除
 		StringBuilder result = new StringBuilder();
 
 		List<Token> tokens = tokenizer.tokenize(text);
@@ -57,7 +58,7 @@ public class SlugUtil {
 		return result.toString().trim();
 	}
 
-	private static String searchEnglishDictionary(String japaneseWord) {
+	private String searchEnglishDictionary(String japaneseWord) {
 		if (englishDictionaryRepository == null) {
 			return null;
 		}
@@ -66,7 +67,7 @@ public class SlugUtil {
 				.orElse(null);
 	}
 
-	public static String generateCategorySlug(String categoryName) {
+	public String generateCategorySlug(String categoryName) { 
 		if (categoryName == null || categoryName.isBlank()) {
 			return "no-category";
 		}

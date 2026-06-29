@@ -40,6 +40,9 @@ public class ArticleEditController {
 	@Autowired
 	private ArticleFormatService articleFormatService;
 
+	@Autowired
+	private SlugUtil slugUtil;
+	
 	/**
 	 * 記事編集画面を表示
 	 * 下書きがあれば表示、無ければworkspaceから復元
@@ -127,7 +130,8 @@ public class ArticleEditController {
 				.orElseGet(() -> articleCategoryService.insertCategory(userId, categoryName));
 
 		String formattedContent = articleFormatService.formatContent(content);
-		String slug = SlugUtil.generateSlug(title);
+	
+		String slug = slugUtil.generateSlug(title);
 
 		if (workId == null) {
 			if ((title == null || title.isBlank()) && (formattedContent == null || formattedContent.isBlank())) {

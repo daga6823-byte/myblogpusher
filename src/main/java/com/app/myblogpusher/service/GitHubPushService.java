@@ -13,6 +13,7 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -31,6 +32,9 @@ public class GitHubPushService {
 	private final ArticleWorkService articleWorkService;
 	private final EnglishDictionaryRepository englishDictionaryRepository;
 
+	@Autowired
+	private SlugUtil slugUtil;
+	
 	public GitHubPushService(
 			TokenCipherService tokenCipherService,
 			ArticleCategoryRepository articleCategoryRepository,
@@ -80,7 +84,7 @@ public class GitHubPushService {
 		ArticleCategory category = articleCategoryRepository.findById(categoryId)
 				.orElseThrow(() -> new IllegalArgumentException("カテゴリーが見つかりません"));
 
-		String categorySlug = SlugUtil.generateCategorySlug(category.getCategoryName());
+		String categorySlug = slugUtil.generateCategorySlug(category.getCategoryName());
 
 		Git git = initializeRepository(repoDir, repoEntity, accessToken);
 
