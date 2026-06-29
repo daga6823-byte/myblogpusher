@@ -1,0 +1,41 @@
+package com.app.myblogpusher.dto;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+public class PublishedArticleDto {
+	private String slug;
+	private String title;
+	private LocalDateTime updateDate;
+	private String content;
+	private List<String> categories;
+
+	public PublishedArticleDto(String slug, String title, LocalDateTime updateDate, String content,
+			List<String> categories) {
+		this.slug = slug;
+		this.title = title;
+		this.updateDate = updateDate;
+		this.content = content;
+		this.categories = categories;
+	}
+
+	public String getSlug() {
+		return slug;
+	}
+
+	public String getTitle() {
+		return title;
+	}
+
+	public LocalDateTime getUpdateDate() {
+		return updateDate;
+	}
+
+	public String getContent() {
+		return content;
+	}
+
+	public List<String> getCategories() {
+		return categories;
+	}
+}
