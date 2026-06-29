@@ -60,7 +60,7 @@ public class ArticlePublishedController {
 
 		try {
 			List<PublishedArticleSummaryDto> articles = publishedArticleService.getPublishedArticles(repoOpt.get(), cipherKey, session);
-			model.addAttribute("article/articles", articles);
+			model.addAttribute("articles", articles);
 		} catch (IOException e) {
 			model.addAttribute("error", "記事の取得に失敗しました");
 		}
