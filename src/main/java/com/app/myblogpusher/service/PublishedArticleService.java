@@ -90,12 +90,23 @@ public class PublishedArticleService {
 
 	private String extractTitle(String content) {
 		// Front matter から title を抽出
+		
+		System.out.println("=== Content Start ===");
+		System.out.println(content.substring(0, Math.min(500, content.length())));
+		System.out.println("=== Content End ===");
+		
 		if (content.startsWith("---")) {
 			String[] parts = content.split("---", 3);
-			if (parts.length >= 2) {
+						
+			if (parts.length >= 2) {										
 				String frontMatter = parts[1];
+				System.out.println("=== Front Matter ===");
+				System.out.println(frontMatter);
+				System.out.println("=== Front Matter End ===");
 				for (String line : frontMatter.split("\n")) {
 					if (line.startsWith("title:")) {
+						String title = line.replace("title:", "").replace("\"", "").replace("'", "").trim();
+						System.out.println("Extracted title: [" + title + "]");
 						return line.replace("title:", "").replace("\"", "").trim();
 					}
 				}
