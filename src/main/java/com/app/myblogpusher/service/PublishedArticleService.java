@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.app.myblogpusher.entity.UserRepositoryEntity;
+import com.app.myblogpusher.util.FrontMatterUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -20,6 +21,9 @@ public class PublishedArticleService {
 
 	@Autowired
 	private TokenCipherService tokenCipherService;
+
+	@Autowired
+	private FrontMatterUtil frontMatterUtil;
 
 	public List<PublishedArticleDto> getPublishedArticles(UserRepositoryEntity repo, String cipherKey)
 			throws IOException {
@@ -61,13 +65,13 @@ public class PublishedArticleService {
 			if (!fileName.endsWith(".md"))
 				continue;
 
-			// download_urlではなくAPIのurlを使う
 			String fileApiUrl = file.get("url").asText();
 			String mdContent = fetchContentViaApi(fileApiUrl, accessToken);
 			String slug = fileName.replace(".md", "");
-			String title = extractTitle(mdContent);
+			String title = frontMatterUtil.extractTitle(mdContent);
+			List<String> categories = frontMatterUtil.extractCategories(mdContent);  // ← 追加
 
-			articles.add(new PublishedArticleDto(slug, title, LocalDateTime.now(), mdContent));
+			articles.add(new PublishedArticleDto(slug, title, LocalDateTime.now(), mdContent, categories));		
 		}
 		return articles.stream()
 				.sorted((a, b) -> b.getUpdateDate().compareTo(a.getUpdateDate()))
@@ -88,28 +92,30 @@ public class PublishedArticleService {
 		return new String(java.util.Base64.getDecoder().decode(encoded), StandardCharsets.UTF_8);
 	}
 
-	private String extractTitle(String content) {
-		// TOML形式（+++）またはYAML形式（---）に対応
-		String delimiter = content.startsWith("+++") ? "\\+\\+\\+" : "---";
-		
-		String[] parts = content.split(delimiter, 3);
-		if (parts.length >= 2) {
-			String frontMatter = parts[1];
-			System.out.println("=== Front Matter ===");
-			System.out.println(frontMatter);
-			System.out.println("=== Front Matter End ===");
-			
-			for (String line : frontMatter.split("\n")) {
-				if (line.contains("title")) {
-					// TOML形式: title = 'xxx'
-					// YAML形式: title: xxx
-					String title = line.replaceAll("^[^=:]*[=:]\\s*['\"]?", "").replaceAll("['\"]\\s*$", "").trim();
-					System.out.println("Extracted title: [" + title + "]");
-					return title;
-				}
-			}
+	public PublishedArticleDto getPublishedArticle(UserRepositoryEntity repo, String cipherKey, String slug)
+			throws IOException {
+		String accessToken = tokenCipherService.decrypt(
+				repo.getAccessToken(),
+				repo.getTokenIv(),
+				cipherKey);
+
+		String apiUrl = "https://api.github.com/repos/"
+				+ repo.getRepoOwner() + "/" + repo.getRepoName()
+				+ "/contents/content/posts/" + slug + ".md";
+
+		HttpURLConnection conn = (HttpURLConnection) new URL(apiUrl).openConnection();
+		conn.setRequestProperty("Authorization", "token " + accessToken);
+		conn.setRequestProperty("Accept", "application/vnd.github.v3+json");
+
+		if (conn.getResponseCode() != 200) {
+			return null;
 		}
-		return "（タイトルなし）";
+
+		String mdContent = fetchContentViaApi(apiUrl, accessToken);
+		String title = frontMatterUtil.extractTitle(mdContent);
+		List<String> categories = frontMatterUtil.extractCategories(mdContent);
+
+		return new PublishedArticleDto(slug, title, LocalDateTime.now(), mdContent, categories);
 	}
 
 	public static class PublishedArticleDto {
@@ -117,12 +123,16 @@ public class PublishedArticleService {
 		private String title;
 		private LocalDateTime updateDate;
 		private String content;
+		private List<String> categories;
 
-		public PublishedArticleDto(String slug, String title, LocalDateTime updateDate, String content) {
+		public PublishedArticleDto(String slug, String title, LocalDateTime updateDate, String content,
+				List<String> categories) {
+
 			this.slug = slug;
 			this.title = title;
 			this.updateDate = updateDate;
 			this.content = content;
+			this.categories = categories;
 		}
 
 		public String getSlug() {
@@ -139,6 +149,10 @@ public class PublishedArticleService {
 
 		public String getContent() {
 			return content;
+		}
+
+		public List<String> getCategories() {
+			return categories;
 		}
 	}
 }

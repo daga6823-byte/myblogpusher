@@ -63,4 +63,5 @@ public class ArticleWorkService {
 
 		articleWorkRepository.delete(work);
 	}
+	
 }

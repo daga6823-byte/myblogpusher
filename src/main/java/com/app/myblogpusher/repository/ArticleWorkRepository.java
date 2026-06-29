@@ -13,4 +13,6 @@ public interface ArticleWorkRepository extends JpaRepository<ArticleWork, Long> 
     Optional<ArticleWork> findByUserIdAndCategoryIdAndTitleAndContent(
     	    Long userId, Long categoryId, String title, String content);
     
+    Optional<ArticleWork> findBySlug(String slug);
+    
 }
