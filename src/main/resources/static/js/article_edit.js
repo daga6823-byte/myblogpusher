@@ -257,3 +257,10 @@ function insertImage(url) {
 	textarea.value += '\n![image](' + url + ')\n';
 	document.getElementById('imageModal').style.display = 'none';
 }
+
+// セッション維持
+setInterval(() => {
+	fetch('/article/session/keepalive', {
+		method: 'POST'
+	}).catch(err => console.error(err));
+}, 10 * 60 * 1000); // 10分ごと

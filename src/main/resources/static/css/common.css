@@ -40,6 +40,16 @@ input[type="date"] {
 	gap: 12px;
 }
 
+@media (max-width: 768px) {
+    .button-row {
+        flex-direction: column;
+    }
+
+    .button-row button {
+        width: 100%;
+    }
+}
+
 button {
 	padding: 10px 20px;
 	border: none;

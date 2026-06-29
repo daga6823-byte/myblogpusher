@@ -140,4 +140,18 @@ public class ArticleEditController {
 		return ResponseEntity.ok().build();
 	}
 
+	@PostMapping("/article/session/keepalive")
+	@ResponseBody
+	public ResponseEntity<Void> keepAlive(HttpSession session) {
+
+	    if (session.getAttribute("loginUser") == null) {
+	        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+	    }
+
+	    // セッションにアクセスするだけで最終アクセス時刻が更新される
+	    session.getAttribute("loginUser");
+
+	    return ResponseEntity.ok().build();
+	}
+
 }
