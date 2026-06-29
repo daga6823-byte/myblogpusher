@@ -7,6 +7,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.StreamSupport;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -58,33 +59,30 @@ public class PublishedArticleService {
 		}
 
 		String response = new String(conn.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
-		List<PublishedArticleSummaryDto> articles = new ArrayList<>();
 
 		ObjectMapper mapper = new ObjectMapper();
 		JsonNode files = mapper.readTree(response);
 
-		for (JsonNode file : files) {
-			String fileName = file.get("name").asText();
-			if (!fileName.endsWith(".md"))
-				continue;
+		List<PublishedArticleSummaryDto> result = StreamSupport.stream(files.spliterator(), true)
+			.filter(file -> file.get("name").asText().endsWith(".md"))
+			.map(file -> {
+				try {
+					String fileName = file.get("name").asText();
+					String fileApiUrl = file.get("url").asText();
+					String mdContent = fetchContentViaApi(fileApiUrl, accessToken);
+					String slug = fileName.replace(".md", "");
+					String title = frontMatterUtil.extractTitle(mdContent);
+					return new PublishedArticleSummaryDto(slug, title, LocalDateTime.now());
+				} catch (IOException e) {
+					return null;
+				}
+			})
+			.filter(a -> a != null)
+			.sorted((a, b) -> b.getUpdateDate().compareTo(a.getUpdateDate()))
+			.toList();
 
-			String fileApiUrl = file.get("url").asText();
-			String mdContent = fetchContentViaApi(fileApiUrl, accessToken);
-			String slug = fileName.replace(".md", "");
-			String title = frontMatterUtil.extractTitle(mdContent);
+		System.out.println("Articles count: " + result.size());
 
-			articles.add(new PublishedArticleSummaryDto(slug, title, LocalDateTime.now()));
-		}
-
-		System.out.println("Articles count before sort: " + articles.size());
-		
-		List<PublishedArticleSummaryDto> result = articles.stream()
-				.sorted((a, b) -> b.getUpdateDate().compareTo(a.getUpdateDate()))
-				.toList();
-
-		System.out.println("Articles count after sort: " + result.size());  // ← ここ
-		result.forEach(a -> System.out.println("Slug: " + a.getSlug() + ", Title: " + a.getTitle()));  // ← ここ
-		
 		session.setAttribute("publishedArticlesCache", result);
 		return result;
 	}
