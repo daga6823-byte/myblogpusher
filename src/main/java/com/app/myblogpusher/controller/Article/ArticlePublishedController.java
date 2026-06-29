@@ -55,17 +55,17 @@ public class ArticlePublishedController {
 		Optional<UserRepositoryEntity> repoOpt = userRepositoryRepository.findByUserId(userId);
 		if (repoOpt.isEmpty()) {
 			model.addAttribute("error", "リポジトリが設定されていません");
-			return "article_published_list";
+			return "article/article_published_list";
 		}
 
 		try {
 			List<PublishedArticleSummaryDto> articles = publishedArticleService.getPublishedArticles(repoOpt.get(), cipherKey, session);
-			model.addAttribute("articles", articles);
+			model.addAttribute("article/articles", articles);
 		} catch (IOException e) {
 			model.addAttribute("error", "記事の取得に失敗しました");
 		}
 
-		return "article_published_list";
+		return "article/article_published_list";
 	}
 
 	@GetMapping("/article/published/edit")
