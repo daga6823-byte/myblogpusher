@@ -79,7 +79,7 @@ public class ArticleTypoController {
 				.orElse("");
 		model.addAttribute("categoryName", categoryName);
 
-		return "article_correct";
+		return "article/article_correct";
 	}
 
 	@PostMapping("/article/article/typo/add")

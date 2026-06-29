@@ -13,12 +13,12 @@
 	<div class="edit-box">
 		<h1>添削</h1>
 
-		<form th:action="@{/article/save}" method="post">
+		<form th:action="@{/article/article/save}" method="post">
 
 			<div th:replace="~{fragments/article_form :: formFields}"></div>
 
 			<div class="button-row">
-				<button type="submit" formaction="/article/save" class="btn-save" disabled>一時保存</button>
+				<button type="submit" formaction="/article/article/save" class="btn-save" disabled>一時保存</button>
 				<button type="button" id="backButton" class="btn-back">戻る</button>
 			</div>
 
