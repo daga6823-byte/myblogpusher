@@ -18,15 +18,15 @@
 			下書きが保存されました。
 		</div>
 
-		<form th:action="@{/article/save}" method="post">
+		<form th:action="@{/article/article/save}" method="post">
 
 			<div th:replace="~{fragments/article_form :: formFields}"></div>
 
 			<div class="button-row">
-				<button type="submit" formaction="/article/save" class="btn-save" disabled>一時保存</button>
+				<button type="submit" formaction="/article/article/save" class="btn-save" disabled>一時保存</button>
 				<button type="button" id="listButton" class="btn-back">下書き一覧</button>
 				<button type="button" id="copyAllButton" class="btn-back">内容を一括コピー</button>
-				<button type="submit" formaction="/article/correct" class="btn-publish" disabled>添削</button>
+				<button type="submit" formaction="/article/article/correct" class="btn-publish" disabled>添削</button>
 				<button type="button" class="btn-publish" id="publishButton">投稿</button>
 <button type="button" id="imageButton" class="btn-back">📷 画像挿入</button>
 

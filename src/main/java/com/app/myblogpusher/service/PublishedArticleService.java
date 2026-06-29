@@ -19,8 +19,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class PublishedArticleService {
 
 	@Autowired
-    private TokenCipherService tokenCipherService;
-	
+	private TokenCipherService tokenCipherService;
+
 	public List<PublishedArticleDto> getPublishedArticles(UserRepositoryEntity repo, String cipherKey)
 			throws IOException {
 
@@ -31,17 +31,17 @@ public class PublishedArticleService {
 
 		System.out.println("Token length: " + accessToken.length());
 		System.out.println("Token prefix: " + accessToken.substring(0, Math.min(10, accessToken.length())));
-		
+
 		String apiUrl = "https://api.github.com/repos/"
 				+ repo.getRepoOwner() + "/" + repo.getRepoName()
 				+ "/contents/content/posts";
-		
+
 		System.out.println("GitHub API URL: " + apiUrl);
 
 		HttpURLConnection conn = (HttpURLConnection) new URL(apiUrl).openConnection();
 		conn.setRequestProperty("Authorization", "token " + accessToken);
 		conn.setRequestProperty("Accept", "application/vnd.github.v3+json");
-		
+
 		System.out.println("Response code: " + conn.getResponseCode());
 
 		if (conn.getResponseCode() != 200) {
@@ -70,7 +70,7 @@ public class PublishedArticleService {
 		}
 
 		System.out.println("articles size: " + articles.size());
-		
+
 		return articles.stream()
 				.sorted((a, b) -> b.getUpdateDate().compareTo(a.getUpdateDate()))
 				.toList();
@@ -78,7 +78,7 @@ public class PublishedArticleService {
 
 	private String fetchRawContent(String url, String token) throws IOException {
 		HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
-		conn.setRequestProperty("Authorization", "Bearer " + token);
+		conn.setRequestProperty("Authorization", "token " + token);
 		return new String(conn.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
 	}
 
