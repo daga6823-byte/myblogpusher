@@ -64,4 +64,8 @@ public class ArticleWorkService {
 		articleWorkRepository.delete(work);
 	}
 	
+	public Optional<ArticleWork> findBySlug(String slug) {
+		return articleWorkRepository.findBySlug(slug);
+	}
+	
 }

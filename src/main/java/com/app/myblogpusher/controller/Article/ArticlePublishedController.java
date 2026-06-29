@@ -11,15 +11,16 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import com.app.myblogpusher.dto.PublishedArticleDto;
+import com.app.myblogpusher.dto.PublishedArticleSummaryDto;
 import com.app.myblogpusher.entity.ArticleCategory;
+import com.app.myblogpusher.entity.ArticleWork;
 import com.app.myblogpusher.entity.UserMaster;
 import com.app.myblogpusher.entity.UserRepositoryEntity;
 import com.app.myblogpusher.repository.UserRepositoryRepository;
 import com.app.myblogpusher.service.ArticleCategoryService;
 import com.app.myblogpusher.service.ArticleWorkService;
 import com.app.myblogpusher.service.PublishedArticleService;
-import com.app.myblogpusher.service.PublishedArticleService.PublishedArticleDto;
-import com.app.myblogpusher.util.FrontMatterUtil;
 
 import jakarta.servlet.http.HttpSession;
 
@@ -42,39 +43,31 @@ public class ArticlePublishedController {
 	@Autowired
 	private ArticleCategoryService articleCategoryService;
 
-	@Autowired
-	private FrontMatterUtil frontMatterUtil;
-
 	/**
 	 * 投稿済み記事一覧を表示
 	 */
 	@GetMapping("/article/published")
 	public String publishedList(HttpSession session, Model model) {
-	    UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
-	    Long userId = loginUser.getUserId();
-	    String cipherKey = loginUser.getCipherKey(); // ここで取得
+		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
+		Long userId = loginUser.getUserId();
+		String cipherKey = loginUser.getCipherKey();
 
-	    Optional<UserRepositoryEntity> repoOpt = userRepositoryRepository.findByUserId(userId);
-	    if (repoOpt.isEmpty()) {
-	    	System.err.println("Repository not found");
-	        model.addAttribute("error", "リポジトリが設定されていません");
-	        return "error";
-	    }
+		Optional<UserRepositoryEntity> repoOpt = userRepositoryRepository.findByUserId(userId);
+		if (repoOpt.isEmpty()) {
+			model.addAttribute("error", "リポジトリが設定されていません");
+			return "article_published_list";
+		}
 
-	    try {
-	    	System.out.println("Fetching articles...");
-	        List<PublishedArticleDto> articles = publishedArticleService.getPublishedArticles(repoOpt.get(), cipherKey);
-	        System.out.println("Articles count: " + articles.size());
-	        model.addAttribute("articles", articles);
-	    } catch (IOException e) {
-	        System.err.println("記事取得エラー: " + e.getMessage());
-	        e.printStackTrace();
-	        model.addAttribute("error", "記事の取得に失敗しました");
-	    }
+		try {
+			List<PublishedArticleSummaryDto> articles = publishedArticleService.getPublishedArticles(repoOpt.get(), cipherKey, session);
+			model.addAttribute("articles", articles);
+		} catch (IOException e) {
+			model.addAttribute("error", "記事の取得に失敗しました");
+		}
 
-	    return "article/article_published_list";
+		return "article_published_list";
 	}
-	
+
 	@GetMapping("/article/published/edit")
 	public String editPublished(@RequestParam String slug, HttpSession session, Model model) {
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
@@ -87,30 +80,34 @@ public class ArticlePublishedController {
 		}
 
 		try {
-			PublishedArticleService.PublishedArticleDto article = 
-				publishedArticleService.getPublishedArticle(repoOpt.get(), cipherKey, slug);
+			PublishedArticleDto article = publishedArticleService.getPublishedArticle(repoOpt.get(), cipherKey, slug);
 			
 			if (article == null) {
 				return "redirect:/article/published";
 			}
 
-			// カテゴリを取得
-			List<String> categories = frontMatterUtil.extractCategories(article.getContent());
-			Long categoryId = null;
-			if (!categories.isEmpty()) {
-				String categoryName = categories.get(0);
-				categoryId = articleCategoryService.findByUserIdAndName(userId, categoryName)
-					.map(ArticleCategory::getCategoryId)
-					.orElseGet(() -> articleCategoryService.insertCategory(userId, categoryName));
-			}
+			Optional<ArticleWork> existing = articleWorkService.findBySlug(slug);
+			Long workId;
+			
+			if (existing.isPresent()) {
+				workId = existing.get().getWorkId();
+			} else {
+				List<String> categories = article.getCategories();
+				Long categoryId = null;
+				if (!categories.isEmpty()) {
+					String categoryName = categories.get(0);
+					categoryId = articleCategoryService.findByUserIdAndName(userId, categoryName)
+						.map(ArticleCategory::getCategoryId)
+						.orElseGet(() -> articleCategoryService.insertCategory(userId, categoryName));
+				}
 
-			// article_work に保存
-			Long workId = articleWorkService.insertArticleWork(
-				userId,
-				categoryId,
-				article.getTitle(),
-				article.getContent(),
-				slug);
+				workId = articleWorkService.insertArticleWork(
+					userId,
+					categoryId,
+					article.getTitle(),
+					article.getContent(),
+					slug);
+			}
 
 			return "redirect:/article/edit?workId=" + workId;
 		} catch (IOException e) {
