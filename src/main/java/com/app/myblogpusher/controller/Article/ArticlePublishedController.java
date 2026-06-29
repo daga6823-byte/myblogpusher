@@ -43,12 +43,15 @@ public class ArticlePublishedController {
 
 	    Optional<UserRepositoryEntity> repoOpt = userRepositoryRepository.findByUserId(userId);
 	    if (repoOpt.isEmpty()) {
+	    	System.err.println("Repository not found");
 	        model.addAttribute("error", "リポジトリが設定されていません");
 	        return "error";
 	    }
 
 	    try {
+	    	System.out.println("Fetching articles...");
 	        List<PublishedArticleDto> articles = publishedArticleService.getPublishedArticles(repoOpt.get(), cipherKey);
+	        System.out.println("Articles count: " + articles.size());
 	        model.addAttribute("articles", articles);
 	    } catch (IOException e) {
 	        System.err.println("記事取得エラー: " + e.getMessage());
