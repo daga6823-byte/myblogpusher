@@ -76,10 +76,15 @@ public class PublishedArticleService {
 			articles.add(new PublishedArticleSummaryDto(slug, title, LocalDateTime.now()));
 		}
 
+		System.out.println("Articles count before sort: " + articles.size());
+		
 		List<PublishedArticleSummaryDto> result = articles.stream()
 				.sorted((a, b) -> b.getUpdateDate().compareTo(a.getUpdateDate()))
 				.toList();
 
+		System.out.println("Articles count after sort: " + result.size());  // ← ここ
+		result.forEach(a -> System.out.println("Slug: " + a.getSlug() + ", Title: " + a.getTitle()));  // ← ここ
+		
 		session.setAttribute("publishedArticlesCache", result);
 		return result;
 	}
