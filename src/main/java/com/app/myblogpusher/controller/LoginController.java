@@ -27,12 +27,15 @@ public class LoginController {
 	@GetMapping("/login")
 	public String loginForm(HttpSession session) {
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
-		if (loginUser != null) {
+		if (loginUser == null) {
+			// セッションがなければ新規開始、何もしない
+			return "login";
+		} else {
 			// セッションがあれば、ワークスペースをクリア
 			workspaceService.delete(loginUser.getUserId());
 			session.invalidate();
+			return "login";
 		}
-		return "login";
 	}
 
 	@PostMapping("/login")
