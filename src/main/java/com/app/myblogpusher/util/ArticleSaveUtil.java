@@ -48,9 +48,22 @@ public class ArticleSaveUtil {
 				return existing.get().getWorkId();
 			}
 
-			return articleWorkService.insertArticleWork(userId, categoryId, title, content, slug);
+			return articleWorkService.insertArticleWork(
+				    userId,
+				    categoryId,
+				    title,
+				    formattedContent,
+				    slug
+				);
 		} else {
-			articleWorkService.updateArticleWork(workId, categoryId, title, content, userId, slug);
+			articleWorkService.updateArticleWork(
+				    workId,
+				    categoryId,
+				    title,
+				    formattedContent,
+				    userId,
+				    slug
+				);
 			return workId;
 		}
 	}
