@@ -16,6 +16,7 @@ import com.app.myblogpusher.repository.ArticleWorkRepository;
 import com.app.myblogpusher.repository.UserRepositoryRepository;
 import com.app.myblogpusher.service.ArticleCategoryService;
 import com.app.myblogpusher.service.ArticleWorkService;
+import com.app.myblogpusher.service.ArticleWorkspaceService;
 import com.app.myblogpusher.service.GitHubPushService;
 import com.app.myblogpusher.util.SlugUtil;
 
@@ -24,7 +25,6 @@ import jakarta.servlet.http.HttpSession;
 @Controller
 public class PublishController {
 
-	private final ArticleWorkService articleWorkService;
 	private final UserRepositoryRepository userRepositoryRepository;
 	private final ArticleCategoryService articleCategoryService;
 	private final GitHubPushService gitHubPushService;
@@ -32,12 +32,14 @@ public class PublishController {
 	@Autowired
 	private SlugUtil slugUtil;
 	
+	@Autowired
+	private ArticleWorkspaceService workspaceService;
+	
 	public PublishController(ArticleWorkRepository articleWorkRepository,
 			ArticleWorkService articleWorkService,
 			UserRepositoryRepository userRepositoryRepository,
 			ArticleCategoryService articleCategoryService,
 			GitHubPushService gitHubPushService) {
-		this.articleWorkService = articleWorkService;
 		this.userRepositoryRepository = userRepositoryRepository;
 		this.articleCategoryService = articleCategoryService;
 		this.gitHubPushService = gitHubPushService;
@@ -128,6 +130,9 @@ public class PublishController {
 			workId,
 			userId
 		);
+		
+		workspaceService.delete(userId);
+
 		return "redirect:/article/list?published";
 	}
 }

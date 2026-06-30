@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.app.myblogpusher.entity.UserMaster;
+import com.app.myblogpusher.service.ArticleWorkspaceService;
 import com.app.myblogpusher.service.LoginService;
 
 import jakarta.servlet.http.HttpSession;
@@ -20,6 +21,9 @@ public class LoginController {
 	@Autowired
 	private LoginService loginService;
 
+	@Autowired
+	private ArticleWorkspaceService workspaceService;
+	
 	@GetMapping("/login")
 	public String loginForm() {
 		return "login";
@@ -106,6 +110,16 @@ public class LoginController {
 
 		model.addAttribute("mode", "done");
 		return "forgot_password";
+	}
+	
+	@PostMapping("/logout")
+	public String logout(HttpSession session) {
+		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
+		if (loginUser != null) {
+			workspaceService.delete(loginUser.getUserId());
+		}
+		session.invalidate();
+		return "redirect:/";
 	}
 
 }

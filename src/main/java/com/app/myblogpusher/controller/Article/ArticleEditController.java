@@ -154,4 +154,14 @@ public class ArticleEditController {
 	    return ResponseEntity.ok().build();
 	}
 
+	@PostMapping("/article/workspace/clear")
+	@ResponseBody
+	public ResponseEntity<Void> clearWorkspace(HttpSession session) {
+		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
+		if (loginUser != null) {
+			workspaceService.delete(loginUser.getUserId());
+		}
+		return ResponseEntity.ok().build();
+	}
+	
 }
