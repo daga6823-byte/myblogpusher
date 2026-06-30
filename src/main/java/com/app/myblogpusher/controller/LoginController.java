@@ -25,17 +25,8 @@ public class LoginController {
 	private ArticleWorkspaceService workspaceService;
 	
 	@GetMapping("/login")
-	public String loginForm(HttpSession session) {
-		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
-		if (loginUser == null) {
-			// セッションがなければ新規開始、何もしない
-			return "login";
-		} else {
-			// セッションがあれば、ワークスペースをクリア
-			workspaceService.delete(loginUser.getUserId());
-			session.invalidate();
-			return "login";
-		}
+	public String loginForm() {
+		return "login";
 	}
 
 	@PostMapping("/login")
@@ -47,7 +38,13 @@ public class LoginController {
 		Optional<UserMaster> userOpt = loginService.findAuthenticatedUser(loginId, password);
 
 		if (userOpt.isPresent()) {
-			session.setAttribute("loginUser", userOpt.get());
+			UserMaster user = userOpt.get();
+			
+			// ログイン前に前のセッションのワークスペースをクリア
+			workspaceService.delete(user.getUserId());
+			
+			// 新しいセッションを設定
+			session.setAttribute("loginUser", user);
 			return "redirect:/home";
 		} else {
 			model.addAttribute("error", "ログインIDまたはパスワードが間違っています");
