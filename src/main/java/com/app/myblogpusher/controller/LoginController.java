@@ -25,7 +25,13 @@ public class LoginController {
 	private ArticleWorkspaceService workspaceService;
 	
 	@GetMapping("/login")
-	public String loginForm() {
+	public String loginForm(HttpSession session) {
+		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
+		if (loginUser != null) {
+			// セッションがあれば、ワークスペースをクリア
+			workspaceService.delete(loginUser.getUserId());
+			session.invalidate();
+		}
 		return "login";
 	}
 
@@ -110,16 +116,6 @@ public class LoginController {
 
 		model.addAttribute("mode", "done");
 		return "forgot_password";
-	}
-	
-	@PostMapping("/logout")
-	public String logout(HttpSession session) {
-		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
-		if (loginUser != null) {
-			workspaceService.delete(loginUser.getUserId());
-		}
-		session.invalidate();
-		return "redirect:/";
 	}
 
 }
