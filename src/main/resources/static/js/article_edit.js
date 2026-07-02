@@ -273,18 +273,28 @@ document.getElementById('insertMenuButton').addEventListener('click', function()
 
 document.getElementById('codeBlockButton').addEventListener('click', function() {
 	document.getElementById('insertMenu').style.display = 'none';
+	document.getElementById('codeBlockEditor').style.display = 'block';
+	document.getElementById('codeInput').focus();
+});
 
+document.getElementById('insertCodeButton').addEventListener('click', function() {
+	const code = document.getElementById('codeInput').value;
 	const textarea = document.getElementById('content');
 	const start = textarea.selectionStart;
-	const end = textarea.selectionEnd;
-	const selected = textarea.value.substring(start, end);
 
-	const codeBlock = '\n```\n' + (selected || 'ここにコードを入力') + '\n```\n';
+	const codeBlock = '\n```\n' + code + '\n```\n';
 
 	textarea.value =
 		textarea.value.substring(0, start) +
 		codeBlock +
-		textarea.value.substring(end);
+		textarea.value.substring(start);
 
+	document.getElementById('codeInput').value = '';
+	document.getElementById('codeBlockEditor').style.display = 'none';
 	textarea.focus();
+});
+
+document.getElementById('cancelCodeButton').addEventListener('click', function() {
+	document.getElementById('codeInput').value = '';
+	document.getElementById('codeBlockEditor').style.display = 'none';
 });

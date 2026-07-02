@@ -1,0 +1,28 @@
+.code-editor-box {
+	background: #1e1e1e;
+	border-radius: 6px;
+	padding: 16px;
+	margin: 12px 0;
+	display: flex;
+	align-items: flex-start;
+	gap: 8px;
+}
+
+.code-editor-label {
+	color: #00ff00;
+	font-family: monospace;
+	font-size: 14px;
+	padding-top: 2px;
+}
+
+.code-input {
+	background: transparent;
+	border: none;
+	color: #f8f8f2;
+	font-family: monospace;
+	font-size: 14px;
+	width: 100%;
+	min-height: 80px;
+	resize: vertical;
+	outline: none;
+}

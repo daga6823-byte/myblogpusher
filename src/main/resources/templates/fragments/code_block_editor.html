@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<body>
+
+	<div th:fragment="codeBlockEditor">
+		<div id="codeBlockEditor" style="display:none;">
+			<div class="code-editor-box">
+				<span class="code-editor-label">$ </span>
+				<textarea id="codeInput" class="code-input" placeholder="ここにコードを入力"></textarea>
+			</div>
+			<button type="button" id="insertCodeButton" class="btn-save">挿入</button>
+			<button type="button" id="cancelCodeButton" class="btn-back">キャンセル</button>
+		</div>
+	</div>
+
+</body>
+
+</html>

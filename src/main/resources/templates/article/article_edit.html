@@ -5,6 +5,7 @@
 	<meta charset="UTF-8">
 	<title>記事編集</title>
 	<link rel="stylesheet" th:href="@{/css/article_edit.css}">
+	<link rel="stylesheet" th:href="@{/css/code_block_editor.css}">
 	<link rel="stylesheet" th:href="@{/css/common.css}">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
@@ -21,6 +22,7 @@
 		<form th:action="@{/article/save}" method="post">
 
 			<div th:replace="~{fragments/article_form :: formFields}"></div>
+			<div th:replace="~{fragments/code_block_editor :: codeBlockEditor}"></div>
 
 			<div class="button-row">
 				<button type="submit" formaction="/article/save" class="btn-save" disabled>一時保存</button>
