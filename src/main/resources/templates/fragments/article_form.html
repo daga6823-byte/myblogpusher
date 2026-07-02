@@ -23,6 +23,12 @@
 		<div class="content-wrapper">
 			<div id="contentHighlight" class="content-highlight"></div>
 			<textarea id="content" name="content" th:text="${work != null ? work.content : ''}"></textarea>
+			<div class="editor-toolbar">
+				<button type="button" id="insertMenuButton" class="btn-insert">＋</button>
+				<div id="insertMenu" class="insert-menu" style="display:none;">
+					<button type="button" id="codeBlockButton">コードブロック</button>
+				</div>
+			</div>
 		</div>
 
 		<input type="hidden" id="redirectTo" name="redirectTo" value="">

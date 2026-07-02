@@ -29,18 +29,6 @@
 				<button type="button" id="clearButton" class="btn-clear">クリア</button>
 				<button type="submit" formaction="/article/correct" class="btn-publish" disabled>添削</button>
 				<button type="button" class="btn-publish" id="publishButton">投稿</button>
-
-				<div class="content-wrapper">
-					<div id="contentHighlight" class="content-highlight"></div>
-					<textarea id="content" name="content" th:text="${work != null ? work.content : ''}"></textarea>
-					<div class="editor-toolbar">
-						<button type="button" id="insertMenuButton" class="btn-insert">＋</button>
-						<div id="insertMenu" class="insert-menu" style="display:none;">
-							<button type="button" id="codeBlockButton">コードブロック</button>
-						</div>
-					</div>
-				</div>
-
 				<button type="button" id="imageButton" class="btn-back">📷 画像挿入</button>
 
 				<div id="imageModal"
