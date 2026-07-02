@@ -271,30 +271,28 @@ document.getElementById('insertMenuButton').addEventListener('click', function()
 	menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
 });
 
-document.getElementById('codeBlockButton').addEventListener('click', function() {
-	document.getElementById('insertMenu').style.display = 'none';
-	document.getElementById('codeBlockEditor').style.display = 'block';
-	document.getElementById('codeInput').focus();
+let savedCursorPos = 0;
+
+document.getElementById('codeBlockButton').addEventListener('click', function () {
+    const textarea = document.getElementById('content');
+    savedCursorPos = textarea.selectionStart; // カーソル位置を保存
+    document.getElementById('insertMenu').style.display = 'none';
+    document.getElementById('codeBlockEditor').style.display = 'block';
+    document.getElementById('codeInput').focus();
 });
 
-document.getElementById('insertCodeButton').addEventListener('click', function() {
-	const code = document.getElementById('codeInput').value;
-	const textarea = document.getElementById('content');
-	const start = textarea.selectionStart;
+document.getElementById('insertCodeButton').addEventListener('click', function () {
+    const code = document.getElementById('codeInput').value;
+    const textarea = document.getElementById('content');
 
-	const codeBlock = '\n```\n' + code + '\n```\n';
+    const codeBlock = '\n```\n' + code + '\n```\n';
 
-	textarea.value =
-		textarea.value.substring(0, start) +
-		codeBlock +
-		textarea.value.substring(start);
+    textarea.value =
+        textarea.value.substring(0, savedCursorPos) +
+        codeBlock +
+        textarea.value.substring(savedCursorPos);
 
-	document.getElementById('codeInput').value = '';
-	document.getElementById('codeBlockEditor').style.display = 'none';
-	textarea.focus();
-});
-
-document.getElementById('cancelCodeButton').addEventListener('click', function() {
-	document.getElementById('codeInput').value = '';
-	document.getElementById('codeBlockEditor').style.display = 'none';
+    document.getElementById('codeInput').value = '';
+    document.getElementById('codeBlockEditor').style.display = 'none';
+    textarea.focus();
 });
