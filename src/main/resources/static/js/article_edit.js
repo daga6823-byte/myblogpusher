@@ -264,3 +264,20 @@ setInterval(() => {
 		method: 'POST'
 	}).catch(err => console.error(err));
 }, 10 * 60 * 1000); // 10分ごと
+
+//コードブロック
+document.getElementById('codeBlockButton').addEventListener('click', function() {
+	const textarea = document.getElementById('content');
+	const start = textarea.selectionStart;
+	const end = textarea.selectionEnd;
+	const selected = textarea.value.substring(start, end);
+
+	const codeBlock = '\n```\n' + (selected || 'ここにコードを入力') + '\n```\n';
+
+	textarea.value =
+		textarea.value.substring(0, start) +
+		codeBlock +
+		textarea.value.substring(end);
+
+	textarea.focus();
+});
