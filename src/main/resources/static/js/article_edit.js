@@ -266,7 +266,14 @@ setInterval(() => {
 }, 10 * 60 * 1000); // 10分ごと
 
 //コードブロック
+document.getElementById('insertMenuButton').addEventListener('click', function() {
+	const menu = document.getElementById('insertMenu');
+	menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+});
+
 document.getElementById('codeBlockButton').addEventListener('click', function() {
+	document.getElementById('insertMenu').style.display = 'none';
+
 	const textarea = document.getElementById('content');
 	const start = textarea.selectionStart;
 	const end = textarea.selectionEnd;
