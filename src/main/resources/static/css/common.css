@@ -103,6 +103,14 @@ button:disabled {
 	background-color: #962d22;
 }
 
+.btn-clear {
+    background-color: #e67e22;
+}
+
+.btn-clear:hover {
+    background-color: #ca6f1e;
+}
+
 table {
 	width: 100%;
 	border-collapse: collapse;

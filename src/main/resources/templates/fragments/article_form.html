@@ -27,13 +27,13 @@
 				<button type="button" id="insertMenuButton" class="btn-insert">＋</button>
 				<div id="insertMenu" class="insert-menu" style="display:none;">
 					<button type="button" id="codeBlockButton">コードブロック</button>
+					<button type="button" id="imageButton">📷 画像挿入</button>
 				</div>
 			</div>
-		</div>
 
-		<input type="hidden" id="redirectTo" name="redirectTo" value="">
-		<input type="hidden" id="workId" name="workId" th:value="${work != null ? work.workId : ''}">
-	</div>
+			<input type="hidden" id="redirectTo" name="redirectTo" value="">
+			<input type="hidden" id="workId" name="workId" th:value="${work != null ? work.workId : ''}">
+		</div>
 
 </body>
 
