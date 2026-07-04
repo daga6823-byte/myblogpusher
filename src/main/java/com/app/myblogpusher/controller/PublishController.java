@@ -101,10 +101,11 @@ public class PublishController {
 		form.setSlug(slugUtil.generateSlug(title));
 
 		List<SlugAnalysisDto> analysis = slugUtil.analyzeSlug(title);
+		String slug = slugUtil.generateSlugFromAnalysis(analysis);
+		form.setSlug(slug);
+
 		model.addAttribute("analysis", analysis);
 		model.addAttribute("form", form);
-
-		System.out.println("preview slug=[" + form.getSlug() + "]");
 
 		return "publish_preview";
 	}
@@ -185,8 +186,11 @@ public class PublishController {
 		form.setCategoryId(categoryId);
 		form.setRepoOwner(repo.getRepoOwner());
 		form.setRepoName(repo.getRepoName());
-
+		
 		List<SlugAnalysisDto> analysis = slugUtil.analyzeSlug(title);
+		String slug = slugUtil.generateSlugFromAnalysis(analysis);
+		form.setSlug(slug);
+		
 		model.addAttribute("analysis", analysis);
 		model.addAttribute("form", form);
 

@@ -236,4 +236,21 @@ public class SlugUtil {
 		}
 		return result;
 	}
+
+	public String generateSlugFromAnalysis(List<SlugAnalysisDto> analysis) {
+		StringBuilder result = new StringBuilder();
+		for (SlugAnalysisDto token : analysis) {
+			String converted = token.getConverted();
+			if (converted != null && !converted.isEmpty()) {
+				result.append(converted).append(" ");
+			}
+		}
+		return result.toString().trim()
+				.toLowerCase()
+				.replaceAll("\\s+", "-")
+				.replaceAll("[^a-z0-9-]", "")
+				.replaceAll("-+", "-")
+				.replaceAll("^-+|-+$", "")
+				.trim();
+	}
 }
