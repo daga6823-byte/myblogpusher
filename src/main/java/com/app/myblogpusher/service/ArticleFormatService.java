@@ -1,3 +1,9 @@
+/**
+ * 記事本文の整形処理を担当するサービス
+ * フロントマターを保持したまま本文を句点区切りで整形する
+ * コードブロック内は整形対象外
+ */
+
 package com.app.myblogpusher.service;
 
 import java.util.regex.Matcher;

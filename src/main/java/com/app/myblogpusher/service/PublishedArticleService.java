@@ -1,3 +1,9 @@
+/**
+ * 投稿済み記事の取得を担当するサービス
+ * GitHub APIを使用してリポジトリから記事一覧を取得する
+ * tmpディレクトリではなくGitHub API経由で取得するためRender環境に対応
+ */
+
 package com.app.myblogpusher.service;
 
 import java.io.IOException;

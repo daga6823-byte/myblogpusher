@@ -1,10 +1,18 @@
+/**
+ * 記事タイトルからURLスラッグを生成するユーティリティ
+ * kuromojiで形態素解析し、英単語辞典・助詞マップ・ローマ字変換を組み合わせてスラッグを生成する
+ * カテゴリースラッグの生成も担当
+ */
+
 package com.app.myblogpusher.util;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import org.springframework.stereotype.Component;
 
+import com.app.myblogpusher.dto.SlugAnalysisDto;
 import com.app.myblogpusher.entity.EnglishDictionary;
 import com.app.myblogpusher.repository.EnglishDictionaryRepository;
 import com.atilika.kuromoji.ipadic.Token;
@@ -38,32 +46,31 @@ public class SlugUtil {
 	}
 
 	private static final Map<String, String> PARTICLE_MAP = Map.ofEntries(
-		    Map.entry("ニ", "to"),
-		    Map.entry("ヲ", "of"),
-		    Map.entry("ガ", "of"),
-		    Map.entry("ハ", "is"),
-		    Map.entry("ワ", "is"),
-		    Map.entry("テ", "ed"),
-		    Map.entry("タ", "past"),
-		    Map.entry("デ", "at"),
-		    Map.entry("カラ", "from"),
-		    Map.entry("マデ", "until"),
-		    Map.entry("ノ", "of"),
-		    Map.entry("モ", "also"),
-		    Map.entry("ヤ", "and"),
-		    Map.entry("ト", "and"),
-		    Map.entry("ケド", "but"),
-		    Map.entry("ケレド", "but"),
-		    Map.entry("シカ", "only"),
-		    Map.entry("サエ", "even"),
-		    Map.entry("ナド", "etc"),
-		    Map.entry("ヨリ", "than"),
-		    Map.entry("ヘ", "to"),
-		    Map.entry("ネ", ""),
-		    Map.entry("ヨ", ""),
-		    Map.entry("ナ", ""),
-		    Map.entry("ゾ", "")
-		);
+			Map.entry("ニ", "to"),
+			Map.entry("ヲ", "of"),
+			Map.entry("ガ", "of"),
+			Map.entry("ハ", "is"),
+			Map.entry("ワ", "is"),
+			Map.entry("テ", "ed"),
+			Map.entry("タ", "past"),
+			Map.entry("デ", "at"),
+			Map.entry("カラ", "from"),
+			Map.entry("マデ", "until"),
+			Map.entry("ノ", "of"),
+			Map.entry("モ", "also"),
+			Map.entry("ヤ", "and"),
+			Map.entry("ト", "and"),
+			Map.entry("ケド", "but"),
+			Map.entry("ケレド", "but"),
+			Map.entry("シカ", "only"),
+			Map.entry("サエ", "even"),
+			Map.entry("ナド", "etc"),
+			Map.entry("ヨリ", "than"),
+			Map.entry("ヘ", "to"),
+			Map.entry("ネ", ""),
+			Map.entry("ヨ", ""),
+			Map.entry("ナ", ""),
+			Map.entry("ゾ", ""));
 
 	private String toRomanized(String text) {
 		StringBuilder result = new StringBuilder();
@@ -144,20 +151,20 @@ public class SlugUtil {
 	}
 
 	public static String katakanaToRomaji(String text) {
-	    // カタカナをひらがなに変換してからローマ字化
-	    StringBuilder hiragana = new StringBuilder();
-	    for (char c : text.toCharArray()) {
-	        if (c >= 'ァ' && c <= 'ン') {
-	            hiragana.append((char)(c - 'ァ' + 'ぁ'));
-	        } else {
-	            hiragana.append(c);
-	        }
-	    }
-	    return hiraganaToRomaji(hiragana.toString());
+		// カタカナをひらがなに変換してからローマ字化
+		StringBuilder hiragana = new StringBuilder();
+		for (char c : text.toCharArray()) {
+			if (c >= 'ァ' && c <= 'ン') {
+				hiragana.append((char) (c - 'ァ' + 'ぁ'));
+			} else {
+				hiragana.append(c);
+			}
+		}
+		return hiraganaToRomaji(hiragana.toString());
 	}
 
 	public static String hiraganaToRomaji(String hiragana) {
-	    return hiragana
+		return hiragana
 				.replaceAll("あ", "a").replaceAll("い", "i").replaceAll("う", "u").replaceAll("え", "e")
 				.replaceAll("お", "o")
 				.replaceAll("か", "ka").replaceAll("き", "ki").replaceAll("く", "ku").replaceAll("け", "ke")
@@ -187,5 +194,47 @@ public class SlugUtil {
 				.replaceAll("ろ", "ro")
 				.replaceAll("わ", "wa").replaceAll("ゐ", "wi").replaceAll("ゑ", "we").replaceAll("を", "wo")
 				.replaceAll("ん", "n");
+	}
+
+	public List<SlugAnalysisDto> analyzeSlug(String title) {
+		List<SlugAnalysisDto> result = new ArrayList<>();
+		List<Token> tokens = tokenizer.tokenize(title);
+
+		for (Token token : tokens) {
+			String partOfSpeech = token.getPartOfSpeechLevel1();
+			String reading = token.getReading();
+			String surface = token.getSurface();
+
+			if ("記号".equals(partOfSpeech))
+				continue;
+
+			String converted;
+			boolean fromDictionary = false;
+
+			if ("助詞".equals(partOfSpeech) || "助動詞".equals(partOfSpeech)) {
+				converted = PARTICLE_MAP.getOrDefault(reading, katakanaToRomaji(reading != null ? reading : surface));
+			} else {
+				String searchReading = reading;
+				if ("動詞".equals(partOfSpeech)) {
+					String baseForm = token.getBaseForm();
+					if (baseForm != null && !baseForm.equals("*")) {
+						List<Token> baseTokens = tokenizer.tokenize(baseForm);
+						if (!baseTokens.isEmpty() && baseTokens.get(0).getReading() != null) {
+							searchReading = baseTokens.get(0).getReading();
+						}
+					}
+				}
+				String english = searchReading != null ? searchEnglishDictionary(searchReading) : null;
+				if (english != null) {
+					converted = english;
+					fromDictionary = true;
+				} else {
+					converted = katakanaToRomaji(searchReading != null ? searchReading : surface);
+				}
+			}
+
+			result.add(new SlugAnalysisDto(surface, reading, partOfSpeech, converted, fromDictionary));
+		}
+		return result;
 	}
 }

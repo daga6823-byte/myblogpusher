@@ -1,5 +1,11 @@
+/**
+ * 記事投稿機能を担当するコントローラー
+ * 投稿前確認画面の表示、スラッグ生成・編集、GitHubへの記事プッシュを管理
+ */
+
 package com.app.myblogpusher.controller;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +15,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.app.myblogpusher.dto.PublishPreviewForm;
+import com.app.myblogpusher.dto.SlugAnalysisDto;
 import com.app.myblogpusher.entity.ArticleCategory;
 import com.app.myblogpusher.entity.UserMaster;
 import com.app.myblogpusher.entity.UserRepositoryEntity;
@@ -84,7 +91,10 @@ public class PublishController {
 		form.setCategoryId(categoryId);
 		form.setRepoOwner(repo.getRepoOwner());
 		form.setRepoName(repo.getRepoName());
-
+		form.setSlug(slugUtil.generateSlug(title));
+		
+		List<SlugAnalysisDto> analysis = slugUtil.analyzeSlug(title);
+		model.addAttribute("analysis", analysis);
 		model.addAttribute("form", form);
 
 		System.out.println("preview slug=[" + form.getSlug() + "]");

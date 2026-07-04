@@ -39,22 +39,43 @@
 		</div>
 	</div>
 
+	<div class="slug-section">
+		<h3>ファイル名</h3>
+		<div class="slug-input-row">
+			<input type="text" id="slugInput" th:value="${form.slug}" style="width: 300px;">
+			<span>.md</span>
+		</div>
+
+		<h3>形態素分析</h3>
+		<table>
+			<thead>
+				<tr>
+					<th>単語</th>
+					<th>品詞</th>
+					<th>変換結果</th>
+					<th>辞書登録</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr th:each="token : ${analysis}">
+					<td th:text="${token.surface}"></td>
+					<td th:text="${token.partOfSpeech}"></td>
+					<td th:text="${token.converted}"></td>
+					<td>
+						<span th:if="${token.fromDictionary}">✓</span>
+						<button th:unless="${token.fromDictionary}" type="button" class="btn-back"
+							th:onclick="'registerWord(\'' + ${token.reading} + '\', \'' + ${token.converted} + '\')'">
+							登録
+						</button>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+
 	<div th:if="${error}" th:text="${error}"></div>
-	<script>
-		function publishSubmit() {
 
-			if (!confirm("この記事を投稿しますか？")) {
-				return false;
-			}
-
-			const button = document.getElementById("publishButton");
-
-			button.disabled = true;
-			button.textContent = "投稿中...";
-
-			return true;
-		}
-	</script>
+	<script th:src="@{/js/publish_preview.js}"></script>
 </body>
 
 </html>
