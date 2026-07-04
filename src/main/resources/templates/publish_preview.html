@@ -64,7 +64,8 @@
 					<td>
 						<span th:if="${token.fromDictionary}">✓</span>
 						<button th:unless="${token.fromDictionary}" type="button" class="btn-back"
-							th:onclick="'registerWord(\'' + ${token.reading} + '\', \'' + ${token.converted} + '\')'">
+							th:data-reading="${token.reading}" th:data-converted="${token.converted}"
+							onclick="registerWord(this)">
 							登録
 						</button>
 					</td>
