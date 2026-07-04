@@ -38,17 +38,33 @@ public class SlugUtil {
 	}
 
 	private static final Map<String, String> PARTICLE_MAP = Map.ofEntries(
-			Map.entry("ニ", "to"),
-			Map.entry("ヲ", "of"),
-			Map.entry("ガ", "of"),
-			Map.entry("ハ", ""),
-			Map.entry("ワ", ""),
-			Map.entry("テ", ""),
-			Map.entry("タ", ""),
-			Map.entry("デ", "at"),
-			Map.entry("カラ", "from"),
-			Map.entry("マデ", "until"),
-			Map.entry("ノ", ""));
+		    Map.entry("ニ", "to"),
+		    Map.entry("ヲ", "of"),
+		    Map.entry("ガ", "of"),
+		    Map.entry("ハ", "is"),
+		    Map.entry("ワ", "is"),
+		    Map.entry("テ", "ed"),
+		    Map.entry("タ", "past"),
+		    Map.entry("デ", "at"),
+		    Map.entry("カラ", "from"),
+		    Map.entry("マデ", "until"),
+		    Map.entry("ノ", "of"),
+		    Map.entry("モ", "also"),
+		    Map.entry("ヤ", "and"),
+		    Map.entry("ト", "and"),
+		    Map.entry("ケド", "but"),
+		    Map.entry("ケレド", "but"),
+		    Map.entry("シカ", "only"),
+		    Map.entry("サエ", "even"),
+		    Map.entry("ナド", "etc"),
+		    Map.entry("ヨリ", "than"),
+		    Map.entry("ヘ", "to"),
+		    Map.entry("ネ", ""),
+		    Map.entry("ヨ", ""),
+		    Map.entry("ナ", ""),
+		    Map.entry("ゾ", ""),
+		    Map.entry("ワ", "is")
+		);
 
 	private String toRomanized(String text) {
 		StringBuilder result = new StringBuilder();
@@ -128,8 +144,21 @@ public class SlugUtil {
 				.trim();
 	}
 
-	public static String katakanaToRomaji(String hiragana) {
-		return hiragana
+	public static String katakanaToRomaji(String text) {
+	    // カタカナをひらがなに変換してからローマ字化
+	    StringBuilder hiragana = new StringBuilder();
+	    for (char c : text.toCharArray()) {
+	        if (c >= 'ァ' && c <= 'ン') {
+	            hiragana.append((char)(c - 'ァ' + 'ぁ'));
+	        } else {
+	            hiragana.append(c);
+	        }
+	    }
+	    return hiraganaToRomaji(hiragana.toString());
+	}
+
+	public static String hiraganaToRomaji(String hiragana) {
+	    return hiragana
 				.replaceAll("あ", "a").replaceAll("い", "i").replaceAll("う", "u").replaceAll("え", "e")
 				.replaceAll("お", "o")
 				.replaceAll("か", "ka").replaceAll("き", "ki").replaceAll("く", "ku").replaceAll("け", "ke")
