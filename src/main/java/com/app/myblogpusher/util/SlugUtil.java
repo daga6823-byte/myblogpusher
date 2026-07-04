@@ -62,8 +62,7 @@ public class SlugUtil {
 		    Map.entry("ネ", ""),
 		    Map.entry("ヨ", ""),
 		    Map.entry("ナ", ""),
-		    Map.entry("ゾ", ""),
-		    Map.entry("ワ", "is")
+		    Map.entry("ゾ", "")
 		);
 
 	private String toRomanized(String text) {
