@@ -30,10 +30,10 @@ public class ArticleFormatService {
 		if (matcher.find()) {
 			String rawFrontMatter = matcher.group();
 			body = content.substring(matcher.end());
-			
-			 // 本文先頭の空行を除去
-		    body = body.replaceFirst("^\\n+", "");
-			
+
+			// 本文先頭の空行を除去
+			body = body.replaceFirst("^\\n+", "");
+
 			// 末尾の改行をすべて取り除いてから、空行をひとつ確実に補う
 			frontMatter = rawFrontMatter.replaceAll("\\n+$", "") + "\n\n";
 		}
@@ -44,35 +44,45 @@ public class ArticleFormatService {
 	}
 
 	private String formatBody(String body) {
+		String[] lines = body.replace("\r\n", "\n").split("\n", -1);
+		StringBuilder result = new StringBuilder();
+		boolean inCodeBlock = false;
 
-	    String[] lines = body.replace("\r\n", "\n").split("\n", -1);
+		for (String line : lines) {
+			// コードブロックの開始・終了を検出
+			if (line.trim().startsWith("```")) {
+				inCodeBlock = !inCodeBlock;
+				result.append(line).append("\n");
+				continue;
+			}
 
-	    StringBuilder result = new StringBuilder();
+			// コードブロック内はそのまま
+			if (inCodeBlock) {
+				result.append(line).append("\n");
+				continue;
+			}
 
-	    for (String line : lines) {
+			// 空行はそのまま
+			if (line.isBlank()) {
+				result.append("\n");
+				continue;
+			}
 
-	        // 空行はそのまま
-	        if (line.isBlank()) {
-	            result.append("\n");
-	            continue;
-	        }
+			// 箇条書きはそのまま
+			if (line.startsWith("・")
+					|| line.startsWith("-")
+					|| line.startsWith("*")
+					|| line.matches("^\\d+\\..*")) {
+				result.append(line).append("\n");
+				continue;
+			}
 
-	        // 箇条書きはそのまま
-	        if (line.startsWith("・")
-	                || line.startsWith("-")
-	                || line.startsWith("*")
-	                || line.matches("^\\d+\\..*")) {
-	            result.append(line).append("\n");
-	            continue;
-	        }
-
-	        // 普通の文章だけ整形
-	        result.append(formatParagraph(line));
-	    }
-
-	    return result.toString();
+			// 普通の文章だけ整形
+			result.append(formatParagraph(line));
+		}
+		return result.toString();
 	}
-	
+
 	private String formatParagraph(String body) {
 		String normalized = body.replace(INDENT, "");
 
@@ -99,7 +109,8 @@ public class ArticleFormatService {
 
 				appendSentence(result, currentSentence.toString());
 				currentSentence.setLength(0);
-				i = j - 1;; // for文側のi++で次のjに進むよう調整
+				i = j - 1;
+				; // for文側のi++で次のjに進むよう調整
 				continue;
 			}
 		}
