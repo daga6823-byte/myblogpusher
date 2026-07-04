@@ -1,6 +1,7 @@
 package com.app.myblogpusher.util;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.stereotype.Component;
 
@@ -36,19 +37,64 @@ public class SlugUtil {
 				.trim();
 	}
 
-	private String toRomanized(String text) { // staticを削除
+	private static final Map<String, String> PARTICLE_MAP = Map.ofEntries(
+			Map.entry("ニ", "to"),
+			Map.entry("ヲ", "of"),
+			Map.entry("ガ", "of"),
+			Map.entry("ハ", ""),
+			Map.entry("ワ", ""),
+			Map.entry("テ", ""),
+			Map.entry("タ", ""),
+			Map.entry("デ", "at"),
+			Map.entry("カラ", "from"),
+			Map.entry("マデ", "until"),
+			Map.entry("ノ", ""));
+
+	private String toRomanized(String text) {
 		StringBuilder result = new StringBuilder();
 
 		List<Token> tokens = tokenizer.tokenize(text);
 		for (Token token : tokens) {
+			String partOfSpeech = token.getPartOfSpeechLevel1();
 			String reading = token.getReading();
-			if (reading != null && !reading.isEmpty() && !reading.equals("*")) {
-				// 辞書検索
-				String english = searchEnglishDictionary(reading);
+
+			// 助詞・助動詞はマップで変換、なければローマ字
+			if ("助詞".equals(partOfSpeech) || "助動詞".equals(partOfSpeech)) {
+				String mapped = PARTICLE_MAP.get(reading);
+				if (mapped != null && !mapped.isEmpty()) {
+					result.append(mapped).append(" ");
+				} else if (reading != null && !reading.equals("*")) {
+					result.append(katakanaToRomaji(reading)).append(" ");
+				}
+				continue;
+			}
+
+			// 記号はスキップ（句読点等）
+			if ("記号".equals(partOfSpeech)) {
+				continue;
+			}
+
+			// 動詞は原形の読みで辞書検索
+			String searchReading = reading;
+			if ("動詞".equals(partOfSpeech)) {
+				String baseForm = token.getBaseForm();
+				if (baseForm != null && !baseForm.equals("*")) {
+					List<Token> baseTokens = tokenizer.tokenize(baseForm);
+					if (!baseTokens.isEmpty()) {
+						String baseReading = baseTokens.get(0).getReading();
+						if (baseReading != null && !baseReading.equals("*")) {
+							searchReading = baseReading;
+						}
+					}
+				}
+			}
+
+			if (searchReading != null && !searchReading.isEmpty() && !searchReading.equals("*")) {
+				String english = searchEnglishDictionary(searchReading);
 				if (english != null) {
 					result.append(english).append(" ");
 				} else {
-					result.append(katakanaToRomaji(reading)).append(" ");
+					result.append(katakanaToRomaji(searchReading)).append(" ");
 				}
 			} else {
 				result.append(token.getSurface()).append(" ");
@@ -67,7 +113,7 @@ public class SlugUtil {
 				.orElse(null);
 	}
 
-	public String generateCategorySlug(String categoryName) { 
+	public String generateCategorySlug(String categoryName) {
 		if (categoryName == null || categoryName.isBlank()) {
 			return "no-category";
 		}
