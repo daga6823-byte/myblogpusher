@@ -11,6 +11,7 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -38,10 +39,10 @@ public class PublishController {
 
 	@Autowired
 	private SlugUtil slugUtil;
-	
+
 	@Autowired
 	private ArticleWorkspaceService workspaceService;
-	
+
 	public PublishController(ArticleWorkRepository articleWorkRepository,
 			ArticleWorkService articleWorkService,
 			UserRepositoryRepository userRepositoryRepository,
@@ -60,6 +61,12 @@ public class PublishController {
 			@RequestParam(required = false) String newCategoryName,
 			HttpSession session,
 			Model model) {
+		session.setAttribute("previewTitle", title);
+		session.setAttribute("previewContent", content);
+		session.setAttribute("previewWorkId", workId);
+		session.setAttribute("previewCategorySelect", categorySelect);
+		session.setAttribute("previewNewCategoryName", newCategoryName);
+
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 
 		if (loginUser == null) {
@@ -92,7 +99,7 @@ public class PublishController {
 		form.setRepoOwner(repo.getRepoOwner());
 		form.setRepoName(repo.getRepoName());
 		form.setSlug(slugUtil.generateSlug(title));
-		
+
 		List<SlugAnalysisDto> analysis = slugUtil.analyzeSlug(title);
 		model.addAttribute("analysis", analysis);
 		model.addAttribute("form", form);
@@ -131,18 +138,58 @@ public class PublishController {
 		String slug = gitHubPushService.generateSlugWithDictionary(title);
 
 		gitHubPushService.pushArticleAsync(
-			repo,
-			loginUser.getCipherKey(),
-			categoryId,
-			title,
-			content,
-			slug,
-			workId,
-			userId
-		);
-		
+				repo,
+				loginUser.getCipherKey(),
+				categoryId,
+				title,
+				content,
+				slug,
+				workId,
+				userId);
+
 		workspaceService.delete(userId);
 
 		return "redirect:/article/list?published";
+	}
+
+	@GetMapping("/publish/preview/back")
+	public String backToPreview(HttpSession session, Model model) {
+		String title = (String) session.getAttribute("previewTitle");
+		String content = (String) session.getAttribute("previewContent");
+		Long workId = (Long) session.getAttribute("previewWorkId");
+		String categorySelect = (String) session.getAttribute("previewCategorySelect");
+		String newCategoryName = (String) session.getAttribute("previewNewCategoryName");
+
+		// showPreviewと同じ処理をGETで実行
+		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
+		Long userId = loginUser.getUserId();
+
+		String categoryName = "__new__".equals(categorySelect) ? newCategoryName : categorySelect;
+		Long categoryId = articleCategoryService.findByUserIdAndName(userId, categoryName)
+				.map(ArticleCategory::getCategoryId)
+				.orElseGet(() -> articleCategoryService.insertCategory(userId, categoryName));
+
+		Optional<UserRepositoryEntity> repoOpt = userRepositoryRepository.findByUserId(userId);
+		if (repoOpt.isEmpty()) {
+			model.addAttribute("error", "リポジトリが設定されていません");
+			return "error";
+		}
+
+		UserRepositoryEntity repo = repoOpt.get();
+
+		PublishPreviewForm form = new PublishPreviewForm();
+		form.setArticleId(workId);
+		form.setArticleTitle(title);
+		form.setArticleContent(content);
+		form.setSlug(slugUtil.generateSlug(title));
+		form.setCategoryId(categoryId);
+		form.setRepoOwner(repo.getRepoOwner());
+		form.setRepoName(repo.getRepoName());
+
+		List<SlugAnalysisDto> analysis = slugUtil.analyzeSlug(title);
+		model.addAttribute("analysis", analysis);
+		model.addAttribute("form", form);
+
+		return "publish_preview";
 	}
 }

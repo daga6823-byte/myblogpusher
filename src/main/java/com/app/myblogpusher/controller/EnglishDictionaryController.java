@@ -1,3 +1,8 @@
+/**
+ * 英単語辞典機能を担当するコントローラー
+ * スラッグ生成時の日本語→英単語変換辞書の一覧・登録・編集・削除を管理
+ */
+
 package com.app.myblogpusher.controller;
 
 import java.time.LocalDateTime;
@@ -37,7 +42,6 @@ public class EnglishDictionaryController {
 	@GetMapping("/english-dictionary/form")
 	public String form(@RequestParam(required = false) Long id, Model model) {
 		EnglishDictionaryForm form = new EnglishDictionaryForm();
-
 		if (id != null) {
 			Optional<EnglishDictionary> existing = englishDictionaryRepository.findById(id);
 			if (existing.isPresent()) {
@@ -47,18 +51,18 @@ public class EnglishDictionaryController {
 				form.setEnglish(dict.getEnglish());
 			}
 		}
-
 		model.addAttribute("form", form);
 		return "english_dictionary_form";
 	}
 
 	@PostMapping("/english-dictionary/save")
-	public String save(@ModelAttribute("form") EnglishDictionaryForm form, HttpSession session) {
+	public String save(@ModelAttribute("form") EnglishDictionaryForm form,
+			@RequestParam(required = false) String returnTo,
+			HttpSession session) {
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 		Long userId = loginUser.getUserId();
 
 		EnglishDictionary dictionary;
-
 		if (form.getId() != null) {
 			dictionary = englishDictionaryRepository.findById(form.getId()).orElseThrow();
 			dictionary.setEnglish(form.getEnglish());
@@ -73,9 +77,12 @@ public class EnglishDictionaryController {
 			dictionary.setUpdateDate(LocalDateTime.now());
 			dictionary.setUpdateUser(userId);
 		}
-
 		englishDictionaryRepository.save(dictionary);
 
+		// 登録元画面に戻る
+		if ("publish_preview".equals(returnTo)) {
+			return "redirect:/publish/preview/back";
+		}
 		return "redirect:/english-dictionary/list?saved";
 	}
 

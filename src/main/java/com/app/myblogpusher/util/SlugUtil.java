@@ -28,19 +28,18 @@ public class SlugUtil {
 		this.englishDictionaryRepository = englishDictionaryRepository;
 	}
 
-	public String generateSlug(String title) { // staticを削除
-
+	public String generateSlug(String title) {
 		if (title == null || title.isBlank()) {
 			return "no-title";
 		}
 
-		// 日本語をローマ字に変換
 		String romanized = toRomanized(title);
 
 		return romanized
 				.toLowerCase()
-				.replaceAll("[^a-z0-9]", "")
-				.replaceAll("\\s+", "-")
+				.replaceAll("\\s+", "-") // 先にスペースを-に変換
+				.replaceAll("[^a-z0-9-]", "") // 次に英数字と-以外を除去
+				.replaceAll("-+", "-") // 連続する-を一つに
 				.replaceAll("^-+|-+$", "")
 				.trim();
 	}
