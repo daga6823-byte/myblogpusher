@@ -100,6 +100,10 @@ public class ArticleEditController {
 			@RequestParam(required = false) String redirectTo,
 			HttpSession session) {
 
+	    System.out.println("=== content受信 ===");
+	    System.out.println(content.substring(0, Math.min(300, content.length())));
+	    System.out.println("=== end ===");
+		
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 		Long userId = loginUser.getUserId();
 
