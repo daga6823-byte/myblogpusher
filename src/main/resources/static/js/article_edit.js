@@ -134,8 +134,7 @@ function updateFrontMatterFields(updateDate) {
 		+ '+++\n';
 
 	textarea.value = newFrontMatter + bodyText;
-	
-	console.log(JSON.stringify(textarea.value.substring(0, 200)));
+	alert(textarea.value.substring(100, 200)); // 追加
 }
 
 document.querySelectorAll('[formaction]').forEach(btn => {
