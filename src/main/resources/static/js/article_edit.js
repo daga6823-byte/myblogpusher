@@ -134,6 +134,8 @@ function updateFrontMatterFields(updateDate) {
 		+ '+++\n';
 
 	textarea.value = newFrontMatter + bodyText;
+	
+	console.log(JSON.stringify(textarea.value.substring(0, 200)));
 }
 
 document.querySelectorAll('[formaction]').forEach(btn => {
