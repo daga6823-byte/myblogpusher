@@ -280,20 +280,14 @@ document.getElementById('codeBlockButton').addEventListener('click', function() 
 });
 
 document.getElementById('insertCodeButton').addEventListener('click', function() {
-	const code = document.getElementById('codeInput').value;
+	const code = document.getElementById('codeInput').value.replace(/^[\s　\t\n]+|[\s　\t\n]+$/g, '');
 	const textarea = document.getElementById('content');
-
-	// ①先頭インデント除去
-	// 全角・半角スペース両方除去
-	const trimmedCode = code.split('\n').map(line => line.replace(/^[\s　]+/, '')).join('\n');
 
 	const before = textarea.value.substring(0, savedCursorPos);
 	const after = textarea.value.substring(savedCursorPos);
-
-	// ②前に改行が必要な場合だけ追加
 	const prefix = (before.length > 0 && !before.endsWith('\n')) ? '\n' : '';
 
-	textarea.value = before + prefix + '```\n' + trimmedCode + '\n```\n' + after;
+	textarea.value = before + prefix + '```\n' + code + '\n```\n' + after;
 
 	document.getElementById('codeInput').value = '';
 	document.getElementById('codeBlockEditor').style.display = 'none';
