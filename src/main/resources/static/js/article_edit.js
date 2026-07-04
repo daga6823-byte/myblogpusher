@@ -123,7 +123,7 @@ function updateFrontMatterFields(updateDate) {
 		dateLine = dateMatch ? dateMatch[0] : `date = '${buildDateString()}'`;
 	}
 
-	const bodyText = currentText.replace(frontMatterPattern, '');
+	const bodyText = currentText.replace(frontMatterPattern, '').replace(/^\n+/, '');
 
 	const newFrontMatter =
 		`+++
@@ -285,12 +285,16 @@ document.getElementById('insertCodeButton').addEventListener('click', function (
     const code = document.getElementById('codeInput').value;
     const textarea = document.getElementById('content');
 
-    const codeBlock = '\n```\n' + code + '\n```\n';
+    // ①先頭インデント除去
+    const trimmedCode = code.split('\n').map(line => line.trimStart()).join('\n');
 
-    textarea.value =
-        textarea.value.substring(0, savedCursorPos) +
-        codeBlock +
-        textarea.value.substring(savedCursorPos);
+    const before = textarea.value.substring(0, savedCursorPos);
+    const after = textarea.value.substring(savedCursorPos);
+
+    // ②前に改行が必要な場合だけ追加
+    const prefix = (before.length > 0 && !before.endsWith('\n')) ? '\n' : '';
+
+    textarea.value = before + prefix + '```\n' + trimmedCode + '\n```\n' + after;
 
     document.getElementById('codeInput').value = '';
     document.getElementById('codeBlockEditor').style.display = 'none';
