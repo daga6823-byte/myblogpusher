@@ -273,30 +273,31 @@ document.getElementById('insertMenuButton').addEventListener('click', function()
 
 let savedCursorPos = 0;
 
-document.getElementById('codeBlockButton').addEventListener('click', function () {
-    const textarea = document.getElementById('content');
-    savedCursorPos = textarea.selectionStart; // カーソル位置を保存
-    document.getElementById('insertMenu').style.display = 'none';
-    document.getElementById('codeBlockEditor').style.display = 'block';
-    document.getElementById('codeInput').focus();
+document.getElementById('codeBlockButton').addEventListener('click', function() {
+	const textarea = document.getElementById('content');
+	savedCursorPos = textarea.selectionStart; // カーソル位置を保存
+	document.getElementById('insertMenu').style.display = 'none';
+	document.getElementById('codeBlockEditor').style.display = 'block';
+	document.getElementById('codeInput').focus();
 });
 
-document.getElementById('insertCodeButton').addEventListener('click', function () {
-    const code = document.getElementById('codeInput').value;
-    const textarea = document.getElementById('content');
+document.getElementById('insertCodeButton').addEventListener('click', function() {
+	const code = document.getElementById('codeInput').value;
+	const textarea = document.getElementById('content');
 
-    // ①先頭インデント除去
-    const trimmedCode = code.split('\n').map(line => line.trimStart()).join('\n');
+	// ①先頭インデント除去
+	// 全角・半角スペース両方除去
+	const trimmedCode = code.split('\n').map(line => line.replace(/^[\s　]+/, '')).join('\n');
 
-    const before = textarea.value.substring(0, savedCursorPos);
-    const after = textarea.value.substring(savedCursorPos);
+	const before = textarea.value.substring(0, savedCursorPos);
+	const after = textarea.value.substring(savedCursorPos);
 
-    // ②前に改行が必要な場合だけ追加
-    const prefix = (before.length > 0 && !before.endsWith('\n')) ? '\n' : '';
+	// ②前に改行が必要な場合だけ追加
+	const prefix = (before.length > 0 && !before.endsWith('\n')) ? '\n' : '';
 
-    textarea.value = before + prefix + '```\n' + trimmedCode + '\n```\n' + after;
+	textarea.value = before + prefix + '```\n' + trimmedCode + '\n```\n' + after;
 
-    document.getElementById('codeInput').value = '';
-    document.getElementById('codeBlockEditor').style.display = 'none';
-    textarea.focus();
+	document.getElementById('codeInput').value = '';
+	document.getElementById('codeBlockEditor').style.display = 'none';
+	textarea.focus();
 });
