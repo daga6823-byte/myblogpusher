@@ -123,7 +123,7 @@ function updateFrontMatterFields(updateDate) {
 		dateLine = dateMatch ? dateMatch[0] : `date = '${buildDateString()}'`;
 	}
 
-	const bodyText = currentText.replace(frontMatterPattern, '').replace(/^\n+/, '');
+	const bodyText = currentText.replace(frontMatterPattern, '').replace(/^[\n　\s]+/, '');
 
 	const newFrontMatter = '+++\n'
 		+ `title = '${title}'\n`
