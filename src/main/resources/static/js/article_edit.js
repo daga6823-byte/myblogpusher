@@ -125,15 +125,13 @@ function updateFrontMatterFields(updateDate) {
 
 	const bodyText = currentText.replace(frontMatterPattern, '').replace(/^\n+/, '');
 
-	const newFrontMatter =
-		`+++
-title = '${title}'
-${dateLine}
-categories = ["${category}"]
-draft = false
-comments = true
-+++
-`;
+	const newFrontMatter = '+++\n'
+		+ `title = '${title}'\n`
+		+ `${dateLine}\n`
+		+ `categories = ["${category}"]\n`
+		+ 'draft = false\n'
+		+ 'comments = true\n'
+		+ '+++\n';
 
 	textarea.value = newFrontMatter + bodyText;
 }
