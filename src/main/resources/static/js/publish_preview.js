@@ -30,9 +30,10 @@ function publishSubmit() {
 	return true;
 }
 
-function syncEnglish(reading) {
-	const converted = document.getElementById('converted_' + reading).value;
-	document.getElementById('hidden_' + reading).value = converted;
+function syncEnglish(btn) {
+    const reading = btn.getAttribute('data-reading');
+    const converted = document.getElementById('converted_' + reading).value;
+    document.getElementById('hidden_' + reading).value = converted;
 }
 
 function updateSlug() {

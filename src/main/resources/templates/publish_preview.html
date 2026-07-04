@@ -69,12 +69,12 @@
 						<form th:unless="${token.fromDictionary}" th:action="@{/english-dictionary/save}" method="post"
 							style="display:inline;">
 							<input type="hidden" th:name="japanese" th:value="${token.reading}">
-							<input type="hidden" th:id="'hidden_' + ${token.reading}" th:name="english"
-								th:value="${token.converted}">
+							<input type="hidden" th:name="english" th:value="${token.converted}"
+								th:id="'hidden_' + ${token.reading}">
 							<input type="hidden" name="id" value="">
 							<input type="hidden" name="returnTo" value="publish_preview">
-							<button type="submit" class="btn-save"
-								th:onclick="'syncEnglish(\'' + ${token.reading} + '\')'">
+							<button type="submit" class="btn-save" th:data-reading="${token.reading}"
+								onclick="syncEnglish(this)">
 								登録
 							</button>
 						</form>
