@@ -94,11 +94,9 @@ public class PublishController {
 		form.setArticleId(workId);
 		form.setArticleTitle(title);
 		form.setArticleContent(content);
-		form.setSlug(slugUtil.generateSlug(title));
 		form.setCategoryId(categoryId);
 		form.setRepoOwner(repo.getRepoOwner());
 		form.setRepoName(repo.getRepoName());
-		form.setSlug(slugUtil.generateSlug(title));
 
 		List<SlugAnalysisDto> analysis = slugUtil.analyzeSlug(title);
 		String slug = slugUtil.generateSlugFromAnalysis(analysis);
@@ -182,7 +180,6 @@ public class PublishController {
 		form.setArticleId(workId);
 		form.setArticleTitle(title);
 		form.setArticleContent(content);
-		form.setSlug(slugUtil.generateSlug(title));
 		form.setCategoryId(categoryId);
 		form.setRepoOwner(repo.getRepoOwner());
 		form.setRepoName(repo.getRepoName());

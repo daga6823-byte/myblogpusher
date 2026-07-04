@@ -204,35 +204,34 @@ public class SlugUtil {
 			String reading = token.getReading();
 			String surface = token.getSurface();
 
-			if ("記号".equals(partOfSpeech))
+			// 記号・助詞・助動詞は除外
+			if ("記号".equals(partOfSpeech)
+					|| "助詞".equals(partOfSpeech)
+					|| "助動詞".equals(partOfSpeech)) {
 				continue;
+			}
 
-			String converted;
-			boolean fromDictionary = false;
-
-			if ("助詞".equals(partOfSpeech) || "助動詞".equals(partOfSpeech)) {
-				converted = PARTICLE_MAP.getOrDefault(reading, katakanaToRomaji(reading != null ? reading : surface));
-			} else {
-				String searchReading = reading;
-				if ("動詞".equals(partOfSpeech)) {
-					String baseForm = token.getBaseForm();
-					if (baseForm != null && !baseForm.equals("*")) {
-						List<Token> baseTokens = tokenizer.tokenize(baseForm);
-						if (!baseTokens.isEmpty() && baseTokens.get(0).getReading() != null) {
-							searchReading = baseTokens.get(0).getReading();
-						}
+			String searchReading = reading;
+			if ("動詞".equals(partOfSpeech)) {
+				String baseForm = token.getBaseForm();
+				if (baseForm != null && !baseForm.equals("*")) {
+					List<Token> baseTokens = tokenizer.tokenize(baseForm);
+					if (!baseTokens.isEmpty() && baseTokens.get(0).getReading() != null) {
+						searchReading = baseTokens.get(0).getReading();
 					}
-				}
-				String english = searchReading != null ? searchEnglishDictionary(searchReading) : null;
-				if (english != null) {
-					converted = english;
-					fromDictionary = true;
-				} else {
-					converted = katakanaToRomaji(searchReading != null ? searchReading : surface);
 				}
 			}
 
-			result.add(new SlugAnalysisDto(surface, reading, partOfSpeech, converted, fromDictionary));
+			String english = searchReading != null ? searchEnglishDictionary(searchReading) : null;
+			boolean fromDictionary = english != null;
+			String converted = fromDictionary ? english
+					: katakanaToRomaji(searchReading != null ? searchReading : surface);
+
+			// 登録済みは除外
+			if (fromDictionary)
+				continue;
+
+			result.add(new SlugAnalysisDto(surface, reading, partOfSpeech, converted, false));
 		}
 		return result;
 	}
