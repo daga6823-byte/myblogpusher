@@ -270,38 +270,28 @@ public class SlugUtil {
 
 	public String generateSlugFromAnalysis(List<SlugAnalysisDto> analysis) {
 		StringBuilder result = new StringBuilder();
-		String prev = "";
+		boolean prevFromDictionary = false;
 
 		for (SlugAnalysisDto token : analysis) {
 			String converted = token.getConverted();
 			if (converted == null || converted.isEmpty())
 				continue;
 
-			// ed/pastは直前が動詞の場合のみくっつける
-			// 直前が辞書登録済み（既に適切な英単語）の場合はスキップ
-			if ((converted.equals("ed") || converted.equals("past"))) {
-				if (token.isFromDictionary()) {
-					// 助詞・助動詞が辞書登録されている場合はそのまま追加
-					result.append(converted).append("-");
+			if (converted.equals("ed") || converted.equals("past")) {
+				if (prevFromDictionary) {
+					// 直前が辞書登録済みならスキップ
+					continue;
 				}
-				// fromDictionaryでない助動詞のed/pastは直前の単語にくっつける
-				else if (result.length() > 0) {
-					String current = result.toString();
-					if (current.endsWith("-")) {
-						// 直前のトークンが辞書登録済みならスキップ
-						if (!prev.isEmpty() && isAlreadyPastForm(prev)) {
-							continue;
-						}
-						result.setLength(current.length() - 1);
-						result.append(converted).append("-");
-					}
+				// 直前にくっつける
+				if (result.length() > 0 && result.charAt(result.length() - 1) == '-') {
+					result.setLength(result.length() - 1);
 				}
-				prev = converted;
-				continue;
+				result.append(converted).append("-");
+			} else {
+				result.append(converted).append("-");
 			}
 
-			result.append(converted).append("-");
-			prev = converted;
+			prevFromDictionary = token.isFromDictionary();
 		}
 
 		return result.toString()
@@ -309,12 +299,5 @@ public class SlugUtil {
 				.replaceAll("-+", "-")
 				.replaceAll("^-+|-+$", "")
 				.trim();
-	}
-
-	// 既に過去形っぽい英単語かどうか判定（came、wentなど不規則変化）
-	private boolean isAlreadyPastForm(String word) {
-		// edで終わっている or 辞書登録済みの不規則過去形
-		return word.endsWith("ed") || word.endsWith("came") || word.endsWith("went")
-				|| word.endsWith("was") || word.endsWith("were") || word.endsWith("had");
 	}
 }
