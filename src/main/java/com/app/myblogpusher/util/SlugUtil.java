@@ -270,28 +270,20 @@ public class SlugUtil {
 
 	public String generateSlugFromAnalysis(List<SlugAnalysisDto> analysis) {
 		StringBuilder result = new StringBuilder();
-		boolean prevFromDictionary = false;
 
 		for (SlugAnalysisDto token : analysis) {
 			String converted = token.getConverted();
 			if (converted == null || converted.isEmpty())
 				continue;
 
-			if (converted.equals("ed")) {
-				if (!prevFromDictionary) {
-					// 直前にくっつける
-					if (result.length() > 0 && result.charAt(result.length() - 1) == '-') {
-						result.setLength(result.length() - 1);
-					}
-					result.append(converted).append("-");
+			if (converted.equals("ed") && result.length() > 0) {
+				if (result.charAt(result.length() - 1) == '-') {
+					result.setLength(result.length() - 1);
 				}
-				// 直前が辞書登録済みならスキップ（came、dropは既に適切）
-				prevFromDictionary = false;
-				continue;
+				result.append("ed-");
+			} else {
+				result.append(converted).append("-");
 			}
-
-			result.append(converted).append("-");
-			prevFromDictionary = token.isFromDictionary();
 		}
 
 		return result.toString()
