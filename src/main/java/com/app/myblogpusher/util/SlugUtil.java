@@ -267,13 +267,11 @@ public class SlugUtil {
 			}
 
 			boolean fromDictionary = english != null;
+			String converted = fromDictionary ? english
+					: katakanaToRomaji(reading != null ? reading : surface);
 
-			// 登録済みは除外
-			if (fromDictionary)
-				continue;
-
-			String converted = katakanaToRomaji(reading != null ? reading : surface);
-			result.add(new SlugAnalysisDto(surface, reading, partOfSpeech, converted, false));
+			// 登録済みも含めてリストに追加（除外しない）
+			result.add(new SlugAnalysisDto(surface, reading, partOfSpeech, converted, fromDictionary));
 		}
 		return result;
 	}
