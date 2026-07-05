@@ -95,15 +95,31 @@ public class SlugUtil {
 			}
 
 			// 表層形で辞書検索
+			// 表層形で辞書検索（完全一致優先）
 			String english = allEntries.stream()
-					.filter(e -> surface.contains(e.getJapanese()) || e.getJapanese().contains(surface))
+					.filter(e -> e.getJapanese().equals(surface))
 					.map(EnglishDictionary::getEnglish)
 					.findFirst()
 					.orElse(null);
 
-			if (english != null) {
-				result.append(english).append(" ");
-				continue;
+			// 動詞は原形でも辞書検索
+			if (english == null && "動詞".equals(partOfSpeech)) {
+				String baseForm = token.getBaseForm();
+				if (baseForm != null && !baseForm.equals("*")) {
+					english = allEntries.stream()
+							.filter(e -> e.getJapanese().equals(baseForm))
+							.map(EnglishDictionary::getEnglish)
+							.findFirst()
+							.orElse(null);
+				}
+				// 活用形そのままでも検索
+				if (english == null) {
+					english = allEntries.stream()
+							.filter(e -> e.getJapanese().equals(surface))
+							.map(EnglishDictionary::getEnglish)
+							.findFirst()
+							.orElse(null);
+				}
 			}
 
 			// 動詞は原形の読みで辞書検索
