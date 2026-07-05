@@ -9,6 +9,7 @@ package com.app.myblogpusher.util;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.stereotype.Component;
 
@@ -133,6 +134,18 @@ public class SlugUtil {
 				.map(EnglishDictionary::getEnglish)
 				.orElse(null);
 	}
+	
+	private String searchEnglishDictionary(String reading, String surface) {
+	    // 読みで検索
+	    Optional<EnglishDictionary> byReading = englishDictionaryRepository.findByJapanese(reading);
+	    if (byReading.isPresent()) return byReading.get().getEnglish();
+
+	    // 表層形で検索
+	    Optional<EnglishDictionary> bySurface = englishDictionaryRepository.findByJapanese(surface);
+	    if (bySurface.isPresent()) return bySurface.get().getEnglish();
+
+	    return null;
+	}
 
 	public String generateCategorySlug(String categoryName) {
 		if (categoryName == null || categoryName.isBlank()) {
@@ -222,7 +235,7 @@ public class SlugUtil {
 				}
 			}
 
-			String english = searchReading != null ? searchEnglishDictionary(searchReading) : null;
+			String english = searchEnglishDictionary(searchReading, surface);
 			boolean fromDictionary = english != null;
 			String converted = fromDictionary ? english
 					: katakanaToRomaji(searchReading != null ? searchReading : surface);
