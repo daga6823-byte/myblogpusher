@@ -72,87 +72,49 @@ public class SlugUtil {
 			Map.entry("ゾ", ""));
 
 	private String toRomanized(String text) {
-		StringBuilder result = new StringBuilder();
-		List<EnglishDictionary> allEntries = englishDictionaryRepository.findAll();
-		List<Token> tokens = tokenizer.tokenize(text);
+	    List<EnglishDictionary> allEntries = englishDictionaryRepository.findAll();
 
-		for (Token token : tokens) {
-			String partOfSpeech = token.getPartOfSpeechLevel1();
-			String reading = token.getReading();
-			String surface = token.getSurface();
+	    // 長い単語から優先して置換（スペースで区切る）
+	    allEntries.sort((a, b) -> b.getJapanese().length() - a.getJapanese().length());
+	    for (EnglishDictionary entry : allEntries) {
+	        text = text.replace(entry.getJapanese(), " " + entry.getEnglish() + " ");
+	    }
 
-			// 記号はスキップ
-			if ("記号".equals(partOfSpeech))
-				continue;
+	    // 残った助詞をPARTICLE_MAPで置換
+	    List<Token> tokens = tokenizer.tokenize(text);
+	    StringBuilder result = new StringBuilder();
+	    for (Token token : tokens) {
+	        String surface = token.getSurface();
+	        String partOfSpeech = token.getPartOfSpeechLevel1();
+	        String reading = token.getReading();
 
-			// 助詞・助動詞はマップで変換
-			if ("助詞".equals(partOfSpeech) || "助動詞".equals(partOfSpeech)) {
-				String mapped = PARTICLE_MAP.getOrDefault(reading, "");
-				if (!mapped.isEmpty()) {
-					result.append(mapped).append(" ");
-				}
-				continue;
-			}
+	        // 既に英単語に置換済みの部分はそのまま
+	        if (surface.matches("[a-zA-Z]+")) {
+	            result.append(surface).append(" ");
+	            continue;
+	        }
 
-			// 表層形で辞書検索
-			// 表層形で辞書検索（完全一致優先）
-			String english = allEntries.stream()
-					.filter(e -> e.getJapanese().equals(surface))
-					.map(EnglishDictionary::getEnglish)
-					.findFirst()
-					.orElse(null);
+	        // 記号スキップ
+	        if ("記号".equals(partOfSpeech)) continue;
 
-			// 動詞は原形でも辞書検索
-			if (english == null && "動詞".equals(partOfSpeech)) {
-				String baseForm = token.getBaseForm();
-				if (baseForm != null && !baseForm.equals("*")) {
-					english = allEntries.stream()
-							.filter(e -> e.getJapanese().equals(baseForm))
-							.map(EnglishDictionary::getEnglish)
-							.findFirst()
-							.orElse(null);
-				}
-				// 活用形そのままでも検索
-				if (english == null) {
-					english = allEntries.stream()
-							.filter(e -> e.getJapanese().equals(surface))
-							.map(EnglishDictionary::getEnglish)
-							.findFirst()
-							.orElse(null);
-				}
-			}
+	        // 助詞・助動詞はPARTICLE_MAPで変換
+	        if ("助詞".equals(partOfSpeech) || "助動詞".equals(partOfSpeech)) {
+	            String mapped = PARTICLE_MAP.getOrDefault(reading, "");
+	            if (!mapped.isEmpty()) {
+	                result.append(mapped).append(" ");
+	            }
+	            continue;
+	        }
 
-			// 動詞は原形の読みで辞書検索
-			String searchReading = reading;
-			if ("動詞".equals(partOfSpeech)) {
-				String baseForm = token.getBaseForm();
-				if (baseForm != null && !baseForm.equals("*")) {
-					List<Token> baseTokens = tokenizer.tokenize(baseForm);
-					if (!baseTokens.isEmpty() && baseTokens.get(0).getReading() != null) {
-						searchReading = baseTokens.get(0).getReading();
-					}
-					// 原形の表層形でも辞書検索
-					english = allEntries.stream()
-							.filter(e -> baseForm.equals(e.getJapanese()))
-							.map(EnglishDictionary::getEnglish)
-							.findFirst()
-							.orElse(null);
-					if (english != null) {
-						result.append(english).append(" ");
-						continue;
-					}
-				}
-			}
+	        // 残りはローマ字
+	        if (reading != null && !reading.equals("*")) {
+	            result.append(katakanaToRomaji(reading)).append(" ");
+	        } else {
+	            result.append(surface).append(" ");
+	        }
+	    }
 
-			// 読みでローマ字変換
-			if (searchReading != null && !searchReading.isEmpty() && !searchReading.equals("*")) {
-				result.append(katakanaToRomaji(searchReading)).append(" ");
-			} else {
-				result.append(surface).append(" ");
-			}
-		}
-
-		return result.toString().trim();
+	    return result.toString().trim();
 	}
 
 	public String generateCategorySlug(String categoryName) {
