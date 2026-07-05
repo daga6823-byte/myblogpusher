@@ -232,13 +232,20 @@ public class SlugUtil {
 			if (converted == null || converted.isEmpty())
 				continue;
 
-			if (converted.equals("ed") && result.length() > 0) {
-				if (result.charAt(result.length() - 1) == '-') {
-					result.setLength(result.length() - 1);
-				}
-				result.append("ed-");
-			} else {
-				result.append(converted).append("-");
+			if (converted.equals("ed")) {
+			    if (result.length() > 0 && result.charAt(result.length() - 1) == '-') {
+			        result.setLength(result.length() - 1);
+			    }
+			    String current = result.toString();
+			    String lastWord = current.contains("-")
+			        ? current.substring(current.lastIndexOf("-") + 1)
+			        : current;
+			    // 既にedで終わっていればスキップ
+			    if (lastWord.endsWith("ed") || lastWord.endsWith("came")) {
+			        result.append("-");
+			    } else {
+			        result.append("ed-");
+			    }
 			}
 		}
 
