@@ -270,16 +270,26 @@ public class SlugUtil {
 
 	public String generateSlugFromAnalysis(List<SlugAnalysisDto> analysis) {
 		StringBuilder result = new StringBuilder();
-		for (SlugAnalysisDto token : analysis) {
-			String converted = token.getConverted();
-			if (converted != null && !converted.isEmpty()) {
-				result.append(converted).append(" ");
+		for (int i = 0; i < analysis.size(); i++) {
+			String converted = analysis.get(i).getConverted();
+			if (converted == null || converted.isEmpty())
+				continue;
+
+			// 前のトークンがedの場合はくっつける
+			if ((converted.equals("ed") || converted.equals("past")) && result.length() > 0) {
+				// 末尾の-を除去してくっつける
+				String current = result.toString();
+				if (current.endsWith("-")) {
+					result.setLength(current.length() - 1);
+				}
+				result.append(converted).append("-");
+			} else {
+				result.append(converted).append("-");
 			}
 		}
-		return result.toString().trim()
+
+		return result.toString()
 				.toLowerCase()
-				.replaceAll("\\s+", "-")
-				.replaceAll("[^a-z0-9-]", "")
 				.replaceAll("-+", "-")
 				.replaceAll("^-+|-+$", "")
 				.trim();
