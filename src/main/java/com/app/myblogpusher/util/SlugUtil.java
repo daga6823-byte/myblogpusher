@@ -241,11 +241,13 @@ public class SlugUtil {
 			        ? current.substring(current.lastIndexOf("-") + 1)
 			        : current;
 			    // 既にedで終わっていればスキップ
-			    if (lastWord.endsWith("ed") || lastWord.endsWith("came")) {
+			    if (lastWord.endsWith("ed")) {
 			        result.append("-");
 			    } else {
 			        result.append("ed-");
 			    }
+			} else {
+			    result.append(converted).append("-");
 			}
 		}
 
