@@ -221,29 +221,21 @@ public class SlugUtil {
 		List<EnglishDictionary> allEntries = englishDictionaryRepository.findAll();
 		List<Token> tokens = tokenizer.tokenize(title);
 
-		System.out.println("=== analyzeSlug: " + title + " ===");
-		System.out.println("辞書エントリ数: " + allEntries.size());
-
 		for (Token token : tokens) {
 			String partOfSpeech = token.getPartOfSpeechLevel1();
 			String reading = token.getReading();
 			String surface = token.getSurface();
-			System.out.println("surface=" + surface + " pos=" + partOfSpeech + " reading=" + reading);
 
-			// 表層形で辞書検索の直前に追加
-			if (surface.equals("自転車")) {
-				allEntries.forEach(e -> {
-					System.out.println("比較: [" + e.getJapanese() + "] equals [" + surface + "] = "
-							+ e.getJapanese().equals(surface));
-					System.out.println("japanese bytes: " + java.util.Arrays.toString(e.getJapanese().getBytes()));
-					System.out.println("surface bytes: " + java.util.Arrays.toString(surface.getBytes()));
-				});
-			}
+			// 記号のみスキップ
+			if ("記号".equals(partOfSpeech))
+				continue;
 
-			// 記号・助詞・助動詞は除外
-			if ("記号".equals(partOfSpeech)
-					|| "助詞".equals(partOfSpeech)
-					|| "助動詞".equals(partOfSpeech)) {
+			// 助詞・助動詞はPARTICLE_MAPで変換
+			if ("助詞".equals(partOfSpeech) || "助動詞".equals(partOfSpeech)) {
+				String mapped = PARTICLE_MAP.getOrDefault(reading, "");
+				if (!mapped.isEmpty()) {
+					result.add(new SlugAnalysisDto(surface, reading, partOfSpeech, mapped, true));
+				}
 				continue;
 			}
 
