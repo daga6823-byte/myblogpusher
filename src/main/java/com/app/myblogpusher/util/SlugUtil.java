@@ -51,7 +51,7 @@ public class SlugUtil {
 			Map.entry("ハ", "is"),
 			Map.entry("ワ", "is"),
 			Map.entry("テ", "ed"),
-			Map.entry("タ", "past"),
+			Map.entry("タ", "ed"),
 			Map.entry("デ", "at"),
 			Map.entry("カラ", "from"),
 			Map.entry("マデ", "until"),
@@ -277,20 +277,20 @@ public class SlugUtil {
 			if (converted == null || converted.isEmpty())
 				continue;
 
-			if (converted.equals("ed") || converted.equals("past")) {
-				if (prevFromDictionary) {
-					// 直前が辞書登録済みならスキップ
-					continue;
+			if (converted.equals("ed")) {
+				if (!prevFromDictionary) {
+					// 直前にくっつける
+					if (result.length() > 0 && result.charAt(result.length() - 1) == '-') {
+						result.setLength(result.length() - 1);
+					}
+					result.append(converted).append("-");
 				}
-				// 直前にくっつける
-				if (result.length() > 0 && result.charAt(result.length() - 1) == '-') {
-					result.setLength(result.length() - 1);
-				}
-				result.append(converted).append("-");
-			} else {
-				result.append(converted).append("-");
+				// 直前が辞書登録済みならスキップ（came、dropは既に適切）
+				prevFromDictionary = false;
+				continue;
 			}
 
+			result.append(converted).append("-");
 			prevFromDictionary = token.isFromDictionary();
 		}
 
