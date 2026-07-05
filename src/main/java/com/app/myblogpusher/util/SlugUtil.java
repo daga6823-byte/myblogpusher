@@ -72,7 +72,18 @@ public class SlugUtil {
 			Map.entry("ナ", ""),
 			Map.entry("ゾ", ""));
 
+	private String replaceWithDictionary(String title) {
+		List<EnglishDictionary> allEntries = englishDictionaryRepository.findAll();
+		String result = title;
+		for (EnglishDictionary entry : allEntries) {
+			result = result.replace(entry.getJapanese(), " " + entry.getEnglish() + " ");
+		}
+		return result;
+	}
+
 	private String toRomanized(String text) {
+		text = replaceWithDictionary(text);
+
 		StringBuilder result = new StringBuilder();
 
 		List<Token> tokens = tokenizer.tokenize(text);
@@ -134,17 +145,19 @@ public class SlugUtil {
 				.map(EnglishDictionary::getEnglish)
 				.orElse(null);
 	}
-	
+
 	private String searchEnglishDictionary(String reading, String surface) {
-	    // 読みで検索
-	    Optional<EnglishDictionary> byReading = englishDictionaryRepository.findByJapanese(reading);
-	    if (byReading.isPresent()) return byReading.get().getEnglish();
+		// 読みで検索
+		Optional<EnglishDictionary> byReading = englishDictionaryRepository.findByJapanese(reading);
+		if (byReading.isPresent())
+			return byReading.get().getEnglish();
 
-	    // 表層形で検索
-	    Optional<EnglishDictionary> bySurface = englishDictionaryRepository.findByJapanese(surface);
-	    if (bySurface.isPresent()) return bySurface.get().getEnglish();
+		// 表層形で検索
+		Optional<EnglishDictionary> bySurface = englishDictionaryRepository.findByJapanese(surface);
+		if (bySurface.isPresent())
+			return bySurface.get().getEnglish();
 
-	    return null;
+		return null;
 	}
 
 	public String generateCategorySlug(String categoryName) {
