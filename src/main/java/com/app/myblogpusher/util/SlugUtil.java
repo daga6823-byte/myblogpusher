@@ -72,49 +72,50 @@ public class SlugUtil {
 			Map.entry("ゾ", ""));
 
 	private String toRomanized(String text) {
-	    List<EnglishDictionary> allEntries = englishDictionaryRepository.findAll();
+		List<EnglishDictionary> allEntries = englishDictionaryRepository.findAll();
 
-	    // 長い単語から優先して置換（スペースで区切る）
-	    allEntries.sort((a, b) -> b.getJapanese().length() - a.getJapanese().length());
-	    for (EnglishDictionary entry : allEntries) {
-	        text = text.replace(entry.getJapanese(), " " + entry.getEnglish() + " ");
-	    }
+		// 長い単語から優先して置換（スペースで区切る）
+		allEntries.sort((a, b) -> b.getJapanese().length() - a.getJapanese().length());
+		for (EnglishDictionary entry : allEntries) {
+			text = text.replace(entry.getJapanese(), " " + entry.getEnglish() + " ");
+		}
 
-	    // 残った助詞をPARTICLE_MAPで置換
-	    List<Token> tokens = tokenizer.tokenize(text);
-	    StringBuilder result = new StringBuilder();
-	    for (Token token : tokens) {
-	        String surface = token.getSurface();
-	        String partOfSpeech = token.getPartOfSpeechLevel1();
-	        String reading = token.getReading();
+		// 残った助詞をPARTICLE_MAPで置換
+		List<Token> tokens = tokenizer.tokenize(text);
+		StringBuilder result = new StringBuilder();
+		for (Token token : tokens) {
+			String surface = token.getSurface();
+			String partOfSpeech = token.getPartOfSpeechLevel1();
+			String reading = token.getReading();
 
-	        // 既に英単語に置換済みの部分はそのまま
-	        if (surface.matches("[a-zA-Z]+")) {
-	            result.append(surface).append(" ");
-	            continue;
-	        }
+			// 既に英単語に置換済みの部分はそのまま
+			if (surface.matches("[a-zA-Z]+")) {
+				result.append(surface).append(" ");
+				continue;
+			}
 
-	        // 記号スキップ
-	        if ("記号".equals(partOfSpeech)) continue;
+			// 記号スキップ
+			if ("記号".equals(partOfSpeech))
+				continue;
 
-	        // 助詞・助動詞はPARTICLE_MAPで変換
-	        if ("助詞".equals(partOfSpeech) || "助動詞".equals(partOfSpeech)) {
-	            String mapped = PARTICLE_MAP.getOrDefault(reading, "");
-	            if (!mapped.isEmpty()) {
-	                result.append(mapped).append(" ");
-	            }
-	            continue;
-	        }
+			// 助詞・助動詞はPARTICLE_MAPで変換
+			if ("助詞".equals(partOfSpeech) || "助動詞".equals(partOfSpeech)) {
+				String mapped = PARTICLE_MAP.getOrDefault(reading, "");
+				if (!mapped.isEmpty()) {
+					result.append(mapped).append(" ");
+				}
+				continue;
+			}
 
-	        // 残りはローマ字
-	        if (reading != null && !reading.equals("*")) {
-	            result.append(katakanaToRomaji(reading)).append(" ");
-	        } else {
-	            result.append(surface).append(" ");
-	        }
-	    }
+			// 残りはローマ字
+			if (reading != null && !reading.equals("*")) {
+				result.append(katakanaToRomaji(reading)).append(" ");
+			} else {
+				result.append(surface).append(" ");
+			}
+		}
 
-	    return result.toString().trim();
+		return result.toString().trim();
 	}
 
 	public String generateCategorySlug(String categoryName) {
@@ -181,51 +182,44 @@ public class SlugUtil {
 	public List<SlugAnalysisDto> analyzeSlug(String title) {
 		List<SlugAnalysisDto> result = new ArrayList<>();
 		List<EnglishDictionary> allEntries = englishDictionaryRepository.findAll();
-		List<Token> tokens = tokenizer.tokenize(title);
+
+		// 長い単語から優先して置換
+		allEntries.sort((a, b) -> b.getJapanese().length() - a.getJapanese().length());
+		String replaced = title;
+		for (EnglishDictionary entry : allEntries) {
+			replaced = replaced.replace(entry.getJapanese(), " " + entry.getEnglish() + " ");
+		}
+
+		List<Token> tokens = tokenizer.tokenize(replaced);
 
 		for (Token token : tokens) {
 			String partOfSpeech = token.getPartOfSpeechLevel1();
 			String reading = token.getReading();
 			String surface = token.getSurface();
 
-			// 記号のみスキップ
 			if ("記号".equals(partOfSpeech))
 				continue;
+
+			// 置換済み英単語はそのまま
+			if (surface.matches("[a-zA-Z]+")) {
+				result.add(new SlugAnalysisDto(surface, reading, partOfSpeech, surface, true));
+				continue;
+			}
 
 			// 助詞・助動詞はPARTICLE_MAPで変換
 			if ("助詞".equals(partOfSpeech) || "助動詞".equals(partOfSpeech)) {
 				String mapped = PARTICLE_MAP.getOrDefault(reading, "");
 				if (!mapped.isEmpty()) {
-					result.add(new SlugAnalysisDto(surface, reading, partOfSpeech, mapped, true));
+					result.add(new SlugAnalysisDto(surface, reading, partOfSpeech, mapped, false));
 				}
 				continue;
 			}
 
-			// 表層形で辞書検索
-			String english = allEntries.stream()
-					.filter(e -> surface.contains(e.getJapanese()) || e.getJapanese().contains(surface))
-					.map(EnglishDictionary::getEnglish)
-					.findFirst()
-					.orElse(null);
-
-			// 動詞は原形でも辞書検索
-			if (english == null && "動詞".equals(partOfSpeech)) {
-				String baseForm = token.getBaseForm();
-				if (baseForm != null && !baseForm.equals("*")) {
-					english = allEntries.stream()
-							.filter(e -> baseForm.equals(e.getJapanese()))
-							.map(EnglishDictionary::getEnglish)
-							.findFirst()
-							.orElse(null);
-				}
-			}
-
-			boolean fromDictionary = english != null;
-			String converted = fromDictionary ? english
-					: katakanaToRomaji(reading != null ? reading : surface);
-
-			// 登録済みも含めてリストに追加（除外しない）
-			result.add(new SlugAnalysisDto(surface, reading, partOfSpeech, converted, fromDictionary));
+			// 残りはローマ字
+			String converted = (reading != null && !reading.equals("*"))
+					? katakanaToRomaji(reading)
+					: surface;
+			result.add(new SlugAnalysisDto(surface, reading, partOfSpeech, converted, false));
 		}
 		return result;
 	}
