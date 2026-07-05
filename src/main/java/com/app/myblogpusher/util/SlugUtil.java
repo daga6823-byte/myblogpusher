@@ -230,6 +230,16 @@ public class SlugUtil {
 			String surface = token.getSurface();
 			System.out.println("surface=" + surface + " pos=" + partOfSpeech + " reading=" + reading);
 
+			// 表層形で辞書検索の直前に追加
+			if (surface.equals("自転車")) {
+				allEntries.forEach(e -> {
+					System.out.println("比較: [" + e.getJapanese() + "] equals [" + surface + "] = "
+							+ e.getJapanese().equals(surface));
+					System.out.println("japanese bytes: " + java.util.Arrays.toString(e.getJapanese().getBytes()));
+					System.out.println("surface bytes: " + java.util.Arrays.toString(surface.getBytes()));
+				});
+			}
+
 			// 記号・助詞・助動詞は除外
 			if ("記号".equals(partOfSpeech)
 					|| "助詞".equals(partOfSpeech)
