@@ -82,59 +82,70 @@ public class SlugUtil {
 	}
 
 	private String toRomanized(String text) {
-		text = replaceWithDictionary(text);
+	    StringBuilder result = new StringBuilder();
+	    List<EnglishDictionary> allEntries = englishDictionaryRepository.findAll();
+	    List<Token> tokens = tokenizer.tokenize(text);
 
-		StringBuilder result = new StringBuilder();
+	    for (Token token : tokens) {
+	        String partOfSpeech = token.getPartOfSpeechLevel1();
+	        String reading = token.getReading();
+	        String surface = token.getSurface();
 
-		List<Token> tokens = tokenizer.tokenize(text);
-		for (Token token : tokens) {
-			String partOfSpeech = token.getPartOfSpeechLevel1();
-			String reading = token.getReading();
+	        // 記号はスキップ
+	        if ("記号".equals(partOfSpeech)) continue;
 
-			// 助詞・助動詞はマップで変換、なければローマ字
-			if ("助詞".equals(partOfSpeech) || "助動詞".equals(partOfSpeech)) {
-				String mapped = PARTICLE_MAP.get(reading);
-				if (mapped != null && !mapped.isEmpty()) {
-					result.append(mapped).append(" ");
-				} else if (reading != null && !reading.equals("*")) {
-					result.append(katakanaToRomaji(reading)).append(" ");
-				}
-				continue;
-			}
+	        // 助詞・助動詞はマップで変換
+	        if ("助詞".equals(partOfSpeech) || "助動詞".equals(partOfSpeech)) {
+	            String mapped = PARTICLE_MAP.getOrDefault(reading, "");
+	            if (!mapped.isEmpty()) {
+	                result.append(mapped).append(" ");
+	            }
+	            continue;
+	        }
 
-			// 記号はスキップ（句読点等）
-			if ("記号".equals(partOfSpeech)) {
-				continue;
-			}
+	        // 表層形で辞書検索
+	        String english = allEntries.stream()
+	            .filter(e -> surface.contains(e.getJapanese()) || e.getJapanese().contains(surface))
+	            .map(EnglishDictionary::getEnglish)
+	            .findFirst()
+	            .orElse(null);
 
-			// 動詞は原形の読みで辞書検索
-			String searchReading = reading;
-			if ("動詞".equals(partOfSpeech)) {
-				String baseForm = token.getBaseForm();
-				if (baseForm != null && !baseForm.equals("*")) {
-					List<Token> baseTokens = tokenizer.tokenize(baseForm);
-					if (!baseTokens.isEmpty()) {
-						String baseReading = baseTokens.get(0).getReading();
-						if (baseReading != null && !baseReading.equals("*")) {
-							searchReading = baseReading;
-						}
-					}
-				}
-			}
+	        if (english != null) {
+	            result.append(english).append(" ");
+	            continue;
+	        }
 
-			if (searchReading != null && !searchReading.isEmpty() && !searchReading.equals("*")) {
-				String english = searchEnglishDictionary(searchReading);
-				if (english != null) {
-					result.append(english).append(" ");
-				} else {
-					result.append(katakanaToRomaji(searchReading)).append(" ");
-				}
-			} else {
-				result.append(token.getSurface()).append(" ");
-			}
-		}
+	        // 動詞は原形の読みで辞書検索
+	        String searchReading = reading;
+	        if ("動詞".equals(partOfSpeech)) {
+	            String baseForm = token.getBaseForm();
+	            if (baseForm != null && !baseForm.equals("*")) {
+	                List<Token> baseTokens = tokenizer.tokenize(baseForm);
+	                if (!baseTokens.isEmpty() && baseTokens.get(0).getReading() != null) {
+	                    searchReading = baseTokens.get(0).getReading();
+	                }
+	                // 原形の表層形でも辞書検索
+	                english = allEntries.stream()
+	                    .filter(e -> baseForm.equals(e.getJapanese()))
+	                    .map(EnglishDictionary::getEnglish)
+	                    .findFirst()
+	                    .orElse(null);
+	                if (english != null) {
+	                    result.append(english).append(" ");
+	                    continue;
+	                }
+	            }
+	        }
 
-		return result.toString().trim();
+	        // 読みでローマ字変換
+	        if (searchReading != null && !searchReading.isEmpty() && !searchReading.equals("*")) {
+	            result.append(katakanaToRomaji(searchReading)).append(" ");
+	        } else {
+	            result.append(surface).append(" ");
+	        }
+	    }
+
+	    return result.toString().trim();
 	}
 
 	private String searchEnglishDictionary(String japaneseWord) {
