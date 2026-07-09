@@ -38,7 +38,7 @@ public class ArticleFormatService {
 			body = content.substring(matcher.end());
 
 			// 本文先頭の空行を除去
-			body = body.replaceFirst("^\\n+", "");
+			body = body.replaceFirst("^(?:[ \\t　]*\\n)+", "");
 
 			// 末尾の改行をすべて取り除いてから、空行をひとつ確実に補う
 			frontMatter = rawFrontMatter.replaceAll("\\n+$", "") + "\n\n";
@@ -74,12 +74,12 @@ public class ArticleFormatService {
 				continue;
 			}
 
-			// 箇条書きはそのまま
+			// 箇条書きはリンクを自動変換して出力
 			if (line.startsWith("・")
 					|| line.startsWith("-")
 					|| line.startsWith("*")
 					|| line.matches("^\\d+\\..*")) {
-				result.append(line).append("\n");
+				result.append(formatReferenceLink(line)).append("\n");
 				continue;
 			}
 
@@ -149,5 +149,38 @@ public class ArticleFormatService {
 
 	private boolean startsWithTrigger(String sentence) {
 		return sentence.startsWith(PARAGRAPH_BREAK_TRIGGER);
+	}
+
+	/**
+	 * 箇条書きの末尾にURLがある場合はMarkdownリンクへ変換する。
+	 *
+	 * 例)
+	 * ・IMSDb https://example.com
+	 * ↓
+	 * ・[IMSDb](https://example.com)
+	 */
+	private String formatReferenceLink(String line) {
+
+		// すでにMarkdownリンクならそのまま
+		if (line.contains("](")) {
+			return line;
+		}
+
+		Pattern pattern = Pattern.compile("^(\\s*[・\\-*]?\\s*)(.+?)\\s+(https?://\\S+)$");
+		Matcher matcher = pattern.matcher(line);
+
+		if (!matcher.matches()) {
+			return line;
+		}
+
+		String prefix = matcher.group(1);
+		String title = matcher.group(2).trim();
+		String url = matcher.group(3);
+
+		if (title.isEmpty()) {
+			return line;
+		}
+
+		return prefix + "[" + title + "](" + url + ")";
 	}
 }

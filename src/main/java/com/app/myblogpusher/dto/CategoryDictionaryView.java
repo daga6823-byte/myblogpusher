@@ -8,8 +8,12 @@ public class CategoryDictionaryView {
 	private final String displayName;
 	private final long typoCount;
 
-	public CategoryDictionaryView(Long categoryId, String categoryName, long parentCategoryId,
-			String displayName, long typoCount) {
+	public CategoryDictionaryView(
+			Long categoryId,
+			String categoryName,
+			Long parentCategoryId,
+			String displayName,
+			long typoCount) {
 		this.categoryId = categoryId;
 		this.categoryName = categoryName;
 		this.parentCategoryId = parentCategoryId;
