@@ -78,7 +78,7 @@ public class ArticleCategoryService {
 				.toList();
 	}
 
-	public void rename(Long categoryId,
+	public void updateCategory(Long categoryId,
 			Long userId,
 			String categoryName,
 			Long parentCategoryId,
@@ -94,6 +94,8 @@ public class ArticleCategoryService {
 		category.setParentCategoryId(parentCategoryId);
 		category.setDisplayName(displayName);
 		category.setUpdateUser(userId);
+		category.setDisplayName(displayName);
+		category.setParentCategoryId(parentCategoryId);
 		category.setUpdateDate(LocalDateTime.now());
 
 		articleCategoryRepository.save(category);

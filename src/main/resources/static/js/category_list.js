@@ -39,7 +39,7 @@ function rebuildParentCategorySelect(currentId, selectedId) {
 }
 
 // 編集
-document.querySelectorAll('.btn-rename').forEach(btn => {
+document.querySelectorAll('.btn-update').forEach(btn => {
 	btn.addEventListener('click', () => {
 
 		editMode = true;
@@ -73,9 +73,14 @@ document.getElementById('saveCategoryButton').addEventListener('click', () => {
 	let url = '/category/add';
 
 	if (editMode) {
-		url = '/category/rename';
+		url = '/category/update';
 		params.append('categoryId', categoryIdInput.value);
 		params.append('newName', categoryNameInput.value.trim());
+		params.append('displayName', displayNameInput.value.trim());
+
+		if (parentCategoryInput.value) {
+			params.append('parentCategoryId', parentCategoryInput.value);
+		}
 	}
 
 	fetch(url, {
@@ -110,7 +115,8 @@ document.getElementById('addCategoryButton').addEventListener('click', () => {
 	categoryIdInput.value = '';
 	categoryNameInput.value = '';
 	displayNameInput.value = '';
-	rebuildParentCategorySelect('', '');
+
+	rebuildParentCategorySelect(null, null);
 
 	modal.style.display = 'block';
 });

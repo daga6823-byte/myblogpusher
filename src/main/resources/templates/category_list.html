@@ -47,7 +47,7 @@
 						<button type="submit" class="btn-delete">削除</button>
 					</form>
 					<span th:unless="${c.deletable}" style="color:#999; font-size:13px;">使用中</span>
-					<button type="button" class="btn-correct btn-rename" th:data-category-id="${c.categoryId}"
+					<button type="button" class="btn-correct btn-update" th:data-category-id="${c.categoryId}"
 						th:data-category-name="${c.categoryName}" th:data-parent-category-id="${c.parentCategoryId}"
 						th:data-display-name="${c.displayName}">
 						リネーム

@@ -61,11 +61,13 @@ public class CategoryController {
 		return Map.of("result", "ok");
 	}
 
-	@PostMapping("/category/rename")
+	@PostMapping("/category/update")
 	@ResponseBody
-	public Map<String, String> rename(@RequestParam Long categoryId,
-			@RequestParam String newName, @RequestParam(required = false) Long parentCategoryId,
+	public Map<String, String> updateCategory(
+			@RequestParam Long categoryId,
+			@RequestParam String newName,
 			@RequestParam String displayName,
+			@RequestParam(required = false) Long parentCategoryId,
 			HttpSession session) {
 
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
@@ -79,7 +81,7 @@ public class CategoryController {
 			return Map.of("result", "error", "message", "同じ名前のカテゴリーが既に存在します");
 		}
 
-		articleCategoryService.rename(
+		articleCategoryService.updateCategory(
 				categoryId,
 				userId,
 				newName,
