@@ -17,11 +17,18 @@
 			<button type="submit" class="btn-logout-link">ログアウト</button>
 		</form>
 	</div>
+	<div style="margin-bottom: 10px;">
+		<button type="button" id="addCategoryButton" class="btn-correct">
+			カテゴリー追加
+		</button>
+	</div>
 
 	<table>
 		<thead>
 			<tr>
 				<th>カテゴリー名</th>
+				<th>表示名</th>
+				<th>親カテゴリー</th>
 				<th>使用中の誤字数</th>
 				<th></th>
 			</tr>
@@ -30,6 +37,8 @@
 		<tbody>
 			<tr th:each="c : ${categories}">
 				<td th:text="${c.categoryName}"></td>
+				<td th:text="${c.displayName}"></td>
+				<td th:text="${c.parentCategoryId}"></td>
 				<td th:text="${c.typoCount}"></td>
 				<td>
 					<form th:if="${c.deletable}" th:action="@{/category/delete}" method="post" style="display:inline;"
@@ -39,7 +48,8 @@
 					</form>
 					<span th:unless="${c.deletable}" style="color:#999; font-size:13px;">使用中</span>
 					<button type="button" class="btn-correct btn-rename" th:data-category-id="${c.categoryId}"
-						th:data-category-name="${c.categoryName}">
+						th:data-category-name="${c.categoryName}" th:data-parent-category-id="${c.parentCategoryId}"
+						th:data-display-name="${c.displayName}">
 						リネーム
 					</button>
 				</td>
@@ -48,8 +58,12 @@
 	</table>
 
 	<button type="button" id="backButton" class="btn-back">戻る</button>
-	</div>
 
+	<div th:replace="~{fragments/category_modal :: categoryModal}"></div>
+
+	<script th:inline="javascript">
+		const categories = /*[[${categories}]]*/[];
+	</script>
 	<script th:src="@{/js/common.js}"></script>
 	<script th:src="@{/js/category_list.js}"></script>
 

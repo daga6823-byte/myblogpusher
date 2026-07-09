@@ -28,7 +28,11 @@ public class ArticleCategoryService {
 		return articleCategoryRepository.findByUserIdAndCategoryName(userId, categoryName);
 	}
 
-	public Long insertCategory(Long userId, String categoryName) {
+	public Long insertCategory(
+			Long userId,
+			String categoryName,
+			Long parentCategoryId,
+			String displayName) {
 		ArticleCategory newCategory = new ArticleCategory();
 		newCategory.setUserId(userId);
 		newCategory.setCategoryName(categoryName);
@@ -36,6 +40,8 @@ public class ArticleCategoryService {
 		newCategory.setUpdateDate(LocalDateTime.now());
 		newCategory.setCreateUser(userId);
 		newCategory.setUpdateUser(userId);
+		newCategory.setParentCategoryId(parentCategoryId);
+		newCategory.setDisplayName(displayName);
 		articleCategoryRepository.save(newCategory);
 		return newCategory.getCategoryId();
 	}
@@ -66,11 +72,17 @@ public class ArticleCategoryService {
 				.map(c -> new CategoryDictionaryView(
 						c.getCategoryId(),
 						c.getCategoryName(),
+						c.getParentCategoryId(),
+						c.getDisplayName(),
 						countMap.getOrDefault(c.getCategoryId(), 0L)))
 				.toList();
 	}
 
-	public void rename(Long categoryId, Long userId, String newName) {
+	public void rename(Long categoryId,
+			Long userId,
+			String categoryName,
+			Long parentCategoryId,
+			String displayName) {
 
 		ArticleCategory category = articleCategoryRepository.findById(categoryId).orElseThrow();
 
@@ -78,7 +90,12 @@ public class ArticleCategoryService {
 			throw new IllegalStateException("他のユーザーのカテゴリーは変更できません");
 		}
 
-		category.setCategoryName(newName);
+		category.setCategoryName(categoryName);
+		category.setParentCategoryId(parentCategoryId);
+		category.setDisplayName(displayName);
+		category.setUpdateUser(userId);
+		category.setUpdateDate(LocalDateTime.now());
+
 		articleCategoryRepository.save(category);
 	}
 

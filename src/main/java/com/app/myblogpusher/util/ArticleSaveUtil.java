@@ -32,7 +32,11 @@ public class ArticleSaveUtil {
 		String categoryName = "__new__".equals(categorySelect) ? newCategoryName : categorySelect;
 		Long categoryId = articleCategoryService.findByUserIdAndName(userId, categoryName)
 				.map(ArticleCategory::getCategoryId)
-				.orElseGet(() -> articleCategoryService.insertCategory(userId, categoryName));
+				.orElseGet(() -> articleCategoryService.insertCategory(
+						userId,
+						categoryName,
+						null,
+						categoryName));
 
 		String formattedContent = articleFormatService.formatContent(content);
 
@@ -43,27 +47,26 @@ public class ArticleSaveUtil {
 				return null;
 			}
 
-			Optional<ArticleWork> existing = articleWorkService.findDuplicate(userId, categoryId, title, formattedContent);
+			Optional<ArticleWork> existing = articleWorkService.findDuplicate(userId, categoryId, title,
+					formattedContent);
 			if (existing.isPresent()) {
 				return existing.get().getWorkId();
 			}
 
 			return articleWorkService.insertArticleWork(
-				    userId,
-				    categoryId,
-				    title,
-				    formattedContent,
-				    slug
-				);
+					userId,
+					categoryId,
+					title,
+					formattedContent,
+					slug);
 		} else {
 			articleWorkService.updateArticleWork(
-				    workId,
-				    categoryId,
-				    title,
-				    formattedContent,
-				    userId,
-				    slug
-				);
+					workId,
+					categoryId,
+					title,
+					formattedContent,
+					userId,
+					slug);
 			return workId;
 		}
 	}

@@ -79,7 +79,10 @@ public class PublishController {
 		String categoryName = "__new__".equals(categorySelect) ? newCategoryName : categorySelect;
 		Long categoryId = articleCategoryService.findByUserIdAndName(userId, categoryName)
 				.map(ArticleCategory::getCategoryId)
-				.orElseGet(() -> articleCategoryService.insertCategory(userId, categoryName));
+				.orElseGet(() -> articleCategoryService.insertCategory(userId,
+						categoryName,
+						null,
+						categoryName));
 
 		// リポジトリ情報取得
 		Optional<UserRepositoryEntity> repoOpt = userRepositoryRepository.findByUserId(userId);
@@ -166,7 +169,10 @@ public class PublishController {
 		String categoryName = "__new__".equals(categorySelect) ? newCategoryName : categorySelect;
 		Long categoryId = articleCategoryService.findByUserIdAndName(userId, categoryName)
 				.map(ArticleCategory::getCategoryId)
-				.orElseGet(() -> articleCategoryService.insertCategory(userId, categoryName));
+				.orElseGet(() -> articleCategoryService.insertCategory(userId,
+						categoryName,
+						null,
+						categoryName));
 
 		Optional<UserRepositoryEntity> repoOpt = userRepositoryRepository.findByUserId(userId);
 		if (repoOpt.isEmpty()) {
@@ -183,11 +189,11 @@ public class PublishController {
 		form.setCategoryId(categoryId);
 		form.setRepoOwner(repo.getRepoOwner());
 		form.setRepoName(repo.getRepoName());
-		
+
 		List<SlugAnalysisDto> analysis = slugUtil.analyzeSlug(title);
 		String slug = slugUtil.generateSlugFromAnalysis(analysis);
 		form.setSlug(slug);
-		
+
 		model.addAttribute("analysis", analysis);
 		model.addAttribute("form", form);
 

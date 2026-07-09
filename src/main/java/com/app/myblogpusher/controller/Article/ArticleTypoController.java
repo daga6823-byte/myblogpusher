@@ -102,7 +102,10 @@ public class ArticleTypoController {
 			if (categoryName != null && !categoryName.isBlank()) {
 				targetCategoryId = articleCategoryService.findByUserIdAndName(userId, categoryName)
 						.map(ArticleCategory::getCategoryId)
-						.orElseGet(() -> articleCategoryService.insertCategory(userId, categoryName));
+						.orElseGet(() -> articleCategoryService.insertCategory(userId,
+								categoryName,
+								null,
+								categoryName));
 			}
 		}
 

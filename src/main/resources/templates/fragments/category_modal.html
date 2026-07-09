@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<body>
+
+	<!-- カテゴリー追加・編集モーダル -->
+	<div th:fragment="categoryModal">
+		<div id="categoryModal" class="modal" style="display:none;">
+
+			<div class="modal-content">
+
+				<h2 id="categoryModalTitle">カテゴリー編集</h2>
+
+				<input type="hidden" id="categoryId">
+
+				<div class="form-group">
+					<label for="categoryName">カテゴリー名</label>
+					<input type="text" id="categoryName">
+				</div>
+
+				<div class="form-group">
+					<label for="displayName">表示名</label>
+					<input type="text" id="displayName">
+				</div>
+
+				<div class="form-group">
+					<label for="parentCategoryId">親カテゴリー</label>
+					<select id="parentCategoryId"></select>
+				</div>
+
+				<div class="modal-footer">
+					<button type="button" id="saveCategoryButton" class="btn-correct">保存</button>
+					<button type="button" id="cancelCategoryButton" class="btn-delete">キャンセル</button>
+				</div>
+
+			</div>
+
+		</div>
+	</div>
+
+</body>
+
+</html>

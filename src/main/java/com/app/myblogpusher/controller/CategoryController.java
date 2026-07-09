@@ -20,71 +20,83 @@ import jakarta.servlet.http.HttpSession;
 @Controller
 public class CategoryController {
 
-    @Autowired
-    private ArticleCategoryService articleCategoryService;
+	@Autowired
+	private ArticleCategoryService articleCategoryService;
 
-    @GetMapping("/category/list")
-    public String list(HttpSession session, Model model) {
+	@GetMapping("/category/list")
+	public String list(HttpSession session, Model model) {
 
-        UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
-        Long userId = loginUser.getUserId();
+		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
+		Long userId = loginUser.getUserId();
 
-        List<CategoryDictionaryView> categories = articleCategoryService.findDictionaryView(userId);
-        model.addAttribute("categories", categories);
+		List<CategoryDictionaryView> categories = articleCategoryService.findDictionaryView(userId);
+		model.addAttribute("categories", categories);
 
-        return "category_list";
-    }
-    
-    @PostMapping("/category/add")
-    @ResponseBody
-    public Map<String, String> add(@RequestParam String categoryName, HttpSession session) {
+		return "category_list";
+	}
 
-        UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
-        Long userId = loginUser.getUserId();
+	@PostMapping("/category/add")
+	@ResponseBody
+	public Map<String, String> add(@RequestParam String categoryName,
+			@RequestParam(required = false) Long parentCategoryId,
+			@RequestParam String displayName, HttpSession session) {
 
-        if (categoryName == null || categoryName.isBlank()) {
-            return Map.of("result", "error", "message", "カテゴリー名を入力してください");
-        }
+		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
+		Long userId = loginUser.getUserId();
 
-        if (articleCategoryService.findByUserIdAndName(userId, categoryName).isPresent()) {
-            return Map.of("result", "error", "message", "同じ名前のカテゴリーが既に存在します");
-        }
+		if (categoryName == null || categoryName.isBlank()) {
+			return Map.of("result", "error", "message", "カテゴリー名を入力してください");
+		}
 
-        articleCategoryService.insertCategory(userId, categoryName);
+		if (articleCategoryService.findByUserIdAndName(userId, categoryName).isPresent()) {
+			return Map.of("result", "error", "message", "同じ名前のカテゴリーが既に存在します");
+		}
 
-        return Map.of("result", "ok");
-    }
-    
-    @PostMapping("/category/rename")
-    @ResponseBody
-    public Map<String, String> rename(@RequestParam Long categoryId,
-                                       @RequestParam String newName,
-                                       HttpSession session) {
+		articleCategoryService.insertCategory(
+				userId,
+				categoryName,
+				parentCategoryId,
+				displayName);
 
-        UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
-        Long userId = loginUser.getUserId();
+		return Map.of("result", "ok");
+	}
 
-        if (newName == null || newName.isBlank()) {
-            return Map.of("result", "error", "message", "カテゴリー名を入力してください");
-        }
+	@PostMapping("/category/rename")
+	@ResponseBody
+	public Map<String, String> rename(@RequestParam Long categoryId,
+			@RequestParam String newName, @RequestParam(required = false) Long parentCategoryId,
+			@RequestParam String displayName,
+			HttpSession session) {
 
-        if (articleCategoryService.findByUserIdAndName(userId, newName).isPresent()) {
-            return Map.of("result", "error", "message", "同じ名前のカテゴリーが既に存在します");
-        }
+		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
+		Long userId = loginUser.getUserId();
 
-        articleCategoryService.rename(categoryId, userId, newName);
+		if (newName == null || newName.isBlank()) {
+			return Map.of("result", "error", "message", "カテゴリー名を入力してください");
+		}
 
-        return Map.of("result", "ok");
-    }
+		if (articleCategoryService.findByUserIdAndName(userId, newName).isPresent()) {
+			return Map.of("result", "error", "message", "同じ名前のカテゴリーが既に存在します");
+		}
 
-    @PostMapping("/category/delete")
-    public String delete(@RequestParam Long categoryId, HttpSession session) {
+		articleCategoryService.rename(
+				categoryId,
+				userId,
+				newName,
+				parentCategoryId,
+				displayName);
 
-        UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
-        Long userId = loginUser.getUserId();
+		return Map.of("result", "ok");
+	}
 
-        articleCategoryService.delete(categoryId, userId);
+	@PostMapping("/category/delete")
+	public String delete(@RequestParam Long categoryId, HttpSession session) {
 
-        return "redirect:/category/list";
-    }
+		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
+		Long userId = loginUser.getUserId();
+
+		articleCategoryService.delete(categoryId, userId);
+
+		return "redirect:/category/list";
+	}
 }

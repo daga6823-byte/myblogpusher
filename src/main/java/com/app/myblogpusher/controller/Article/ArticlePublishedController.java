@@ -59,7 +59,8 @@ public class ArticlePublishedController {
 		}
 
 		try {
-			List<PublishedArticleSummaryDto> articles = publishedArticleService.getPublishedArticles(repoOpt.get(), cipherKey, session);
+			List<PublishedArticleSummaryDto> articles = publishedArticleService.getPublishedArticles(repoOpt.get(),
+					cipherKey, session);
 			model.addAttribute("articles", articles);
 		} catch (IOException e) {
 			model.addAttribute("error", "記事の取得に失敗しました");
@@ -81,14 +82,14 @@ public class ArticlePublishedController {
 
 		try {
 			PublishedArticleDto article = publishedArticleService.getPublishedArticle(repoOpt.get(), cipherKey, slug);
-			
+
 			if (article == null) {
 				return "redirect:/article/published";
 			}
 
 			Optional<ArticleWork> existing = articleWorkService.findBySlug(slug);
 			Long workId;
-			
+
 			if (existing.isPresent()) {
 				workId = existing.get().getWorkId();
 			} else {
@@ -97,16 +98,20 @@ public class ArticlePublishedController {
 				if (!categories.isEmpty()) {
 					String categoryName = categories.get(0);
 					categoryId = articleCategoryService.findByUserIdAndName(userId, categoryName)
-						.map(ArticleCategory::getCategoryId)
-						.orElseGet(() -> articleCategoryService.insertCategory(userId, categoryName));
+							.map(ArticleCategory::getCategoryId)
+							.orElseGet(() -> articleCategoryService.insertCategory(userId,
+									categoryName,
+									null,
+									categoryName));
+
 				}
 
 				workId = articleWorkService.insertArticleWork(
-					userId,
-					categoryId,
-					article.getTitle(),
-					article.getContent(),
-					slug);
+						userId,
+						categoryId,
+						article.getTitle(),
+						article.getContent(),
+						slug);
 			}
 
 			return "redirect:/article/edit?workId=" + workId;

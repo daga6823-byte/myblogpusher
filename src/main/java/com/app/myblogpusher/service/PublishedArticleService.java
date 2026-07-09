@@ -2,6 +2,9 @@
  * 投稿済み記事の取得を担当するサービス
  * GitHub APIを使用してリポジトリから記事一覧を取得する
  * tmpディレクトリではなくGitHub API経由で取得するためRender環境に対応
+ *
+ * カテゴリールート(movie/note/drama/tech)配下は任意階層のフォルダ構成を許容するため、
+ * 一覧取得はGit Trees API(recursive=1)で全ファイルパスを取得する
  */
 
 package com.app.myblogpusher.service;
@@ -36,7 +39,10 @@ public class PublishedArticleService {
 	@Autowired
 	private FrontMatterUtil frontMatterUtil;
 
-	
+	// カテゴリーのルートフォルダ（この配下に任意階層で記事を配置できる）
+	private static final List<String> CATEGORY_ROOTS = List.of("movie", "note", "drama", "tech");
+
+
 	public List<PublishedArticleSummaryDto> getPublishedArticles(UserRepositoryEntity repo, String cipherKey, HttpSession session)
 			throws IOException {
 
@@ -52,31 +58,19 @@ public class PublishedArticleService {
 				repo.getTokenIv(),
 				cipherKey);
 
-		String apiUrl = "https://api.github.com/repos/"
-				+ repo.getRepoOwner() + "/" + repo.getRepoName()
-				+ "/contents/content/posts";
+		String owner = repo.getRepoOwner();
+		String repoName = repo.getRepoName();
 
-		HttpURLConnection conn = (HttpURLConnection) new URL(apiUrl).openConnection();
-		conn.setRequestProperty("Authorization", "token " + accessToken);
-		conn.setRequestProperty("Accept", "application/vnd.github.v3+json");
+		String defaultBranch = fetchDefaultBranch(owner, repoName, accessToken);
+		List<String> mdPaths = fetchAllMarkdownPaths(owner, repoName, defaultBranch, accessToken);
 
-		if (conn.getResponseCode() != 200) {
-			return new ArrayList<>();
-		}
-
-		String response = new String(conn.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
-
-		ObjectMapper mapper = new ObjectMapper();
-		JsonNode files = mapper.readTree(response);
-
-		List<PublishedArticleSummaryDto> result = StreamSupport.stream(files.spliterator(), true)
-			.filter(file -> file.get("name").asText().endsWith(".md"))
-			.map(file -> {
+		List<PublishedArticleSummaryDto> result = mdPaths.stream()
+			.map(path -> {
 				try {
-					String fileName = file.get("name").asText();
-					String fileApiUrl = file.get("url").asText();
-					String mdContent = fetchContentViaApi(fileApiUrl, accessToken);
-					String slug = fileName.replace(".md", "");
+					String contentApiUrl = "https://api.github.com/repos/" + owner + "/" + repoName + "/contents/" + path;
+					String mdContent = fetchContentViaApi(contentApiUrl, accessToken);
+					// 例: content/movie/batman/1989/batman1989_review1.md -> movie/batman/1989/batman1989_review1
+					String slug = path.replaceFirst("^content/", "").replace(".md", "");
 					String title = frontMatterUtil.extractTitle(mdContent);
 					return new PublishedArticleSummaryDto(slug, title, LocalDateTime.now());
 				} catch (IOException e) {
@@ -99,9 +93,10 @@ public class PublishedArticleService {
 				repo.getTokenIv(),
 				cipherKey);
 
+		// slugはカテゴリールートからのフルパス（例: movie/batman/1989/batman1989_review1）
 		String apiUrl = "https://api.github.com/repos/"
 				+ repo.getRepoOwner() + "/" + repo.getRepoName()
-				+ "/contents/content/posts/" + slug + ".md";
+				+ "/contents/content/" + slug + ".md";
 
 		HttpURLConnection conn = (HttpURLConnection) new URL(apiUrl).openConnection();
 		conn.setRequestProperty("Authorization", "token " + accessToken);
@@ -116,7 +111,67 @@ public class PublishedArticleService {
 		List<String> categories = frontMatterUtil.extractCategories(mdContent);
 
 		return new PublishedArticleDto(slug, title, LocalDateTime.now(), mdContent, categories);
-	}	
+	}
+
+	/**
+	 * リポジトリのデフォルトブランチ名を取得する
+	 */
+	private String fetchDefaultBranch(String owner, String repoName, String token) throws IOException {
+		String apiUrl = "https://api.github.com/repos/" + owner + "/" + repoName;
+
+		HttpURLConnection conn = (HttpURLConnection) new URL(apiUrl).openConnection();
+		conn.setRequestProperty("Authorization", "token " + token);
+		conn.setRequestProperty("Accept", "application/vnd.github.v3+json");
+
+		String response = new String(conn.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+		ObjectMapper mapper = new ObjectMapper();
+		JsonNode json = mapper.readTree(response);
+		return json.get("default_branch").asText();
+	}
+
+	/**
+	 * Git Trees APIでリポジトリ全体のファイルパスを再帰的に取得し、
+	 * カテゴリールート(movie/note/drama/tech)配下の.mdファイルのみに絞り込む
+	 */
+	private List<String> fetchAllMarkdownPaths(String owner, String repoName, String branch, String token) throws IOException {
+		String apiUrl = "https://api.github.com/repos/" + owner + "/" + repoName
+				+ "/git/trees/" + branch + "?recursive=1";
+
+		HttpURLConnection conn = (HttpURLConnection) new URL(apiUrl).openConnection();
+		conn.setRequestProperty("Authorization", "token " + token);
+		conn.setRequestProperty("Accept", "application/vnd.github.v3+json");
+
+		if (conn.getResponseCode() != 200) {
+			return new ArrayList<>();
+		}
+
+		String response = new String(conn.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+		ObjectMapper mapper = new ObjectMapper();
+		JsonNode json = mapper.readTree(response);
+		JsonNode tree = json.get("tree");
+
+		return StreamSupport.stream(tree.spliterator(), false)
+			.filter(node -> "blob".equals(node.get("type").asText()))
+			.map(node -> node.get("path").asText())
+			.filter(this::isUnderCategoryRoot)
+			.toList();
+	}
+
+	/**
+	 * パスが content/{カテゴリールート}/ 配下の.mdファイルかどうかを判定する
+	 */
+	private boolean isUnderCategoryRoot(String path) {
+		if (!path.startsWith("content/") || !path.endsWith(".md")) {
+			return false;
+		}
+		String rest = path.substring("content/".length());
+		int firstSlash = rest.indexOf('/');
+		if (firstSlash == -1) {
+			return false;
+		}
+		String rootFolder = rest.substring(0, firstSlash);
+		return CATEGORY_ROOTS.contains(rootFolder);
+	}
 
 	private String fetchContentViaApi(String url, String token) throws IOException {
 		HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
@@ -131,5 +186,5 @@ public class PublishedArticleService {
 		String encoded = json.get("content").asText().replaceAll("\\s", "");
 		return new String(java.util.Base64.getDecoder().decode(encoded), StandardCharsets.UTF_8);
 	}
-	
+
 }
