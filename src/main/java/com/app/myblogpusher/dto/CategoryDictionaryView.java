@@ -25,16 +25,16 @@ public class CategoryDictionaryView {
 		return categoryName;
 	}
 
-	public long getTypoCount() {
-		return typoCount;
-	}
-
-	public long getParentCategoryId() {
+	public Long getParentCategoryId() {
 		return parentCategoryId;
 	}
 
 	public String getDisplayName() {
 		return displayName;
+	}
+
+	public long getTypoCount() {
+		return typoCount;
 	}
 
 	public boolean isDeletable() {
