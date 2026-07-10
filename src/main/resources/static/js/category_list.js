@@ -63,7 +63,10 @@ document.getElementById('saveCategoryButton').addEventListener('click', () => {
 
 	const params = new URLSearchParams();
 
+	let url = '/category/add';
+
 	if (editMode) {
+		url = '/category/update';
 		params.append('categoryId', categoryIdInput.value);
 		params.append('newName', categoryNameInput.value.trim());
 	} else {
