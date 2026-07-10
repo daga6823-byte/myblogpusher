@@ -67,11 +67,13 @@ public class ArticleCategoryService {
 				.collect(Collectors.toMap(
 						row -> (Long) row[0],
 						row -> (Long) row[1]));
-		
+
 		Map<Long, String> categoryNameMap = categories.stream()
-		        .collect(Collectors.toMap(
-		                ArticleCategory::getCategoryId,
-		                ArticleCategory::getDisplayName));
+				.collect(Collectors.toMap(
+						ArticleCategory::getCategoryId,
+						c -> c.getDisplayName() == null
+								? c.getCategoryName()
+								: c.getDisplayName()));
 
 		return categories.stream()
 				.map(c -> new CategoryDictionaryView(
