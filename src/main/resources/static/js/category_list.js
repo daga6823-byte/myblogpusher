@@ -63,24 +63,17 @@ document.getElementById('saveCategoryButton').addEventListener('click', () => {
 
 	const params = new URLSearchParams();
 
-	params.append('categoryName', categoryNameInput.value.trim());
+	if (editMode) {
+		params.append('categoryId', categoryIdInput.value);
+		params.append('newName', categoryNameInput.value.trim());
+	} else {
+		params.append('categoryName', categoryNameInput.value.trim());
+	}
+
 	params.append('displayName', displayNameInput.value.trim());
 
 	if (parentCategoryInput.value) {
 		params.append('parentCategoryId', parentCategoryInput.value);
-	}
-
-	let url = '/category/add';
-
-	if (editMode) {
-		url = '/category/update';
-		params.append('categoryId', categoryIdInput.value);
-		params.append('newName', categoryNameInput.value.trim());
-		params.append('displayName', displayNameInput.value.trim());
-
-		if (parentCategoryInput.value) {
-			params.append('parentCategoryId', parentCategoryInput.value);
-		}
 	}
 
 	fetch(url, {
