@@ -67,12 +67,18 @@ public class ArticleCategoryService {
 				.collect(Collectors.toMap(
 						row -> (Long) row[0],
 						row -> (Long) row[1]));
+		
+		Map<Long, String> categoryNameMap = categories.stream()
+		        .collect(Collectors.toMap(
+		                ArticleCategory::getCategoryId,
+		                ArticleCategory::getDisplayName));
 
 		return categories.stream()
 				.map(c -> new CategoryDictionaryView(
 						c.getCategoryId(),
 						c.getCategoryName(),
 						c.getParentCategoryId(),
+						categoryNameMap.get(c.getParentCategoryId()),
 						c.getDisplayName(),
 						countMap.getOrDefault(c.getCategoryId(), 0L)))
 				.toList();

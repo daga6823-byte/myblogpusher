@@ -2,6 +2,7 @@ package com.app.myblogpusher.controller;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.app.myblogpusher.dto.CategoryDictionaryView;
+import com.app.myblogpusher.entity.ArticleCategory;
 import com.app.myblogpusher.entity.UserMaster;
 import com.app.myblogpusher.service.ArticleCategoryService;
 
@@ -73,11 +75,10 @@ public class CategoryController {
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 		Long userId = loginUser.getUserId();
 
-		if (newName == null || newName.isBlank()) {
-			return Map.of("result", "error", "message", "カテゴリー名を入力してください");
-		}
+		Optional<ArticleCategory> existing = articleCategoryService.findByUserIdAndName(userId, newName);
 
-		if (articleCategoryService.findByUserIdAndName(userId, newName).isPresent()) {
+		if (existing.isPresent()
+				&& !existing.get().getCategoryId().equals(categoryId)) {
 			return Map.of("result", "error", "message", "同じ名前のカテゴリーが既に存在します");
 		}
 
