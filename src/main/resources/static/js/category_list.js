@@ -22,6 +22,10 @@ function rebuildParentCategorySelect(currentId, selectedId) {
 
 	categories.forEach(c => {
 
+		if (!c.displayName || c.displayName.trim() === '') {
+			return;
+		}
+
 		if (String(c.categoryId) === String(currentId)) {
 			return;
 		}
