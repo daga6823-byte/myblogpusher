@@ -106,6 +106,7 @@ public class ArticleCategoryService {
 		category.setParentCategoryId(parentCategoryId);
 		category.setUpdateDate(LocalDateTime.now());
 
+		System.out.println("entity displayName = " + category.getDisplayName());
 		articleCategoryRepository.save(category);
 	}
 

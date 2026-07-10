@@ -72,6 +72,8 @@ public class CategoryController {
 			@RequestParam(required = false) Long parentCategoryId,
 			HttpSession session) {
 
+		
+		System.out.println("displayName param = " + displayName);
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 		Long userId = loginUser.getUserId();
 
@@ -89,6 +91,8 @@ public class CategoryController {
 				parentCategoryId,
 				displayName);
 
+		System.out.println("Controller displayName = " + displayName);
+		
 		return Map.of("result", "ok");
 	}
 
