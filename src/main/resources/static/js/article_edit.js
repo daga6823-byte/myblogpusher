@@ -103,12 +103,28 @@ function buildDateString() {
 	return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}${offsetStr}`;
 }
 
+// 選択中のカテゴリー名を取得する（プルダウンのvalueはcategoryIdなので、
+// 表示テキスト(フルパス)の末尾セグメントをカテゴリー名として使う）
+function getSelectedCategoryLabel() {
+	const categorySelect = document.getElementById('categorySelect');
+	const newCategoryName = document.getElementById('newCategoryName').value.trim();
+
+	if (categorySelect.value === '__new__') {
+		return newCategoryName;
+	}
+
+	const selectedOption = categorySelect.options[categorySelect.selectedIndex];
+	const fullPath = selectedOption ? selectedOption.text : '';
+	const segments = fullPath.split('/');
+	return segments[segments.length - 1];
+}
+
 function updateFrontMatterFields(updateDate) {
 	const textarea = document.getElementById('content');
 	const title = document.getElementById('title').value;
-	const categorySelect = document.getElementById('categorySelect').value;
-	const newCategoryName = document.getElementById('newCategoryName').value.trim();
-	const category = (categorySelect === '__new__') ? newCategoryName : categorySelect;
+	const category = getSelectedCategoryLabel();
+	const draft = document.getElementById('draftSelect').value;
+	const comments = document.getElementById('commentsSelect').value;
 
 	const currentText = textarea.value;
 	const frontMatterPattern = /^\+\+\+[\s\S]*?\+\+\+\n*/;
@@ -129,8 +145,8 @@ function updateFrontMatterFields(updateDate) {
 		+ `title = '${title}'\n`
 		+ `${dateLine}\n`
 		+ `categories = ["${category}"]\n`
-		+ 'draft = false\n'
-		+ 'comments = true\n'
+		+ `draft = ${draft}\n`
+		+ `comments = ${comments}\n`
 		+ '+++\n';
 
 	textarea.value = newFrontMatter + bodyText;
@@ -161,6 +177,39 @@ if (copyAllButton) {
 		}
 	});
 }
+
+// 既存本文のfront matterからdraft/commentsの値を読み取り、プルダウンに反映する
+function initFrontMatterSelects() {
+	const textarea = document.getElementById('content');
+	if (!textarea) return;
+
+	const frontMatterBody = parseFrontMatter(textarea.value);
+	if (!frontMatterBody) return;
+
+	const draftMatch = frontMatterBody.match(/^draft = (true|false)$/m);
+	if (draftMatch) {
+		document.getElementById('draftSelect').value = draftMatch[1];
+	}
+
+	const commentsMatch = frontMatterBody.match(/^comments = (true|false)$/m);
+	if (commentsMatch) {
+		document.getElementById('commentsSelect').value = commentsMatch[1];
+	}
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+	const msg = document.getElementById('savedMessage');
+	if (msg) {
+		setTimeout(() => { msg.style.display = 'none'; }, 3000);
+	}
+
+	const textarea = document.getElementById('content');
+	if (textarea && textarea.value.trim() === '') {
+		updateFrontMatterFields(true);
+	} else {
+		initFrontMatterSelects();
+	}
+});
 
 //自動保存機能
 let workspaceTimer;

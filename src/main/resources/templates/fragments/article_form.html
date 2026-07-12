@@ -32,6 +32,18 @@
 			</div>
 		</div>
 
+		<label for="draftSelect">公開状態</label>
+		<select id="draftSelect" name="draftSelect">
+			<option value="false">公開する</option>
+			<option value="true">下書き（非公開）</option>
+		</select>
+
+		<label for="commentsSelect">コメント</label>
+		<select id="commentsSelect" name="commentsSelect">
+			<option value="true">コメントを許可する</option>
+			<option value="false">コメントを許可しない</option>
+		</select>
+
 		<input type="hidden" id="redirectTo" name="redirectTo" value="">
 		<input type="hidden" id="workId" name="workId" th:value="${work != null ? work.workId : ''}">
 	</div>
