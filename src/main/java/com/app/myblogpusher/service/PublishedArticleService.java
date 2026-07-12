@@ -42,13 +42,14 @@ public class PublishedArticleService {
 	// カテゴリーのルートフォルダ（この配下に任意階層で記事を配置できる）
 	private static final List<String> CATEGORY_ROOTS = List.of("movie", "note", "drama", "tech");
 
-
-	public List<PublishedArticleSummaryDto> getPublishedArticles(UserRepositoryEntity repo, String cipherKey, HttpSession session)
+	public List<PublishedArticleSummaryDto> getPublishedArticles(UserRepositoryEntity repo, String cipherKey,
+			HttpSession session)
 			throws IOException {
 
 		// キャッシュを確認
 		@SuppressWarnings("unchecked")
-		List<PublishedArticleSummaryDto> cached = (List<PublishedArticleSummaryDto>) session.getAttribute("publishedArticlesCache");
+		List<PublishedArticleSummaryDto> cached = (List<PublishedArticleSummaryDto>) session
+				.getAttribute("publishedArticlesCache");
 		if (cached != null) {
 			return cached;
 		}
@@ -65,21 +66,29 @@ public class PublishedArticleService {
 		List<String> mdPaths = fetchAllMarkdownPaths(owner, repoName, defaultBranch, accessToken);
 
 		List<PublishedArticleSummaryDto> result = mdPaths.stream()
-			.map(path -> {
-				try {
-					String contentApiUrl = "https://api.github.com/repos/" + owner + "/" + repoName + "/contents/" + path;
-					String mdContent = fetchContentViaApi(contentApiUrl, accessToken);
-					// 例: content/movie/batman/1989/batman1989_review1.md -> movie/batman/1989/batman1989_review1
-					String slug = path.replaceFirst("^content/", "").replace(".md", "");
-					String title = frontMatterUtil.extractTitle(mdContent);
-					return new PublishedArticleSummaryDto(slug, title, LocalDateTime.now());
-				} catch (IOException e) {
-					return null;
-				}
-			})
-			.filter(a -> a != null)
-			.sorted((a, b) -> b.getUpdateDate().compareTo(a.getUpdateDate()))
-			.toList();
+				.map(path -> {
+					try {
+						String contentApiUrl = "https://api.github.com/repos/" + owner + "/" + repoName + "/contents/"
+								+ path;
+						String mdContent = fetchContentViaApi(contentApiUrl, accessToken);
+						// 例: content/movie/batman/1989/batman1989_review1.md -> movie/batman/1989/batman1989_review1
+						String slug = path.replaceFirst("^content/", "").replace(".md", "");
+						String title = frontMatterUtil.extractTitle(mdContent);
+						LocalDateTime updateDate = frontMatterUtil.extractDate(mdContent);
+						return new PublishedArticleSummaryDto(slug, title, updateDate);
+					} catch (IOException e) {
+						return null;
+					}
+				})
+				.filter(a -> a != null)
+				.sorted((a, b) -> {
+					if (a.getUpdateDate() == null)
+						return 1;
+					if (b.getUpdateDate() == null)
+						return -1;
+					return b.getUpdateDate().compareTo(a.getUpdateDate());
+				})
+				.toList();
 
 		System.out.println("Articles count: " + result.size());
 
@@ -87,7 +96,8 @@ public class PublishedArticleService {
 		return result;
 	}
 
-	public PublishedArticleDto getPublishedArticle(UserRepositoryEntity repo, String cipherKey, String slug) throws IOException {
+	public PublishedArticleDto getPublishedArticle(UserRepositoryEntity repo, String cipherKey, String slug)
+			throws IOException {
 		String accessToken = tokenCipherService.decrypt(
 				repo.getAccessToken(),
 				repo.getTokenIv(),
@@ -109,8 +119,9 @@ public class PublishedArticleService {
 		String mdContent = fetchContentViaApi(apiUrl, accessToken);
 		String title = frontMatterUtil.extractTitle(mdContent);
 		List<String> categories = frontMatterUtil.extractCategories(mdContent);
+		LocalDateTime updateDate = frontMatterUtil.extractDate(mdContent);
 
-		return new PublishedArticleDto(slug, title, LocalDateTime.now(), mdContent, categories);
+		return new PublishedArticleDto(slug, title, updateDate, mdContent, categories);
 	}
 
 	/**
@@ -133,7 +144,8 @@ public class PublishedArticleService {
 	 * Git Trees APIでリポジトリ全体のファイルパスを再帰的に取得し、
 	 * カテゴリールート(movie/note/drama/tech)配下の.mdファイルのみに絞り込む
 	 */
-	private List<String> fetchAllMarkdownPaths(String owner, String repoName, String branch, String token) throws IOException {
+	private List<String> fetchAllMarkdownPaths(String owner, String repoName, String branch, String token)
+			throws IOException {
 		String apiUrl = "https://api.github.com/repos/" + owner + "/" + repoName
 				+ "/git/trees/" + branch + "?recursive=1";
 
@@ -151,10 +163,10 @@ public class PublishedArticleService {
 		JsonNode tree = json.get("tree");
 
 		return StreamSupport.stream(tree.spliterator(), false)
-			.filter(node -> "blob".equals(node.get("type").asText()))
-			.map(node -> node.get("path").asText())
-			.filter(this::isUnderCategoryRoot)
-			.toList();
+				.filter(node -> "blob".equals(node.get("type").asText()))
+				.map(node -> node.get("path").asText())
+				.filter(this::isUnderCategoryRoot)
+				.toList();
 	}
 
 	/**
