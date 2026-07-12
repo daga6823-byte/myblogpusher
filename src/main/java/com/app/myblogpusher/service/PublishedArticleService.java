@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.stream.StreamSupport;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import com.app.myblogpusher.dto.PublishedArticleDto;
@@ -197,6 +198,19 @@ public class PublishedArticleService {
 		JsonNode json = mapper.readTree(response);
 		String encoded = json.get("content").asText().replaceAll("\\s", "");
 		return new String(java.util.Base64.getDecoder().decode(encoded), StandardCharsets.UTF_8);
+	}
+
+	/**
+	 * ログイン直後に投稿済み記事一覧を非同期で先読みし、セッションにキャッシュしておく
+	 * 記事一覧画面への遷移時には既にキャッシュ済みの状態を目指す
+	 */
+	@Async
+	public void prefetchPublishedArticles(UserRepositoryEntity repo, String cipherKey, HttpSession session) {
+		try {
+			getPublishedArticles(repo, cipherKey, session);
+		} catch (IOException e) {
+			System.err.println("記事一覧の先読みに失敗しました: " + e.getMessage());
+		}
 	}
 
 }

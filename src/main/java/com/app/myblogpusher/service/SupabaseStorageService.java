@@ -1,5 +1,10 @@
+/**
+ * Supabase Storageへの画像アップロード・一覧取得・URL生成を担当するサービス
+ */
+
 package com.app.myblogpusher.service;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,6 +15,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -41,7 +47,6 @@ public class SupabaseStorageService {
 		try {
 			String response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class).getBody();
 			JsonNode root = objectMapper.readTree(response);
-
 			List<String> images = new ArrayList<>();
 			if (root.isArray()) {
 				for (JsonNode node : root) {
@@ -54,6 +59,29 @@ public class SupabaseStorageService {
 		} catch (Exception e) {
 			throw new RuntimeException("Failed to list images", e);
 		}
+	}
+
+	/**
+	 * 画像をSupabase Storageの指定フォルダにアップロードする
+	 * 戻り値はバケット内の相対パス（folderName/fileName）
+	 */
+	public String uploadImage(MultipartFile file, String folderName) throws IOException {
+		String fileName = file.getOriginalFilename();
+		String path = folderName + "/" + fileName;
+		String url = supabaseUrl + "/storage/v1/object/" + bucketName + "/" + path;
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.setBearerAuth(supabaseKey);
+		MediaType contentType = file.getContentType() != null
+				? MediaType.parseMediaType(file.getContentType())
+				: MediaType.APPLICATION_OCTET_STREAM;
+		headers.setContentType(contentType);
+
+		HttpEntity<byte[]> entity = new HttpEntity<>(file.getBytes(), headers);
+
+		restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
+
+		return path;
 	}
 
 	public String getImageUrl(String fileName) {
