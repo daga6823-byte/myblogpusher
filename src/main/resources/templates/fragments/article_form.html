@@ -9,8 +9,8 @@
 		<label for="categorySelect">カテゴリー</label>
 		<select id="categorySelect" name="categorySelect" onchange="toggleNewCategory()">
 			<option value="">選択してください</option>
-			<option th:each="cat : ${categories}" th:value="${cat.categoryName}" th:text="${cat.categoryName}"
-				th:selected="${cat.categoryName == categoryName}"></option>
+			<option th:each="cat : ${categories}" th:value="${cat.categoryId}" th:text="${cat.fullPath}"
+				th:selected="${cat.categoryId == categoryId}"></option>
 			<option value="__new__">＋ 新しいカテゴリーを追加</option>
 		</select>
 

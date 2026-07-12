@@ -75,14 +75,8 @@ public class PublishController {
 
 		Long userId = loginUser.getUserId();
 
-		// カテゴリーIDを取得
-		String categoryName = "__new__".equals(categorySelect) ? newCategoryName : categorySelect;
-		Long categoryId = articleCategoryService.findByUserIdAndName(userId, categoryName)
-				.map(ArticleCategory::getCategoryId)
-				.orElseGet(() -> articleCategoryService.insertCategory(userId,
-						categoryName,
-						null,
-						categoryName));
+		// カテゴリーIDを解決（"__new__"なら新規ルートカテゴリーとして作成、それ以外は選択されたcategoryIdをそのまま使う）
+		Long categoryId = resolveCategoryId(userId, categorySelect, newCategoryName);
 
 		// リポジトリ情報取得
 		Optional<UserRepositoryEntity> repoOpt = userRepositoryRepository.findByUserId(userId);
@@ -119,8 +113,6 @@ public class PublishController {
 			HttpSession session,
 			Model model) {
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
-
-		System.out.println("executePublish start");
 
 		if (loginUser == null) {
 			return "redirect:/login";
@@ -166,13 +158,7 @@ public class PublishController {
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 		Long userId = loginUser.getUserId();
 
-		String categoryName = "__new__".equals(categorySelect) ? newCategoryName : categorySelect;
-		Long categoryId = articleCategoryService.findByUserIdAndName(userId, categoryName)
-				.map(ArticleCategory::getCategoryId)
-				.orElseGet(() -> articleCategoryService.insertCategory(userId,
-						categoryName,
-						null,
-						categoryName));
+		Long categoryId = resolveCategoryId(userId, categorySelect, newCategoryName);
 
 		Optional<UserRepositoryEntity> repoOpt = userRepositoryRepository.findByUserId(userId);
 		if (repoOpt.isEmpty()) {
@@ -198,5 +184,23 @@ public class PublishController {
 		model.addAttribute("form", form);
 
 		return "publish_preview";
+	}
+
+	/**
+	 * categorySelectを解釈してcategoryIdを返す。
+	 * "__new__"の場合は新規ルートカテゴリー（parentCategoryId=null）として作成する。
+	 * それ以外は選択プルダウンから渡されたcategoryIdの文字列をそのまま数値変換する。
+	 */
+	private Long resolveCategoryId(Long userId, String categorySelect, String newCategoryName) {
+		if ("__new__".equals(categorySelect)) {
+			return articleCategoryService.findByUserIdAndName(userId, newCategoryName)
+					.map(ArticleCategory::getCategoryId)
+					.orElseGet(() -> articleCategoryService.insertCategory(
+							userId,
+							newCategoryName,
+							null,
+							newCategoryName));
+		}
+		return Long.parseLong(categorySelect);
 	}
 }

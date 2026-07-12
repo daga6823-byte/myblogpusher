@@ -1,3 +1,9 @@
+/**
+ * 記事をGitHubリポジトリにMarkdownファイルとしてプッシュするサービス
+ * カテゴリーの親子階層（parentCategoryId）を辿ってcontent配下のパスを組み立て、
+ * パス上の各階層に日本語表示名(displayName)入りの_index.mdを自動生成する
+ */
+
 package com.app.myblogpusher.service;
 
 import java.io.File;
@@ -6,6 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.jgit.api.Git;
@@ -34,7 +41,7 @@ public class GitHubPushService {
 
 	@Autowired
 	private SlugUtil slugUtil;
-	
+
 	public GitHubPushService(
 			TokenCipherService tokenCipherService,
 			ArticleCategoryRepository articleCategoryRepository,
@@ -61,15 +68,10 @@ public class GitHubPushService {
 
 		System.out.println("pushArticle start");
 
-		//		long start = System.currentTimeMillis();
-
 		String accessToken = tokenCipherService.decrypt(
 				repoEntity.getAccessToken(),
 				repoEntity.getTokenIv(),
 				cipherKey);
-
-		System.out.println("Decrypted token length: " + accessToken.length());
-		System.out.println("Token starts with: " + accessToken.substring(0, Math.min(10, accessToken.length())));
 
 		String repoPath = System.getProperty("java.io.tmpdir")
 				+ "/myblogpusher_"
@@ -84,24 +86,23 @@ public class GitHubPushService {
 		ArticleCategory category = articleCategoryRepository.findById(categoryId)
 				.orElseThrow(() -> new IllegalArgumentException("カテゴリーが見つかりません"));
 
-		String categorySlug = slugUtil.generateCategorySlug(category.getCategoryName());
+		// カテゴリーの親を辿り、ルートから自分自身までのエンティティリストを作る（例: [movie, batman]）
+		List<ArticleCategory> categoryPath = buildCategoryPath(category);
+		String categoryPathStr = categoryPath.stream()
+				.map(c -> slugUtil.generateCategorySlug(c.getCategoryName()))
+				.reduce((a, b) -> a + "/" + b)
+				.orElse("");
 
 		Git git = initializeRepository(repoDir, repoEntity, accessToken);
 
-		//		System.out.println("initialize: " + (System.currentTimeMillis() - start) + "ms");
-
 		try {
-
-			createCategoryIndexIfNotExists(
-					git,
-					repoPath,
-					categorySlug,
-					category.getCategoryName());
+			// パス上の各階層に _index.md が無ければ作成する（titleは日本語表示名）
+			createCategoryIndexesRecursively(git, repoPath, categoryPath);
 
 			Path contentPath = Paths.get(
 					repoPath,
 					"content",
-					"posts",
+					categoryPathStr,
 					slug + ".md");
 
 			contentPath.getParent().toFile().mkdirs();
@@ -110,13 +111,9 @@ public class GitHubPushService {
 					contentPath,
 					articleContent.getBytes(StandardCharsets.UTF_8));
 
-			//			System.out.println("write: " + (System.currentTimeMillis() - start) + "ms");
-
 			git.add()
 					.addFilepattern("content")
 					.call();
-
-			//			System.out.println("add: " + (System.currentTimeMillis() - start) + "ms");
 
 			git.commit()
 					.setMessage("Add article: " + slug)
@@ -125,48 +122,74 @@ public class GitHubPushService {
 							"noreply@myblogpusher.local")
 					.call();
 
-			//			System.out.println("commit: " + (System.currentTimeMillis() - start) + "ms");
-
-			// Git push
 			git.push()
 					.setCredentialsProvider(new UsernamePasswordCredentialsProvider("git", accessToken))
 					.setRefSpecs(new org.eclipse.jgit.transport.RefSpec("HEAD:refs/heads/main"))
 					.call();
-
-			//			System.out.println("push: " + (System.currentTimeMillis() - start) + "ms");
 
 		} finally {
 			git.close();
 		}
 	}
 
-	private void createCategoryIndexIfNotExists(Git git, String repoPath, String categorySlug, String categoryName)
-			throws IOException, GitAPIException {
+	/**
+	 * カテゴリーから親を辿り、ルート(movie等)から自分自身までのエンティティリストを返す
+	 * 例: batman_review(親=movie) -> [movieエンティティ, batman_reviewエンティティ]
+	 */
+	private List<ArticleCategory> buildCategoryPath(ArticleCategory category) {
+		List<ArticleCategory> path = new ArrayList<>();
+		ArticleCategory current = category;
 
-		Path indexPath = Paths.get(repoPath, "content", "categories", categorySlug, "_index.md");
-
-		// 既に存在すればスキップ
-		if (Files.exists(indexPath)) {
-			return;
+		while (current != null) {
+			path.add(0, current);
+			Long parentId = current.getParentCategoryId();
+			current = (parentId != null)
+					? articleCategoryRepository.findById(parentId).orElse(null)
+					: null;
 		}
 
-		indexPath.getParent().toFile().mkdirs();
+		return path;
+	}
 
-		String indexContent = "---\n"
-				+ "title: \"" + categoryName + "\"\n"
-				+ "description: \"\"\n"
-				+ "---\n";
+	/**
+	 * content/{slug1}/_index.md, content/{slug1}/{slug2}/_index.md ...
+	 * のように、パス上の各階層に _index.md が無ければ作成する
+	 * フォルダ名はカテゴリー名から生成したスラッグ、titleは日本語のdisplayNameを使用
+	 */
+	private void createCategoryIndexesRecursively(Git git, String repoPath, List<ArticleCategory> categoryPath)
+			throws IOException, GitAPIException {
 
-		Files.write(indexPath, indexContent.getBytes(StandardCharsets.UTF_8));
+		Path currentDir = Paths.get(repoPath, "content");
+		StringBuilder relativePath = new StringBuilder("content");
 
-		// Git add
-		git.add().addFilepattern("content/categories/" + categorySlug + "/_index.md").call();
+		for (ArticleCategory category : categoryPath) {
+			String slug = slugUtil.generateCategorySlug(category.getCategoryName());
+			String title = (category.getDisplayName() != null && !category.getDisplayName().isBlank())
+					? category.getDisplayName()
+					: category.getCategoryName();
+
+			currentDir = currentDir.resolve(slug);
+			relativePath.append("/").append(slug);
+
+			Path indexPath = currentDir.resolve("_index.md");
+
+			if (!Files.exists(indexPath)) {
+				currentDir.toFile().mkdirs();
+
+				String indexContent = "---\n"
+						+ "title: \"" + title + "\"\n"
+						+ "description: \"\"\n"
+						+ "---\n";
+
+				Files.write(indexPath, indexContent.getBytes(StandardCharsets.UTF_8));
+
+				git.add().addFilepattern(relativePath + "/_index.md").call();
+			}
+		}
 	}
 
 	private Git initializeRepository(File repoDir, UserRepositoryEntity repoEntity, String accessToken)
 			throws IOException, GitAPIException {
-
-		long start = System.currentTimeMillis();
 
 		File gitDir = new File(repoDir, ".git");
 
@@ -176,11 +199,7 @@ public class GitHubPushService {
 					.setGitDir(gitDir)
 					.build();
 
-			System.out.println("build: " + (System.currentTimeMillis() - start) + "ms");
-
 			Git git = new Git(repository);
-
-			System.out.println("new Git: " + (System.currentTimeMillis() - start) + "ms");
 
 			git.pull()
 					.setCredentialsProvider(
@@ -188,8 +207,6 @@ public class GitHubPushService {
 									"git",
 									accessToken))
 					.call();
-
-			System.out.println("pull: " + (System.currentTimeMillis() - start) + "ms");
 
 			return git;
 
@@ -238,20 +255,15 @@ public class GitHubPushService {
 			return "no-title";
 		}
 
-		System.out.println("Title: " + title);
-
 		String result = title;
 
 		// 辞書に登録された全ての日本語を検索して置き換え
 		List<EnglishDictionary> dictionaries = englishDictionaryRepository.findAll();
 		for (EnglishDictionary dict : dictionaries) {
 			if (result.contains(dict.getJapanese())) {
-				System.out.println("Found: " + dict.getJapanese() + " -> " + dict.getEnglish());
 				result = result.replace(dict.getJapanese(), " " + dict.getEnglish() + " ");
 			}
 		}
-
-		System.out.println("After dictionary replace: " + result);
 
 		String finalSlug = result
 				.toLowerCase()
@@ -259,8 +271,6 @@ public class GitHubPushService {
 				.replaceAll("\\s+", "-") // スペースをハイフンに
 				.replaceAll("^-+|-+$", "") // 前後のハイフン削除
 				.trim();
-
-		System.out.println("Final slug: " + finalSlug);
 
 		return finalSlug;
 

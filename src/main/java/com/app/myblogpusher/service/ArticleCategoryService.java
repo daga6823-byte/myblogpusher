@@ -1,6 +1,8 @@
 package com.app.myblogpusher.service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -10,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.app.myblogpusher.dto.CategoryDictionaryView;
+import com.app.myblogpusher.dto.CategoryOptionView;
 import com.app.myblogpusher.entity.ArticleCategory;
 import com.app.myblogpusher.repository.ArticleCategoryRepository;
 import com.app.myblogpusher.repository.TypoCorrectionRepository;
@@ -130,6 +133,68 @@ public class ArticleCategoryService {
 		}
 
 		articleCategoryRepository.delete(category);
+	}
+
+	/**
+	 * 記事投稿画面のカテゴリー選択プルダウン用に、
+	 * ルートからのフルパス付きでカテゴリー一覧を返す（sortOrder順の深さ優先）
+	 */
+	public List<CategoryOptionView> findSelectableCategories(Long userId) {
+		List<ArticleCategory> categories = articleCategoryRepository.findByUserId(userId);
+		if (categories.isEmpty()) {
+			return List.of();
+		}
+
+		Map<Long, List<ArticleCategory>> childrenByParent = new HashMap<>();
+		List<ArticleCategory> roots = new ArrayList<>();
+
+		for (ArticleCategory c : categories) {
+			if (c.getParentCategoryId() == null) {
+				roots.add(c);
+			} else {
+				childrenByParent
+						.computeIfAbsent(c.getParentCategoryId(), k -> new ArrayList<>())
+						.add(c);
+			}
+		}
+
+		roots.sort((a, b) -> compareSortOrder(a.getSortOrder(), b.getSortOrder()));
+		childrenByParent.values()
+				.forEach(list -> list.sort((a, b) -> compareSortOrder(a.getSortOrder(), b.getSortOrder())));
+
+		List<CategoryOptionView> result = new ArrayList<>();
+		for (ArticleCategory root : roots) {
+			appendOption(root, "", childrenByParent, result);
+		}
+		return result;
+	}
+
+	private void appendOption(
+			ArticleCategory current,
+			String parentPath,
+			Map<Long, List<ArticleCategory>> childrenByParent,
+			List<CategoryOptionView> result) {
+
+		String label = (current.getDisplayName() != null && !current.getDisplayName().isBlank())
+				? current.getDisplayName()
+				: current.getCategoryName();
+		String fullPath = parentPath.isEmpty() ? label : parentPath + "/" + label;
+
+		result.add(new CategoryOptionView(current.getCategoryId(), fullPath));
+
+		List<ArticleCategory> children = childrenByParent.getOrDefault(current.getCategoryId(), List.of());
+		for (ArticleCategory child : children) {
+			appendOption(child, fullPath, childrenByParent, result);
+		}
+	}
+
+	/**
+	 * sortOrderの比較用。null(未設定)は0として扱う
+	 */
+	private int compareSortOrder(Integer a, Integer b) {
+		int av = a == null ? 0 : a;
+		int bv = b == null ? 0 : b;
+		return Integer.compare(av, bv);
 	}
 
 }

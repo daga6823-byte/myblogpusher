@@ -1,3 +1,10 @@
+/**
+ * カテゴリー（movie/note/drama/techなどのメインカテゴリー、およびそのサブカテゴリー）を表すエンティティ
+ * parentCategoryIdによる自己参照で親子階層を表現する（NULLならメインカテゴリー）
+ * displayNameはHugoの_index.mdのtitleに使う日本語表示名
+ * sortOrderは同じ親を持つカテゴリー同士の表示順（小さいほど上に表示）
+ */
+
 package com.app.myblogpusher.entity;
 
 import java.time.LocalDateTime;
@@ -33,6 +40,9 @@ public class ArticleCategory {
 
 	@Column(name = "display_name")
 	private String displayName;
+
+	@Column(name = "sort_order")
+	private Integer sortOrder = 0;
 
 	@Column(name = "create_user")
 	private Long createUser;
