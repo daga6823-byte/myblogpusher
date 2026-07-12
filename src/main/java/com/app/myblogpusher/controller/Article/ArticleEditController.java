@@ -1,3 +1,8 @@
+/**
+ * 記事編集機能を担当するコントローラー
+ * 編集画面表示、下書き保存、添削処理を管理
+ */
+
 package com.app.myblogpusher.controller.Article;
 
 import java.util.List;
@@ -13,8 +18,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.app.myblogpusher.dto.CategoryOptionView;
 import com.app.myblogpusher.dto.WorkspaceSaveRequest;
-import com.app.myblogpusher.entity.ArticleCategory;
 import com.app.myblogpusher.entity.ArticleWork;
 import com.app.myblogpusher.entity.UserMaster;
 import com.app.myblogpusher.service.ArticleCategoryService;
@@ -24,10 +29,6 @@ import com.app.myblogpusher.util.ArticleSaveUtil;
 
 import jakarta.servlet.http.HttpSession;
 
-/**
- * 記事編集機能を担当するコントローラー
- * 編集画面表示、下書き保存、添削処理を管理
- */
 @Controller
 public class ArticleEditController {
 
@@ -39,7 +40,7 @@ public class ArticleEditController {
 
 	@Autowired
 	private ArticleWorkspaceService workspaceService;
-	
+
 	@Autowired
 	private ArticleSaveUtil articleSaveUtil;
 
@@ -56,17 +57,14 @@ public class ArticleEditController {
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 		Long userId = loginUser.getUserId();
 
-		List<ArticleCategory> categories = articleCategoryService.findByUserId(userId);
+		// カテゴリー選択プルダウン用（categoryId + フルパス表示）
+		List<CategoryOptionView> categories = articleCategoryService.findSelectableCategories(userId);
 		model.addAttribute("categories", categories);
 
 		if (workId != null) {
 			ArticleWork work = articleWorkService.findById(workId);
 			model.addAttribute("work", work);
-
-			String categoryName = articleCategoryService.findById(work.getCategoryId())
-					.map(ArticleCategory::getCategoryName)
-					.orElse("");
-			model.addAttribute("categoryName", categoryName);
+			model.addAttribute("categoryId", work.getCategoryId());
 		} else {
 			workspaceService.find(userId)
 					.ifPresent(ws -> {
@@ -75,12 +73,7 @@ public class ArticleEditController {
 						work.setContent(ws.getContent());
 						work.setCategoryId(ws.getCategoryId());
 						model.addAttribute("work", work);
-
-						if (ws.getCategoryId() != null) {
-							articleCategoryService.findById(ws.getCategoryId())
-									.ifPresent(
-											category -> model.addAttribute("categoryName", category.getCategoryName()));
-						}
+						model.addAttribute("categoryId", ws.getCategoryId());
 					});
 		}
 
@@ -100,10 +93,6 @@ public class ArticleEditController {
 			@RequestParam(required = false) String redirectTo,
 			HttpSession session) {
 
-	    System.out.println("=== content受信 ===");
-	    System.out.println(content.substring(0, Math.min(300, content.length())));
-	    System.out.println("=== end ===");
-		
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 		Long userId = loginUser.getUserId();
 
@@ -148,14 +137,13 @@ public class ArticleEditController {
 	@ResponseBody
 	public ResponseEntity<Void> keepAlive(HttpSession session) {
 
-	    if (session.getAttribute("loginUser") == null) {
-	        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-	    }
+		if (session.getAttribute("loginUser") == null) {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+		}
 
-	    // セッションにアクセスするだけで最終アクセス時刻が更新される
-	    session.getAttribute("loginUser");
+		session.getAttribute("loginUser");
 
-	    return ResponseEntity.ok().build();
+		return ResponseEntity.ok().build();
 	}
 
 	@PostMapping("/article/workspace/clear")
@@ -167,5 +155,5 @@ public class ArticleEditController {
 		}
 		return ResponseEntity.ok().build();
 	}
-	
+
 }

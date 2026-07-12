@@ -1,3 +1,9 @@
+/**
+ * 記事の下書き保存処理を担当するユーティリティ
+ * カテゴリー選択値(categorySelect)の解決、本文フォーマット、スラッグ生成、
+ * ArticleWorkの新規作成/更新/重複チェックを行う
+ */
+
 package com.app.myblogpusher.util;
 
 import java.util.Optional;
@@ -29,30 +35,20 @@ public class ArticleSaveUtil {
 	public Long doSaveDraft(Long workId, String categorySelect, String newCategoryName,
 			String title, String content, Long userId) {
 
-		String categoryName = "__new__".equals(categorySelect) ? newCategoryName : categorySelect;
-		Long categoryId = articleCategoryService.findByUserIdAndName(userId, categoryName)
-				.map(ArticleCategory::getCategoryId)
-				.orElseGet(() -> articleCategoryService.insertCategory(
-						userId,
-						categoryName,
-						null,
-						categoryName));
+		Long categoryId = resolveCategoryId(userId, categorySelect, newCategoryName);
 
 		String formattedContent = articleFormatService.formatContent(content);
-
 		String slug = slugUtil.generateSlug(title);
 
 		if (workId == null) {
 			if ((title == null || title.isBlank()) && (formattedContent == null || formattedContent.isBlank())) {
 				return null;
 			}
-
 			Optional<ArticleWork> existing = articleWorkService.findDuplicate(userId, categoryId, title,
 					formattedContent);
 			if (existing.isPresent()) {
 				return existing.get().getWorkId();
 			}
-
 			return articleWorkService.insertArticleWork(
 					userId,
 					categoryId,
@@ -69,5 +65,23 @@ public class ArticleSaveUtil {
 					slug);
 			return workId;
 		}
+	}
+
+	/**
+	 * categorySelectを解釈してcategoryIdを返す。
+	 * "__new__"の場合は新規ルートカテゴリー（parentCategoryId=null）として作成する。
+	 * それ以外は選択プルダウンから渡されたcategoryIdの文字列をそのまま数値変換する。
+	 */
+	private Long resolveCategoryId(Long userId, String categorySelect, String newCategoryName) {
+		if ("__new__".equals(categorySelect)) {
+			return articleCategoryService.findByUserIdAndName(userId, newCategoryName)
+					.map(ArticleCategory::getCategoryId)
+					.orElseGet(() -> articleCategoryService.insertCategory(
+							userId,
+							newCategoryName,
+							null,
+							newCategoryName));
+		}
+		return Long.parseLong(categorySelect);
 	}
 }
