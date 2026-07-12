@@ -215,10 +215,14 @@ window.addEventListener('DOMContentLoaded', () => {
 let workspaceTimer;
 
 function saveWorkspace() {
+	const categorySelect = document.getElementById('categorySelect').value;
+	// "__new__"（未作成の新規カテゴリー）はまだcategoryIdが存在しないため送らない
+	const categoryId = (categorySelect && categorySelect !== '__new__') ? categorySelect : null;
 
 	const data = {
 		title: document.getElementById('title').value,
-		content: document.getElementById('content').value
+		content: document.getElementById('content').value,
+		categoryId: categoryId
 	};
 
 	fetch('/article/workspace/save', {

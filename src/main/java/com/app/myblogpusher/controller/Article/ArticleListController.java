@@ -1,6 +1,12 @@
+/**
+ * 下書き一覧機能を担当するコントローラー
+ * 下書きの一覧表示と削除を管理
+ */
+
 package com.app.myblogpusher.controller.Article;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -18,10 +24,6 @@ import com.app.myblogpusher.service.ArticleWorkService;
 
 import jakarta.servlet.http.HttpSession;
 
-/**
- * 下書き一覧機能を担当するコントローラー
- * 下書きの一覧表示と削除を管理
- */
 @Controller
 public class ArticleListController {
 
@@ -39,15 +41,15 @@ public class ArticleListController {
 			@RequestParam(required = false) Boolean published,
 			HttpSession session,
 			Model model) {
-
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 		Long userId = loginUser.getUserId();
 
 		List<ArticleWork> works = articleWorkService.findByUserId(userId);
-
 		List<ArticleWorkView> workViews = works.stream()
 				.map(work -> {
-					String categoryName = articleCategoryService.findById(work.getCategoryId())
+					// categoryIdがnullの下書き（自動保存の不具合等で発生）にも対応する
+					String categoryName = Optional.ofNullable(work.getCategoryId())
+							.flatMap(articleCategoryService::findById)
 							.map(ArticleCategory::getCategoryName)
 							.orElse("（未分類）");
 					return new ArticleWorkView(work.getWorkId(), work.getTitle(), categoryName, work.getUpdateDate());
@@ -56,7 +58,6 @@ public class ArticleListController {
 
 		model.addAttribute("works", workViews);
 		model.addAttribute("published", published != null && published);
-
 		return "article/article_list";
 	}
 
@@ -65,12 +66,9 @@ public class ArticleListController {
 	 */
 	@PostMapping("/article/delete")
 	public String delete(@RequestParam Long workId, HttpSession session) {
-
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 		Long userId = loginUser.getUserId();
-
 		articleWorkService.delete(workId, userId);
-
 		return "redirect:/article/list";
 	}
 }
