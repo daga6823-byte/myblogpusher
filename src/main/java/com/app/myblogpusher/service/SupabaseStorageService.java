@@ -8,7 +8,9 @@ package com.app.myblogpusher.service;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -121,22 +123,15 @@ public class SupabaseStorageService {
 		headers.set("apikey", supabaseKey);
 		headers.setContentType(MediaType.APPLICATION_JSON);
 
-//		String body = "{\"prefix\":\"" + prefix + "\",\"limit\":1000,\"offset\":0,"
-//				+ "\"sortBy\":{\"column\":\"name\",\"order\":\"asc\"}}";
-		
-		String body = """
-				{
-				  "prefix":"batman1989",
-				  "limit":1000,
-				  "offset":0,
-				  "sortBy":{
-				    "column":"name",
-				    "order":"asc"
-				  }
-				}
-				""";
+		Map<String, Object> body = new HashMap<>();
+		body.put("prefix", prefix);
+		body.put("limit", 1000);
+		body.put("offset", 0);
+		body.put("sortBy", Map.of(
+				"column", "name",
+				"order", "asc"));
 
-		HttpEntity<String> entity = new HttpEntity<>(body, headers);
+		HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
 
 		try {
 			String response = restTemplate.exchange(url, HttpMethod.POST, entity, String.class).getBody();
