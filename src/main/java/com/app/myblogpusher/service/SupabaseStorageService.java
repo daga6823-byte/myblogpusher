@@ -121,8 +121,20 @@ public class SupabaseStorageService {
 		headers.set("apikey", supabaseKey);
 		headers.setContentType(MediaType.APPLICATION_JSON);
 
-		String body = "{\"prefix\":\"" + prefix + "\",\"limit\":1000,\"offset\":0,"
-				+ "\"sortBy\":{\"column\":\"name\",\"order\":\"asc\"}}";
+//		String body = "{\"prefix\":\"" + prefix + "\",\"limit\":1000,\"offset\":0,"
+//				+ "\"sortBy\":{\"column\":\"name\",\"order\":\"asc\"}}";
+		
+		String body = """
+				{
+				  "prefix":"batman1989",
+				  "limit":1000,
+				  "offset":0,
+				  "sortBy":{
+				    "column":"name",
+				    "order":"asc"
+				  }
+				}
+				""";
 
 		HttpEntity<String> entity = new HttpEntity<>(body, headers);
 
