@@ -50,101 +50,162 @@ public class ArticleFormatService {
 	}
 
 	private String formatBody(String body) {
+
 		String[] lines = body.replace("\r\n", "\n").split("\n", -1);
+
 		StringBuilder result = new StringBuilder();
+
 		boolean inCodeBlock = false;
 
 		for (String line : lines) {
-			// コードブロックの開始・終了を検出
-			if (line.trim().startsWith("```")) {
+
+			String trimmed = line.trim();
+
+			// -------------------------------------------------
+			// コードブロック開始・終了
+			// -------------------------------------------------
+			if (trimmed.startsWith("```")) {
 				inCodeBlock = !inCodeBlock;
 				result.append(line).append("\n");
 				continue;
 			}
 
-			// コードブロック内はそのまま
+			// -------------------------------------------------
+			// コードブロック内は整形しない
+			// -------------------------------------------------
 			if (inCodeBlock) {
 				result.append(line).append("\n");
 				continue;
 			}
 
+			// -------------------------------------------------
 			// 空行はそのまま
-			if (line.isBlank()) {
+			// -------------------------------------------------
+			if (trimmed.isEmpty()) {
 				result.append("\n");
 				continue;
 			}
 
-			// 箇条書きはリンクを自動変換して出力
-			if (line.startsWith("・")
-					|| line.startsWith("-")
-					|| line.startsWith("*")
-					|| line.matches("^\\d+\\..*")) {
-				result.append(formatReferenceLink(line)).append("\n");
+			// -------------------------------------------------
+			// 箇条書き
+			// Markdownリンクへ変換のみ行う
+			// -------------------------------------------------
+			if (isListLine(trimmed)) {
+				result.append(formatReferenceLink(trimmed)).append("\n");
 				continue;
 			}
 
-			// 普通の文章だけ整形
-			result.append(formatParagraph(line));
+			// -------------------------------------------------
+			// 見出し・URLなどは整形対象外
+			// -------------------------------------------------
+			if (isRawLine(trimmed)) {
+				result.append(trimmed).append("\n");
+				continue;
+			}
+
+			// -------------------------------------------------
+			// 通常文章のみ句点区切り整形
+			// -------------------------------------------------
+			result.append(formatParagraph(trimmed));
 		}
+
+		// 文末の余計な改行を除去
+		while (result.length() > 0
+				&& result.charAt(result.length() - 1) == '\n') {
+			result.deleteCharAt(result.length() - 1);
+		}
+
 		return result.toString();
 	}
 
+	/**
+	 * 通常文章を句点区切りで整形する。
+	 * 「さて」で始まる文は段落を区切り、それ以外は1行空けで整形する。
+	 */
 	private String formatParagraph(String body) {
+
 		String normalized = body.replace(INDENT, "");
 
 		StringBuilder result = new StringBuilder();
 		StringBuilder currentSentence = new StringBuilder();
 
 		for (int i = 0; i < normalized.length(); i++) {
+
 			char c = normalized.charAt(i);
 			currentSentence.append(c);
 
+			// -------------------------------------------------
+			// 文末記号を検出
+			// -------------------------------------------------
 			if (SENTENCE_END_CHARS.indexOf(c) >= 0) {
-				// 区切り文字が連続している場合は、続けて同じ文に含める
+
 				int j = i + 1;
-				while (j < normalized.length() && SENTENCE_END_CHARS.indexOf(normalized.charAt(j)) >= 0) {
+
+				// 「！！」「！？」「。。」など連続する記号を含める
+				while (j < normalized.length()
+						&& SENTENCE_END_CHARS.indexOf(normalized.charAt(j)) >= 0) {
+
 					currentSentence.append(normalized.charAt(j));
 					j++;
 				}
 
-				// 区切り文字の直後に閉じ括弧が続く場合も、同じ文に含める
-				while (j < normalized.length() && CLOSING_BRACKET_CHARS.indexOf(normalized.charAt(j)) >= 0) {
+				// 「。」の後ろに 」』 が続く場合も同じ文に含める
+				while (j < normalized.length()
+						&& CLOSING_BRACKET_CHARS.indexOf(normalized.charAt(j)) >= 0) {
+
 					currentSentence.append(normalized.charAt(j));
 					j++;
 				}
 
 				appendSentence(result, currentSentence.toString());
+
 				currentSentence.setLength(0);
+
 				i = j - 1;
-				; // for文側のi++で次のjに進むよう調整
-				continue;
 			}
 		}
 
+		// -------------------------------------------------
+		// 文末記号のない最後の文章
+		// -------------------------------------------------
 		if (!currentSentence.isEmpty()) {
-			String remaining = currentSentence.toString().trim();
-			if (!remaining.isEmpty()) {
-				if (result.length() > 0) {
-					result.append(startsWithTrigger(remaining) ? "\n\n\n" : "\n\n");
-				}
-				result.append(INDENT).append(remaining);
-			}
+
+			appendSentence(result, currentSentence.toString());
+
 		}
 
-		return result.append("\n").toString();
+		return result.toString();
 	}
 
+	/**
+	 * 整形済み文章へ1文追加する。
+	 *
+	 * 「さて」で始まる文は段落を分けるため空行を1行追加する。
+	 * それ以外は通常改行で繋ぐ。
+	 */
 	private void appendSentence(StringBuilder result, String sentence) {
+
 		String trimmed = sentence.trim();
+
 		if (trimmed.isEmpty()) {
 			return;
 		}
 
+		// 最初の1文以外は改行を挿入
 		if (result.length() > 0) {
-			result.append(startsWithTrigger(trimmed) ? "\n\n\n" : "\n\n");
+
+			if (startsWithTrigger(trimmed)) {
+				// 「さて」は段落を区切る
+				result.append("\n\n");
+			} else {
+				// 通常は1行改行
+				result.append("\n");
+			}
 		}
 
-		result.append(trimmed);
+		// インデントは各文の先頭に付与
+		result.append(INDENT).append(trimmed);
+
 	}
 
 	private boolean startsWithTrigger(String sentence) {
@@ -182,5 +243,36 @@ public class ArticleFormatService {
 		}
 
 		return prefix + "[" + title + "](" + url + ")";
+	}
+
+	/**
+	 * 箇条書きかどうか判定する
+	 */
+	private boolean isListLine(String line) {
+
+		return line.startsWith("・")
+				|| line.startsWith("-")
+				|| line.startsWith("*")
+				|| line.matches("^\\d+\\..*");
+
+	}
+
+	/**
+	 * 整形対象外の行かどうか判定する
+	 *
+	 * 以下は文章整形を行わず、そのまま出力する。
+	 * ・Markdown見出し
+	 * ・【】見出し
+	 * ・URLのみの行
+	 */
+	private boolean isRawLine(String line) {
+
+		String trimmed = line.trim();
+
+		return trimmed.startsWith("#")
+				|| trimmed.startsWith("【")
+				|| trimmed.startsWith("http://")
+				|| trimmed.startsWith("https://");
+
 	}
 }

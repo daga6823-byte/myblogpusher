@@ -128,6 +128,7 @@ public class SupabaseStorageService {
 
 		try {
 			String response = restTemplate.exchange(url, HttpMethod.POST, entity, String.class).getBody();
+			System.out.println(response);
 			JsonNode root = objectMapper.readTree(response);
 			List<JsonNode> nodes = new ArrayList<>();
 			if (root.isArray()) {
