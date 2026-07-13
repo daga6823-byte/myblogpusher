@@ -41,7 +41,7 @@ public class SupabaseStorageService {
 		String url = supabaseUrl + "/storage/v1/object/list/" + bucketName;
 
 		HttpHeaders headers = new HttpHeaders();
-		headers.setBearerAuth(supabaseKey);
+		headers.set("apikey", supabaseKey);
 		headers.setContentType(MediaType.APPLICATION_JSON);
 
 		HttpEntity<Void> entity = new HttpEntity<>(headers);
@@ -73,7 +73,7 @@ public class SupabaseStorageService {
 		String url = supabaseUrl + "/storage/v1/object/" + bucketName + "/" + path;
 
 		HttpHeaders headers = new HttpHeaders();
-		headers.setBearerAuth(supabaseKey);
+		headers.set("apikey", supabaseKey);
 		MediaType contentType = file.getContentType() != null
 				? MediaType.parseMediaType(file.getContentType())
 				: MediaType.APPLICATION_OCTET_STREAM;
@@ -118,7 +118,7 @@ public class SupabaseStorageService {
 		String url = supabaseUrl + "/storage/v1/object/list/" + bucketName;
 
 		HttpHeaders headers = new HttpHeaders();
-		headers.setBearerAuth(supabaseKey);
+		headers.set("apikey", supabaseKey);
 		headers.setContentType(MediaType.APPLICATION_JSON);
 
 		String body = "{\"prefix\":\"" + prefix + "\",\"limit\":1000,\"offset\":0,"
