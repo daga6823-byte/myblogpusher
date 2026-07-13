@@ -1,5 +1,7 @@
 /**
  * Supabase Storageへの画像アップロード・一覧取得・URL生成を担当するサービス
+ * listAllFilePathsはフォルダを再帰的に辿り、バケット内の全ファイルパスを取得する
+ * （image_asset未登録の既存画像をインポートする際に使用）
  */
 
 package com.app.myblogpusher.service;
@@ -86,5 +88,54 @@ public class SupabaseStorageService {
 
 	public String getImageUrl(String fileName) {
 		return supabaseUrl + "/storage/v1/object/public/" + bucketName + "/" + fileName;
+	}
+
+	/**
+	 * バケット内の全ファイルパス（フォルダ/ファイル名）を再帰的に取得する
+	 * image_asset未登録の既存画像をインポートする際に使用する
+	 */
+	public List<String> listAllFilePaths() {
+		List<String> result = new ArrayList<>();
+		collectFilePaths("", result);
+		return result;
+	}
+
+	private void collectFilePaths(String prefix, List<String> result) {
+		for (JsonNode entry : listRaw(prefix)) {
+			String name = entry.get("name").asText();
+			boolean isFolder = entry.get("id") == null || entry.get("id").isNull();
+			String path = prefix.isEmpty() ? name : prefix + "/" + name;
+
+			if (isFolder) {
+				collectFilePaths(path, result);
+			} else {
+				result.add(path);
+			}
+		}
+	}
+
+	private List<JsonNode> listRaw(String prefix) {
+		String url = supabaseUrl + "/storage/v1/object/list/" + bucketName;
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.setBearerAuth(supabaseKey);
+		headers.setContentType(MediaType.APPLICATION_JSON);
+
+		String body = "{\"prefix\":\"" + prefix + "\",\"limit\":1000,\"offset\":0,"
+				+ "\"sortBy\":{\"column\":\"name\",\"order\":\"asc\"}}";
+
+		HttpEntity<String> entity = new HttpEntity<>(body, headers);
+
+		try {
+			String response = restTemplate.exchange(url, HttpMethod.POST, entity, String.class).getBody();
+			JsonNode root = objectMapper.readTree(response);
+			List<JsonNode> nodes = new ArrayList<>();
+			if (root.isArray()) {
+				root.forEach(nodes::add);
+			}
+			return nodes;
+		} catch (Exception e) {
+			throw new RuntimeException("Failed to list images at prefix: " + prefix, e);
+		}
 	}
 }
