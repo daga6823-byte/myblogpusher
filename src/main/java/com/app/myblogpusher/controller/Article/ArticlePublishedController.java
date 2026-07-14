@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import com.app.myblogpusher.entity.Article;
 import com.app.myblogpusher.entity.ArticleWork;
 import com.app.myblogpusher.entity.UserMaster;
-import com.app.myblogpusher.entity.UserRepositoryEntity;
 import com.app.myblogpusher.repository.UserRepositoryRepository;
 import com.app.myblogpusher.service.ArticleService;
 import com.app.myblogpusher.service.ArticleWorkService;
@@ -52,19 +51,6 @@ public class ArticlePublishedController {
 				(UserMaster) session.getAttribute("loginUser");
 
 		Long userId = loginUser.getUserId();
-
-		String cipherKey = loginUser.getCipherKey();
-
-		Optional<UserRepositoryEntity> repoOpt =
-				userRepositoryRepository.findByUserId(userId);
-
-		if (repoOpt.isPresent()) {
-
-			publishedArticleService.syncArticles(
-					repoOpt.get(),
-					cipherKey,
-					userId);
-		}
 
 		List<Article> articles =
 				articleService.findPublishedByUserId(userId);
