@@ -142,4 +142,16 @@ public class ArticleService {
 				.orElse(null);
 	}
 
+	/**
+	 * 差分があればDBから記事削除
+	 */
+	public void deleteByUserIdAndSlug(
+			Long userId,
+			String slug) {
+
+		articleRepository.deleteByUserIdAndSlug(
+				userId,
+				slug);
+	}
+
 }

@@ -13,10 +13,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import com.app.myblogpusher.entity.Article;
 import com.app.myblogpusher.entity.ArticleWork;
 import com.app.myblogpusher.entity.UserMaster;
-import com.app.myblogpusher.repository.UserRepositoryRepository;
 import com.app.myblogpusher.service.ArticleService;
 import com.app.myblogpusher.service.ArticleWorkService;
-import com.app.myblogpusher.service.PublishedArticleService;
 
 import jakarta.servlet.http.HttpSession;
 
@@ -26,12 +24,6 @@ import jakarta.servlet.http.HttpSession;
  */
 @Controller
 public class ArticlePublishedController {
-
-	@Autowired
-	private PublishedArticleService publishedArticleService;
-
-	@Autowired
-	private UserRepositoryRepository userRepositoryRepository;
 
 	@Autowired
 	private ArticleWorkService articleWorkService;

@@ -28,5 +28,9 @@ public interface ArticleRepository extends JpaRepository<Article, Long> {
 	List<Article> findByUserIdAndStatusOrderByUpdateDateDesc(
 			Long userId,
 			ArticleStatus status);
+	
+	void deleteByUserIdAndSlug(Long userId, String slug);
+	
+	List<Article> findByUserId(Long userId);
 
 }

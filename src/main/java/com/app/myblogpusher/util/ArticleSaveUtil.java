@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 
 import com.app.myblogpusher.entity.ArticleCategory;
 import com.app.myblogpusher.entity.ArticleWork;
+import com.app.myblogpusher.repository.ArticleRepository;
 import com.app.myblogpusher.service.ArticleCategoryService;
 import com.app.myblogpusher.service.ArticleFormatService;
 import com.app.myblogpusher.service.ArticleWorkService;
@@ -32,6 +33,9 @@ public class ArticleSaveUtil {
 	@Autowired
 	private SlugUtil slugUtil;
 
+	@Autowired
+	private ArticleRepository articleRepository;
+	
 	public Long doSaveDraft(Long workId, String categorySelect, String newCategoryName,
 			String title, String content, Long userId) {
 
@@ -83,5 +87,14 @@ public class ArticleSaveUtil {
 							newCategoryName));
 		}
 		return Long.parseLong(categorySelect);
+	}
+	
+	public void deleteByUserIdAndSlug(
+			Long userId,
+			String slug) {
+
+		articleRepository.deleteByUserIdAndSlug(
+				userId,
+				slug);
 	}
 }

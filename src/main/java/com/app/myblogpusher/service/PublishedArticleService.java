@@ -24,7 +24,9 @@ import org.springframework.stereotype.Service;
 
 import com.app.myblogpusher.dto.PublishedArticleDto;
 import com.app.myblogpusher.dto.PublishedArticleSummaryDto;
+import com.app.myblogpusher.entity.Article;
 import com.app.myblogpusher.entity.UserRepositoryEntity;
+import com.app.myblogpusher.repository.ArticleRepository;
 import com.app.myblogpusher.util.FrontMatterUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -45,6 +47,9 @@ public class PublishedArticleService {
 
 	@Autowired
 	private ArticleCategoryService articleCategoryService;
+	
+	@Autowired
+	private ArticleRepository articleRepository;
 	
 	public List<PublishedArticleSummaryDto> getPublishedArticles(UserRepositoryEntity repo, String cipherKey,
 			HttpSession session)
@@ -273,6 +278,27 @@ public class PublishedArticleService {
 						article.getTitle(),
 						article.getContent(),
 						article.getUpdateDate());
+				
+				List<Article> dbArticles =
+						articleRepository.findByUserId(userId);
+
+				for (Article dbArticle : dbArticles) {
+
+					boolean exists = articles.stream()
+							.anyMatch(github ->
+									github.getSlug()
+											.equals(dbArticle.getSlug()));
+
+					if (!exists) {
+
+						articleService.deleteByUserIdAndSlug(
+								userId,
+								dbArticle.getSlug());
+
+						System.out.println(
+								"削除：" + dbArticle.getSlug());
+					}
+				}
 			}
 
 		} catch (IOException e) {
