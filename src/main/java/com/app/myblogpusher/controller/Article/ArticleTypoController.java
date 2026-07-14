@@ -70,9 +70,11 @@ public class ArticleTypoController {
 
 		List<TypoCorrectionService.TypoMatch> matches = typoCorrectionService.findMatches(categoryId, content);
 
-		model.addAttribute("categories", articleCategoryService.findByUserId(userId));
+		model.addAttribute("categories",
+				articleCategoryService.findSelectableCategories(userId));
 		model.addAttribute("work", work);
 		model.addAttribute("typoMatches", matches);
+		model.addAttribute("categoryId", categoryId);
 
 		String categoryName = articleCategoryService.findById(categoryId)
 				.map(ArticleCategory::getCategoryName)
