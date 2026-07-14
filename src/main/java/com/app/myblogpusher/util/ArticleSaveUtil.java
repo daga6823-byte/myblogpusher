@@ -10,6 +10,7 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.app.myblogpusher.entity.ArticleCategory;
 import com.app.myblogpusher.entity.ArticleWork;
@@ -89,6 +90,7 @@ public class ArticleSaveUtil {
 		return Long.parseLong(categorySelect);
 	}
 	
+	@Transactional
 	public void deleteByUserIdAndSlug(
 			Long userId,
 			String slug) {

@@ -85,22 +85,29 @@ public class ArticleService {
 
 		Article article = existing.orElseGet(Article::new);
 
-		LocalDateTime now = LocalDateTime.now();
+		LocalDateTime articleDate = publishDate;
+
+		if (articleDate == null) {
+			articleDate = LocalDateTime.now();
+		}
 
 		if (article.getArticleId() == null) {
 			article.setUserId(userId);
-			article.setCategoryId(categoryId);
-			article.setCreateDate(now);
+			article.setCreateDate(articleDate);
 			article.setCreateUser(userId);
 		}
 
+		article.setCategoryId(categoryId);
 		article.setTitle(title);
 		article.setSlug(slug);
-		article.setHugoPath(slug);
 		article.setContent(content);
+
 		article.setStatus(ArticleStatus.PUBLISHED);
-		article.setPublishDate(publishDate);
-		article.setUpdateDate(now);
+
+		// GitHub記事側の日時を使用
+		article.setPublishDate(articleDate);
+		article.setUpdateDate(articleDate);
+
 		article.setUpdateUser(userId);
 
 		return articleRepository.save(article);
