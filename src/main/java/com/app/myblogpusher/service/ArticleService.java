@@ -73,6 +73,7 @@ public class ArticleService {
 	 */
 	public Article saveFromGitHub(
 			Long userId,
+			Long categoryId,
 			String slug,
 			String title,
 			String content,
@@ -88,6 +89,7 @@ public class ArticleService {
 
 		if (article.getArticleId() == null) {
 			article.setUserId(userId);
+			article.setCategoryId(categoryId);
 			article.setCreateDate(now);
 			article.setCreateUser(userId);
 		}

@@ -45,12 +45,6 @@ public class Article {
 	@Column(name = "content", nullable = false, columnDefinition = "TEXT")
 	private String content;
 
-	@Column(name = "draft", nullable = false)
-	private Boolean draft;
-
-	@Column(name = "comments", nullable = false)
-	private Boolean comments;
-	
 	@Enumerated(EnumType.STRING)
 	@Column(name = "status", nullable = false)
 	private ArticleStatus status;

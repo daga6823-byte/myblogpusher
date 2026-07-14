@@ -43,9 +43,9 @@ public class PublishedArticleService {
 	@Autowired
 	private ArticleService articleService;
 
-	// カテゴリーのルートフォルダ（この配下に任意階層で記事を配置できる）
-	private static final List<String> CATEGORY_ROOTS = List.of("movie", "note", "drama", "tech");
-
+	@Autowired
+	private ArticleCategoryService articleCategoryService;
+	
 	public List<PublishedArticleSummaryDto> getPublishedArticles(UserRepositoryEntity repo, String cipherKey,
 			HttpSession session)
 			throws IOException {
@@ -184,16 +184,14 @@ public class PublishedArticleService {
 	 * パスが content/{カテゴリールート}/ 配下の.mdファイルかどうかを判定する
 	 */
 	private boolean isUnderCategoryRoot(String path) {
+
 		if (!path.startsWith("content/") || !path.endsWith(".md")) {
 			return false;
 		}
+
 		String rest = path.substring("content/".length());
-		int firstSlash = rest.indexOf('/');
-		if (firstSlash == -1) {
-			return false;
-		}
-		String rootFolder = rest.substring(0, firstSlash);
-		return CATEGORY_ROOTS.contains(rootFolder);
+
+		return rest.contains("/");
 	}
 
 	private String fetchContentViaApi(String url, String token) throws IOException {
@@ -249,8 +247,28 @@ public class PublishedArticleService {
 					continue;
 				}
 
+				Long categoryId = null;
+
+				String[] pathParts = article.getSlug().split("/");
+
+				if (pathParts.length > 1) {
+
+					String categoryName = pathParts[0];
+
+					categoryId = articleCategoryService
+							.findByUserIdAndName(userId, categoryName)
+							.map(c -> c.getCategoryId())
+							.orElseGet(() ->
+									articleCategoryService.insertCategory(
+											userId,
+											categoryName,
+											null,
+											categoryName));
+				}
+
 				articleService.saveFromGitHub(
 						userId,
+						categoryId,
 						article.getSlug(),
 						article.getTitle(),
 						article.getContent(),
@@ -262,7 +280,7 @@ public class PublishedArticleService {
 			System.err.println(
 					"投稿済み記事同期に失敗しました: "
 							+ e.getMessage());
-		}
+		}	
 	}
 
 }
