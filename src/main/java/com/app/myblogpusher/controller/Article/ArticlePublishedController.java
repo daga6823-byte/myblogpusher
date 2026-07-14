@@ -15,7 +15,6 @@ import com.app.myblogpusher.entity.ArticleWork;
 import com.app.myblogpusher.entity.UserMaster;
 import com.app.myblogpusher.entity.UserRepositoryEntity;
 import com.app.myblogpusher.repository.UserRepositoryRepository;
-import com.app.myblogpusher.service.ArticleCategoryService;
 import com.app.myblogpusher.service.ArticleService;
 import com.app.myblogpusher.service.ArticleWorkService;
 import com.app.myblogpusher.service.PublishedArticleService;
@@ -37,9 +36,6 @@ public class ArticlePublishedController {
 
 	@Autowired
 	private ArticleWorkService articleWorkService;
-
-	@Autowired
-	private ArticleCategoryService articleCategoryService;
 
 	@Autowired
 	private ArticleService articleService;

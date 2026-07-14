@@ -113,8 +113,7 @@ public class SentenceFormatService {
 		}
 
 		// 文頭インデント
-		result.append(INDENT)
-				.append(trimmed);
+		result.append(trimmed);
 	}
 
 	/**

@@ -77,8 +77,9 @@ public class ArticleService {
 			String content,
 			LocalDateTime publishDate) {
 
-		Optional<Article> existing =
-				articleRepository.findByUserIdAndSlug(userId, slug);
+		System.out.println("保存：" + slug);
+
+		Optional<Article> existing = articleRepository.findByUserIdAndSlug(userId, slug);
 
 		Article article = existing.orElseGet(Article::new);
 
@@ -130,7 +131,7 @@ public class ArticleService {
 				userId,
 				ArticleStatus.PUBLISHED);
 	}
-	
+
 	public Article findBySlug(Long userId, String slug) {
 
 		return articleRepository.findByUserIdAndSlug(userId, slug)

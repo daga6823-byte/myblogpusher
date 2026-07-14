@@ -1,5 +1,8 @@
 package com.app.myblogpusher.dto;
 
+import lombok.Getter;
+
+@Getter
 public class TypoScanResultView {
 	private final String wrongWord;
 	private final String suggestion;
@@ -9,17 +12,5 @@ public class TypoScanResultView {
 		this.wrongWord = wrongWord;
 		this.suggestion = suggestion;
 		this.message = message;
-	}
-
-	public String getWrongWord() {
-		return wrongWord;
-	}
-
-	public String getSuggestion() {
-		return suggestion;
-	}
-
-	public String getMessage() {
-		return message;
 	}
 }

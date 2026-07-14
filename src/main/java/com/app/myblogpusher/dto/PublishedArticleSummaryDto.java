@@ -2,6 +2,9 @@ package com.app.myblogpusher.dto;
 
 import java.time.LocalDateTime;
 
+import lombok.Getter;
+
+@Getter
 public class PublishedArticleSummaryDto {
 	private String slug;
 	private String title;
@@ -11,17 +14,5 @@ public class PublishedArticleSummaryDto {
 		this.slug = slug;
 		this.title = title;
 		this.updateDate = updateDate;
-	}
-
-	public String getSlug() {
-		return slug;
-	}
-
-	public String getTitle() {
-		return title;
-	}
-
-	public LocalDateTime getUpdateDate() {
-		return updateDate;
 	}
 }

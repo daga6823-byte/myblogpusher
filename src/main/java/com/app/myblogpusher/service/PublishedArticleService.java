@@ -53,9 +53,8 @@ public class PublishedArticleService {
 		// キャッシュを確認
 		if (session != null) {
 			@SuppressWarnings("unchecked")
-			List<PublishedArticleSummaryDto> cached =
-					(List<PublishedArticleSummaryDto>) session
-							.getAttribute("publishedArticlesCache");
+			List<PublishedArticleSummaryDto> cached = (List<PublishedArticleSummaryDto>) session
+					.getAttribute("publishedArticlesCache");
 
 			if (cached != null) {
 				return cached;
@@ -236,6 +235,8 @@ public class PublishedArticleService {
 		try {
 
 			List<PublishedArticleSummaryDto> articles = getPublishedArticles(repo, cipherKey, null);
+
+			System.out.println("同期対象件数：" + articles.size());
 
 			for (PublishedArticleSummaryDto summary : articles) {
 

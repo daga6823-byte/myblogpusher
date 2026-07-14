@@ -2,6 +2,11 @@ package com.app.myblogpusher.dto;
 
 import java.time.LocalDateTime;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 public class ArticleWorkView {
 
 	private final Long workId;
@@ -14,21 +19,5 @@ public class ArticleWorkView {
 		this.title = title;
 		this.categoryName = categoryName;
 		this.updateDate = updateDate;
-	}
-
-	public Long getWorkId() {
-		return workId;
-	}
-
-	public String getTitle() {
-		return title;
-	}
-
-	public String getCategoryName() {
-		return categoryName;
-	}
-
-	public LocalDateTime getUpdateDate() {
-		return updateDate;
 	}
 }

@@ -5,6 +5,9 @@
 
 package com.app.myblogpusher.dto;
 
+import lombok.Getter;
+
+@Getter
 public class SlugAnalysisDto {
 	private String surface; // 表層形（元の単語）
 	private String reading; // 読み
@@ -19,22 +22,6 @@ public class SlugAnalysisDto {
 		this.partOfSpeech = partOfSpeech;
 		this.converted = converted;
 		this.fromDictionary = fromDictionary;
-	}
-
-	public String getSurface() {
-		return surface;
-	}
-
-	public String getReading() {
-		return reading;
-	}
-
-	public String getPartOfSpeech() {
-		return partOfSpeech;
-	}
-
-	public String getConverted() {
-		return converted;
 	}
 
 	public boolean isFromDictionary() {

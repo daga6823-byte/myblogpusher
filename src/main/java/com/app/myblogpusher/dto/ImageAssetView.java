@@ -6,6 +6,9 @@ package com.app.myblogpusher.dto;
 
 import java.time.LocalDateTime;
 
+import lombok.Getter;
+
+@Getter
 public class ImageAssetView {
 
 	private final Long imageId;
@@ -23,29 +26,5 @@ public class ImageAssetView {
 		this.categoryName = categoryName;
 		this.uploadDate = uploadDate;
 		this.url = url;
-	}
-
-	public Long getImageId() {
-		return imageId;
-	}
-
-	public String getFolderName() {
-		return folderName;
-	}
-
-	public String getFileName() {
-		return fileName;
-	}
-
-	public String getCategoryName() {
-		return categoryName;
-	}
-
-	public LocalDateTime getUploadDate() {
-		return uploadDate;
-	}
-
-	public String getUrl() {
-		return url;
 	}
 }

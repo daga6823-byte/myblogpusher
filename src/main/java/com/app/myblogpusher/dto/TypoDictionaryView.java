@@ -1,5 +1,8 @@
 package com.app.myblogpusher.dto;
 
+import lombok.Getter;
+
+@Getter
 public class TypoDictionaryView {
 
     private final Long typoId;
@@ -14,8 +17,4 @@ public class TypoDictionaryView {
         this.correctWord = correctWord;
     }
 
-    public Long getTypoId() { return typoId; }
-    public String getCategoryName() { return categoryName; }
-    public String getWrongWord() { return wrongWord; }
-    public String getCorrectWord() { return correctWord; }
 }

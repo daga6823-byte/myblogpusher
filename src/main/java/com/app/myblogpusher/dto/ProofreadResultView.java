@@ -1,5 +1,8 @@
 package com.app.myblogpusher.dto;
 
+import lombok.Getter;
+
+@Getter
 public class ProofreadResultView {
 	private final int index;
 	private final int fromPos;
@@ -16,29 +19,5 @@ public class ProofreadResultView {
 		this.matchedText = matchedText;
 		this.message = message;
 		this.suggestion = suggestion;
-	}
-
-	public int getIndex() {
-		return index;
-	}
-
-	public int getFromPos() {
-		return fromPos;
-	}
-
-	public int getToPos() {
-		return toPos;
-	}
-
-	public String getMatchedText() {
-		return matchedText;
-	}
-
-	public String getMessage() {
-		return message;
-	}
-
-	public String getSuggestion() {
-		return suggestion;
 	}
 }
