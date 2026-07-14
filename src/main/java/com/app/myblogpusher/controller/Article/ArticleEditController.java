@@ -109,6 +109,10 @@ public class ArticleEditController {
 			return "redirect:/article/list";
 		}
 
+
+		// 下書き保存後は一時ワークスペースを削除
+		workspaceService.delete(userId);
+		
 		return "redirect:/article/edit?workId=" + savedWorkId + "&saved=true";
 	}
 

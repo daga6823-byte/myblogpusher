@@ -1,9 +1,8 @@
 /**
  * Markdown構造を判定するユーティリティ
  *
- * 文章整形処理を行う前に、
- * 「これは通常文章として扱ってよいか」
- * を判定する。
+ * Markdownの構造を判定し、
+ * インデント付与や文章整形の対象かどうかを判定する。
  */
 
 package com.app.myblogpusher.util;
@@ -13,11 +12,26 @@ import org.springframework.stereotype.Component;
 @Component
 public class MarkdownStructureUtil {
 
+	/** インデントを付与しない行の接頭辞 */
+	private static final String[] NO_INDENT_PREFIXES = {
+			"#",
+			"【",
+			"［",
+			"•"
+	};
+
+	/** 箇条書きとして扱う接頭辞 */
+	private static final String[] LIST_PREFIXES = {
+			"・",
+			"-",
+			"*"
+	};
+
 	/**
-	 * コードブロックか判定する
+	 * コードブロック開始・終了行か判定する
 	 *
 	 * @param line 1行分の文字列
-	 * @return ```で開始する場合true
+	 * @return ```で始まる場合true
 	 */
 	public boolean isCodeBlockStart(String line) {
 
@@ -36,8 +50,6 @@ public class MarkdownStructureUtil {
 	 * -
 	 * *
 	 * 1.
-	 *
-	 * を対象
 	 */
 	public boolean isListLine(String line) {
 
@@ -47,21 +59,25 @@ public class MarkdownStructureUtil {
 
 		String trimmed = line.trim();
 
-		return trimmed.startsWith("・")
-				|| trimmed.startsWith("-")
-				|| trimmed.startsWith("*")
-				|| trimmed.matches("^\\d+\\..*");
+		for (String prefix : LIST_PREFIXES) {
+			if (trimmed.startsWith(prefix)) {
+				return true;
+			}
+		}
+
+		return trimmed.matches("^\\d+\\..*");
 	}
 
 	/**
-	 * 文章整形対象外の行か判定する
+	 * 文頭インデントを付与する対象か判定する
 	 *
-	 * 対象外:
+	 * 以下はインデントを付与しない。
 	 * ・Markdown見出し
 	 * ・【】見出し
 	 * ・URL単体
+	 * ・箇条書き
 	 */
-	public boolean isRawLine(String line) {
+	public boolean shouldIndent(String line) {
 
 		if (line == null) {
 			return false;
@@ -69,9 +85,17 @@ public class MarkdownStructureUtil {
 
 		String trimmed = line.trim();
 
-		return trimmed.startsWith("#")
-				|| trimmed.startsWith("【")
-				|| isUrlLine(trimmed);
+		if (isUrlLine(trimmed) || isListLine(trimmed)) {
+			return false;
+		}
+
+		for (String prefix : NO_INDENT_PREFIXES) {
+			if (trimmed.startsWith(prefix)) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	/**
@@ -88,4 +112,5 @@ public class MarkdownStructureUtil {
 		return trimmed.startsWith("http://")
 				|| trimmed.startsWith("https://");
 	}
+
 }

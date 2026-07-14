@@ -6,7 +6,11 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 @Entity
 @Table(name = "menu_master")
 public class MenuMaster {
@@ -32,25 +36,4 @@ public class MenuMaster {
 
     @Column(name = "update_user")
     private Long updateUser;
-
-    public String getMenuUrl() { return menuUrl; }
-    public void setMenuUrl(String menuUrl) { this.menuUrl = menuUrl; }
-
-    public String getMenuName() { return menuName; }
-    public void setMenuName(String menuName) { this.menuName = menuName; }
-
-    public Integer getMinRole() { return minRole; }
-    public void setMinRole(Integer minRole) { this.minRole = minRole; }
-    
-    public Long getCreateUser() { return createUser; }
-    public void setCreateUser(Long createUser) { this.createUser = createUser; }
-
-    public Long getUpdateUser() { return updateUser; }
-    public void setUpdateUser(Long updateUser) { this.updateUser = updateUser; }
-    
-    public LocalDateTime getCreateDate() { return createDate; }
-    public void setCreateDate(LocalDateTime createDate) { this.createDate = createDate; }
-
-    public LocalDateTime getUpdateDate() { return updateDate; }
-    public void setUpdateDate(LocalDateTime updateDate) { this.updateDate = updateDate; }
 }

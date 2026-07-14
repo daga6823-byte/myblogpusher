@@ -8,7 +8,11 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 @Entity
 @Table(name = "typo_correction")
 public class TypoCorrection {
@@ -38,29 +42,5 @@ public class TypoCorrection {
 
     @Column(name = "update_user")
     private Long updateUser;
-
-    public Long getTypoId() { return typoId; }
-    public void setTypoId(Long typoId) { this.typoId = typoId; }
-
-    public Long getCategoryId() { return categoryId; }
-    public void setCategoryId(Long categoryId) { this.categoryId = categoryId; }
-
-    public String getWrongWord() { return wrongWord; }
-    public void setWrongWord(String wrongWord) { this.wrongWord = wrongWord; }
-
-    public String getCorrectWord() { return correctWord; }
-    public void setCorrectWord(String correctWord) { this.correctWord = correctWord; }
-
-    public Long getCreateUser() { return createUser; }
-    public void setCreateUser(Long createUser) { this.createUser = createUser; }
-
-    public Long getUpdateUser() { return updateUser; }
-    public void setUpdateUser(Long updateUser) { this.updateUser = updateUser; }
-    
-    public LocalDateTime getCreateDate() { return createDate; }
-    public void setCreateDate(LocalDateTime createDate) { this.createDate = createDate; }
-
-    public LocalDateTime getUpdateDate() { return updateDate; }
-    public void setUpdateDate(LocalDateTime updateDate) { this.updateDate = updateDate; }
 
 }

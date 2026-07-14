@@ -20,12 +20,10 @@ import com.app.myblogpusher.dto.SlugAnalysisDto;
 import com.app.myblogpusher.entity.ArticleCategory;
 import com.app.myblogpusher.entity.UserMaster;
 import com.app.myblogpusher.entity.UserRepositoryEntity;
-import com.app.myblogpusher.repository.ArticleWorkRepository;
 import com.app.myblogpusher.repository.UserRepositoryRepository;
 import com.app.myblogpusher.service.ArticleCategoryService;
-import com.app.myblogpusher.service.ArticleWorkService;
+import com.app.myblogpusher.service.ArticlePublishService;
 import com.app.myblogpusher.service.ArticleWorkspaceService;
-import com.app.myblogpusher.service.GitHubPushService;
 import com.app.myblogpusher.util.SlugUtil;
 
 import jakarta.servlet.http.HttpSession;
@@ -35,7 +33,7 @@ public class PublishController {
 
 	private final UserRepositoryRepository userRepositoryRepository;
 	private final ArticleCategoryService articleCategoryService;
-	private final GitHubPushService gitHubPushService;
+	private final ArticlePublishService articlePublishService;
 
 	@Autowired
 	private SlugUtil slugUtil;
@@ -43,14 +41,14 @@ public class PublishController {
 	@Autowired
 	private ArticleWorkspaceService workspaceService;
 
-	public PublishController(ArticleWorkRepository articleWorkRepository,
-			ArticleWorkService articleWorkService,
-			UserRepositoryRepository userRepositoryRepository,
-			ArticleCategoryService articleCategoryService,
-			GitHubPushService gitHubPushService) {
-		this.userRepositoryRepository = userRepositoryRepository;
-		this.articleCategoryService = articleCategoryService;
-		this.gitHubPushService = gitHubPushService;
+	public PublishController(
+	        UserRepositoryRepository userRepositoryRepository,
+	        ArticleCategoryService articleCategoryService,
+	        ArticlePublishService articlePublishService) {
+
+	    this.userRepositoryRepository = userRepositoryRepository;
+	    this.articleCategoryService = articleCategoryService;
+	    this.articlePublishService = articlePublishService;
 	}
 
 	@PostMapping("/publish/preview")
@@ -129,17 +127,10 @@ public class PublishController {
 
 		UserRepositoryEntity repo = repoOpt.get();
 		// 非同期処理を呼び出す（ここでは即座にリダイレクト）
-		String slug = gitHubPushService.generateSlugWithDictionary(title);
-
-		gitHubPushService.pushArticleAsync(
+		articlePublishService.publishAsync(
 				repo,
 				loginUser.getCipherKey(),
-				categoryId,
-				title,
-				content,
-				slug,
-				workId,
-				userId);
+				workId);
 
 		workspaceService.delete(userId);
 

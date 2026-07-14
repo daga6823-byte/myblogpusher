@@ -40,6 +40,9 @@ public class PublishedArticleService {
 	@Autowired
 	private FrontMatterUtil frontMatterUtil;
 
+	@Autowired
+	private ArticleService articleService;
+
 	// カテゴリーのルートフォルダ（この配下に任意階層で記事を配置できる）
 	private static final List<String> CATEGORY_ROOTS = List.of("movie", "note", "drama", "tech");
 
@@ -48,11 +51,15 @@ public class PublishedArticleService {
 			throws IOException {
 
 		// キャッシュを確認
-		@SuppressWarnings("unchecked")
-		List<PublishedArticleSummaryDto> cached = (List<PublishedArticleSummaryDto>) session
-				.getAttribute("publishedArticlesCache");
-		if (cached != null) {
-			return cached;
+		if (session != null) {
+			@SuppressWarnings("unchecked")
+			List<PublishedArticleSummaryDto> cached =
+					(List<PublishedArticleSummaryDto>) session
+							.getAttribute("publishedArticlesCache");
+
+			if (cached != null) {
+				return cached;
+			}
 		}
 
 		String accessToken = tokenCipherService.decrypt(
@@ -93,7 +100,11 @@ public class PublishedArticleService {
 
 		System.out.println("Articles count: " + result.size());
 
-		session.setAttribute("publishedArticlesCache", result);
+		if (session != null) {
+			session.setAttribute(
+					"publishedArticlesCache",
+					result);
+		}
 		return result;
 	}
 
@@ -210,6 +221,46 @@ public class PublishedArticleService {
 			getPublishedArticles(repo, cipherKey, session);
 		} catch (IOException e) {
 			System.err.println("記事一覧の先読みに失敗しました: " + e.getMessage());
+		}
+	}
+
+	/**
+	 * GitHub上の記事をArticleテーブルへ同期する
+	 */
+	@Async
+	public void syncArticles(
+			UserRepositoryEntity repo,
+			String cipherKey,
+			Long userId) {
+
+		try {
+
+			List<PublishedArticleSummaryDto> articles = getPublishedArticles(repo, cipherKey, null);
+
+			for (PublishedArticleSummaryDto summary : articles) {
+
+				PublishedArticleDto article = getPublishedArticle(
+						repo,
+						cipherKey,
+						summary.getSlug());
+
+				if (article == null) {
+					continue;
+				}
+
+				articleService.saveFromGitHub(
+						userId,
+						article.getSlug(),
+						article.getTitle(),
+						article.getContent(),
+						article.getUpdateDate());
+			}
+
+		} catch (IOException e) {
+
+			System.err.println(
+					"投稿済み記事同期に失敗しました: "
+							+ e.getMessage());
 		}
 	}
 

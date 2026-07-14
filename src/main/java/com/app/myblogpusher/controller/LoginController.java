@@ -59,10 +59,10 @@ public class LoginController {
 
 			// 投稿済み記事一覧を非同期で先読みし、記事一覧画面の表示を高速化する
 			userRepositoryRepository.findByUserId(user.getUserId())
-					.ifPresent(repo -> publishedArticleService.prefetchPublishedArticles(
+					.ifPresent(repo -> publishedArticleService.syncArticles(
 							repo,
 							user.getCipherKey(),
-							session));
+							user.getUserId()));
 
 			return "redirect:/home";
 		} else {

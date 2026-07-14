@@ -52,6 +52,7 @@ public class RepositorySettingController {
 			form.setRepoOwner(entity.getRepoOwner());
 			form.setRepoName(entity.getRepoName());
 			form.setTokenExpiresAt(entity.getTokenExpiresAt());
+			form.setStorageBaseUrl(entity.getStorageBaseUrl());
 			registered = true;
 		}
 
@@ -95,6 +96,7 @@ public class RepositorySettingController {
 		entity.setRepoOwner(form.getRepoOwner());
 		entity.setRepoName(form.getRepoName());
 		entity.setTokenExpiresAt(form.getTokenExpiresAt());
+		entity.setStorageBaseUrl(form.getStorageBaseUrl());
 
 		// トークンが入力された場合のみ暗号化して更新
 		if (form.getAccessToken() != null && !form.getAccessToken().isBlank()) {

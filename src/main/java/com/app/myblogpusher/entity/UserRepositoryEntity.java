@@ -9,7 +9,11 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 @Entity
 @Table(name = "user_repository")
 public class UserRepositoryEntity {
@@ -33,7 +37,10 @@ public class UserRepositoryEntity {
 
     @Column(name = "token_iv", nullable = false)
     private String tokenIv;
-    
+
+    @Column(name = "storage_base_url")
+    private String storageBaseUrl;
+
     @Column(name = "token_expires_at")
     private LocalDate tokenExpiresAt;
 
@@ -48,37 +55,4 @@ public class UserRepositoryEntity {
 
     @Column(name = "update_user")
     private Long updateUser;
-
-    public Long getRepoId() { return repoId; }
-    public void setRepoId(Long repoId) { this.repoId = repoId; }
-
-    public Long getUserId() { return userId; }
-    public void setUserId(Long userId) { this.userId = userId; }
-
-    public String getRepoOwner() { return repoOwner; }
-    public void setRepoOwner(String repoOwner) { this.repoOwner = repoOwner; }
-
-    public String getRepoName() { return repoName; }
-    public void setRepoName(String repoName) { this.repoName = repoName; }
-
-    public String getAccessToken() { return accessToken; }
-    public void setAccessToken(String accessToken) { this.accessToken = accessToken; }
-
-    public String getTokenIv() { return tokenIv; }
-    public void setTokenIv(String tokenIv) { this.tokenIv = tokenIv; }
-    
-    public LocalDate getTokenExpiresAt() { return tokenExpiresAt; }
-    public void setTokenExpiresAt(LocalDate tokenExpiresAt) { this.tokenExpiresAt = tokenExpiresAt; }
-
-    public Long getCreateUser() { return createUser; }
-    public void setCreateUser(Long createUser) { this.createUser = createUser; }
-
-    public Long getUpdateUser() { return updateUser; }
-    public void setUpdateUser(Long updateUser) { this.updateUser = updateUser; }
-    
-    public LocalDateTime getCreateDate() { return createDate; }
-    public void setCreateDate(LocalDateTime createDate) { this.createDate = createDate; }
-
-    public LocalDateTime getUpdateDate() { return updateDate; }
-    public void setUpdateDate(LocalDateTime updateDate) { this.updateDate = updateDate; }
 }

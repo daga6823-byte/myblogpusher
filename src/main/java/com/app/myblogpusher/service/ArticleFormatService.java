@@ -121,8 +121,7 @@ public class ArticleFormatService {
 			// -------------------------------------------------
 			// Markdown構造行は変更しない
 			// -------------------------------------------------
-			if (markdownStructureUtil.isRawLine(line)
-					|| markdownStructureUtil.isListLine(line)) {
+			if (!markdownStructureUtil.shouldIndent(line)) {
 
 				result.append(line)
 						.append("\n");

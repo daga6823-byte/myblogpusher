@@ -8,7 +8,12 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
 
+
+@Getter
+@Setter
 @Entity
 @Table(name = "article_work")
 public class ArticleWork {
@@ -33,6 +38,9 @@ public class ArticleWork {
     @Column(name = "content")
     private String content;
 
+    @Column(name = "article_id")
+    private Long articleId;
+    
     @Column(name = "create_date")
     private LocalDateTime createDate;
 
@@ -44,34 +52,5 @@ public class ArticleWork {
 
     @Column(name = "update_user")
     private Long updateUser;
-
-    public Long getWorkId() { return workId; }
-    public void setWorkId(Long workId) { this.workId = workId; }
-
-    public Long getUserId() { return userId; }
-    public void setUserId(Long userId) { this.userId = userId; }
-
-    public Long getCategoryId() { return categoryId; }
-    public void setCategoryId(Long categoryId) { this.categoryId = categoryId; }
-
-    public String getTitle() { return title; }
-    public void setTitle(String title) { this.title = title; }
-
-    public String getSlug() { return slug; }
-    public void setSlug(String slug) { this.slug = slug; }
-
-    public String getContent() { return content; }
-    public void setContent(String content) { this.content = content; }
-
-    public Long getCreateUser() { return createUser; }
-    public void setCreateUser(Long createUser) { this.createUser = createUser; }
-
-    public Long getUpdateUser() { return updateUser; }
-    public void setUpdateUser(Long updateUser) { this.updateUser = updateUser; }
     
-    public LocalDateTime getCreateDate() { return createDate; }
-    public void setCreateDate(LocalDateTime createDate) { this.createDate = createDate; }
-
-    public LocalDateTime getUpdateDate() { return updateDate; }
-    public void setUpdateDate(LocalDateTime updateDate) { this.updateDate = updateDate; }
 }

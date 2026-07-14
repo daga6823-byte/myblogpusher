@@ -5,8 +5,11 @@ import java.time.LocalDate;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import jakarta.validation.constraints.NotBlank;
+import lombok.Getter;
+import lombok.Setter;
 
-
+@Getter
+@Setter
 public class UserRepositoryForm {
 
 	@NotBlank(message = "GitHubユーザー名は必須です")
@@ -19,37 +22,6 @@ public class UserRepositoryForm {
 
 	@DateTimeFormat(pattern = "yyyy-MM-dd")
 	private LocalDate tokenExpiresAt;
-
-	public String getRepoOwner() {
-		return repoOwner;
-	}
-
-	public void setRepoOwner(String repoOwner) {
-		this.repoOwner = repoOwner;
-	}
-
-	public String getRepoName() {
-		return repoName;
-	}
-
-	public void setRepoName(String repoName) {
-		this.repoName = repoName;
-	}
-
-	public String getAccessToken() {
-		return accessToken;
-	}
-
-	public void setAccessToken(String accessToken) {
-		this.accessToken = accessToken;
-	}
-
 	
-	public LocalDate getTokenExpiresAt() {
-		return tokenExpiresAt;
-	}
-
-	public void setTokenExpiresAt(LocalDate tokenExpiresAt) {
-		this.tokenExpiresAt = tokenExpiresAt;
-	}
+	private String storageBaseUrl;
 }

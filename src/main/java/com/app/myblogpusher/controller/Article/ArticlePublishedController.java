@@ -1,6 +1,5 @@
 package com.app.myblogpusher.controller.Article;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
@@ -11,14 +10,13 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import com.app.myblogpusher.dto.PublishedArticleDto;
-import com.app.myblogpusher.dto.PublishedArticleSummaryDto;
-import com.app.myblogpusher.entity.ArticleCategory;
+import com.app.myblogpusher.entity.Article;
 import com.app.myblogpusher.entity.ArticleWork;
 import com.app.myblogpusher.entity.UserMaster;
 import com.app.myblogpusher.entity.UserRepositoryEntity;
 import com.app.myblogpusher.repository.UserRepositoryRepository;
 import com.app.myblogpusher.service.ArticleCategoryService;
+import com.app.myblogpusher.service.ArticleService;
 import com.app.myblogpusher.service.ArticleWorkService;
 import com.app.myblogpusher.service.PublishedArticleService;
 
@@ -43,81 +41,82 @@ public class ArticlePublishedController {
 	@Autowired
 	private ArticleCategoryService articleCategoryService;
 
+	@Autowired
+	private ArticleService articleService;
+	
 	/**
 	 * 投稿済み記事一覧を表示
 	 */
 	@GetMapping("/article/published")
-	public String publishedList(HttpSession session, Model model) {
-		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
+	public String publishedList(
+			HttpSession session,
+			Model model) {
+
+		UserMaster loginUser =
+				(UserMaster) session.getAttribute("loginUser");
+
 		Long userId = loginUser.getUserId();
+
 		String cipherKey = loginUser.getCipherKey();
 
-		Optional<UserRepositoryEntity> repoOpt = userRepositoryRepository.findByUserId(userId);
-		if (repoOpt.isEmpty()) {
-			model.addAttribute("error", "リポジトリが設定されていません");
-			return "article/article_published_list";
+		Optional<UserRepositoryEntity> repoOpt =
+				userRepositoryRepository.findByUserId(userId);
+
+		if (repoOpt.isPresent()) {
+
+			publishedArticleService.syncArticles(
+					repoOpt.get(),
+					cipherKey,
+					userId);
 		}
 
-		try {
-			List<PublishedArticleSummaryDto> articles = publishedArticleService.getPublishedArticles(repoOpt.get(),
-					cipherKey, session);
-			model.addAttribute("articles", articles);
-		} catch (IOException e) {
-			model.addAttribute("error", "記事の取得に失敗しました");
-		}
+		List<Article> articles =
+				articleService.findPublishedByUserId(userId);
+
+		model.addAttribute(
+				"articles",
+				articles);
 
 		return "article/article_published_list";
 	}
 
 	@GetMapping("/article/published/edit")
-	public String editPublished(@RequestParam String slug, HttpSession session, Model model) {
-		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
+	public String editPublished(
+			@RequestParam String slug,
+			HttpSession session) {
+
+		UserMaster loginUser =
+				(UserMaster) session.getAttribute("loginUser");
+
 		Long userId = loginUser.getUserId();
-		String cipherKey = loginUser.getCipherKey();
 
-		Optional<UserRepositoryEntity> repoOpt = userRepositoryRepository.findByUserId(userId);
-		if (repoOpt.isEmpty()) {
-			return "redirect:/article/list";
-		}
+		Article article =
+				articleService.findBySlug(userId, slug);
 
-		try {
-			PublishedArticleDto article = publishedArticleService.getPublishedArticle(repoOpt.get(), cipherKey, slug);
-
-			if (article == null) {
-				return "redirect:/article/published";
-			}
-
-			Optional<ArticleWork> existing = articleWorkService.findBySlug(slug);
-			Long workId;
-
-			if (existing.isPresent()) {
-				workId = existing.get().getWorkId();
-			} else {
-				List<String> categories = article.getCategories();
-				Long categoryId = null;
-				if (!categories.isEmpty()) {
-					String categoryName = categories.get(0);
-					categoryId = articleCategoryService.findByUserIdAndName(userId, categoryName)
-							.map(ArticleCategory::getCategoryId)
-							.orElseGet(() -> articleCategoryService.insertCategory(userId,
-									categoryName,
-									null,
-									categoryName));
-
-				}
-
-				workId = articleWorkService.insertArticleWork(
-						userId,
-						categoryId,
-						article.getTitle(),
-						article.getContent(),
-						slug);
-			}
-
-			return "redirect:/article/edit?workId=" + workId;
-		} catch (IOException e) {
+		if (article == null) {
 			return "redirect:/article/published";
 		}
+
+		Optional<ArticleWork> existing =
+				articleWorkService.findBySlug(slug);
+
+		Long workId;
+
+		if (existing.isPresent()) {
+
+			workId = existing.get().getWorkId();
+
+		} else {
+
+			workId = articleWorkService.insertArticleWork(
+					userId,
+					article.getCategoryId(),
+					article.getTitle(),
+					article.getContent(),
+					article.getSlug());
+		}
+
+		return "redirect:/article/edit?workId=" + workId;
 	}
 
 	/**
