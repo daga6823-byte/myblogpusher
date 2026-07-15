@@ -197,4 +197,43 @@ public class ArticleCategoryService {
 		return Integer.compare(av, bv);
 	}
 
+	/**
+	 * 辞書検索に使用するカテゴリーIDを取得する。
+	 *
+	 * ルートカテゴリーは対象外とし、
+	 * 第2階層は自分自身、
+	 * 第3階層以降は親カテゴリーを返す。
+	 */
+	public Long findDictionaryCategoryId(Long categoryId) {
+
+		if (categoryId == null) {
+			return null;
+		}
+
+		ArticleCategory category = articleCategoryRepository
+				.findById(categoryId)
+				.orElse(null);
+
+		if (category == null || category.getParentCategoryId() == null) {
+			// ルートカテゴリー
+			return null;
+		}
+
+		ArticleCategory parent = articleCategoryRepository
+				.findById(category.getParentCategoryId())
+				.orElse(null);
+
+		if (parent == null) {
+			return null;
+		}
+
+		// 親がルートなら自分自身（第2階層）
+		if (parent.getParentCategoryId() == null) {
+			return category.getCategoryId();
+		}
+
+		// 第3階層以降は親カテゴリー
+		return parent.getCategoryId();
+	}
+
 }

@@ -26,7 +26,12 @@ public class TypoCorrectionService {
 
 	public List<TypoMatch> findMatches(Long categoryId, String content) {
 
-		List<TypoCorrection> rules = typoCorrectionRepository.findByCategoryIdOrCategoryIdIsNull(categoryId);
+		Long dictionaryCategoryId =
+				articleCategoryService.findDictionaryCategoryId(categoryId);
+
+		List<TypoCorrection> rules =
+				typoCorrectionRepository.findByCategoryIdOrCategoryIdIsNull(
+						dictionaryCategoryId);
 
 		// wrong_wordの文字数が長い順に並べ替える（範囲が広いルールを優先）
 		rules.sort(
@@ -197,7 +202,12 @@ public class TypoCorrectionService {
 	public List<LanguageToolService.LanguageToolMatch> excludeKnownTypos(
 	        Long categoryId, List<LanguageToolService.LanguageToolMatch> ltMatches) {
 
-	    List<TypoCorrection> rules = typoCorrectionRepository.findByCategoryIdOrCategoryIdIsNull(categoryId);
+		Long dictionaryCategoryId =
+				articleCategoryService.findDictionaryCategoryId(categoryId);
+
+		List<TypoCorrection> rules =
+				typoCorrectionRepository.findByCategoryIdOrCategoryIdIsNull(
+						dictionaryCategoryId);
 
 	    Set<String> knownWrongWords = rules.stream()
 	        .map(TypoCorrection::getWrongWord)
