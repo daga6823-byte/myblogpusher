@@ -78,6 +78,10 @@ public class ArticleSaveUtil {
 	 * それ以外は選択プルダウンから渡されたcategoryIdの文字列をそのまま数値変換する。
 	 */
 	private Long resolveCategoryId(Long userId, String categorySelect, String newCategoryName) {
+		
+		System.out.println("categorySelect = " + categorySelect);
+		System.out.println("newCategoryName = " + newCategoryName);
+		
 		if ("__new__".equals(categorySelect)) {
 			return articleCategoryService.findByUserIdAndName(userId, newCategoryName)
 					.map(ArticleCategory::getCategoryId)

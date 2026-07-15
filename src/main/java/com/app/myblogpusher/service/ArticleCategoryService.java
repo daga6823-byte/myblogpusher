@@ -36,6 +36,12 @@ public class ArticleCategoryService {
 			String categoryName,
 			Long parentCategoryId,
 			String displayName) {
+		
+		System.out.println("insertCategory");
+		System.out.println("categoryName = " + categoryName);
+		System.out.println("displayName = " + displayName);
+		System.out.println("parentCategoryId = " + parentCategoryId);
+		
 		ArticleCategory newCategory = new ArticleCategory();
 		newCategory.setUserId(userId);
 		newCategory.setCategoryName(categoryName);

@@ -26,6 +26,8 @@ public class TypoCorrectionService {
 
 	public List<TypoMatch> findMatches(Long categoryId, String content) {
 
+		System.out.println("categoryId = " + categoryId);
+		
 		Long dictionaryCategoryId =
 				articleCategoryService.findDictionaryCategoryId(categoryId);
 
