@@ -26,36 +26,29 @@ public class TypoCorrectionService {
 
 	public List<TypoMatch> findMatches(Long categoryId, String content) {
 
-		System.out.println("categoryId = " + categoryId);
-		
-		Long dictionaryCategoryId =
-				articleCategoryService.findDictionaryCategoryId(categoryId);
+		categoryId = resolveDictionaryCategoryId(categoryId);
 
-		List<TypoCorrection> rules =
-				typoCorrectionRepository.findByCategoryIdOrCategoryIdIsNull(
-						dictionaryCategoryId);
+		List<TypoCorrection> rules = typoCorrectionRepository.findByCategoryIdOrCategoryIdIsNull(categoryId);
 
 		// wrong_wordの文字数が長い順に並べ替える（範囲が広いルールを優先）
 		rules.sort(
-			    Comparator.comparingInt(
-			        (TypoCorrection r) -> r.getWrongWord().length()
-			    ).reversed()
-			);
+				Comparator.comparingInt(
+						(TypoCorrection r) -> r.getWrongWord().length()).reversed());
 
 		List<String> excludeWords = rules.stream()
-		        .filter(r -> r.getWrongWord().equals(r.getCorrectWord()))
-		        .map(TypoCorrection::getWrongWord)
-		        .toList();
-		
+				.filter(r -> r.getWrongWord().equals(r.getCorrectWord()))
+				.map(TypoCorrection::getWrongWord)
+				.toList();
+
 		List<TypoMatch> matches = new ArrayList<>();
 		int idx = 0;
 
 		for (TypoCorrection rule : rules) {
 
 			if (rule.getWrongWord().equals(rule.getCorrectWord())) {
-	            continue; // 除外指定の行はそのまま検出ルールにはしない
-	        }
-			
+				continue; // 除外指定の行はそのまま検出ルールにはしない
+			}
+
 			Pattern pattern = buildPattern(rule.getWrongWord());
 			Matcher matcher = pattern.matcher(content);
 
@@ -64,21 +57,20 @@ public class TypoCorrectionService {
 				int start = matcher.start();
 
 				int correctLength = rule.getCorrectWord().length();
-	            int endForCheck = Math.min(content.length(), start + correctLength);
-	            String surroundingText = content.substring(start, endForCheck);
+				int endForCheck = Math.min(content.length(), start + correctLength);
+				String surroundingText = content.substring(start, endForCheck);
 
-	            if (surroundingText.equals(rule.getCorrectWord())) {
-	                continue;
-	            }
+				if (surroundingText.equals(rule.getCorrectWord())) {
+					continue;
+				}
 
-	            if (excludeWords.contains(matchedText)) {
-	                continue;
-	            }
+				if (excludeWords.contains(matchedText)) {
+					continue;
+				}
 
-	            //				if (isAlreadyCorrect(content, start, matchedText.length(), rule.getCorrectWord())) {
-//				    continue;
-//				}
-			
+				//				if (isAlreadyCorrect(content, start, matchedText.length(), rule.getCorrectWord())) {
+				//				    continue;
+				//				}
 
 				String contextHtml = buildContextHtml(content, start, matchedText);
 				matches.add(new TypoMatch(idx, matchedText, rule.getCorrectWord(), contextHtml));
@@ -121,136 +113,170 @@ public class TypoCorrectionService {
 
 	public boolean insertTypo(Long categoryId, String wrongWord, String correctWord, Long userId) {
 
-	    boolean exists = (categoryId == null)
-	        ? typoCorrectionRepository.existsByCategoryIdIsNullAndWrongWordAndCorrectWord(wrongWord, correctWord)
-	        : typoCorrectionRepository.existsByCategoryIdAndWrongWordAndCorrectWord(categoryId, wrongWord, correctWord);
+		boolean exists = (categoryId == null)
+				? typoCorrectionRepository.existsByCategoryIdIsNullAndWrongWordAndCorrectWord(wrongWord, correctWord)
+				: typoCorrectionRepository.existsByCategoryIdAndWrongWordAndCorrectWord(categoryId, wrongWord,
+						correctWord);
 
-	    if (exists) {
-	        return false; // 既に同じ内容が登録済み
-	    }
+		if (exists) {
+			return false; // 既に同じ内容が登録済み
+		}
 
-	    TypoCorrection typo = new TypoCorrection();
-	    typo.setCategoryId(categoryId);
-	    typo.setWrongWord(wrongWord);
-	    typo.setCorrectWord(correctWord);
-	    typo.setCreateDate(LocalDateTime.now());
-	    typo.setUpdateDate(LocalDateTime.now());
-	    typo.setCreateUser(userId);
-	    typo.setUpdateUser(userId);
+		TypoCorrection typo = new TypoCorrection();
+		typo.setCategoryId(categoryId);
+		typo.setWrongWord(wrongWord);
+		typo.setCorrectWord(correctWord);
+		typo.setCreateDate(LocalDateTime.now());
+		typo.setUpdateDate(LocalDateTime.now());
+		typo.setCreateUser(userId);
+		typo.setUpdateUser(userId);
 
-	    typoCorrectionRepository.save(typo);
-	    return true;
+		typoCorrectionRepository.save(typo);
+		return true;
 	}
-	
+
 	public Map<Long, Long> countByCategoryIds(List<Long> categoryIds) {
 
-	    if (categoryIds.isEmpty()) {
-	        return Map.of();
-	    }
+		if (categoryIds.isEmpty()) {
+			return Map.of();
+		}
 
-	    return typoCorrectionRepository.countByCategoryIds(categoryIds)
-	        .stream()
-	        .collect(Collectors.toMap(
-	            row -> (Long) row[0],
-	            row -> (Long) row[1]
-	        ));
+		return typoCorrectionRepository.countByCategoryIds(categoryIds)
+				.stream()
+				.collect(Collectors.toMap(
+						row -> (Long) row[0],
+						row -> (Long) row[1]));
 	}
-	
+
 	@Autowired
 	private ArticleCategoryService articleCategoryService;
-	
+
 	public List<TypoDictionaryView> findDictionaryView(Long userId) {
 
-	    List<TypoCorrection> typos = typoCorrectionRepository.findByCreateUser(userId);
+		List<TypoCorrection> typos = typoCorrectionRepository.findByCreateUser(userId);
 
-	    return typos.stream()
-	        .map(t -> {
-	            String categoryName = (t.getCategoryId() == null)
-	                ? "汎用"
-	                : articleCategoryService.findById(t.getCategoryId())
-	                    .map(ArticleCategory::getCategoryName)
-	                    .orElse("（不明）");
+		return typos.stream()
+				.map(t -> {
+					String categoryName = (t.getCategoryId() == null)
+							? "汎用"
+							: articleCategoryService.findById(t.getCategoryId())
+									.map(ArticleCategory::getCategoryName)
+									.orElse("（不明）");
 
-	            return new TypoDictionaryView(t.getTypoId(), categoryName, t.getWrongWord(), t.getCorrectWord());
-	        })
-	        .toList();
+					return new TypoDictionaryView(t.getTypoId(), categoryName, t.getWrongWord(), t.getCorrectWord());
+				})
+				.toList();
 	}
 
 	public void update(Long typoId, String wrongWord, String correctWord, Long userId) {
-	    TypoCorrection typo = typoCorrectionRepository.findById(typoId).orElseThrow();
+		TypoCorrection typo = typoCorrectionRepository.findById(typoId).orElseThrow();
 
-	    if (!typo.getCreateUser().equals(userId)) {
-	        throw new IllegalStateException("他のユーザーの誤字パターンは編集できません");
-	    }
+		if (!typo.getCreateUser().equals(userId)) {
+			throw new IllegalStateException("他のユーザーの誤字パターンは編集できません");
+		}
 
-	    typo.setWrongWord(wrongWord);
-	    typo.setCorrectWord(correctWord);
-	    typo.setUpdateUser(userId);
-	    typo.setUpdateDate(LocalDateTime.now());
+		typo.setWrongWord(wrongWord);
+		typo.setCorrectWord(correctWord);
+		typo.setUpdateUser(userId);
+		typo.setUpdateDate(LocalDateTime.now());
 
-	    typoCorrectionRepository.save(typo);
+		typoCorrectionRepository.save(typo);
 	}
 
 	public void delete(Long typoId, Long userId) {
-	    TypoCorrection typo = typoCorrectionRepository.findById(typoId).orElseThrow();
+		TypoCorrection typo = typoCorrectionRepository.findById(typoId).orElseThrow();
 
-	    if (!typo.getCreateUser().equals(userId)) {
-	        throw new IllegalStateException("他のユーザーの誤字パターンは削除できません");
-	    }
+		if (!typo.getCreateUser().equals(userId)) {
+			throw new IllegalStateException("他のユーザーの誤字パターンは削除できません");
+		}
 
-	    typoCorrectionRepository.delete(typo);
+		typoCorrectionRepository.delete(typo);
 	}
-	
+
 	public List<LanguageToolService.LanguageToolMatch> excludeKnownTypos(
-	        Long categoryId, List<LanguageToolService.LanguageToolMatch> ltMatches) {
+			Long categoryId, List<LanguageToolService.LanguageToolMatch> ltMatches) {
 
-		Long dictionaryCategoryId =
-				articleCategoryService.findDictionaryCategoryId(categoryId);
+		Long dictionaryCategoryId = articleCategoryService.findDictionaryCategoryId(categoryId);
 
-		List<TypoCorrection> rules =
-				typoCorrectionRepository.findByCategoryIdOrCategoryIdIsNull(
-						dictionaryCategoryId);
+		List<TypoCorrection> rules = typoCorrectionRepository.findByCategoryIdOrCategoryIdIsNull(
+				dictionaryCategoryId);
 
-	    Set<String> knownWrongWords = rules.stream()
-	        .map(TypoCorrection::getWrongWord)
-	        .collect(Collectors.toSet());
+		Set<String> knownWrongWords = rules.stream()
+				.map(TypoCorrection::getWrongWord)
+				.collect(Collectors.toSet());
 
-	    return ltMatches.stream()
-	        .filter(m -> !knownWrongWords.contains(m.getMatchedText()))
-	        .toList();
+		return ltMatches.stream()
+				.filter(m -> !knownWrongWords.contains(m.getMatchedText()))
+				.toList();
 	}
-	
+
 	public boolean updateCategory(List<Long> typoIds, Long categoryId, Long userId) {
 
-	    List<TypoCorrection> typos = typoCorrectionRepository.findAllById(typoIds);
+		List<TypoCorrection> typos = typoCorrectionRepository.findAllById(typoIds);
 
-	    for (TypoCorrection typo : typos) {
-	        if (!typo.getCreateUser().equals(userId)) {
-	            throw new IllegalStateException("他のユーザーの誤字パターンは編集できません");
-	        }
-	    }
+		for (TypoCorrection typo : typos) {
+			if (!typo.getCreateUser().equals(userId)) {
+				throw new IllegalStateException("他のユーザーの誤字パターンは編集できません");
+			}
+		}
 
-	    for (TypoCorrection typo : typos) {
-	        typo.setCategoryId(categoryId);
-	        typo.setUpdateUser(userId);
-	        typo.setUpdateDate(LocalDateTime.now());
-	    }
+		for (TypoCorrection typo : typos) {
+			typo.setCategoryId(categoryId);
+			typo.setUpdateUser(userId);
+			typo.setUpdateDate(LocalDateTime.now());
+		}
 
-	    typoCorrectionRepository.saveAll(typos);
-	    return true;
+		typoCorrectionRepository.saveAll(typos);
+		return true;
 	}
 
 	public void deleteAll(List<Long> typoIds, Long userId) {
 
-	    List<TypoCorrection> typos = typoCorrectionRepository.findAllById(typoIds);
+		List<TypoCorrection> typos = typoCorrectionRepository.findAllById(typoIds);
 
-	    for (TypoCorrection typo : typos) {
-	        if (!typo.getCreateUser().equals(userId)) {
-	            throw new IllegalStateException("他のユーザーの誤字パターンは削除できません");
-	        }
-	    }
+		for (TypoCorrection typo : typos) {
+			if (!typo.getCreateUser().equals(userId)) {
+				throw new IllegalStateException("他のユーザーの誤字パターンは削除できません");
+			}
+		}
 
-	    typoCorrectionRepository.deleteAll(typos);
+		typoCorrectionRepository.deleteAll(typos);
+	}
+
+	/**
+	 * 編集時に参照するカテゴリーIDを取得する
+	 * ルートカテゴリーは除外し、2階層目のカテゴリーIDを返す
+	 */
+	private Long resolveDictionaryCategoryId(Long categoryId) {
+
+		if (categoryId == null) {
+			return null;
+		}
+
+		ArticleCategory category = articleCategoryService.findById(categoryId).orElse(null);
+
+		if (category == null) {
+			return null;
+		}
+
+		while (category.getParentCategoryId() != null) {
+
+			ArticleCategory parent = articleCategoryService
+					.findById(category.getParentCategoryId())
+					.orElse(null);
+
+			if (parent == null) {
+				break;
+			}
+
+			if (parent.getParentCategoryId() == null) {
+				return category.getCategoryId();
+			}
+
+			category = parent;
+		}
+
+		return category.getCategoryId();
 	}
 
 	public static class TypoMatch {
