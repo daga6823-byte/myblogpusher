@@ -49,10 +49,7 @@ public class HugoArticleService {
 		createCategoryIndexesRecursively(git, repoPath, categoryPath);
 
 		String categoryPathStr = categoryPath.stream()
-				.map(c -> slugUtil.generateCategorySlug(
-						c.getDisplayName() != null
-								? c.getDisplayName()
-								: c.getCategoryName()))
+				.map(ArticleCategory::getCategoryName)
 				.reduce((a, b) -> a + "/" + b)
 				.orElse("");
 
@@ -102,10 +99,7 @@ public class HugoArticleService {
 
 		for (ArticleCategory category : categoryPath) {
 
-			String slug = slugUtil.generateCategorySlug(
-					category.getDisplayName() != null
-							? category.getDisplayName()
-							: category.getCategoryName());
+			String slug = category.getCategoryName();
 
 			String title = category.getDisplayName() == null
 					? category.getCategoryName()
