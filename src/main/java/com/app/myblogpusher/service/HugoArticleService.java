@@ -23,16 +23,12 @@ import org.springframework.stereotype.Service;
 import com.app.myblogpusher.entity.Article;
 import com.app.myblogpusher.entity.ArticleCategory;
 import com.app.myblogpusher.repository.ArticleCategoryRepository;
-import com.app.myblogpusher.util.SlugUtil;
 
 @Service
 public class HugoArticleService {
 
 	@Autowired
 	private ArticleCategoryRepository articleCategoryRepository;
-
-	@Autowired
-	private SlugUtil slugUtil;
 
 	public void createArticle(
 			Git git,

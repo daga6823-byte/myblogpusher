@@ -86,3 +86,19 @@ document.getElementById('insertCodeButton').addEventListener('click', function()
 	textarea.focus();
 
 });
+
+// -----------------------------------------------------
+// コード入力をキャンセルする
+// -----------------------------------------------------
+document.getElementById('cancelCodeButton').addEventListener('click', function() {
+
+	// 入力欄をクリア
+	document.getElementById('codeInput').value = '';
+
+	// ダイアログを閉じる
+	document.getElementById('codeBlockEditor').style.display = 'none';
+
+	// 本文へフォーカスを戻す
+	document.getElementById('content').focus();
+
+});

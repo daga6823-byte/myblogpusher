@@ -28,8 +28,16 @@
 				<div id="insertMenu" class="insert-menu" style="display:none;">
 					<button type="button" id="codeBlockButton">コードブロック</button>
 					<button type="button" id="imageButton">📷 画像挿入</button>
+					<button type="button" id="footnoteButton">脚注</button>
 				</div>
 			</div>
+		</div>
+
+		<!-- 脚注入力ダイアログ（codeBlockEditorと同様の構造） -->
+		<div id="footnoteEditor" style="display:none;">
+			<label for="footnoteInput">脚注テキスト</label>
+			<textarea id="footnoteInput" rows="3"></textarea>
+			<button type="button" id="insertFootnoteButton">挿入</button>
 		</div>
 
 		<label for="draftSelect">公開状態</label>

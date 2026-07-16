@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<body>
+
+	<div th:fragment="footnoteEditor">
+		<div id="footnoteEditor" style="display:none;">
+			<div class="code-editor-box">
+				<span class="code-editor-label">[^n] </span>
+				<textarea id="footnoteInput" class="code-input" placeholder="脚注の内容を入力"></textarea>
+			</div>
+			<button type="button" id="insertFootnoteButton" class="btn-save">挿入</button>
+			<button type="button" id="cancelFootnoteButton" class="btn-back">キャンセル</button>
+		</div>
+	</div>
+
+</body>
+
+</html>

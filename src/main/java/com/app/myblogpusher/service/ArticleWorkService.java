@@ -55,6 +55,7 @@ public class ArticleWorkService {
 	}
 
 	public void delete(Long workId, Long userId) {
+		System.out.println("delete start");
 		ArticleWork work = articleWorkRepository.findById(workId).orElseThrow();
 
 		if (!work.getUserId().equals(userId)) {
@@ -62,6 +63,8 @@ public class ArticleWorkService {
 		}
 
 		articleWorkRepository.delete(work);
+
+		System.out.println("delete end");
 	}
 	
 	public Optional<ArticleWork> findBySlug(String slug) {
