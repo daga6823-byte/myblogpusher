@@ -33,7 +33,10 @@ public class ArticleService {
 		article.setCategoryId(work.getCategoryId());
 		article.setTitle(work.getTitle());
 		article.setSlug(work.getSlug());
+
+		// 初回投稿時のみ投稿先を確定
 		article.setHugoPath(work.getSlug());
+
 		article.setContent(work.getContent());
 
 		article.setStatus(ArticleStatus.PUBLISHING);
@@ -101,6 +104,7 @@ public class ArticleService {
 		article.setCategoryId(categoryId);
 		article.setTitle(title);
 		article.setSlug(slug);
+		article.setHugoPath(slug);
 		article.setContent(content);
 
 		article.setStatus(ArticleStatus.PUBLISHED);

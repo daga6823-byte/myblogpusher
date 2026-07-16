@@ -36,24 +36,23 @@ public class HugoArticleService {
 			Article article)
 			throws IOException, GitAPIException {
 
+		// _index.md生成用
 		ArticleCategory category = articleCategoryRepository
 				.findById(article.getCategoryId())
 				.orElseThrow();
 
 		List<ArticleCategory> categoryPath = buildCategoryPath(category);
 
-		createCategoryIndexesRecursively(git, repoPath, categoryPath);
+		createCategoryIndexesRecursively(
+				git,
+				repoPath,
+				categoryPath);
 
-		String categoryPathStr = categoryPath.stream()
-				.map(ArticleCategory::getCategoryName)
-				.reduce((a, b) -> a + "/" + b)
-				.orElse("");
-
+		// 投稿先はDBに保存済みのhugoPathを使用する
 		Path contentPath = Paths.get(
 				repoPath,
 				"content",
-				categoryPathStr,
-				article.getSlug() + ".md");
+				article.getHugoPath() + ".md");
 
 		contentPath.getParent().toFile().mkdirs();
 
