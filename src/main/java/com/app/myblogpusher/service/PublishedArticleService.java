@@ -190,13 +190,17 @@ public class PublishedArticleService {
 	 */
 	private boolean isUnderCategoryRoot(String path) {
 
-		if (!path.startsWith("content/") || !path.endsWith(".md")) {
-			return false;
-		}
+	    if (!path.startsWith("content/") || !path.endsWith(".md")) {
+	        return false;
+	    }
 
-		String rest = path.substring("content/".length());
+	    if (path.endsWith("/_index.md")) {
+	        return false;
+	    }
 
-		return rest.contains("/");
+	    String rest = path.substring("content/".length());
+
+	    return rest.contains("/");
 	}
 
 	private String fetchContentViaApi(String url, String token) throws IOException {
