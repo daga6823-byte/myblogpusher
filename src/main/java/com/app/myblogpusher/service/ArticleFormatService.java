@@ -47,14 +47,11 @@ public class ArticleFormatService {
 
 			if (end != -1) {
 
-				frontMatter = content.substring(0, end + 5);
+				frontMatter = content.substring(0, end + 5)
+						.replaceAll("\\n+$", "")
+						+ "\n\n";
+
 				body = content.substring(end + 5);
-
-				// 本文先頭の空行を削除
-				body = body.replaceFirst("^[ \\t]*\\n", "");
-
-				// Front Matterと本文の間は空行1つに統一
-				frontMatter += "\n";
 			}
 		}
 
