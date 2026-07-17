@@ -38,31 +38,27 @@ public class ArticleFormatService {
 			return content;
 		}
 
-		String frontMatter = "";
-		String body = content;
-
-		if (content.startsWith("+++")) {
-
-			int end = content.indexOf("\n+++\n");
-
-			if (end != -1) {
-
-				frontMatter = content.substring(0, end + 5)
-						.replaceAll("\\n+$", "")
-						+ "\n\n";
-
-				body = content.substring(end + 5);
-			}
+		if (!content.startsWith("+++")) {
+			return content;
 		}
 
-		String formattedBody = formatBody(body);
+		int end = content.indexOf("\n+++\n");
 
-		return frontMatter + formattedBody;
+		if (end == -1) {
+			return content;
+		}
+
+		String frontMatter = content.substring(0, end + 5)
+				.replaceAll("\\n+$", "");
+
+		String body = content.substring(end + 5);
+
+		// Front Matterの後ろは空行1つだけ
+		body = body.replaceFirst("^\\n*", "");
+
+		return frontMatter + "\n\n" + body;
 	}
 
-	/**
-	 * 本文を行単位で処理する
-	 */
 	/**
 	 * 本文を行単位で処理する
 	 */
