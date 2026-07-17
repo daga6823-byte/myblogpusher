@@ -12,6 +12,9 @@
 // -----------------------------------------------------
 document.getElementById('footnoteButton').addEventListener('click', () => {
 
+	// メニューを閉じる
+	document.getElementById('insertMenu').style.display = 'none';
+
 	const textarea = document.getElementById('content');
 
 	if (!textarea) {
