@@ -10,17 +10,12 @@
 
 package com.app.myblogpusher.service;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import org.springframework.stereotype.Service;
 
 import com.app.myblogpusher.util.MarkdownStructureUtil;
 
 @Service
 public class ArticleFormatService {
-
-	private static final Pattern FRONT_MATTER_PATTERN = Pattern.compile("^\\+\\+\\+[\\s\\S]*?\\+\\+\\+\\n*");
 
 	private final MarkdownStructureUtil markdownStructureUtil;
 
@@ -43,24 +38,24 @@ public class ArticleFormatService {
 			return content;
 		}
 
-		Matcher matcher = FRONT_MATTER_PATTERN.matcher(content);
-
 		String frontMatter = "";
-
 		String body = content;
 
-		if (matcher.find()) {
+		if (content.startsWith("+++")) {
 
-			String rawFrontMatter = matcher.group();
+			int end = content.indexOf("\n+++\n");
 
-			body = content.substring(matcher.end());
+			if (end != -1) {
 
-			// 本文先頭の余計な空行除去
-			body = body.replaceFirst("^(?:[ \\t　]*\\n)+", "");
+				frontMatter = content.substring(0, end + 5);
+				body = content.substring(end + 5);
 
-			// Front Matter末尾は空行1つで統一
-			frontMatter = rawFrontMatter.replaceAll("\\n+$", "")
-					+ "\n\n";
+				// 本文先頭の空行を削除
+				body = body.replaceFirst("^[ \\t]*\\n", "");
+
+				// Front Matterと本文の間は空行1つに統一
+				frontMatter += "\n";
+			}
 		}
 
 		String formattedBody = formatBody(body);
