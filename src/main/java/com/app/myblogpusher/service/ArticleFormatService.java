@@ -71,6 +71,9 @@ public class ArticleFormatService {
 	/**
 	 * 本文を行単位で処理する
 	 */
+	/**
+	 * 本文を行単位で処理する
+	 */
 	private String formatBody(String body) {
 
 		String[] lines = body.replace("\r\n", "\n")
@@ -130,10 +133,10 @@ public class ArticleFormatService {
 			}
 
 			// -------------------------------------------------
-			// 通常文章のみ整形
+			// 通常文章のみ整形（先頭・末尾の空白は保持）
 			// -------------------------------------------------
 			result.append(
-					sentenceFormatService.formatParagraph(trimmed))
+					sentenceFormatService.formatParagraph(line))
 					.append("\n");
 
 		}
