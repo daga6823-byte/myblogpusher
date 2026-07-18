@@ -32,6 +32,9 @@ public class ArticleFormatService {
 	/**
 	 * Front Matterを保持したまま本文を整形する
 	 */
+	/**
+	 * Front Matterを保持したまま本文を整形する
+	 */
 	public String formatContent(String content) {
 
 		if (content == null || content.isBlank()) {
@@ -42,18 +45,23 @@ public class ArticleFormatService {
 			return content;
 		}
 
-		int end = content.indexOf("\n+++\n");
+		String normalized = content.replace("\r\n", "\n");
 
-		if (end == -1) {
+		int first = normalized.indexOf("+++");
+		int second = normalized.indexOf("\n+++", first + 3);
+
+		if (second == -1) {
 			return content;
 		}
 
-		String frontMatter = content.substring(0, end + 5)
+		second += 4; // "\n+++" の末尾
+
+		String frontMatter = normalized.substring(0, second)
 				.replaceAll("\\n+$", "");
 
-		String body = content.substring(end + 5);
+		String body = normalized.substring(second);
 
-		// Front Matterの後ろは空行1つだけ
+		// Front Matter直後の空行だけ調整
 		body = body.replaceFirst("^\\n*", "");
 
 		return frontMatter + "\n\n" + body;

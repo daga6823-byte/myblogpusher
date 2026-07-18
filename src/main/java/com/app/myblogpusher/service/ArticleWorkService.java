@@ -36,6 +36,10 @@ public class ArticleWorkService {
 	}
 
 	public void updateArticleWork(Long workId, Long categoryId, String title, String content, Long userId, String slug) {
+
+		System.out.println("========== SAVE ==========");
+		System.out.println(content);
+		System.out.println("==========================");
 		ArticleWork work = articleWorkRepository.findById(workId).orElseThrow();
 		work.setCategoryId(categoryId);
 		work.setTitle(title);
