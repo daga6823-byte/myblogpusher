@@ -62,3 +62,9 @@ if (document.readyState === 'loading') {
 	convertLocalDate();
 
 }
+
+console.log("common.js loaded");
+
+console.log(
+	document.querySelectorAll('.local-date').length
+);
