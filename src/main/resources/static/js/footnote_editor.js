@@ -89,32 +89,40 @@ document.getElementById('footnoteButton')
 
 		references.forEach(reference => {
 
-			const button =
-				document.createElement('button');
+			const label =
+				document.createElement('label');
 
 
-			button.type = 'button';
+			const checkbox =
+				document.createElement('input');
 
-			button.textContent =
-				reference.referenceName;
+			checkbox.type = 'checkbox';
 
+			checkbox.name = 'referenceCheck';
 
-			button.addEventListener('click', () => {
-
-				insertFootnote(reference);
-
-				selector.style.display = 'none';
-
-			});
+			checkbox.value =
+				JSON.stringify(reference);
 
 
-			list.appendChild(button);
+			label.appendChild(checkbox);
+
+			label.append(
+				document.createTextNode(
+					reference.referenceName
+				)
+			);
+
+
+			list.appendChild(label);
+
+			list.appendChild(
+				document.createElement('br')
+			);
 
 		});
 
 
 		selector.style.display = 'block';
-
 	});
 
 // -----------------------------------------------------
@@ -165,3 +173,147 @@ function insertFootnote(reference) {
 		new Event('input')
 	);
 }
+
+// =====================================================
+// 参考文献登録
+//
+// 入力した参考文献をカテゴリーへ登録する
+// =====================================================
+
+document.getElementById('saveReferenceButton')
+	.addEventListener('click', async () => {
+
+		const categoryId =
+			document.getElementById('categorySelect').value;
+
+		const referenceName =
+			document.getElementById('referenceName').value.trim();
+
+		const url =
+			document.getElementById('referenceUrl').value.trim();
+
+
+		if (!referenceName) {
+			alert('参考文献名を入力してください');
+			return;
+		}
+
+
+		await fetch('/category/reference/save', {
+
+			method: 'POST',
+
+			headers: {
+				'Content-Type': 'application/x-www-form-urlencoded'
+			},
+
+			body:
+				`categoryId=${categoryId}`
+				+ `&referenceName=${encodeURIComponent(referenceName)}`
+				+ `&url=${encodeURIComponent(url)}`
+
+		});
+
+
+		document.getElementById('referenceName').value = '';
+		document.getElementById('referenceUrl').value = '';
+
+
+		await loadReferences();
+
+	});
+
+// =====================================================
+// 登録済み参考文献を再取得して表示更新
+// =====================================================
+async function loadReferences() {
+
+	const categoryId =
+		document.getElementById('categorySelect').value;
+
+
+	const response =
+		await fetch(
+			`/category/reference/list?categoryId=${categoryId}`
+		);
+
+
+	const references =
+		await response.json();
+
+
+	const list =
+		document.getElementById('referenceList');
+
+
+	list.innerHTML = '';
+
+
+	references.forEach(reference => {
+
+		const label =
+			document.createElement('label');
+
+
+		const checkbox =
+			document.createElement('input');
+
+
+		checkbox.type = 'checkbox';
+
+		checkbox.name = 'referenceCheck';
+
+		checkbox.value =
+			JSON.stringify(reference);
+
+
+		label.appendChild(checkbox);
+
+
+		label.appendChild(
+			document.createTextNode(
+				reference.referenceName
+			)
+		);
+
+
+		list.appendChild(label);
+
+		list.appendChild(
+			document.createElement('br')
+		);
+
+	});
+
+}
+
+// =====================================================
+// 選択した参考文献を脚注として挿入
+// =====================================================
+document.getElementById('insertReferenceButton')
+	.addEventListener('click', () => {
+
+		const checked =
+			document.querySelector(
+				'input[name="referenceCheck"]:checked'
+			);
+
+
+		if (!checked) {
+			alert('参考文献を選択してください');
+			return;
+		}
+
+
+		const reference =
+			JSON.parse(checked.value);
+
+
+		insertFootnote(reference);
+
+
+		document.getElementById('referenceSelector')
+			.style.display = 'none';
+
+	});
+	

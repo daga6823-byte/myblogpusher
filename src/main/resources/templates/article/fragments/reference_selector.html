@@ -1,0 +1,55 @@
+<!--
+参考文献選択・登録ダイアログ
+
+参考文献の新規登録、
+登録済み参考文献選択を担当する。
+-->
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<div th:fragment="referenceSelector" id="referenceSelector" style="display:none;">
+
+	<h3>参考文献登録</h3>
+
+	<label>
+		参考文献名
+	</label>
+
+	<input type="text" id="referenceName">
+
+
+	<label>
+		URL
+	</label>
+
+	<input type="text" id="referenceUrl">
+
+
+	<button type="button" id="saveReferenceButton">
+		登録
+	</button>
+
+
+	<hr>
+
+
+	<h3>登録済み参考文献</h3>
+
+
+	<div id="referenceList">
+	</div>
+
+
+	<button type="button" id="insertReferenceButton">
+		挿入
+	</button>
+
+
+	<button type="button" id="cancelReferenceButton">
+		キャンセル
+	</button>
+
+</div>
+
+</html>
