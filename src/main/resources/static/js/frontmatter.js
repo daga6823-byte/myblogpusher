@@ -113,9 +113,14 @@ function updateFrontMatterFields(updateDate) {
 				: `date = '${buildDateString()}'`;
 	}
 
-	// Front Matterだけ除去
-	const bodyText =
-		currentText.replace(frontMatterPattern, '');
+	// Front Matterを除いた本文
+	let bodyText = currentText;
+
+	const endIndex = currentText.indexOf("\n+++\n");
+
+	if (endIndex !== -1) {
+		bodyText = currentText.substring(endIndex + 5);
+	}
 
 	const newFrontMatter =
 		'+++\n'
