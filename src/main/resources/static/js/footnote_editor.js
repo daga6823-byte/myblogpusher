@@ -150,8 +150,10 @@ function insertFootnote(reference) {
 		`\n${marker}: ${reference.referenceName}`;
 
 	if (reference.url) {
+
 		textarea.value +=
 			`\n    ${reference.url}`;
+
 	}
 
 

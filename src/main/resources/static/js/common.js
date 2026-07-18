@@ -29,7 +29,15 @@ document.querySelectorAll('.local-date')
 			return;
 		}
 
-		const date = new Date(value + 'Z');
+		// LocalDateTimeのナノ秒部分をミリ秒へ調整
+		const date =
+			new Date(
+				value.replace(
+					/(\.\d{3})\d+/,
+					'$1'
+				) + 'Z'
+			);
+
 
 		element.textContent =
 			date.toLocaleString(
