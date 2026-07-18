@@ -23,11 +23,13 @@ document.getElementById('footnoteButton').addEventListener('click', () => {
 
 	const content = textarea.value;
 
-	// 次の脚注番号を採番
-	const matches = [...content.matchAll(/\[\^(\d+)\]/g)];
-	const nextNo = matches.length
-		? Math.max(...matches.map(m => Number(m[1]))) + 1
-		: 1;
+	const nextNo = getNextFootnoteNumber(content);
+
+	const title = prompt("参考文献名を入力してください");
+
+	if (!title) {
+		return;
+	}
 
 	const url = prompt("リンクを入力してください");
 
@@ -37,24 +39,25 @@ document.getElementById('footnoteButton').addEventListener('click', () => {
 
 	const marker = `[^${nextNo}]`;
 
-	// カーソル位置へ脚注マーカー挿入
 	const start = textarea.selectionStart;
 	const end = textarea.selectionEnd;
 
+	// 本文中へ [1] を挿入
 	textarea.value =
 		content.substring(0, start)
 		+ marker
 		+ content.substring(end);
 
-	// 文末へ脚注追加
+	// 文末へ脚注定義追加
 	if (!textarea.value.endsWith("\n")) {
 		textarea.value += "\n";
 	}
 
-	textarea.value += `\n${marker}: ${url}`;
+	textarea.value +=
+		`\n${marker}: [${title}](${url})`;
 
-	// カーソル位置更新
 	const pos = start + marker.length;
+
 	textarea.focus();
 	textarea.setSelectionRange(pos, pos);
 
