@@ -40,3 +40,17 @@ if (copyAllButton) {
 		}
 	});
 }
+
+//クリアボタン
+document.getElementById('clearButton').addEventListener('click', function() {
+	if (confirm('ワークスペースをクリアしてもよろしいですか？')) {
+		fetch('/article/workspace/clear', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		}).then(() => {
+			location.reload();
+		});
+	}
+});
