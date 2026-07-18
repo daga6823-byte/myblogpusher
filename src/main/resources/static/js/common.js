@@ -20,7 +20,8 @@ document.getElementById('clearButton').addEventListener('click', function() {
 /**
  * UTC日時をユーザー環境のタイムゾーンで表示する
  */
-document.addEventListener('DOMContentLoaded', () => {
+function convertLocalDate() {
+
 	document.querySelectorAll('.local-date')
 		.forEach(element => {
 
@@ -46,4 +47,18 @@ document.addEventListener('DOMContentLoaded', () => {
 				);
 
 		});
-});
+}
+
+
+if (document.readyState === 'loading') {
+
+	document.addEventListener(
+		'DOMContentLoaded',
+		convertLocalDate
+	);
+
+} else {
+
+	convertLocalDate();
+
+}
