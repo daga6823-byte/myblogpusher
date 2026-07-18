@@ -33,7 +33,7 @@
 					<td class="local-date" th:attr="data-date=${w.updateDate}">
 					</td>
 					<td>
-						<a class="edit-link" th:href="@{/article/edit(workId=${w.workId})}">編集</a>
+						<a class="edit-link btn-edit" th:href="@{/article/edit(workId=${w.workId})}">編集</a>
 						<form th:action="@{/article/delete}" method="post" style="display:inline;"
 							onsubmit="return confirm('この下書きを削除してもよろしいですか？');">
 							<input type="hidden" name="workId" th:value="${w.workId}">
@@ -44,7 +44,9 @@
 			</tbody>
 		</table>
 
-		<a class="new-button" th:href="@{/article/edit}">新規作成</a>
+		<a class="new-button btn-back" th:href="@{/article/edit}">
+			新規作成
+		</a>
 		<button type="button" id="backButton" class="btn-back">戻る</button>
 	</div>
 

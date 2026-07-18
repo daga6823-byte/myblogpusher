@@ -156,3 +156,11 @@ input.error {
 	border-color: #c0392b;
 	background-color: #fff5f5;
 }
+
+.btn-edit {
+	background-color: #0366d6;
+}
+
+.btn-edit:hover {
+	background-color: #0454b0;
+}
