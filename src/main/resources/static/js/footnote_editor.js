@@ -45,37 +45,25 @@ document.getElementById('footnoteButton')
 			return;
 		}
 
-
 		document.getElementById('insertMenu')
 			.style.display = 'none';
-
 
 		const categoryId =
 			document.getElementById('categorySelect')
 				.value;
-
 
 		if (!categoryId || categoryId === '__new__') {
 			alert('カテゴリーを選択してください');
 			return;
 		}
 
-
 		const response =
 			await fetch(
 				`/category/reference/list?categoryId=${categoryId}`
 			);
 
-
 		const references =
 			await response.json();
-
-
-		if (references.length === 0) {
-			alert('登録済み参考文献がありません');
-			return;
-		}
-
 
 		const selector =
 			document.getElementById('referenceSelector');
