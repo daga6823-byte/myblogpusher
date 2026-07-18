@@ -32,9 +32,6 @@ public class ArticleFormatService {
 	/**
 	 * Front Matterを保持したまま本文を整形する
 	 */
-	/**
-	 * Front Matterを保持したまま本文を整形する
-	 */
 	public String formatContent(String content) {
 
 		if (content == null || content.isBlank()) {
@@ -47,24 +44,19 @@ public class ArticleFormatService {
 
 		String normalized = content.replace("\r\n", "\n");
 
-		int first = normalized.indexOf("+++");
-		int second = normalized.indexOf("\n+++", first + 3);
+		int end = normalized.indexOf("\n+++\n");
 
-		if (second == -1) {
+		if (end == -1) {
 			return content;
 		}
 
-		second += 4; // "\n+++" の末尾
+		// Front Matter末尾まで取得
+		String frontMatter = normalized.substring(0, end + 5);
 
-		String frontMatter = normalized.substring(0, second)
-				.replaceAll("\\n+$", "");
+		// 本文は一切加工しない
+		String body = normalized.substring(end + 5);
 
-		String body = normalized.substring(second);
-
-		// Front Matter直後の空行だけ調整
-		body = body.replaceFirst("^\\n*", "");
-
-		return frontMatter + "\n\n" + body;
+		return frontMatter + body;
 	}
 
 	/**
@@ -83,9 +75,6 @@ public class ArticleFormatService {
 
 			String trimmed = line.trim();
 
-			// -------------------------------------------------
-			// コードブロック開始・終了
-			// -------------------------------------------------
 			if (markdownStructureUtil.isCodeBlockStart(line)) {
 
 				inCodeBlock = !inCodeBlock;
@@ -96,9 +85,6 @@ public class ArticleFormatService {
 				continue;
 			}
 
-			// -------------------------------------------------
-			// コードブロック内はそのまま
-			// -------------------------------------------------
 			if (inCodeBlock) {
 
 				result.append(line)
@@ -107,9 +93,6 @@ public class ArticleFormatService {
 				continue;
 			}
 
-			// -------------------------------------------------
-			// 空行保持
-			// -------------------------------------------------
 			if (trimmed.isEmpty()) {
 
 				result.append("\n");
@@ -117,9 +100,6 @@ public class ArticleFormatService {
 				continue;
 			}
 
-			// -------------------------------------------------
-			// Markdown構造行は変更しない
-			// -------------------------------------------------
 			if (!markdownStructureUtil.shouldIndent(line)) {
 
 				result.append(line)
@@ -128,16 +108,11 @@ public class ArticleFormatService {
 				continue;
 			}
 
-			// -------------------------------------------------
-			// 通常文章のみ整形（先頭・末尾の空白は保持）
-			// -------------------------------------------------
 			result.append(
 					sentenceFormatService.formatParagraph(line))
 					.append("\n");
-
 		}
 
-		// 末尾の不要な改行削除
 		while (result.length() > 0
 				&& result.charAt(result.length() - 1) == '\n') {
 

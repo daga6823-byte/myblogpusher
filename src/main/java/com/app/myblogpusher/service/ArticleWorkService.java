@@ -17,7 +17,7 @@ public class ArticleWorkService {
 	private ArticleWorkRepository articleWorkRepository;
 
 	public List<ArticleWork> findByUserId(Long userId) {
-		return articleWorkRepository.findByUserId(userId);
+		return articleWorkRepository.findByUserIdOrderByUpdateDateDesc(userId);
 	}
 
 	public Long insertArticleWork(Long userId, Long categoryId, String title, String content, String slug) {
@@ -35,7 +35,8 @@ public class ArticleWorkService {
 		return work.getWorkId();
 	}
 
-	public void updateArticleWork(Long workId, Long categoryId, String title, String content, Long userId, String slug) {
+	public void updateArticleWork(Long workId, Long categoryId, String title, String content, Long userId,
+			String slug) {
 
 		System.out.println("========== SAVE ==========");
 		System.out.println(content);
@@ -70,9 +71,9 @@ public class ArticleWorkService {
 
 		System.out.println("delete end");
 	}
-	
+
 	public Optional<ArticleWork> findBySlug(String slug) {
 		return articleWorkRepository.findBySlug(slug);
 	}
-	
+
 }
