@@ -91,7 +91,7 @@ function updateFrontMatterFields(updateDate) {
 
 	const currentText = textarea.value;
 
-	const frontMatterPattern = /^\+\+\+[\s\S]*?\+\+\+\n*/;
+	const frontMatterPattern = /^\+\+\+\n[\s\S]*?\+\+\+\n*/;
 
 	const existingFrontMatterBody =
 		parseFrontMatter(currentText);
@@ -113,10 +113,9 @@ function updateFrontMatterFields(updateDate) {
 				: `date = '${buildDateString()}'`;
 	}
 
-	// Front Matterを除いた本文
-	const bodyText = currentText
-		.replace(frontMatterPattern, '')
-		.replace(/^[\n　\s]+/, '');
+	// Front Matterだけ除去
+	const bodyText =
+		currentText.replace(frontMatterPattern, '');
 
 	const newFrontMatter =
 		'+++\n'
@@ -125,7 +124,7 @@ function updateFrontMatterFields(updateDate) {
 		+ `categories = ["${category}"]\n`
 		+ `draft = ${draft}\n`
 		+ `comments = ${comments}\n`
-		+ '+++\n';
+		+ '+++\n\n';
 
 	textarea.value =
 		newFrontMatter + bodyText;
