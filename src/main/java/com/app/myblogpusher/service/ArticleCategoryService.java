@@ -36,12 +36,12 @@ public class ArticleCategoryService {
 			String categoryName,
 			Long parentCategoryId,
 			String displayName) {
-		
+
 		System.out.println("insertCategory");
 		System.out.println("categoryName = " + categoryName);
 		System.out.println("displayName = " + displayName);
 		System.out.println("parentCategoryId = " + parentCategoryId);
-		
+
 		ArticleCategory newCategory = new ArticleCategory();
 		newCategory.setUserId(userId);
 		newCategory.setCategoryName(categoryName);
@@ -240,6 +240,43 @@ public class ArticleCategoryService {
 
 		// 第3階層以降は親カテゴリー
 		return parent.getCategoryId();
+	}
+
+	/**
+	 * 記事カテゴリーから参考文献登録対象カテゴリーを取得する
+	 *
+	 * ルート直下カテゴリーを返す。
+	 *
+	 * 例:
+	 * movie/batman/gadget
+	 *
+	 * の場合
+	 *
+	 * batman
+	 */
+	public Long findReferenceCategoryId(Long categoryId) {
+
+		ArticleCategory category = findById(categoryId)
+				.orElseThrow();
+
+		ArticleCategory current = category;
+
+		while (current.getParentCategoryId() != null) {
+
+			ArticleCategory parent = findById(current.getParentCategoryId())
+					.orElseThrow();
+
+			// 親がルートなら現在カテゴリーが対象
+			if (parent.getParentCategoryId() == null) {
+
+				return current.getCategoryId();
+			}
+
+			current = parent;
+		}
+
+		// ルートカテゴリーしかない場合
+		return categoryId;
 	}
 
 }

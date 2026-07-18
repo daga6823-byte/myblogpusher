@@ -25,59 +25,143 @@ function getNextFootnoteNumber(text) {
 	return max + 1;
 }
 
+// =====================================================
+// 登録済み参考文献から脚注を作成する
+//
+// 脚注ボタン押下
+// ↓
+// 登録済み参考文献一覧表示
+// ↓
+// 選択した参考文献を本文へ挿入
+// =====================================================
+
+document.getElementById('footnoteButton')
+	.addEventListener('click', async () => {
+
+		const textarea =
+			document.getElementById('content');
+
+		if (!textarea) {
+			return;
+		}
+
+
+		document.getElementById('insertMenu')
+			.style.display = 'none';
+
+
+		const categoryId =
+			document.getElementById('categorySelect')
+				.value;
+
+
+		if (!categoryId || categoryId === '__new__') {
+			alert('カテゴリーを選択してください');
+			return;
+		}
+
+
+		const response =
+			await fetch(
+				`/category/reference/list?categoryId=${categoryId}`
+			);
+
+
+		const references =
+			await response.json();
+
+
+		if (references.length === 0) {
+			alert('登録済み参考文献がありません');
+			return;
+		}
+
+
+		const selector =
+			document.getElementById('referenceSelector');
+
+		const list =
+			document.getElementById('referenceList');
+
+
+		list.innerHTML = '';
+
+
+		references.forEach(reference => {
+
+			const button =
+				document.createElement('button');
+
+
+			button.type = 'button';
+
+			button.textContent =
+				reference.referenceName;
+
+
+			button.addEventListener('click', () => {
+
+				insertFootnote(reference);
+
+				selector.style.display = 'none';
+
+			});
+
+
+			list.appendChild(button);
+
+		});
+
+
+		selector.style.display = 'block';
+
+	});
+
 // -----------------------------------------------------
-// 脚注入力画面を表示する
+// 選択した参考文献を脚注として挿入
 // -----------------------------------------------------
-document.getElementById('footnoteButton').addEventListener('click', () => {
+function insertFootnote(reference) {
 
-	// メニューを閉じる
-	document.getElementById('insertMenu').style.display = 'none';
+	const textarea =
+		document.getElementById('content');
 
-	const textarea = document.getElementById('content');
+	const nextNo =
+		getNextFootnoteNumber(textarea.value);
 
-	if (!textarea) {
-		return;
-	}
+	const marker =
+		`[^${nextNo}]`;
 
-	const content = textarea.value;
+	const start =
+		textarea.selectionStart;
 
-	const nextNo = getNextFootnoteNumber(content);
+	const end =
+		textarea.selectionEnd;
 
-	const title = prompt("参考文献名を入力してください");
 
-	if (!title) {
-		return;
-	}
-
-	const url = prompt("リンクを入力してください");
-
-	if (!url) {
-		return;
-	}
-
-	const marker = `[^${nextNo}]`;
-
-	const start = textarea.selectionStart;
-	const end = textarea.selectionEnd;
-
-	// 本文中へ [1] を挿入
+	// 本文へ脚注番号挿入
 	textarea.value =
-		content.substring(0, start)
+		textarea.value.substring(0, start)
 		+ marker
-		+ content.substring(end);
+		+ textarea.value.substring(end);
 
-	// 文末へ脚注定義追加
-	if (!textarea.value.endsWith("\n")) {
-		textarea.value += "\n";
+
+	// 末尾へ脚注定義追加
+	if (!textarea.value.endsWith('\n')) {
+		textarea.value += '\n';
 	}
 
 	textarea.value +=
-		`\n${marker}: [${title}](${url})`;
+		`\n${marker}: [${reference.referenceName}](${reference.url})`;
 
-	const pos = start + marker.length;
 
 	textarea.focus();
-	textarea.setSelectionRange(pos, pos);
 
-	textarea.dispatchEvent(new Event("input"));
-});
+	textarea.setSelectionRange(
+		start + marker.length,
+		start + marker.length
+	);
+
+	textarea.dispatchEvent(
+		new Event('input')
+	);
+}

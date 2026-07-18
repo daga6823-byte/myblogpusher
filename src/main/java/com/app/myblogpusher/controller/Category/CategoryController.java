@@ -1,4 +1,4 @@
-package com.app.myblogpusher.controller;
+package com.app.myblogpusher.controller.Category;
 
 import java.util.List;
 import java.util.Map;
@@ -34,7 +34,7 @@ public class CategoryController {
 		List<CategoryDictionaryView> categories = articleCategoryService.findDictionaryView(userId);
 		model.addAttribute("categories", categories);
 
-		return "category_list";
+		return "category/category_list";
 	}
 
 	@PostMapping("/category/add")
@@ -90,8 +90,6 @@ public class CategoryController {
 				newName,
 				parentCategoryId,
 				displayName);
-
-		System.out.println("Controller displayName = " + displayName);
 		
 		return Map.of("result", "ok");
 	}

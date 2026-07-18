@@ -52,6 +52,19 @@
 			<option value="false">コメントを許可しない</option>
 		</select>
 
+		<!-- 参考文献選択ダイアログ -->
+		<div id="referenceSelector" style="display:none;">
+
+			<h3>参考文献を選択</h3>
+
+			<div id="referenceList"></div>
+
+			<button type="button" id="cancelReferenceButton">
+				キャンセル
+			</button>
+
+		</div>
+
 		<input type="hidden" id="redirectTo" name="redirectTo" value="">
 		<input type="hidden" id="workId" name="workId" th:value="${work != null ? work.workId : ''}">
 	</div>

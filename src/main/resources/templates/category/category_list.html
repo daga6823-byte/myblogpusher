@@ -57,6 +57,10 @@
 		</tbody>
 	</table>
 
+	<a th:href="@{/category/reference(categoryId=${category.categoryId})}">
+		参考文献
+	</a>
+
 	<button type="button" id="backButton" class="btn-back">戻る</button>
 
 	<div th:replace="~{fragments/category_modal :: categoryModal}"></div>
