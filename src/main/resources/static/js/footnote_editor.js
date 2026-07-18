@@ -147,7 +147,12 @@ function insertFootnote(reference) {
 	}
 
 	textarea.value +=
-		`\n${marker}: [${reference.referenceName}](${reference.url})`;
+		`\n${marker}: ${reference.referenceName}`;
+
+	if (reference.url) {
+		textarea.value +=
+			`\n    ${reference.url}`;
+	}
 
 
 	textarea.focus();
@@ -304,4 +309,3 @@ document.getElementById('insertReferenceButton')
 			.style.display = 'none';
 
 	});
-	
