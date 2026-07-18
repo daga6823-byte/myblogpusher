@@ -23,21 +23,14 @@ document.getElementById('clearButton').addEventListener('click', function() {
 document.querySelectorAll('.local-date')
 	.forEach(element => {
 
-		const value = element.dataset.date;
-
-		if (!value) {
-			return;
-		}
-
-		// LocalDateTimeのナノ秒部分をミリ秒へ調整
 		const date =
 			new Date(
-				value.replace(
-					/(\.\d{3})\d+/,
-					'$1'
-				) + 'Z'
+				element.dataset.date + 'Z'
 			);
 
+		if (isNaN(date.getTime())) {
+			return;
+		}
 
 		element.textContent =
 			date.toLocaleString(
