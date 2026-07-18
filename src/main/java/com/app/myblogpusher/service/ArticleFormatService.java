@@ -44,19 +44,23 @@ public class ArticleFormatService {
 
 		String normalized = content.replace("\r\n", "\n");
 
-		int end = normalized.indexOf("\n+++\n");
+		int firstEnd = normalized.indexOf("\n+++", 3);
 
-		if (end == -1) {
+		if (firstEnd == -1) {
 			return content;
 		}
 
-		// Front Matter末尾まで取得
-		String frontMatter = normalized.substring(0, end + 5);
+		int bodyStart = firstEnd + 4;
 
-		// 本文は一切加工しない
-		String body = normalized.substring(end + 5);
+		String frontMatter = normalized.substring(0, bodyStart)
+				.replaceAll("\n+$", "");
 
-		return frontMatter + body;
+		String body = normalized.substring(bodyStart)
+				.replaceFirst("^\n*", "");
+
+		return frontMatter
+				+ "\n\n\n"
+				+ body;
 	}
 
 	/**

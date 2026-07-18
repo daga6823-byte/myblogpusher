@@ -20,28 +20,30 @@ document.getElementById('clearButton').addEventListener('click', function() {
 /**
  * UTC日時をユーザー環境のタイムゾーンで表示する
  */
-document.querySelectorAll('.local-date')
-	.forEach(element => {
+document.addEventListener('DOMContentLoaded', () => {
+	document.querySelectorAll('.local-date')
+		.forEach(element => {
 
-		const date =
-			new Date(
-				element.dataset.date + 'Z'
-			);
+			const date =
+				new Date(
+					element.dataset.date + 'Z'
+				);
 
-		if (isNaN(date.getTime())) {
-			return;
-		}
+			if (isNaN(date.getTime())) {
+				return;
+			}
 
-		element.textContent =
-			date.toLocaleString(
-				undefined,
-				{
-					year: 'numeric',
-					month: '2-digit',
-					day: '2-digit',
-					hour: '2-digit',
-					minute: '2-digit'
-				}
-			);
+			element.textContent =
+				date.toLocaleString(
+					undefined,
+					{
+						year: 'numeric',
+						month: '2-digit',
+						day: '2-digit',
+						hour: '2-digit',
+						minute: '2-digit'
+					}
+				);
 
-	});
+		});
+});
