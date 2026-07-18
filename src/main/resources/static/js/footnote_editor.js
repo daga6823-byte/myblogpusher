@@ -8,6 +8,24 @@
 // =====================================================
 
 // -----------------------------------------------------
+// 次の脚注番号を取得
+// -----------------------------------------------------
+function getNextFootnoteNumber(text) {
+
+	const matches = [...text.matchAll(/\[\^(\d+)\]/g)];
+
+	if (matches.length === 0) {
+		return 1;
+	}
+
+	const max = Math.max(
+		...matches.map(m => Number(m[1]))
+	);
+
+	return max + 1;
+}
+
+// -----------------------------------------------------
 // 脚注入力画面を表示する
 // -----------------------------------------------------
 document.getElementById('footnoteButton').addEventListener('click', () => {
