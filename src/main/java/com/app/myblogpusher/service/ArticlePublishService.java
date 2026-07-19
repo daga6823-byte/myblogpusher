@@ -59,7 +59,8 @@ public class ArticlePublishService {
 		gitHubPushService.pushArticleAsync(
 				repository,
 				cipherKey,
-				article);
+				article,
+				workId);
 
 	}
 

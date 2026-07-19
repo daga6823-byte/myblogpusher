@@ -38,6 +38,9 @@ public class GitHubPushService {
 	@Autowired
 	private ArticleService articleService;
 
+	@Autowired
+	private ArticleWorkService articleWorkService;
+	
 	public GitHubPushService(
 			TokenCipherService tokenCipherService) {
 
@@ -149,7 +152,8 @@ public class GitHubPushService {
 	public void pushArticleAsync(
 			UserRepositoryEntity repository,
 			String cipherKey,
-			Article article) {
+			Article article,
+			Long workId) {
 
 		try {
 
@@ -159,10 +163,14 @@ public class GitHubPushService {
 							repository.getStorageBaseUrl()));
 
 			pushArticle(
-					repository,
-					cipherKey,
-					article);
+			        repository,
+			        cipherKey,
+			        article);
 
+			articleWorkService.delete(
+			        article.getUserId(),
+			        workId);
+			
 		} catch (Exception e) {
 
 			System.err.println(
