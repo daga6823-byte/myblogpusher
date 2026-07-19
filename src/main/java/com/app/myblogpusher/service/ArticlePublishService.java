@@ -10,6 +10,7 @@ package com.app.myblogpusher.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.app.myblogpusher.dto.ArticlePublishResult;
 import com.app.myblogpusher.entity.Article;
 import com.app.myblogpusher.entity.ArticleWork;
 import com.app.myblogpusher.entity.UserRepositoryEntity;
@@ -29,19 +30,22 @@ public class ArticlePublishService {
 	/**
 	 * 下書きから投稿済み記事を作成または更新する
 	 */
-	private Article createOrUpdateArticle(Long workId) {
+	private ArticlePublishResult createOrUpdateArticle(Long workId) {
 
 		ArticleWork work = articleWorkService.findById(workId);
 
 		// 新規投稿
 		if (work.getArticleId() == null) {
-			return articleService.createFromWork(work);
+			return new ArticlePublishResult(
+					articleService.createFromWork(work),
+					true);
 		}
 
-		// 投稿済み記事更新
 		Article article = articleService.findById(work.getArticleId());
 
-		return articleService.updateFromWork(article, work);
+		return new ArticlePublishResult(
+				articleService.updateFromWork(article, work),
+				false);
 	}
 
 	/**
@@ -53,13 +57,15 @@ public class ArticlePublishService {
 			Long workId) {
 
 		// 投稿済み記事を作成または更新
-		Article article = createOrUpdateArticle(workId);
+		ArticlePublishResult result =
+				createOrUpdateArticle(workId);
 
 		// GitHubへ非同期投稿
 		gitHubPushService.pushArticleAsync(
 				repository,
 				cipherKey,
-				article,
+				result.getArticle(),
+				result.isNewArticle(),
 				workId);
 
 	}

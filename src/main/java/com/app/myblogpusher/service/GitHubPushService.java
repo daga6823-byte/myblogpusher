@@ -40,7 +40,7 @@ public class GitHubPushService {
 
 	@Autowired
 	private ArticleWorkService articleWorkService;
-	
+
 	public GitHubPushService(
 			TokenCipherService tokenCipherService) {
 
@@ -53,7 +53,8 @@ public class GitHubPushService {
 	public void pushArticle(
 			UserRepositoryEntity repoEntity,
 			String cipherKey,
-			Article article)
+			Article article,
+			boolean newArticle)
 			throws IOException, GitAPIException {
 
 		String accessToken = tokenCipherService.decrypt(
@@ -83,8 +84,18 @@ public class GitHubPushService {
 					repoPath,
 					article);
 
+			String action = article.getPublishDate()
+					.equals(article.getUpdateDate())
+							? "Add article: "
+							: "Update article: ";
+
+			String commitMessage =
+					newArticle
+							? "Add article: "
+							: "Update article: ";
+
 			git.commit()
-					.setMessage("Add article: " + article.getSlug())
+					.setMessage(commitMessage + article.getSlug())
 					.setAuthor(
 							"Myblogpusher",
 							"noreply@myblogpusher.local")
@@ -153,6 +164,7 @@ public class GitHubPushService {
 			UserRepositoryEntity repository,
 			String cipherKey,
 			Article article,
+			boolean newArticle,
 			Long workId) {
 
 		try {
@@ -163,14 +175,15 @@ public class GitHubPushService {
 							repository.getStorageBaseUrl()));
 
 			pushArticle(
-			        repository,
-			        cipherKey,
-			        article);
+					repository,
+					cipherKey,
+					article,
+					newArticle);
 
 			articleWorkService.delete(
-			        article.getUserId(),
-			        workId);
-			
+					article.getUserId(),
+					workId);
+
 		} catch (Exception e) {
 
 			System.err.println(

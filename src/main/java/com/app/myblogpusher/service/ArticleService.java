@@ -35,13 +35,13 @@ public class ArticleService {
 		article.setUserId(work.getUserId());
 		article.setCategoryId(work.getCategoryId());
 		article.setTitle(work.getTitle());
-		article.setSlug(work.getSlug());
+		article.setSlug(
+		        work.getSlug());
 
-		// 初回投稿時のみ投稿先を確定
 		article.setHugoPath(
-				hugoArticleService.buildArticlePath(
-						work.getCategoryId(),
-						work.getSlug()));
+		        hugoArticleService.buildArticlePath(
+		                work.getCategoryId(),
+		                work.getSlug()));
 
 		article.setContent(work.getContent());
 
