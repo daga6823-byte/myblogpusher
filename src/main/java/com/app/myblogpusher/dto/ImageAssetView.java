@@ -18,8 +18,14 @@ public class ImageAssetView {
 	private final LocalDateTime uploadDate;
 	private final String url;
 
-	public ImageAssetView(Long imageId, String folderName, String fileName, String categoryName,
-			LocalDateTime uploadDate, String url) {
+	public ImageAssetView(
+			Long imageId,
+			Long categoryId,
+			String folderName,
+			String fileName,
+			String categoryName,
+			LocalDateTime uploadDate,
+			String url) {
 		this.imageId = imageId;
 		this.folderName = folderName;
 		this.fileName = fileName;

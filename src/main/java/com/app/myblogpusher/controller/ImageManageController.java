@@ -41,6 +41,8 @@ public class ImageManageController {
 	@Autowired
 	private ImageAssetService imageAssetService;
 
+	private Long categoryId;
+	
 	/**
 	 * 登録済み画像一覧表示
 	 *
@@ -65,6 +67,7 @@ public class ImageManageController {
 								.stream()
 								.map(a -> new ImageAssetView(
 										a.getImageId(),
+										a.getCategoryId(),
 										a.getFolderName(),
 										a.getFileName(),
 										Optional.ofNullable(a.getCategoryId())
