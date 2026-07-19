@@ -16,7 +16,7 @@
 
 		<div>
 			<select id="imageCategorySelect">
-				<option value="">全カテゴリー</option>
+				<option value="all">全カテゴリー</option>
 
 				<option th:each="category : ${categories}" th:value="${category.categoryId}"
 					th:text="${category.displayName}">
@@ -39,19 +39,7 @@
 	<button type="button" id="backButton" class="btn-back" onclick="location.href='/home'">戻る</button>
 
 	<script th:src="@{/js/common.js}"></script>
-	<script>
-		document.getElementById('importButton').addEventListener('click', () => {
-			const status = document.getElementById('importStatus');
-			status.textContent = 'インポート中...';
-			fetch('/image/import', {method: 'POST'})
-				.then(res => res.json())
-				.then(data => {
-					status.textContent = `${data.importedCount}件インポートしました`;
-					location.reload();
-				})
-				.catch(() => {status.textContent = 'インポートに失敗しました';});
-		});
-	</script>
+	<script th:src="@{/js/image_list.js}"></script>
 </body>
 
 </html>
