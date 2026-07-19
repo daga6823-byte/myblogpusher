@@ -1,4 +1,8 @@
 //戻るボタン
-document.getElementById('backButton').addEventListener('click', () => {
-	window.location.href = '/home';
-});
+const backButton = document.getElementById('backButton');
+
+if (backButton) {
+	backButton.addEventListener('click', () => {
+		window.location.href = '/home';
+	});
+}
