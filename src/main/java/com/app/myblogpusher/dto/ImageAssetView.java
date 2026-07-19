@@ -12,6 +12,7 @@ import lombok.Getter;
 public class ImageAssetView {
 
 	private final Long imageId;
+	private final Long categoryId;
 	private final String folderName;
 	private final String fileName;
 	private final String categoryName;
@@ -27,6 +28,7 @@ public class ImageAssetView {
 			LocalDateTime uploadDate,
 			String url) {
 		this.imageId = imageId;
+		this.categoryId = categoryId;
 		this.folderName = folderName;
 		this.fileName = fileName;
 		this.categoryName = categoryName;
