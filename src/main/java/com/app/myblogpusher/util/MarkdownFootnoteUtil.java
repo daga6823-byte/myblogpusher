@@ -89,7 +89,15 @@ public class MarkdownFootnoteUtil {
 
 		}
 
-		return body.trim() + "\n";
+		StringBuilder result = new StringBuilder(body);
+
+		for (String def : reordered) {
+
+			result.append("\n\n")
+					.append(def);
+		}
+
+		return result.toString().trim() + "\n";
 	}
 
 }
