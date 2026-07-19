@@ -21,6 +21,7 @@ import com.app.myblogpusher.entity.ArticleCategory;
 import com.app.myblogpusher.entity.ImageAsset;
 import com.app.myblogpusher.repository.ImageAssetRepository;
 import com.app.myblogpusher.util.SlugUtil;
+
 @Service
 public class ImageAssetService {
 
@@ -143,5 +144,45 @@ public class ImageAssetService {
 		}
 
 		return importedCount;
+	}
+
+	/**
+	 * 登録済み画像情報を更新する
+	 *
+	 * ・カテゴリー変更
+	 * ・保存先フォルダ変更
+	 */
+	/**
+	 * 登録済み画像情報を更新する
+	 *
+	 * ・カテゴリー変更
+	 * ・保存先フォルダ変更
+	 */
+	public void updateImage(
+			Long imageId,
+			Long categoryId,
+			String folderName,
+			Long userId) {
+
+		ImageAsset asset = imageAssetRepository.findById(imageId)
+				.orElseThrow();
+
+		// フォルダが変更された場合のみStorage上も移動する
+		if (!folderName.equals(asset.getFolderName())) {
+
+			String newStoragePath = supabaseStorageService.moveImage(
+					asset.getStoragePath(),
+					folderName);
+
+			asset.setFolderName(folderName);
+			asset.setStoragePath(newStoragePath);
+		}
+
+		asset.setCategoryId(categoryId);
+		asset.setUpdateUser(userId);
+		asset.setUpdateDate(LocalDateTime.now());
+
+		imageAssetRepository.save(asset);
+
 	}
 }

@@ -2,32 +2,56 @@
 <html xmlns:th="http://www.thymeleaf.org">
 
 <head>
+
+	<!--
+		登録済み画像一覧画面
+
+		・登録済み画像一覧表示
+		・カテゴリー絞り込み
+		・画像編集モーダル呼び出し
+		・未登録画像インポート
+		・新規画像登録画面遷移
+	-->
+
 	<meta charset="UTF-8">
 	<title>登録済み画像</title>
+
 	<link rel="stylesheet" th:href="@{/css/home.css}">
 	<link rel="stylesheet" th:href="@{/css/common.css}">
+	<link rel="stylesheet" th:href="@{/css/image_list.css}">
+
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 </head>
 
 <body>
+
+	<!-- 画像編集モーダル -->
+	<div th:replace="~{fragments/image_edit_modal :: imageEditModal}"></div>
+
 	<div class="home-header">
 
 		<h1>登録済み画像</h1>
 
 		<div>
+
+			<!-- カテゴリー絞り込み -->
 			<select id="imageCategorySelect">
+
 				<option value="all">全カテゴリー</option>
 
 				<option th:each="category : ${categories}" th:value="${category.categoryId}"
-					th:text="${category.displayName}">
+					th:text="${category.displayName}" th:selected="${category.categoryId == selectedCategoryId}">
 				</option>
 
 			</select>
 
+			<!-- 新規画像登録 -->
 			<button type="button" id="newImageButton" class="btn-save">
 				新規画像登録
 			</button>
 
+			<!-- Supabase画像インポート -->
 			<button type="button" id="importButton" class="btn-back">
 				Supabaseから未登録画像をインポート
 			</button>
@@ -36,30 +60,40 @@
 
 	</div>
 
-	<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px;">
+	<!-- 登録済み画像一覧 -->
+	<div class="image-list">
 
-		<div th:each="img : ${images}" style="border:1px solid #ddd; border-radius:4px; padding:8px;">
+		<!-- 画像カード -->
+		<div th:each="img : ${images}" class="image-card">
 
-			<img th:src="${img.url}" style="width:100%; height:140px; object-fit:cover;">
+			<img th:src="${img.url}" class="image-thumbnail">
 
-			<div style="font-size:12px; margin-top:4px; word-break:break-all;"
-				th:text="${img.folderName + '/' + img.fileName}">
+			<div class="image-path" th:text="${img.folderName + '/' + img.fileName}">
 			</div>
 
-			<div style="font-size:12px; color:#666;" th:text="${img.categoryName}">
+			<div class="image-category" th:text="${img.categoryName}">
 			</div>
 
-			<div style="font-size:11px; color:#999;" th:text="${img.uploadDate}">
+			<div class="image-date" th:text="${img.uploadDate}">
 			</div>
+
+			<!-- 編集 -->
+			<button type="button" class="btn-correct btn-update" th:data-image-id="${img.imageId}"
+				th:data-category-id="${img.categoryId}" th:data-folder-name="${img.folderName}">
+				編集
+			</button>
 
 		</div>
 
 	</div>
 
-	<button type="button" id="backButton" class="btn-back" onclick="location.href='/home'">戻る</button>
+	<button type="button" id="backButton" class="btn-back" onclick="location.href='/home'">
+		戻る
+	</button>
 
 	<script th:src="@{/js/common.js}"></script>
 	<script th:src="@{/js/image_list.js}"></script>
+
 </body>
 
 </html>

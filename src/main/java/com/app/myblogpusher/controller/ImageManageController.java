@@ -83,6 +83,8 @@ public class ImageManageController {
 				"categories",
 				articleCategoryService.findByUserId(userId));
 
+		model.addAttribute("selectedCategoryId", categoryId);
+
 		return "image_list";
 	}
 
@@ -93,7 +95,7 @@ public class ImageManageController {
 		int count = imageAssetService.importExistingImages(loginUser.getUserId());
 		return Map.of("result", "ok", "importedCount", count);
 	}
-	
+
 	/**
 	 * 画像新規登録画面表示
 	 */
@@ -102,8 +104,7 @@ public class ImageManageController {
 			HttpSession session,
 			Model model) {
 
-		UserMaster loginUser =
-				(UserMaster) session.getAttribute("loginUser");
+		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 
 		model.addAttribute(
 				"categories",
@@ -111,5 +112,24 @@ public class ImageManageController {
 						loginUser.getUserId()));
 
 		return "image_new";
+	}
+
+	@PostMapping("/image/update")
+	@ResponseBody
+	public Map<String, Object> updateImage(
+			@RequestParam Long imageId,
+			@RequestParam(required = false) Long categoryId,
+			@RequestParam String folderName,
+			HttpSession session) {
+
+		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
+
+		imageAssetService.updateImage(
+				imageId,
+				categoryId,
+				folderName,
+				loginUser.getUserId());
+
+		return Map.of("result", "ok");
 	}
 }

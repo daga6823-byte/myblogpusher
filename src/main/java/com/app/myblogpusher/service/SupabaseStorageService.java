@@ -146,4 +146,97 @@ public class SupabaseStorageService {
 			throw new RuntimeException("Failed to list images at prefix: " + prefix, e);
 		}
 	}
+
+	/**
+	 * Storageから画像をダウンロードする
+	 */
+	public byte[] downloadImage(String storagePath) {
+
+		String url = supabaseUrl +
+				"/storage/v1/object/" +
+				bucketName +
+				"/" +
+				storagePath;
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.set("apikey", supabaseKey);
+
+		HttpEntity<Void> entity = new HttpEntity<>(headers);
+
+		return restTemplate.exchange(
+				url,
+				HttpMethod.GET,
+				entity,
+				byte[].class)
+				.getBody();
+
+	}
+
+	/**
+	 * Storageから画像を削除する
+	 */
+	public void deleteImage(String storagePath) {
+
+		String url = supabaseUrl +
+				"/storage/v1/object/" +
+				bucketName +
+				"/" +
+				storagePath;
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.set("apikey", supabaseKey);
+
+		HttpEntity<Void> entity = new HttpEntity<>(headers);
+
+		restTemplate.exchange(
+				url,
+				HttpMethod.DELETE,
+				entity,
+				String.class);
+
+	}
+
+	/**
+	 * 画像を別フォルダへ移動する
+	 *
+	 * ダウンロード
+	 * → 新フォルダへアップロード
+	 * → 元画像削除
+	 *
+	 * 戻り値：新しいstoragePath
+	 */
+	public String moveImage(
+			String oldPath,
+			String newFolderName) {
+
+		byte[] image = downloadImage(oldPath);
+
+		String fileName = oldPath.substring(
+				oldPath.lastIndexOf('/') + 1);
+
+		String newPath = newFolderName + "/" + fileName;
+
+		String url = supabaseUrl +
+				"/storage/v1/object/" +
+				bucketName +
+				"/" +
+				newPath;
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.set("apikey", supabaseKey);
+		headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+
+		HttpEntity<byte[]> entity = new HttpEntity<>(image, headers);
+
+		restTemplate.exchange(
+				url,
+				HttpMethod.POST,
+				entity,
+				String.class);
+
+		deleteImage(oldPath);
+
+		return newPath;
+
+	}
 }
