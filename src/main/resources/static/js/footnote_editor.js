@@ -152,7 +152,7 @@ function insertFootnote(reference) {
 	if (reference.url) {
 
 		textarea.value +=
-			`\n    ${reference.url}`;
+			`\n${reference.url}`;
 
 	}
 

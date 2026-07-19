@@ -158,9 +158,16 @@ input.error {
 }
 
 .btn-edit {
+	display: inline-block;
+	padding: 10px 20px;
 	background-color: #0366d6;
+	color: #fff;
+	text-decoration: none;
+	border-radius: 4px;
+	text-align: center;
 }
 
 .btn-edit:hover {
 	background-color: #0454b0;
+	color: #fff;
 }

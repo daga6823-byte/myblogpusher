@@ -6,15 +6,6 @@ td {
 	font-size: 14px;
 }
 
-a.edit-link {
-	color: #0366d6;
-	text-decoration: none;
-}
-
-a.edit-link:hover {
-	text-decoration: underline;
-}
-
 /* 新規作成ボタン */
 a.new-button {
 	display: inline-block;
