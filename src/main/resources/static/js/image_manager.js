@@ -229,3 +229,23 @@ document.getElementById('imageUploadButton').addEventListener('click', function(
 		});
 
 });
+
+// カテゴリー変更時
+document.getElementById('imageCategorySelect')
+	.addEventListener('change', function() {
+
+		location.href =
+			'/image/list?categoryId=' + this.value;
+
+	});
+
+
+// 新規画像登録
+document.getElementById('newImageButton')
+	.addEventListener('click', function() {
+
+		location.href =
+			'/article/images/new';
+
+	});
+	

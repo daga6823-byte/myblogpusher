@@ -13,6 +13,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.app.myblogpusher.dto.ImageAssetView;
@@ -40,25 +41,48 @@ public class ImageManageController {
 	@Autowired
 	private ImageAssetService imageAssetService;
 
+	/**
+	 * 登録済み画像一覧表示
+	 *
+	 * categoryId指定時はカテゴリー内画像のみ表示。
+	 * 未指定の場合は全画像表示。
+	 */
 	@GetMapping("/image/list")
-	public String list(HttpSession session, Model model) {
+	public String list(
+			@RequestParam(required = false) Long categoryId,
+			HttpSession session,
+			Model model) {
+
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
+
 		Long userId = loginUser.getUserId();
 
-		List<ImageAssetView> images = imageAssetRepository.findByUserIdOrderByUploadDateDesc(userId).stream()
-				.map(a -> new ImageAssetView(
-						a.getImageId(),
-						a.getFolderName(),
-						a.getFileName(),
-						Optional.ofNullable(a.getCategoryId())
-								.flatMap(articleCategoryService::findById)
-								.map(ArticleCategory::getCategoryName)
-								.orElse("（未分類）"),
-						a.getUploadDate(),
-						supabaseStorageService.getImageUrl(a.getStoragePath())))
-				.toList();
+		List<ImageAssetView> images = (categoryId == null
+				? imageAssetRepository.findByUserIdOrderByUploadDateDesc(userId)
+				: imageAssetRepository.findByUserIdAndCategoryIdOrderByUploadDateDesc(
+						userId,
+						categoryId))
+								.stream()
+								.map(a -> new ImageAssetView(
+										a.getImageId(),
+										a.getFolderName(),
+										a.getFileName(),
+										Optional.ofNullable(a.getCategoryId())
+												.flatMap(articleCategoryService::findById)
+												.map(ArticleCategory::getCategoryName)
+												.orElse("（未分類）"),
+										a.getUploadDate(),
+										supabaseStorageService.getImageUrl(a.getStoragePath())))
+								.toList();
 
-		model.addAttribute("images", images);
+		model.addAttribute(
+				"images",
+				images);
+
+		model.addAttribute(
+				"categories",
+				articleCategoryService.findByUserId(userId));
+
 		return "image_list";
 	}
 
@@ -68,5 +92,24 @@ public class ImageManageController {
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 		int count = imageAssetService.importExistingImages(loginUser.getUserId());
 		return Map.of("result", "ok", "importedCount", count);
+	}
+	
+	/**
+	 * 画像新規登録画面表示
+	 */
+	@GetMapping("/image/new")
+	public String newImage(
+			HttpSession session,
+			Model model) {
+
+		UserMaster loginUser =
+				(UserMaster) session.getAttribute("loginUser");
+
+		model.addAttribute(
+				"categories",
+				articleCategoryService.findByUserId(
+						loginUser.getUserId()));
+
+		return "image_new";
 	}
 }

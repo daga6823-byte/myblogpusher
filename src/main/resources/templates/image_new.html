@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8">
+	<title>新規画像登録</title>
+	<link rel="stylesheet" th:href="@{/css/common.css}">
+</head>
+
+<body>
+
+	<div class="box">
+
+		<h1>新規画像登録</h1>
+
+		<select id="categorySelect">
+			<option value="">カテゴリー選択</option>
+
+			<option th:each="category : ${categories}" th:value="${category.categoryId}"
+				th:text="${category.displayName}">
+			</option>
+		</select>
+
+		<br><br>
+
+		<input type="text" id="folderName" placeholder="フォルダ名（任意）">
+
+		<br><br>
+
+		<input type="file" id="imageFile">
+
+		<br><br>
+
+		<button type="button" id="uploadButton" class="btn-save">
+			登録
+		</button>
+
+		<div id="status"></div>
+
+		<br>
+
+		<button type="button" class="btn-back" onclick="location.href='/image/list'">
+			戻る
+		</button>
+
+	</div>
+
+	<script th:src="@{/js/image_upload.js}"></script>
+
+</body>
+
+</html>
