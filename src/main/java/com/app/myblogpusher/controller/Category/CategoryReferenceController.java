@@ -79,13 +79,16 @@ public class CategoryReferenceController {
 
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 
+		Long referenceCategoryId = articleReferenceService.resolveReferenceCategoryId(categoryId);
+
 		articleReferenceService.save(
 				loginUser.getUserId(),
-				categoryId,
+				referenceCategoryId,
 				referenceName,
 				url);
 
-		return "redirect:/category/reference?categoryId=" + categoryId;
+		return "redirect:/category/reference?categoryId="
+				+ referenceCategoryId;
 	}
 
 	/**
