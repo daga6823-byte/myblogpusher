@@ -89,20 +89,7 @@ public class MarkdownFootnoteUtil {
 
 		}
 
-		StringBuilder result = new StringBuilder(body);
-
-		if (!reordered.isEmpty()) {
-
-			result.append("\n\n【参考文献】\n");
-
-			for (String def : reordered) {
-
-				result.append(def)
-						.append("\n\n");
-			}
-		}
-
-		return result.toString().trim() + "\n";
+		return body.trim() + "\n";
 	}
 
 }

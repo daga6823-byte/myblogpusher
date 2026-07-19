@@ -107,7 +107,7 @@ function insertImage(url) {
 
 		textarea.selectionStart =
 			textarea.selectionEnd =
-				imageInsertPosition + markdown.length;
+			imageInsertPosition + markdown.length;
 
 	} else {
 
@@ -126,8 +126,10 @@ function insertImage(url) {
 // 画像モーダル表示
 // -----------------------------------------------------
 document.getElementById('imageButton').addEventListener('click', function() {
-	
+
 	const textarea = document.querySelector('textarea[name="content"]');
+
+	textarea.focus();
 
 	imageInsertPosition = textarea.selectionStart;
 
