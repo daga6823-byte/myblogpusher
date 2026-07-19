@@ -36,13 +36,16 @@ public class ArticleSaveUtil {
 
 	@Autowired
 	private ArticleRepository articleRepository;
-	
+
 	public Long doSaveDraft(Long workId, String categorySelect, String newCategoryName,
 			String title, String content, Long userId) {
 
 		Long categoryId = resolveCategoryId(userId, categorySelect, newCategoryName);
 
 		String formattedContent = articleFormatService.formatContent(content);
+
+		formattedContent = MarkdownFootnoteUtil.normalize(formattedContent);
+
 		String slug = slugUtil.generateSlug(title);
 
 		if (workId == null) {
@@ -78,10 +81,10 @@ public class ArticleSaveUtil {
 	 * それ以外は選択プルダウンから渡されたcategoryIdの文字列をそのまま数値変換する。
 	 */
 	private Long resolveCategoryId(Long userId, String categorySelect, String newCategoryName) {
-		
+
 		System.out.println("categorySelect = " + categorySelect);
 		System.out.println("newCategoryName = " + newCategoryName);
-		
+
 		if ("__new__".equals(categorySelect)) {
 			return articleCategoryService.findByUserIdAndName(userId, newCategoryName)
 					.map(ArticleCategory::getCategoryId)
@@ -93,7 +96,7 @@ public class ArticleSaveUtil {
 		}
 		return Long.parseLong(categorySelect);
 	}
-	
+
 	@Transactional
 	public void deleteByUserIdAndSlug(
 			Long userId,
