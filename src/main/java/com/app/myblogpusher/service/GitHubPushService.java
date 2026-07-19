@@ -181,8 +181,8 @@ public class GitHubPushService {
 					newArticle);
 
 			articleWorkService.delete(
-					article.getUserId(),
-					workId);
+			        workId,
+			        article.getUserId());
 
 		} catch (Exception e) {
 

@@ -67,6 +67,12 @@ public class ArticleService {
 		article.setCategoryId(work.getCategoryId());
 		article.setTitle(work.getTitle());
 		article.setSlug(work.getSlug());
+		
+		article.setHugoPath(
+			    hugoArticleService.buildArticlePath(
+			        work.getCategoryId(),
+			        work.getSlug()));
+		
 		article.setContent(work.getContent());
 
 		article.setUpdateDate(LocalDateTime.now());
