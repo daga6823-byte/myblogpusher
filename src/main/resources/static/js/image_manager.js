@@ -14,6 +14,7 @@
 // true ：全カテゴリー
 // -----------------------------------------------------
 let imageShowAll = false;
+let imageInsertPosition = null;
 
 // -----------------------------------------------------
 // カテゴリーに対応するデフォルトフォルダ名を取得する
@@ -95,16 +96,40 @@ function insertImage(url) {
 	const textarea =
 		document.querySelector('textarea[name="content"]');
 
-	textarea.value += '\n![image](' + url + ')\n';
+	const markdown = '\n![image](' + url + ')\n';
+
+	if (imageInsertPosition !== null) {
+
+		textarea.value =
+			textarea.value.substring(0, imageInsertPosition)
+			+ markdown
+			+ textarea.value.substring(imageInsertPosition);
+
+		textarea.selectionStart =
+			textarea.selectionEnd =
+				imageInsertPosition + markdown.length;
+
+	} else {
+
+		textarea.value += markdown;
+
+	}
+
+	textarea.focus();
+
+	imageInsertPosition = null;
 
 	document.getElementById('imageModal').style.display = 'none';
-
 }
 
 // -----------------------------------------------------
 // 画像モーダル表示
 // -----------------------------------------------------
 document.getElementById('imageButton').addEventListener('click', function() {
+	
+	const textarea = document.querySelector('textarea[name="content"]');
+
+	imageInsertPosition = textarea.selectionStart;
 
 	imageShowAll = false;
 
