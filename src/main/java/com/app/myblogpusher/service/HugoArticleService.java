@@ -123,4 +123,36 @@ public class HugoArticleService {
 			}
 		}
 	}
+
+	/**
+	 * 記事のHugoパスを生成する
+	 *
+	 * 例：
+	 * movie/batman/gadget/grapple-gun
+	 */
+	public String buildArticlePath(
+			Long categoryId,
+			String slug) {
+
+		ArticleCategory category = articleCategoryRepository
+				.findById(categoryId)
+				.orElseThrow();
+
+		List<ArticleCategory> categoryPath = buildCategoryPath(category);
+
+		StringBuilder path = new StringBuilder();
+
+		for (ArticleCategory c : categoryPath) {
+
+			if (!path.isEmpty()) {
+				path.append("/");
+			}
+
+			path.append(c.getCategoryName());
+		}
+
+		path.append("/").append(slug);
+
+		return path.toString();
+	}
 }

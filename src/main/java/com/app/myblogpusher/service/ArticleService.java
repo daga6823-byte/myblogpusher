@@ -25,6 +25,9 @@ public class ArticleService {
 	@Autowired
 	private ArticleRepository articleRepository;
 
+	@Autowired
+	private HugoArticleService hugoArticleService;
+
 	public Article createFromWork(ArticleWork work) {
 
 		Article article = new Article();
@@ -35,7 +38,10 @@ public class ArticleService {
 		article.setSlug(work.getSlug());
 
 		// 初回投稿時のみ投稿先を確定
-		article.setHugoPath(work.getSlug());
+		article.setHugoPath(
+				hugoArticleService.buildArticlePath(
+						work.getCategoryId(),
+						work.getSlug()));
 
 		article.setContent(work.getContent());
 
@@ -102,7 +108,10 @@ public class ArticleService {
 		article.setCategoryId(categoryId);
 		article.setTitle(title);
 		article.setSlug(slug);
-		article.setHugoPath(slug);
+		article.setHugoPath(
+				hugoArticleService.buildArticlePath(
+						categoryId,
+						slug));
 		article.setContent(content);
 
 		article.setStatus(ArticleStatus.PUBLISHED);
