@@ -171,3 +171,20 @@ input.error {
 	background-color: #0454b0;
 	color: #fff;
 }
+
+/* ボタン風リンク共通 */
+a.btn-save,
+a.btn-publish,
+a.btn-correct,
+a.btn-back,
+a.btn-delete,
+a.btn-clear,
+a.btn-edit {
+	display: inline-block;
+	padding: 10px 20px;
+	border-radius: 4px;
+	text-decoration: none;
+	color: #fff;
+	cursor: pointer;
+	text-align: center;
+}
