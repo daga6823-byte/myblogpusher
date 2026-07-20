@@ -31,8 +31,8 @@ public class SentenceFormatService {
 			return body;
 		}
 
-		// 既存インデントだけ除去
-		String normalized = body.replace(INDENT, "");
+		// 既存インデントは保持する
+		String normalized = body;
 
 		StringBuilder result = new StringBuilder();
 		StringBuilder currentSentence = new StringBuilder();
@@ -91,9 +91,9 @@ public class SentenceFormatService {
 	 */
 	private void appendSentence(StringBuilder result, String sentence) {
 
-		String trimmed = sentence.trim();
+		String trimmed = sentence;
 
-		if (trimmed.isEmpty()) {
+		if (trimmed.trim().isEmpty()) {
 			return;
 		}
 
