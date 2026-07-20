@@ -77,25 +77,22 @@ function loadImageList() {
 				div.style.textAlign = 'center';
 
 				// URL末尾から画像ファイル名を取得
-				const fileName =
-					decodeURIComponent(
-						img.substring(img.lastIndexOf('/') + 1)
-					);
+				const fileName = img.fileName;
 
 				div.innerHTML =
 					`
-					<img src="${img}"
-						 style="width:100%;height:150px;object-fit:cover;"
-						 onclick="insertImage('${img}')">
+	<img src="${img.url}"
+		 style="width:100%;height:150px;object-fit:cover;"
+		 onclick="insertImage('${img.url}')">
 
-					<div style="
-						margin-top:5px;
-						font-size:13px;
-						word-break:break-all;
-					">
-						${fileName}
-					</div>
-					`;
+	<div style="
+		margin-top:5px;
+		font-size:13px;
+		word-break:break-all;
+	">
+		${fileName}
+	</div>
+	`;
 
 				list.appendChild(div);
 
