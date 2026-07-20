@@ -30,7 +30,7 @@
 				<input type="hidden" name="title" th:value="${form.articleTitle}">
 				<input type="hidden" name="content" th:value="${form.articleContent}">
 				<input type="hidden" name="categoryId" th:value="${form.categoryId}">
-				<input type="hidden" name="slug" th:value="${form.slug}">
+				<input type="hidden" id="slugHidden" name="slug" th:value="${form.slug}">
 				<button id="publishButton" type="submit" class="btn-publish">
 					投稿
 				</button>
