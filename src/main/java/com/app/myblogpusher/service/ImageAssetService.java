@@ -8,6 +8,7 @@ package com.app.myblogpusher.service;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -69,8 +70,32 @@ public class ImageAssetService {
 
 		File convertedFile = imageConvertService.convert(file);
 
+		String originalName = file.getOriginalFilename();
+
+		if (originalName == null) {
+			throw new IOException("ファイル名が取得できません");
+		}
+
+		String fileName = originalName;
+
+		if (originalName.toLowerCase().endsWith(".heic")) {
+			fileName = originalName.substring(
+					0,
+					originalName.lastIndexOf('.'))
+					+ ".webp";
+		}
+
+		File uploadFile = new File(
+				convertedFile.getParent(),
+				fileName);
+
+		Files.copy(
+				convertedFile.toPath(),
+				uploadFile.toPath(),
+				java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+
 		String storagePath = supabaseStorageService.uploadImage(
-				convertedFile,
+				uploadFile,
 				resolvedFolderName);
 
 		ImageAsset asset = new ImageAsset();
@@ -78,7 +103,7 @@ public class ImageAssetService {
 		asset.setCategoryId(categoryId);
 		asset.setWorkId(workId);
 		asset.setFolderName(resolvedFolderName);
-		asset.setFileName(convertedFile.getName());
+		asset.setFileName(fileName);
 		asset.setStoragePath(storagePath);
 		asset.setUploadDate(LocalDateTime.now());
 		asset.setCreateUser(userId);
