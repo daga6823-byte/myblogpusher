@@ -6,6 +6,9 @@
 // ・画像編集
 // ・画像インポート
 // ・新規画像登録画面遷移
+// ・画像編集
+// ・画像削除
+// ・画像インポート
 // =====================================================
 
 // -----------------------------------------------------
@@ -122,5 +125,43 @@ document.getElementById('saveImageButton').addEventListener('click', () => {
 			}
 
 		});
+
+});
+
+// -----------------------------------------------------
+// 画像削除
+// -----------------------------------------------------
+document.querySelectorAll('.btn-image-delete').forEach(btn => {
+
+	btn.addEventListener('click', () => {
+
+		const imageId = btn.dataset.imageId;
+
+		if (!confirm('この画像を削除しますか？')) {
+			return;
+		}
+
+		const params = new URLSearchParams();
+		params.append('imageId', imageId);
+
+		fetch('/article/images/delete', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/x-www-form-urlencoded'
+			},
+			body: params.toString()
+		})
+			.then(res => res.json())
+			.then(data => {
+
+				if (data.result === 'ok') {
+					location.reload();
+				} else {
+					alert(data.message);
+				}
+
+			});
+
+	});
 
 });

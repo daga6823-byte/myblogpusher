@@ -1,7 +1,10 @@
 /**
  * 画像機能を担当するコントローラー
- * DB(image_asset)に記録された画像の一覧取得、Supabase Storageへのアップロード、
- * カテゴリーに基づくデフォルトフォルダ名の取得を行う
+ *
+ * DB(image_asset)に記録された画像の一覧取得、
+ * Supabase Storageへのアップロード、
+ * 画像削除、
+ * カテゴリーに基づくデフォルトフォルダ名の取得を行う。
  */
 
 package com.app.myblogpusher.controller.Article;
@@ -31,13 +34,22 @@ public class ArticleImageController {
 	private ImageAssetService imageAssetService;
 
 	/**
-	 * DBに記録された画像一覧をJSONで返す（categoryId指定で絞り込み可）
+	 * DBに記録された画像一覧をJSONで返す
+	 *
+	 * URLだけでは削除対象を特定できないため、
+	 * imageIdを含めたImageAsset情報を返す。
 	 */
 	@GetMapping("/article/images")
 	@ResponseBody
-	public List<String> getImages(@RequestParam(required = false) Long categoryId, HttpSession session) {
+	public List<ImageAsset> getImages(
+			@RequestParam(required = false) Long categoryId,
+			HttpSession session) {
+
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
-		return imageAssetService.listImageUrls(loginUser.getUserId(), categoryId);
+
+		return imageAssetService.listImages(
+		        loginUser.getUserId(),
+		        categoryId);
 	}
 
 	/**
@@ -45,13 +57,17 @@ public class ArticleImageController {
 	 */
 	@GetMapping("/article/images/default-folder")
 	@ResponseBody
-	public Map<String, String> getDefaultFolder(@RequestParam Long categoryId) {
-		return Map.of("folderName", imageAssetService.resolveDefaultFolderName(categoryId));
+	public Map<String, String> getDefaultFolder(
+			@RequestParam Long categoryId) {
+
+		return Map.of(
+				"folderName",
+				imageAssetService.resolveDefaultFolderName(categoryId));
 	}
 
 	/**
-	 * 画像をアップロードし、Supabase StorageとDB(image_asset)の両方に記録する
-	 * folderNameが空ならcategoryIdから決まるデフォルトフォルダを使う
+	 * 画像をアップロードし、
+	 * Supabase StorageとDB(image_asset)へ登録する
 	 */
 	@PostMapping("/article/images/upload")
 	@ResponseBody
@@ -63,16 +79,70 @@ public class ArticleImageController {
 			HttpSession session) {
 
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
+
 		Long userId = loginUser.getUserId();
 
 		try {
-			ImageAsset asset = imageAssetService.uploadAndRegister(file, folderName, categoryId, workId, userId);
+
+			ImageAsset asset = imageAssetService.uploadAndRegister(
+					file,
+					folderName,
+					categoryId,
+					workId,
+					userId);
+
 			return Map.of(
 					"result", "ok",
 					"folderName", asset.getFolderName(),
 					"fileName", asset.getFileName());
+
 		} catch (IOException e) {
-			return Map.of("result", "error", "message", "アップロードに失敗しました");
+
+			return Map.of(
+					"result",
+					"error",
+					"message",
+					"アップロードに失敗しました");
+		}
+	}
+
+	/**
+	 * 画像削除
+	 *
+	 * Supabase Storageから画像を削除後、
+	 * DB(image_asset)のレコードも削除する。
+	 */
+	/**
+	 * 画像削除
+	 *
+	 * image_asset情報を削除し、
+	 * Supabase Storage上のファイルも削除する。
+	 */
+	@PostMapping("/article/images/delete")
+	@ResponseBody
+	public Map<String, Object> delete(
+			@RequestParam Long imageId,
+			HttpSession session) {
+
+		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
+
+		try {
+
+			imageAssetService.deleteImage(
+					imageId,
+					loginUser.getUserId());
+
+			return Map.of(
+					"result",
+					"ok");
+
+		} catch (Exception e) {
+
+			return Map.of(
+					"result",
+					"error",
+					"message",
+					"削除に失敗しました");
 		}
 	}
 }

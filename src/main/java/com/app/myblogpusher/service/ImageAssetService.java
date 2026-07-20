@@ -185,4 +185,52 @@ public class ImageAssetService {
 		imageAssetRepository.save(asset);
 
 	}
+
+	/**
+	 * 画像削除処理
+	 *
+	 * image_assetの登録情報を削除し、
+	 * Supabase Storage上の実ファイルも削除する。
+	 *
+	 * 記事本文から参照されている可能性はあるが、
+	 * 操作者自身が管理する画像のため削除判断は画面側で行う。
+	 */
+	public void deleteImage(
+			Long imageId,
+			Long userId) {
+
+		ImageAsset asset = imageAssetRepository.findById(imageId)
+				.orElseThrow();
+
+		// 他ユーザーの画像削除防止
+		if (!asset.getUserId().equals(userId)) {
+			throw new IllegalStateException(
+					"他ユーザーの画像は削除できません");
+		}
+
+		// Storage上の実ファイル削除
+		supabaseStorageService.deleteImage(
+				asset.getStoragePath());
+
+		// DB削除
+		imageAssetRepository.delete(asset);
+	}
+	
+	/**
+	 * 画像一覧取得
+	 *
+	 * 削除対象特定のためimageIdを含む
+	 * ImageAsset情報を返す。
+	 */
+	public List<ImageAsset> listImages(
+	        Long userId,
+	        Long categoryId) {
+
+	    return (categoryId != null)
+	            ? imageAssetRepository.findByUserIdAndCategoryIdOrderByUploadDateDesc(
+	                    userId,
+	                    categoryId)
+	            : imageAssetRepository.findByUserIdOrderByUploadDateDesc(
+	                    userId);
+	}
 }
