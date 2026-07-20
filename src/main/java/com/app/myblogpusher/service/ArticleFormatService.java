@@ -58,6 +58,8 @@ public class ArticleFormatService {
 		String body = normalized.substring(bodyStart)
 				.replaceFirst("^\n*", "");
 
+		body = formatBody(body);
+
 		return frontMatter
 				+ "\n\n\n"
 				+ body;
@@ -78,6 +80,8 @@ public class ArticleFormatService {
 		for (String line : lines) {
 
 			String trimmed = line.trim();
+
+			line = convertBracketHeading(line);
 
 			if (markdownStructureUtil.isCodeBlockStart(line)) {
 
@@ -124,5 +128,19 @@ public class ArticleFormatService {
 		}
 
 		return result.toString();
+	}
+	
+	/**
+	 * 【〇〇】形式をMarkdown見出しへ変換する
+	 */
+	private String convertBracketHeading(String line) {
+
+		String trimmed = line.trim();
+
+		if (trimmed.matches("^【.+】$")) {
+			return "### " + trimmed;
+		}
+
+		return line;
 	}
 }
