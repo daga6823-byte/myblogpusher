@@ -28,20 +28,21 @@ public class ArticleService {
 	@Autowired
 	private HugoArticleService hugoArticleService;
 
-	public Article createFromWork(ArticleWork work) {
+	public Article createFromWork(ArticleWork work, String slug) {
 
 		Article article = new Article();
 
 		article.setUserId(work.getUserId());
 		article.setCategoryId(work.getCategoryId());
 		article.setTitle(work.getTitle());
-		article.setSlug(
-		        work.getSlug());
+
+		// 画面で編集したslugを使用
+		article.setSlug(slug);
 
 		article.setHugoPath(
-		        hugoArticleService.buildArticlePath(
-		                work.getCategoryId(),
-		                work.getSlug()));
+				hugoArticleService.buildArticlePath(
+						work.getCategoryId(),
+						slug));
 
 		article.setContent(work.getContent());
 
@@ -62,17 +63,22 @@ public class ArticleService {
 	/**
 	 * 投稿済み記事を更新
 	 */
-	public Article updateFromWork(Article article, ArticleWork work) {
+	public Article updateFromWork(
+			Article article,
+			ArticleWork work,
+			String slug) {
 
 		article.setCategoryId(work.getCategoryId());
 		article.setTitle(work.getTitle());
-		article.setSlug(work.getSlug());
-		
+
+		// 画面で編集したslugを使用
+		article.setSlug(slug);
+
 		article.setHugoPath(
-			    hugoArticleService.buildArticlePath(
-			        work.getCategoryId(),
-			        work.getSlug()));
-		
+				hugoArticleService.buildArticlePath(
+						work.getCategoryId(),
+						slug));
+
 		article.setContent(work.getContent());
 
 		article.setUpdateDate(LocalDateTime.now());

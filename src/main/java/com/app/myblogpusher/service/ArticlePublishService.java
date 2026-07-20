@@ -29,36 +29,52 @@ public class ArticlePublishService {
 
 	/**
 	 * 下書きから投稿済み記事を作成または更新する
+	 *
+	 * slugは投稿確認画面で編集された最終値を使用する。
 	 */
-	private ArticlePublishResult createOrUpdateArticle(Long workId) {
+	private ArticlePublishResult createOrUpdateArticle(
+			Long workId,
+			String slug) {
 
 		ArticleWork work = articleWorkService.findById(workId);
 
-		// 新規投稿
+		// 新規投稿の場合
 		if (work.getArticleId() == null) {
+
+			Article article = articleService.createFromWork(
+					work,
+					slug);
+
 			return new ArticlePublishResult(
-					articleService.createFromWork(work),
+					article,
 					true);
 		}
 
-		Article article = articleService.findById(work.getArticleId());
+		// 投稿済み記事の更新の場合
+		Article article = articleService.updateFromWork(
+				articleService.findById(work.getArticleId()),
+				work,
+				slug);
 
 		return new ArticlePublishResult(
-				articleService.updateFromWork(article, work),
+				article,
 				false);
 	}
 
 	/**
 	 * 記事を非同期投稿する
+	 *
+	 * 画面で確定したslugをGitHub投稿まで引き継ぐ。
 	 */
 	public void publishAsync(
 			UserRepositoryEntity repository,
 			String cipherKey,
-			Long workId) {
+			Long workId,
+			String slug) {
 
-		// 投稿済み記事を作成または更新
-		ArticlePublishResult result =
-				createOrUpdateArticle(workId);
+		ArticlePublishResult result = createOrUpdateArticle(
+				workId,
+				slug);
 
 		// GitHubへ非同期投稿
 		gitHubPushService.pushArticleAsync(
@@ -66,8 +82,7 @@ public class ArticlePublishService {
 				cipherKey,
 				result.getArticle(),
 				result.isNewArticle(),
-				workId);
-
+				workId,
+				slug);
 	}
-
 }

@@ -33,7 +33,8 @@ public class HugoArticleService {
 	public void createArticle(
 			Git git,
 			String repoPath,
-			Article article)
+			Article article,
+			String slug)
 			throws IOException, GitAPIException {
 
 		// _index.md生成用
@@ -48,11 +49,16 @@ public class HugoArticleService {
 				repoPath,
 				categoryPath);
 
-		// 投稿先はDBに保存済みのhugoPathを使用する
+		// 投稿先は投稿確認画面で確定したslugから生成する
+		String hugoPath =
+				buildArticlePath(
+						article.getCategoryId(),
+						slug);
+
 		Path contentPath = Paths.get(
 				repoPath,
 				"content",
-				article.getHugoPath() + ".md");
+				hugoPath + ".md");
 
 		contentPath.getParent().toFile().mkdirs();
 

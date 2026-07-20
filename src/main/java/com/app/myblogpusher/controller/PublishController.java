@@ -42,13 +42,13 @@ public class PublishController {
 	private ArticleWorkspaceService workspaceService;
 
 	public PublishController(
-	        UserRepositoryRepository userRepositoryRepository,
-	        ArticleCategoryService articleCategoryService,
-	        ArticlePublishService articlePublishService) {
+			UserRepositoryRepository userRepositoryRepository,
+			ArticleCategoryService articleCategoryService,
+			ArticlePublishService articlePublishService) {
 
-	    this.userRepositoryRepository = userRepositoryRepository;
-	    this.articleCategoryService = articleCategoryService;
-	    this.articlePublishService = articlePublishService;
+		this.userRepositoryRepository = userRepositoryRepository;
+		this.articleCategoryService = articleCategoryService;
+		this.articlePublishService = articlePublishService;
 	}
 
 	@PostMapping("/publish/preview")
@@ -104,12 +104,14 @@ public class PublishController {
 	}
 
 	@PostMapping("/publish/execute")
-	public String executePublish(@RequestParam(required = false) Long workId,
-			@RequestParam String title,
-			@RequestParam String content,
-			@RequestParam Long categoryId,
-			HttpSession session,
-			Model model) {
+	public String executePublish(
+	        @RequestParam(required = false) Long workId,
+	        @RequestParam String title,
+	        @RequestParam String content,
+	        @RequestParam Long categoryId,
+	        @RequestParam String slug,
+	        HttpSession session,
+	        Model model) {
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 
 		if (loginUser == null) {
@@ -130,7 +132,8 @@ public class PublishController {
 		articlePublishService.publishAsync(
 				repo,
 				loginUser.getCipherKey(),
-				workId);
+				workId,
+				slug);
 
 		workspaceService.delete(userId);
 

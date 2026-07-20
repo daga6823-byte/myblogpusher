@@ -54,7 +54,8 @@ public class GitHubPushService {
 			UserRepositoryEntity repoEntity,
 			String cipherKey,
 			Article article,
-			boolean newArticle)
+			boolean newArticle,
+			String slug)
 			throws IOException, GitAPIException {
 
 		String accessToken = tokenCipherService.decrypt(
@@ -82,7 +83,8 @@ public class GitHubPushService {
 			hugoArticleService.createArticle(
 					git,
 					repoPath,
-					article);
+					article,
+					slug);
 
 			String action = article.getPublishDate()
 					.equals(article.getUpdateDate())
@@ -165,7 +167,8 @@ public class GitHubPushService {
 			String cipherKey,
 			Article article,
 			boolean newArticle,
-			Long workId) {
+			Long workId,
+			String slug) {
 
 		try {
 
@@ -178,7 +181,8 @@ public class GitHubPushService {
 					repository,
 					cipherKey,
 					article,
-					newArticle);
+					newArticle,
+					slug);
 
 			articleWorkService.delete(
 			        workId,
