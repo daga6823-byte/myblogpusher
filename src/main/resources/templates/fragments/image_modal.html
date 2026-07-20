@@ -4,15 +4,12 @@
 <body>
 
 	<!--
-		画像管理モーダル
+		画像選択モーダル
 
-		・画像アップロード
 		・画像一覧表示
-		・本文への画像挿入
-		を担当する。
-
-		画像挿入時はimageWidthの値を使用し、
-		HTML画像タグの表示サイズとして反映する。
+		・画像アップロード
+		・画像幅指定
+		・Markdown挿入
 	-->
 	<div th:fragment="imageModal" id="imageModal"
 		style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
@@ -23,19 +20,20 @@
 			<h2>画像選択</h2>
 
 
-			<!--
-				画像アップロード領域
-
-				保存先フォルダはカテゴリーから自動取得可能。
-				指定したフォルダへ画像をアップロードする。
-			-->
+			<!-- 画像アップロードエリア -->
 			<div style="border: 1px solid #ddd; padding: 12px; border-radius: 4px; margin-bottom: 16px;">
 
-				<label for="imageFolderName">保存先フォルダ</label>
+				<label for="imageFolderName">
+					保存先フォルダ
+				</label>
+
 				<input type="text" id="imageFolderName" placeholder="カテゴリーから自動入力されます">
 
 
-				<label for="imageFileInput">画像ファイル</label>
+				<label for="imageFileInput">
+					画像ファイル
+				</label>
+
 				<input type="file" id="imageFileInput" accept="image/*">
 
 
@@ -43,60 +41,53 @@
 					アップロード
 				</button>
 
-				<span id="imageUploadStatus" style="margin-left:8px; font-size:13px;"></span>
+
+				<span id="imageUploadStatus" style="margin-left:8px; font-size:13px;">
+				</span>
 
 			</div>
 
 
-			<!--
-				画像表示範囲切替
-
-				初期状態：
-				現在カテゴリーの画像のみ
-
-				切替後：
-				全カテゴリーの画像
-			-->
+			<!-- 表示範囲切替 -->
 			<div style="margin-bottom: 8px;">
+
 				<button type="button" id="imageScopeToggle" class="btn-back">
 					全カテゴリー表示に切り替え
 				</button>
+
 			</div>
 
 
-			<!--
-				本文へ挿入する画像サイズ指定
+			<!-- 挿入画像サイズ指定 -->
+			<div style="margin-bottom: 12px;">
 
-				image_manager.jsのinsertImage()で取得し、
-				生成するimgタグのmax-widthへ反映する。
+				<label>
+					画像幅(px)
+					<input type="number" id="imageWidth" value="300" min="50" max="1000">
+				</label>
 
-				例：
-				300の場合
-
-				<img src="URL" style="max-width:300px; width:100%;">
-			-->
-			<label>
-				画像幅(px)
-				<input type="number" id="imageWidth" value="300">
-			</label>
+			</div>
 
 
 			<!--
 				画像一覧
 
-				クリックした画像を本文へ挿入する。
+				JS側で
+				・サムネイル
+				・画像名
+				を生成する
 			-->
 			<div id="imageList"
 				style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px;">
+
 			</div>
 
 
-			<!--
-				モーダルを閉じる
-			-->
 			<button type="button" onclick="document.getElementById('imageModal').style.display='none';"
 				class="btn-back">
+
 				キャンセル
+
 			</button>
 
 		</div>

@@ -74,11 +74,28 @@ function loadImageList() {
 				const div = document.createElement('div');
 
 				div.style.cursor = 'pointer';
+				div.style.textAlign = 'center';
+
+				// URL末尾から画像ファイル名を取得
+				const fileName =
+					decodeURIComponent(
+						img.substring(img.lastIndexOf('/') + 1)
+					);
 
 				div.innerHTML =
-					`<img src="${img}"
-						  style="width:100%;height:150px;object-fit:cover;"
-						  onclick="insertImage('${img}')">`;
+					`
+					<img src="${img}"
+						 style="width:100%;height:150px;object-fit:cover;"
+						 onclick="insertImage('${img}')">
+
+					<div style="
+						margin-top:5px;
+						font-size:13px;
+						word-break:break-all;
+					">
+						${fileName}
+					</div>
+					`;
 
 				list.appendChild(div);
 
@@ -272,4 +289,3 @@ document.getElementById('newImageButton')
 			'/article/images/new';
 
 	});
-	
