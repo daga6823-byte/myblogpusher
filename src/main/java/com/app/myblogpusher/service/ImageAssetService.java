@@ -64,9 +64,21 @@ public class ImageAssetService {
 			Long workId,
 			Long userId) throws IOException {
 
-		String resolvedFolderName = (folderName != null && !folderName.isBlank())
-				? folderName
-				: resolveDefaultFolderName(categoryId);
+		String resolvedFolderName;
+
+		if (folderName != null && !folderName.isBlank()) {
+
+			resolvedFolderName = folderName;
+
+		} else if (categoryId != null) {
+
+			resolvedFolderName = resolveDefaultFolderName(categoryId);
+
+		} else {
+
+			resolvedFolderName = "misc";
+
+		}
 
 		File convertedFile = imageConvertService.convert(file);
 

@@ -74,7 +74,7 @@ public class ArticleImageController {
 	@ResponseBody
 	public Map<String, Object> upload(
 			@RequestParam MultipartFile file,
-			@RequestParam Long categoryId,
+			@RequestParam(required = false) Long categoryId,
 			@RequestParam(required = false) String folderName,
 			@RequestParam(required = false) Long workId,
 			HttpSession session) {

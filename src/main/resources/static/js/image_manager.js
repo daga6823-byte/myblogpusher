@@ -216,15 +216,13 @@ document.getElementById('imageUploadButton').addEventListener('click', function(
 		return;
 	}
 
-	if (!categoryId || categoryId === '__new__') {
-		alert('先にカテゴリーを選択してください');
-		return;
-	}
-
 	const formData = new FormData();
 
 	formData.append('file', fileInput.files[0]);
-	formData.append('categoryId', categoryId);
+
+	if (categoryId && categoryId !== '__new__') {
+		formData.append('categoryId', categoryId);
+	}
 
 	if (folderName) {
 		formData.append('folderName', folderName);

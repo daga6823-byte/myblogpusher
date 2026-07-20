@@ -14,16 +14,24 @@
 		<h1>新規画像登録</h1>
 
 		<select id="categorySelect">
-			<option value="">カテゴリー選択</option>
+
+			<option value="">
+				未分類
+			</option>
 
 			<option th:each="category : ${categories}" th:value="${category.categoryId}"
 				th:text="${category.displayName}">
 			</option>
+
 		</select>
 
 		<br><br>
 
 		<input type="text" id="folderName" placeholder="フォルダ名（任意）">
+
+		<button type="button" id="defaultFolderButton">
+			カテゴリーから取得
+		</button>
 
 		<br><br>
 
