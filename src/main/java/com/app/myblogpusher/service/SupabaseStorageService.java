@@ -6,7 +6,9 @@
 
 package com.app.myblogpusher.service;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -19,7 +21,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -69,21 +70,40 @@ public class SupabaseStorageService {
 	 * 画像をSupabase Storageの指定フォルダにアップロードする
 	 * 戻り値はバケット内の相対パス（folderName/fileName）
 	 */
-	public String uploadImage(MultipartFile file, String folderName) throws IOException {
-		String fileName = file.getOriginalFilename();
+	/**
+	 * 変換後画像（File）をSupabase Storageへアップロードする
+	 *
+	 * HEIC→WebP変換後などMultipartFileではない画像を登録する場合に使用
+	 */
+	public String uploadImage(
+			File file,
+			String folderName) throws IOException {
+
+		String fileName = file.getName();
+
 		String path = folderName + "/" + fileName;
-		String url = supabaseUrl + "/storage/v1/object/" + bucketName + "/" + path;
+
+		String url = supabaseUrl
+				+ "/storage/v1/object/"
+				+ bucketName
+				+ "/"
+				+ path;
 
 		HttpHeaders headers = new HttpHeaders();
 		headers.set("apikey", supabaseKey);
-		MediaType contentType = file.getContentType() != null
-				? MediaType.parseMediaType(file.getContentType())
-				: MediaType.APPLICATION_OCTET_STREAM;
-		headers.setContentType(contentType);
+		headers.setContentType(
+				MediaType.parseMediaType(
+						Files.probeContentType(file.toPath())));
 
-		HttpEntity<byte[]> entity = new HttpEntity<>(file.getBytes(), headers);
+		HttpEntity<byte[]> entity = new HttpEntity<>(
+				Files.readAllBytes(file.toPath()),
+				headers);
 
-		restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
+		restTemplate.exchange(
+				url,
+				HttpMethod.POST,
+				entity,
+				String.class);
 
 		return path;
 	}

@@ -106,7 +106,8 @@ function renderProofreadResults(content, results) {
 	});
 
 	renderHighlight();
-});
+
+}
 
 
 // 選択した推敲候補を本文へ適用する

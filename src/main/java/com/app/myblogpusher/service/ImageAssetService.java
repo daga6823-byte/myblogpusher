@@ -6,6 +6,7 @@
 
 package com.app.myblogpusher.service;
 
+import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -38,6 +39,9 @@ public class ImageAssetService {
 	@Autowired
 	private SlugUtil slugUtil;
 
+	@Autowired
+	private ImageConvertService imageConvertService;
+
 	/**
 	 * カテゴリーからデフォルトのフォルダ名（スラッグ）を求める
 	 */
@@ -63,14 +67,18 @@ public class ImageAssetService {
 				? folderName
 				: resolveDefaultFolderName(categoryId);
 
-		String storagePath = supabaseStorageService.uploadImage(file, resolvedFolderName);
+		File convertedFile = imageConvertService.convert(file);
+
+		String storagePath = supabaseStorageService.uploadImage(
+				convertedFile,
+				resolvedFolderName);
 
 		ImageAsset asset = new ImageAsset();
 		asset.setUserId(userId);
 		asset.setCategoryId(categoryId);
 		asset.setWorkId(workId);
 		asset.setFolderName(resolvedFolderName);
-		asset.setFileName(file.getOriginalFilename());
+		asset.setFileName(convertedFile.getName());
 		asset.setStoragePath(storagePath);
 		asset.setUploadDate(LocalDateTime.now());
 		asset.setCreateUser(userId);
@@ -216,7 +224,7 @@ public class ImageAssetService {
 		// DB削除
 		imageAssetRepository.delete(asset);
 	}
-	
+
 	/**
 	 * 画像一覧取得
 	 *
@@ -224,25 +232,25 @@ public class ImageAssetService {
 	 * ImageAsset情報を返す。
 	 */
 	public List<ImageAssetView> listImages(
-	        Long userId,
-	        Long categoryId) {
+			Long userId,
+			Long categoryId) {
 
-	    List<ImageAsset> assets = (categoryId != null)
-	            ? imageAssetRepository.findByUserIdAndCategoryIdOrderByUploadDateDesc(
-	                    userId,
-	                    categoryId)
-	            : imageAssetRepository.findByUserIdOrderByUploadDateDesc(
-	                    userId);
+		List<ImageAsset> assets = (categoryId != null)
+				? imageAssetRepository.findByUserIdAndCategoryIdOrderByUploadDateDesc(
+						userId,
+						categoryId)
+				: imageAssetRepository.findByUserIdOrderByUploadDateDesc(
+						userId);
 
-	    return assets.stream()
-	            .map(asset -> new ImageAssetView(
-	                    asset.getImageId(),
-	                    asset.getCategoryId(),
-	                    asset.getFolderName(),
-	                    asset.getFileName(),
-	                    null,
-	                    asset.getUploadDate(),
-	                    supabaseStorageService.getImageUrl(asset.getStoragePath())))
-	            .toList();
+		return assets.stream()
+				.map(asset -> new ImageAssetView(
+						asset.getImageId(),
+						asset.getCategoryId(),
+						asset.getFolderName(),
+						asset.getFileName(),
+						null,
+						asset.getUploadDate(),
+						supabaseStorageService.getImageUrl(asset.getStoragePath())))
+				.toList();
 	}
 }
