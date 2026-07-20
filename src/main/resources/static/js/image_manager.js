@@ -89,29 +89,53 @@ function loadImageList() {
 }
 
 // -----------------------------------------------------
-// 画像をMarkdownへ挿入する
+// 画像を本文へ挿入する
+//
+// 挿入時に指定したサイズをHTML styleへ反映する
 // -----------------------------------------------------
 function insertImage(url) {
 
 	const textarea =
 		document.querySelector('textarea[name="content"]');
 
-	const markdown = '\n![image](' + url + ')\n';
+	const widthInput = document.getElementById('imageWidth');
+
+	const width =
+		widthInput && widthInput.value
+			? widthInput.value
+			: '';
+
+	let imageTag;
+
+	if (width) {
+
+		imageTag =
+			'\n<img src="' + url +
+			'" style="max-width:' + width +
+			'px; width:100%;">\n';
+
+	} else {
+
+		imageTag =
+			'\n<img src="' + url +
+			'" style="width:100%;">\n';
+	}
+
 
 	if (imageInsertPosition !== null) {
 
 		textarea.value =
 			textarea.value.substring(0, imageInsertPosition)
-			+ markdown
+			+ imageTag
 			+ textarea.value.substring(imageInsertPosition);
 
 		textarea.selectionStart =
 			textarea.selectionEnd =
-			imageInsertPosition + markdown.length;
+			imageInsertPosition + imageTag.length;
 
 	} else {
 
-		textarea.value += markdown;
+		textarea.value += imageTag;
 
 	}
 
