@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.app.myblogpusher.dto.ImageAssetView;
 import com.app.myblogpusher.entity.ImageAsset;
 import com.app.myblogpusher.entity.UserMaster;
 import com.app.myblogpusher.service.ImageAssetService;
@@ -41,7 +42,7 @@ public class ArticleImageController {
 	 */
 	@GetMapping("/article/images")
 	@ResponseBody
-	public List<ImageAsset> getImages(
+	public List<ImageAssetView> getImages(
 			@RequestParam(required = false) Long categoryId,
 			HttpSession session) {
 

@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.app.myblogpusher.dto.ImageAssetView;
 import com.app.myblogpusher.entity.ArticleCategory;
 import com.app.myblogpusher.entity.ImageAsset;
 import com.app.myblogpusher.repository.ImageAssetRepository;
@@ -222,15 +223,26 @@ public class ImageAssetService {
 	 * 削除対象特定のためimageIdを含む
 	 * ImageAsset情報を返す。
 	 */
-	public List<ImageAsset> listImages(
+	public List<ImageAssetView> listImages(
 	        Long userId,
 	        Long categoryId) {
 
-	    return (categoryId != null)
+	    List<ImageAsset> assets = (categoryId != null)
 	            ? imageAssetRepository.findByUserIdAndCategoryIdOrderByUploadDateDesc(
 	                    userId,
 	                    categoryId)
 	            : imageAssetRepository.findByUserIdOrderByUploadDateDesc(
 	                    userId);
+
+	    return assets.stream()
+	            .map(asset -> new ImageAssetView(
+	                    asset.getImageId(),
+	                    asset.getCategoryId(),
+	                    asset.getFolderName(),
+	                    asset.getFileName(),
+	                    null,
+	                    asset.getUploadDate(),
+	                    supabaseStorageService.getImageUrl(asset.getStoragePath())))
+	            .toList();
 	}
 }
