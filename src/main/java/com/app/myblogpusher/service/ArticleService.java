@@ -101,7 +101,12 @@ public class ArticleService {
 			String content,
 			LocalDateTime publishDate) {
 
-		Optional<Article> existing = articleRepository.findByUserIdAndSlug(userId, slug);
+		String articleSlug =
+		        slug.substring(slug.lastIndexOf('/') + 1);
+		
+		Optional<Article> existing = articleRepository.findByUserIdAndSlug(
+				userId,
+				articleSlug);
 
 		Article article = existing.orElseGet(Article::new);
 
@@ -117,13 +122,10 @@ public class ArticleService {
 			article.setCreateUser(userId);
 			article.setCategoryId(categoryId);
 		}
-		
+
 		article.setTitle(title);
-		article.setSlug(slug);
-		article.setHugoPath(
-				hugoArticleService.buildArticlePath(
-						categoryId,
-						slug));
+		article.setSlug(articleSlug);
+		article.setHugoPath(slug);
 		article.setContent(content);
 
 		article.setStatus(ArticleStatus.PUBLISHED);

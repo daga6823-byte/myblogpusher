@@ -40,7 +40,7 @@
 			<button type="button" id="insertFootnoteButton">挿入</button>
 		</div>
 		
-		<div th:replace="article/fragments/reference_selector :: referenceSelector"></div>
+		<div th:replace="~{article/fragments/reference_selector :: referenceSelector}"></div>
 
 		<label for="draftSelect">公開状態</label>
 		<select id="draftSelect" name="draftSelect">
