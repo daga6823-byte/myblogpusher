@@ -278,7 +278,7 @@ public class ArticleCategoryService {
 		// ルートカテゴリーしかない場合
 		return categoryId;
 	}
-
+	
 	/**
 	 * フルパスからカテゴリーIDを取得する
 	 *
@@ -288,59 +288,62 @@ public class ArticleCategoryService {
 	 * → ガジェットのcategoryIdを返す
 	 */
 	public Long findCategoryIdByFullPath(
-			Long userId,
-			String fullPath) {
+	        Long userId,
+	        String fullPath) {
 
-		if (fullPath == null || fullPath.isBlank()) {
-			return null;
-		}
+	    if (fullPath == null || fullPath.isBlank()) {
+	        return null;
+	    }
 
-		List<ArticleCategory> categories = articleCategoryRepository.findByUserId(userId);
+	    List<ArticleCategory> categories =
+	            articleCategoryRepository.findByUserId(userId);
 
-		if (categories.isEmpty()) {
-			return null;
-		}
+	    if (categories.isEmpty()) {
+	        return null;
+	    }
 
-		Map<Long, List<ArticleCategory>> childrenMap = new HashMap<>();
+	    Map<Long, List<ArticleCategory>> childrenMap = new HashMap<>();
 
-		for (ArticleCategory category : categories) {
+	    for (ArticleCategory category : categories) {
 
-			Long parentId = category.getParentCategoryId();
+	        Long parentId = category.getParentCategoryId();
 
-			childrenMap
-					.computeIfAbsent(parentId, k -> new ArrayList<>())
-					.add(category);
-		}
+	        childrenMap
+	                .computeIfAbsent(parentId, k -> new ArrayList<>())
+	                .add(category);
+	    }
 
-		String[] names = fullPath.split("/");
+	    String[] names = fullPath.split("/");
 
-		Long parentId = null;
-		ArticleCategory current = null;
+	    Long parentId = null;
+	    ArticleCategory current = null;
 
-		for (String name : names) {
+	    for (String name : names) {
 
-			List<ArticleCategory> children = childrenMap.getOrDefault(parentId, List.of());
+	        List<ArticleCategory> children =
+	                childrenMap.getOrDefault(parentId, List.of());
 
-			current = children.stream()
-					.filter(c -> {
+	        current = children.stream()
+	                .filter(c -> {
 
-						String label = (c.getDisplayName() != null && !c.getDisplayName().isBlank())
-								? c.getDisplayName()
-								: c.getCategoryName();
+	                    String label =
+	                            (c.getDisplayName() != null && !c.getDisplayName().isBlank())
+	                                    ? c.getDisplayName()
+	                                    : c.getCategoryName();
 
-						return label.equals(name);
-					})
-					.findFirst()
-					.orElse(null);
+	                    return label.equals(name);
+	                })
+	                .findFirst()
+	                .orElse(null);
 
-			if (current == null) {
-				return null;
-			}
+	        if (current == null) {
+	            return null;
+	        }
 
-			parentId = current.getCategoryId();
-		}
+	        parentId = current.getCategoryId();
+	    }
 
-		return current.getCategoryId();
+	    return current.getCategoryId();
 	}
 
 }

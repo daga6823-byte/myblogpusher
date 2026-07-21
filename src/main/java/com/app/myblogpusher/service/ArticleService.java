@@ -115,9 +115,9 @@ public class ArticleService {
 			article.setUserId(userId);
 			article.setCreateDate(articleDate);
 			article.setCreateUser(userId);
+			article.setCategoryId(categoryId);
 		}
-
-		article.setCategoryId(categoryId);
+		
 		article.setTitle(title);
 		article.setSlug(slug);
 		article.setHugoPath(

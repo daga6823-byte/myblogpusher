@@ -47,10 +47,10 @@ public class PublishedArticleService {
 
 	@Autowired
 	private ArticleCategoryService articleCategoryService;
-	
+
 	@Autowired
 	private ArticleRepository articleRepository;
-	
+
 	public List<PublishedArticleSummaryDto> getPublishedArticles(UserRepositoryEntity repo, String cipherKey,
 			HttpSession session)
 			throws IOException {
@@ -190,17 +190,17 @@ public class PublishedArticleService {
 	 */
 	private boolean isUnderCategoryRoot(String path) {
 
-	    if (!path.startsWith("content/") || !path.endsWith(".md")) {
-	        return false;
-	    }
+		if (!path.startsWith("content/") || !path.endsWith(".md")) {
+			return false;
+		}
 
-	    if (path.endsWith("/_index.md")) {
-	        return false;
-	    }
+		if (path.endsWith("/_index.md")) {
+			return false;
+		}
 
-	    String rest = path.substring("content/".length());
+		String rest = path.substring("content/".length());
 
-	    return rest.contains("/");
+		return rest.contains("/");
 	}
 
 	private String fetchContentViaApi(String url, String token) throws IOException {
@@ -258,17 +258,20 @@ public class PublishedArticleService {
 
 				Long categoryId = null;
 
-				int lastSlash = article.getSlug().lastIndexOf('/');
+				String[] pathParts = article.getSlug().split("/");
 
-				if (lastSlash > 0) {
+				if (pathParts.length > 1) {
 
-				    String categoryPath =
-				            article.getSlug().substring(0, lastSlash);
+					String categoryName = pathParts[0];
 
-				    categoryId =
-				            articleCategoryService.findCategoryIdByFullPath(
-				                    userId,
-				                    categoryPath);
+					categoryId = articleCategoryService
+							.findByUserIdAndName(userId, categoryName)
+							.map(c -> c.getCategoryId())
+							.orElseGet(() -> articleCategoryService.insertCategory(
+									userId,
+									categoryName,
+									null,
+									categoryName));
 				}
 
 				articleService.saveFromGitHub(
@@ -278,16 +281,14 @@ public class PublishedArticleService {
 						article.getTitle(),
 						article.getContent(),
 						article.getUpdateDate());
-				
-				List<Article> dbArticles =
-						articleRepository.findByUserId(userId);
+
+				List<Article> dbArticles = articleRepository.findByUserId(userId);
 
 				for (Article dbArticle : dbArticles) {
 
 					boolean exists = articles.stream()
-							.anyMatch(github ->
-									github.getSlug()
-											.equals(dbArticle.getSlug()));
+							.anyMatch(github -> github.getSlug()
+									.equals(dbArticle.getSlug()));
 
 					if (!exists) {
 
@@ -306,7 +307,7 @@ public class PublishedArticleService {
 			System.err.println(
 					"投稿済み記事同期に失敗しました: "
 							+ e.getMessage());
-		}	
+		}
 	}
 
 }
