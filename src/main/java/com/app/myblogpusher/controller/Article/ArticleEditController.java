@@ -59,6 +59,9 @@ public class ArticleEditController {
 
 		// カテゴリー選択プルダウン用（categoryId + フルパス表示）
 		List<CategoryOptionView> categories = articleCategoryService.findSelectableCategories(userId);
+
+		categories.forEach(c -> System.out.println(c.getCategoryId() + " : " + c.getFullPath()));
+
 		model.addAttribute("categories", categories);
 
 		if (workId != null) {
@@ -109,10 +112,9 @@ public class ArticleEditController {
 			return "redirect:/article/list";
 		}
 
-
 		// 下書き保存後は一時ワークスペースを削除
 		workspaceService.delete(userId);
-		
+
 		return "redirect:/article/edit?workId=" + savedWorkId + "&saved=true";
 	}
 
