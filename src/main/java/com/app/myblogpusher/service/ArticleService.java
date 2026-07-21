@@ -97,16 +97,14 @@ public class ArticleService {
 			Long userId,
 			Long categoryId,
 			String slug,
+			String hugoPath,
 			String title,
 			String content,
 			LocalDateTime publishDate) {
 
-		String articleSlug =
-		        slug.substring(slug.lastIndexOf('/') + 1);
-		
 		Optional<Article> existing = articleRepository.findByUserIdAndSlug(
 				userId,
-				articleSlug);
+				slug);
 
 		Article article = existing.orElseGet(Article::new);
 
@@ -124,8 +122,13 @@ public class ArticleService {
 		}
 
 		article.setTitle(title);
-		article.setSlug(articleSlug);
-		article.setHugoPath(slug);
+
+		// ファイル名のみ
+		article.setSlug(slug);
+
+		// Hugo上のフルパス
+		article.setHugoPath(hugoPath);
+
 		article.setContent(content);
 
 		article.setStatus(ArticleStatus.PUBLISHED);

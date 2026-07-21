@@ -83,11 +83,21 @@ public class PublishedArticleService {
 						String contentApiUrl = "https://api.github.com/repos/" + owner + "/" + repoName + "/contents/"
 								+ path;
 						String mdContent = fetchContentViaApi(contentApiUrl, accessToken);
-						// 例: content/movie/batman/1989/batman1989_review1.md -> movie/batman/1989/batman1989_review1
-						String slug = path.replaceFirst("^content/", "").replace(".md", "");
+						String hugoPath = path
+								.replaceFirst("^content/", "")
+								.replaceFirst("\\.md$", "");
+
+						String slug = hugoPath.substring(
+								hugoPath.lastIndexOf("/") + 1);
+
 						String title = frontMatterUtil.extractTitle(mdContent);
 						LocalDateTime updateDate = frontMatterUtil.extractDate(mdContent);
-						return new PublishedArticleSummaryDto(slug, title, updateDate);
+
+						return new PublishedArticleSummaryDto(
+								slug,
+								hugoPath,
+								title,
+								updateDate);
 					} catch (IOException e) {
 						return null;
 					}
@@ -112,32 +122,56 @@ public class PublishedArticleService {
 		return result;
 	}
 
-	public PublishedArticleDto getPublishedArticle(UserRepositoryEntity repo, String cipherKey, String slug)
+	public PublishedArticleDto getPublishedArticle(
+			UserRepositoryEntity repo,
+			String cipherKey,
+			String hugoPath)
 			throws IOException {
+
 		String accessToken = tokenCipherService.decrypt(
 				repo.getAccessToken(),
 				repo.getTokenIv(),
 				cipherKey);
 
-		// slugはカテゴリールートからのフルパス（例: movie/batman/1989/batman1989_review1）
 		String apiUrl = "https://api.github.com/repos/"
-				+ repo.getRepoOwner() + "/" + repo.getRepoName()
-				+ "/contents/content/" + slug + ".md";
+				+ repo.getRepoOwner() + "/"
+				+ repo.getRepoName()
+				+ "/contents/content/"
+				+ hugoPath
+				+ ".md";
 
 		HttpURLConnection conn = (HttpURLConnection) new URL(apiUrl).openConnection();
-		conn.setRequestProperty("Authorization", "token " + accessToken);
-		conn.setRequestProperty("Accept", "application/vnd.github.v3+json");
+
+		conn.setRequestProperty(
+				"Authorization",
+				"token " + accessToken);
+
+		conn.setRequestProperty(
+				"Accept",
+				"application/vnd.github.v3+json");
 
 		if (conn.getResponseCode() != 200) {
 			return null;
 		}
 
 		String mdContent = fetchContentViaApi(apiUrl, accessToken);
+
+		String slug = hugoPath.substring(
+				hugoPath.lastIndexOf("/") + 1);
+
 		String title = frontMatterUtil.extractTitle(mdContent);
+
 		List<String> categories = frontMatterUtil.extractCategories(mdContent);
+
 		LocalDateTime updateDate = frontMatterUtil.extractDate(mdContent);
 
-		return new PublishedArticleDto(slug, title, updateDate, mdContent, categories);
+		return new PublishedArticleDto(
+				slug,
+				hugoPath,
+				title,
+				updateDate,
+				mdContent,
+				categories);
 	}
 
 	/**
@@ -250,7 +284,7 @@ public class PublishedArticleService {
 				PublishedArticleDto article = getPublishedArticle(
 						repo,
 						cipherKey,
-						summary.getSlug());
+						summary.getHugoPath());
 
 				if (article == null) {
 					continue;
@@ -278,6 +312,7 @@ public class PublishedArticleService {
 						userId,
 						categoryId,
 						article.getSlug(),
+						article.getHugoPath(),
 						article.getTitle(),
 						article.getContent(),
 						article.getUpdateDate());
