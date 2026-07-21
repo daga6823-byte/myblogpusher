@@ -279,4 +279,68 @@ public class ArticleCategoryService {
 		return categoryId;
 	}
 
+	/**
+	 * フルパスからカテゴリーIDを取得する
+	 *
+	 * 例:
+	 * 映画/バットマン/ガジェット
+	 *
+	 * → ガジェットのcategoryIdを返す
+	 */
+	public Long findCategoryIdByFullPath(
+			Long userId,
+			String fullPath) {
+
+		if (fullPath == null || fullPath.isBlank()) {
+			return null;
+		}
+
+		List<ArticleCategory> categories = articleCategoryRepository.findByUserId(userId);
+
+		if (categories.isEmpty()) {
+			return null;
+		}
+
+		Map<Long, List<ArticleCategory>> childrenMap = new HashMap<>();
+
+		for (ArticleCategory category : categories) {
+
+			Long parentId = category.getParentCategoryId();
+
+			childrenMap
+					.computeIfAbsent(parentId, k -> new ArrayList<>())
+					.add(category);
+		}
+
+		String[] names = fullPath.split("/");
+
+		Long parentId = null;
+		ArticleCategory current = null;
+
+		for (String name : names) {
+
+			List<ArticleCategory> children = childrenMap.getOrDefault(parentId, List.of());
+
+			current = children.stream()
+					.filter(c -> {
+
+						String label = (c.getDisplayName() != null && !c.getDisplayName().isBlank())
+								? c.getDisplayName()
+								: c.getCategoryName();
+
+						return label.equals(name);
+					})
+					.findFirst()
+					.orElse(null);
+
+			if (current == null) {
+				return null;
+			}
+
+			parentId = current.getCategoryId();
+		}
+
+		return current.getCategoryId();
+	}
+
 }

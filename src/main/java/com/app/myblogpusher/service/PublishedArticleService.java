@@ -258,21 +258,17 @@ public class PublishedArticleService {
 
 				Long categoryId = null;
 
-				String[] pathParts = article.getSlug().split("/");
+				int lastSlash = article.getSlug().lastIndexOf('/');
 
-				if (pathParts.length > 1) {
+				if (lastSlash > 0) {
 
-					String categoryName = pathParts[0];
+				    String categoryPath =
+				            article.getSlug().substring(0, lastSlash);
 
-					categoryId = articleCategoryService
-							.findByUserIdAndName(userId, categoryName)
-							.map(c -> c.getCategoryId())
-							.orElseGet(() ->
-									articleCategoryService.insertCategory(
-											userId,
-											categoryName,
-											null,
-											categoryName));
+				    categoryId =
+				            articleCategoryService.findCategoryIdByFullPath(
+				                    userId,
+				                    categoryPath);
 				}
 
 				articleService.saveFromGitHub(
