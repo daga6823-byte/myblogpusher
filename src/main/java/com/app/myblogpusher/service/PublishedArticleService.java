@@ -93,12 +93,15 @@ public class PublishedArticleService {
 
 						String title = frontMatterUtil.extractTitle(mdContent);
 						LocalDateTime updateDate = frontMatterUtil.extractDate(mdContent);
+						List<String> categories = frontMatterUtil.extractCategories(mdContent);
 
 						return new PublishedArticleSummaryDto(
 								slug,
 								hugoPath,
 								title,
-								updateDate);
+								updateDate,
+								mdContent,
+								categories);
 					} catch (IOException e) {
 						return null;
 					}
@@ -126,6 +129,7 @@ public class PublishedArticleService {
 	public PublishedArticleDto getPublishedArticle(
 			UserRepositoryEntity repo,
 			String cipherKey,
+			Long articleId,
 			String hugoPath)
 			throws IOException {
 
@@ -167,6 +171,7 @@ public class PublishedArticleService {
 		LocalDateTime updateDate = frontMatterUtil.extractDate(mdContent);
 
 		return new PublishedArticleDto(
+				articleId,
 				slug,
 				hugoPath,
 				title,
@@ -282,23 +287,17 @@ public class PublishedArticleService {
 
 			for (PublishedArticleSummaryDto summary : articles) {
 
-				PublishedArticleDto article = getPublishedArticle(
-						repo,
-						cipherKey,
+				Optional<Article> existing = articleRepository.findByUserIdAndHugoPath(
+						userId,
 						summary.getHugoPath());
-
-				Optional<Article> existing =
-						articleRepository.findByUserIdAndHugoPath(
-								userId,
-								article.getHugoPath());
 
 				Long articleId = existing
 						.map(Article::getArticleId)
 						.orElse(null);
-				
+
 				Long categoryId = null;
 
-				String[] pathParts = article.getHugoPath().split("/");
+				String[] pathParts = summary.getHugoPath().split("/");
 
 				if (pathParts.length > 1) {
 
@@ -314,15 +313,38 @@ public class PublishedArticleService {
 									categoryName));
 				}
 
-				articleService.saveFromGitHub(
-						articleId,
-						userId,
-						categoryId,
-						article.getSlug(),
-						article.getHugoPath(),
-						article.getTitle(),
-						article.getContent(),
-						article.getUpdateDate());
+				if (existing.isEmpty()) {
+
+					articleService.saveFromGitHub(
+							articleId,
+							userId,
+							categoryId,
+							summary.getSlug(),
+							summary.getHugoPath(),
+							summary.getTitle(),
+							summary.getContent(),
+							summary.getUpdateDate());
+
+				} else {
+
+					Article dbArticle = existing.get();
+
+					if (summary.getUpdateDate() != null
+							&& (dbArticle.getUpdateDate() == null
+									|| summary.getUpdateDate().isAfter(
+											dbArticle.getUpdateDate()))) {
+
+						articleService.saveFromGitHub(
+								articleId,
+								userId,
+								categoryId,
+								summary.getSlug(),
+								summary.getHugoPath(),
+								summary.getTitle(),
+								summary.getContent(),
+								summary.getUpdateDate());
+					}
+				}
 
 				List<Article> dbArticles = articleRepository.findByUserId(userId);
 
@@ -341,6 +363,25 @@ public class PublishedArticleService {
 						System.out.println(
 								"削除：" + dbArticle.getHugoPath());
 					}
+				}
+			}
+
+			List<Article> dbArticles = articleRepository.findByUserId(userId);
+
+			for (Article dbArticle : dbArticles) {
+
+				boolean exists = articles.stream()
+						.anyMatch(github -> github.getHugoPath()
+								.equals(dbArticle.getHugoPath()));
+
+				if (!exists) {
+
+					articleService.deleteByUserIdAndSlug(
+							userId,
+							dbArticle.getSlug());
+
+					System.out.println(
+							"削除：" + dbArticle.getHugoPath());
 				}
 			}
 
