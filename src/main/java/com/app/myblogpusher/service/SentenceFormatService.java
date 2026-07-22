@@ -17,7 +17,6 @@ public class SentenceFormatService {
 	private static final String PARAGRAPH_BREAK_TRIGGER = "さて";
 	private static final String SENTENCE_END_CHARS = "。？！";
 	private static final String CLOSING_BRACKET_CHARS = "」』";
-	private static final String INDENT = "　";
 
 	/**
 	 * 通常文章を句点区切りで整形する

@@ -94,6 +94,7 @@ public class ArticleService {
 	 * 既存記事なら更新、存在しなければ新規登録
 	 */
 	public Article saveFromGitHub(
+			Long articleId,
 			Long userId,
 			Long categoryId,
 			String slug,
@@ -102,9 +103,11 @@ public class ArticleService {
 			String content,
 			LocalDateTime publishDate) {
 
-		Optional<Article> existing = articleRepository.findByUserIdAndSlug(
-				userId,
-				slug);
+		Optional<Article> existing = Optional.empty();
+
+		if (articleId != null) {
+			existing = articleRepository.findById(articleId);
+		}
 
 		Article article = existing.orElseGet(Article::new);
 

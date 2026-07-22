@@ -23,14 +23,23 @@ public interface ArticleRepository extends JpaRepository<Article, Long> {
 			String slug);
 
 	/**
+	 * ユーザーとHugoパスで記事を取得
+	 */
+	Optional<Article> findByUserIdAndHugoPath(
+			Long userId,
+			String hugoPath);
+
+	/**
 	 * ユーザーの公開済み記事一覧を取得
 	 */
 	List<Article> findByUserIdAndStatusOrderByUpdateDateDesc(
 			Long userId,
 			ArticleStatus status);
-	
-	void deleteByUserIdAndSlug(Long userId, String slug);
-	
+
+	void deleteByUserIdAndSlug(
+			Long userId,
+			String slug);
+
 	List<Article> findByUserId(Long userId);
 
 }

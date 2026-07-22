@@ -7,6 +7,7 @@ import lombok.Getter;
 
 @Getter
 public class PublishedArticleDto {
+
 	private String slug;
 	private String hugoPath;
 	private String title;
@@ -21,6 +22,7 @@ public class PublishedArticleDto {
 			LocalDateTime updateDate,
 			String content,
 			List<String> categories) {
+
 		this.slug = slug;
 		this.hugoPath = hugoPath;
 		this.title = title;

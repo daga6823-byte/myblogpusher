@@ -40,8 +40,6 @@ public class ImageManageController {
 
 	@Autowired
 	private ImageAssetService imageAssetService;
-
-	private Long categoryId;
 	
 	/**
 	 * 登録済み画像一覧表示

@@ -16,6 +16,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.StreamSupport;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -286,13 +287,18 @@ public class PublishedArticleService {
 						cipherKey,
 						summary.getHugoPath());
 
-				if (article == null) {
-					continue;
-				}
+				Optional<Article> existing =
+						articleRepository.findByUserIdAndHugoPath(
+								userId,
+								article.getHugoPath());
 
+				Long articleId = existing
+						.map(Article::getArticleId)
+						.orElse(null);
+				
 				Long categoryId = null;
 
-				String[] pathParts = article.getSlug().split("/");
+				String[] pathParts = article.getHugoPath().split("/");
 
 				if (pathParts.length > 1) {
 
@@ -309,6 +315,7 @@ public class PublishedArticleService {
 				}
 
 				articleService.saveFromGitHub(
+						articleId,
 						userId,
 						categoryId,
 						article.getSlug(),
@@ -322,8 +329,8 @@ public class PublishedArticleService {
 				for (Article dbArticle : dbArticles) {
 
 					boolean exists = articles.stream()
-							.anyMatch(github -> github.getSlug()
-									.equals(dbArticle.getSlug()));
+							.anyMatch(github -> github.getHugoPath()
+									.equals(dbArticle.getHugoPath()));
 
 					if (!exists) {
 
@@ -332,7 +339,7 @@ public class PublishedArticleService {
 								dbArticle.getSlug());
 
 						System.out.println(
-								"削除：" + dbArticle.getSlug());
+								"削除：" + dbArticle.getHugoPath());
 					}
 				}
 			}

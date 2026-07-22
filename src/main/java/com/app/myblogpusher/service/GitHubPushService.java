@@ -86,11 +86,6 @@ public class GitHubPushService {
 					article,
 					slug);
 
-			String action = article.getPublishDate()
-					.equals(article.getUpdateDate())
-							? "Add article: "
-							: "Update article: ";
-
 			String commitMessage =
 					newArticle
 							? "Add article: "
