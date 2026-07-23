@@ -1,123 +1,48 @@
-/**
- * 誤字一括修正処理
- *
- * ・正しい単語内の誤置換を防止する
- * ・選択された誤字を本文へ安全に置換する
- */
+// 誤字修正適用処理
+// 選択した誤字パターンを本文へ反映する
 
-/**
- * 正しい単語の内部かどうか判定する
- *
- * 正しい単語へ置換済みの箇所は再置換しない。
- */
-function isAlreadyCorrect(
-	text,
-	start,
-	matchedLength,
-	correctWord
-) {
+document.getElementById('applyFixesButton')?.addEventListener('click', () => {
+	const checkboxes = document.querySelectorAll('.typo-checkbox:checked');
 
-	if (!correctWord) {
-		return false;
+	if (checkboxes.length === 0) {
+		alert('修正する項目が選択されていません。');
+		return;
 	}
 
-	const searchFrom =
-		Math.max(
-			0,
-			start - correctWord.length
-		);
+	const confirmList = Array.from(checkboxes)
+		.map(cb => `「${cb.dataset.wrong}」→「${cb.dataset.correct}」`)
+		.join('\n');
 
-	let idx =
-		text.indexOf(
-			correctWord,
-			searchFrom
-		);
+	const ok = confirm('以下の内容を修正してもよろしいですか？\n\n' + confirmList);
 
-	while (
-		idx !== -1 &&
-		idx <= start
-	) {
-
-		const correctEnd =
-			idx + correctWord.length;
-
-		if (
-			start + matchedLength <= correctEnd
-		) {
-			return true;
-		}
-
-		idx =
-			text.indexOf(
-				correctWord,
-				idx + 1
-			);
-
+	if (!ok) {
+		return;
 	}
 
-	return false;
+	const textarea = document.getElementById('content');
+	let text = textarea.value;
 
-}
-
-/**
- * 誤字を安全に一括置換する
- *
- * 正しい単語の内部は置換対象から除外する。
- */
-function safeReplaceAll(
-	text,
-	wrong,
-	correct
-) {
-
-	let result = '';
-	let cursor = 0;
-
-	let idx =
-		text.indexOf(
-			wrong,
-			cursor
+	checkboxes.forEach(cb => {
+		text = safeReplaceAll(
+			text,
+			cb.dataset.wrong,
+			cb.dataset.correct
 		);
+	});
 
-	while (idx !== -1) {
+	textarea.value = text;
+	contentChanged = true;
 
-		if (
-			isAlreadyCorrect(
-				text,
-				idx,
-				wrong.length,
-				correct
-			)
-		) {
+	alert('修正しました。');
 
-			result +=
-				text.slice(
-					cursor,
-					idx + wrong.length
-				);
+	// 修正後、フォームを再送信して添削画面を最新の状態で再表示する
+	document.querySelector('form').action = '/article/correct';
+	document.querySelector('form').submit();
+});
 
-		} else {
 
-			result +=
-				text.slice(cursor, idx) +
-				correct;
-
-		}
-
-		cursor =
-			idx + wrong.length;
-
-		idx =
-			text.indexOf(
-				wrong,
-				cursor
-			);
-
-	}
-
-	result +=
-		text.slice(cursor);
-
-	return result;
-
+// 文字列を全置換する
+// String.replace() は1件目しか置換しないため split/join を利用する
+function safeReplaceAll(text, target, replacement) {
+	return text.split(target).join(replacement);
 }
