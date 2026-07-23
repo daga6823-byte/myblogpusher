@@ -1,9 +1,59 @@
 // 誤字修正適用処理
 // 選択した誤字パターンを本文へ反映する
 
+// 選択中のチェックボックス
+function isAlreadyCorrect(text, start, matchedLength, correctWord) {
+	if (!correctWord) return false;
+
+	const searchFrom = Math.max(0, start - correctWord.length);
+
+	let idx = text.indexOf(correctWord, searchFrom);
+
+	while (idx !== -1 && idx <= start) {
+		const correctEnd = idx + correctWord.length;
+
+		if (start + matchedLength <= correctEnd) {
+			return true;
+		}
+
+		idx = text.indexOf(correctWord, idx + 1);
+	}
+
+	return false;
+}
+
+// 誤字を安全に一括置換する
+function safeReplaceAll(text, wrong, correct) {
+	let result = '';
+	let cursor = 0;
+	let idx = text.indexOf(wrong, cursor);
+
+	while (idx !== -1) {
+
+		if (isAlreadyCorrect(
+			text,
+			idx,
+			wrong.length,
+			correct
+		)) {
+			result += text.slice(cursor, idx + wrong.length);
+		} else {
+			result += text.slice(cursor, idx) + correct;
+		}
+
+		cursor = idx + wrong.length;
+		idx = text.indexOf(wrong, cursor);
+	}
+
+	result += text.slice(cursor);
+
+	return result;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
 
 	document.getElementById('applyFixesButton')?.addEventListener('click', () => {
+
 		const checkboxes = document.querySelectorAll('.typo-checkbox:checked');
 
 		if (checkboxes.length === 0) {
@@ -15,7 +65,9 @@ document.addEventListener('DOMContentLoaded', () => {
 			.map(cb => `「${cb.dataset.wrong}」→「${cb.dataset.correct}」`)
 			.join('\n');
 
-		const ok = confirm('以下の内容を修正してもよろしいですか？\n\n' + confirmList);
+		const ok = confirm(
+			'以下の内容を修正してもよろしいですか？\n\n' + confirmList
+		);
 
 		if (!ok) {
 			return;
@@ -37,72 +89,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 		alert('修正しました。');
 
-		// 修正後、フォームを再送信して添削画面を最新の状態で再表示する
 		document.querySelector('form').action = '/article/correct';
 		document.querySelector('form').submit();
 	});
 
 });
-
-/**
- * 誤字を安全に一括置換する
- *
- * 正しい単語の内部は置換対象から除外する。
- */
-function safeReplaceAll(
-	text,
-	wrong,
-	correct
-) {
-
-	let result = '';
-	let cursor = 0;
-
-	let idx =
-		text.indexOf(
-			wrong,
-			cursor
-		);
-
-	while (idx !== -1) {
-
-		if (
-			isAlreadyCorrect(
-				text,
-				idx,
-				wrong.length,
-				correct
-			)
-		) {
-
-			result +=
-				text.slice(
-					cursor,
-					idx + wrong.length
-				);
-
-		} else {
-
-			result +=
-				text.slice(cursor, idx) +
-				correct;
-
-		}
-
-		cursor =
-			idx + wrong.length;
-
-		idx =
-			text.indexOf(
-				wrong,
-				cursor
-			);
-
-	}
-
-	result +=
-		text.slice(cursor);
-
-	return result;
-
-}
