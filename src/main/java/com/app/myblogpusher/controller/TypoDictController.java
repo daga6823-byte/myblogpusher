@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,26 +28,51 @@ public class TypoDictController {
 
 	@Autowired
 	private ArticleCategoryService articleCategoryService;
-	
+
 	@GetMapping("/typo-dict/list")
-	public String list(HttpSession session, Model model) {
+	public String list(
+			@RequestParam(defaultValue = "0") int page,
+			@RequestParam(defaultValue = "") String keyword,
+			@RequestParam(required = false) Long categoryId,
+			HttpSession session,
+			Model model) {
 
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
+
 		Long userId = loginUser.getUserId();
 
-		List<TypoDictionaryView> typos = typoCorrectionService.findDictionaryView(userId);
-		model.addAttribute("typos", typos);
+		Page<TypoDictionaryView> typoPage = typoCorrectionService.findDictionaryView(
+				userId,
+				page,
+				keyword,
+				categoryId);
 
-		List<String> categoryNames = typos.stream()
-				.map(TypoDictionaryView::getCategoryName)
-				.distinct()
-				.sorted()
-				.toList();
-		model.addAttribute("categoryNames", categoryNames);
+		model.addAttribute(
+				"typos",
+				typoPage.getContent());
 
-		// 新規登録・一括カテゴリー変更用：ユーザーの全カテゴリー一覧
+		model.addAttribute(
+				"currentPage",
+				page);
+
+		model.addAttribute(
+				"totalPages",
+				typoPage.getTotalPages());
+
+		model.addAttribute(
+				"keyword",
+				keyword);
+
+		model.addAttribute(
+				"categoryId",
+				categoryId);
+
+		// 新規登録・一括カテゴリー変更用
 		List<ArticleCategory> categories = articleCategoryService.findByUserId(userId);
-		model.addAttribute("categories", categories);
+
+		model.addAttribute(
+				"categories",
+				categories);
 
 		return "typo_dict";
 	}

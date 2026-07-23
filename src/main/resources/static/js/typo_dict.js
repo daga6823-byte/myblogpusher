@@ -57,16 +57,6 @@ document.querySelectorAll('.sortable').forEach(th => {
 	});
 });
 
-document.getElementById('categoryFilter').addEventListener('change', () => {
-	const selected = document.getElementById('categoryFilter').value;
-	const rows = document.querySelectorAll('#typoTableBody tr');
-
-	rows.forEach(row => {
-		const category = row.dataset.category;
-		row.style.display = (selected === '' || category === selected) ? '' : 'none';
-	});
-});
-
 // ===== 一括選択・一括操作 =====
 
 const selectAllTypoCheckbox = document.getElementById('selectAllTypoCheckbox');

@@ -11,6 +11,10 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import com.app.myblogpusher.dto.TypoDictionaryView;
@@ -277,6 +281,41 @@ public class TypoCorrectionService {
 		}
 
 		return category.getCategoryId();
+	}
+
+	public Page<TypoDictionaryView> findDictionaryView(
+			Long userId,
+			int page,
+			String keyword,
+			Long categoryId) {
+
+		Pageable pageable = PageRequest.of(
+				page,
+				50,
+				Sort.by(
+						Sort.Direction.ASC,
+						"wrongWord"));
+
+		Page<TypoCorrection> typoPage = typoCorrectionRepository.searchDictionary(
+				userId,
+				keyword == null ? "" : keyword,
+				categoryId,
+				pageable);
+
+		return typoPage.map(t -> {
+
+			String categoryName = (t.getCategoryId() == null)
+					? "汎用"
+					: articleCategoryService.findById(t.getCategoryId())
+							.map(ArticleCategory::getCategoryName)
+							.orElse("（不明）");
+
+			return new TypoDictionaryView(
+					t.getTypoId(),
+					categoryName,
+					t.getWrongWord(),
+					t.getCorrectWord());
+		});
 	}
 
 	public static class TypoMatch {
