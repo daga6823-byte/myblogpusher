@@ -112,7 +112,18 @@
 			前へ
 		</a>
 
-		<span style="margin: 0 16px;" th:text="${currentPage + 1} + ' / ' + ${totalPages}">
+		<span th:each="pageNum : ${#numbers.sequence(0, totalPages - 1)}" style="margin: 0 4px;">
+
+			<a th:if="${pageNum != currentPage}" th:href="@{/typo-dict/list(
+				page=${pageNum},
+				keyword=${keyword},
+				categoryId=${categoryId}
+			)}" th:text="${pageNum + 1}">
+			</a>
+
+			<strong th:if="${pageNum == currentPage}" th:text="${pageNum + 1}">
+			</strong>
+
 		</span>
 
 		<a th:if="${currentPage + 1 < totalPages}" th:href="@{/typo-dict/list(
