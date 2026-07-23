@@ -104,33 +104,30 @@
 
 	<div id="pagination" style="margin: 16px 0; text-align: center;">
 
+		<!-- 前のページへ移動するボタン -->
 		<a th:if="${currentPage > 0}" th:href="@{/typo-dict/list(
-			page=${currentPage - 1},
-			keyword=${keyword},
-			categoryId=${categoryId}
-		<div id=" pagination" style="margin: 16px 0; text-align: center;">
-
-			<a th:if="${currentPage > 0}" th:href="@{/typo-dict/list(
 		page=${currentPage - 1},
 		keyword=${keyword},
 		categoryId=${categoryId}
 	)}" class="btn-back">
-				前へ
-			</a>
+			前へ
+		</a>
 
-			<select id="pageSelect" style="margin: 0 16px;">
-				<option th:each="pageNum : ${#numbers.sequence(0, totalPages - 1)}" th:value="${pageNum}"
-					th:text="${pageNum + 1} + ' / ' + ${totalPages}" th:selected="${pageNum == currentPage}">
-				</option>
-			</select>
+		<!-- ページ番号を選択するコンボボックス -->
+		<select id="pageSelect" style="margin: 0 16px;">
+			<option th:each="pageNum : ${#numbers.sequence(0, totalPages - 1)}" th:value="${pageNum}"
+				th:text="|${pageNum + 1} / ${totalPages}|" th:selected="${pageNum == currentPage}">
+			</option>
+		</select>
 
-			<a th:if="${currentPage + 1 < totalPages}" th:href="@{/typo-dict/list(
+		<!-- 次のページへ移動するボタン -->
+		<a th:if="${currentPage + 1 < totalPages}" th:href="@{/typo-dict/list(
 		page=${currentPage + 1},
 		keyword=${keyword},
 		categoryId=${categoryId}
 	)}" class="btn-correct">
-				次へ
-			</a>
+			次へ
+		</a>
 
 	</div>
 
