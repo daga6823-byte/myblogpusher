@@ -31,21 +31,78 @@ document.addEventListener('DOMContentLoaded', () => {
 				cb.dataset.correct
 			);
 		});
+
+		textarea.value = text;
+		contentChanged = true;
+
+		alert('修正しました。');
+
+		// 修正後、フォームを再送信して添削画面を最新の状態で再表示する
+		document.querySelector('form').action = '/article/correct';
+		document.querySelector('form').submit();
 	});
 
-	textarea.value = text;
-	contentChanged = true;
-
-	alert('修正しました。');
-
-	// 修正後、フォームを再送信して添削画面を最新の状態で再表示する
-	document.querySelector('form').action = '/article/correct';
-	document.querySelector('form').submit();
 });
 
+/**
+ * 誤字を安全に一括置換する
+ *
+ * 正しい単語の内部は置換対象から除外する。
+ */
+function safeReplaceAll(
+	text,
+	wrong,
+	correct
+) {
 
-// 文字列を全置換する
-// String.replace() は1件目しか置換しないため split/join を利用する
-function safeReplaceAll(text, target, replacement) {
-	return text.split(target).join(replacement);
+	let result = '';
+	let cursor = 0;
+
+	let idx =
+		text.indexOf(
+			wrong,
+			cursor
+		);
+
+	while (idx !== -1) {
+
+		if (
+			isAlreadyCorrect(
+				text,
+				idx,
+				wrong.length,
+				correct
+			)
+		) {
+
+			result +=
+				text.slice(
+					cursor,
+					idx + wrong.length
+				);
+
+		} else {
+
+			result +=
+				text.slice(cursor, idx) +
+				correct;
+
+		}
+
+		cursor =
+			idx + wrong.length;
+
+		idx =
+			text.indexOf(
+				wrong,
+				cursor
+			);
+
+	}
+
+	result +=
+		text.slice(cursor);
+
+	return result;
+
 }
