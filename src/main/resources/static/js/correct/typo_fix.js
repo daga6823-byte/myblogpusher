@@ -1,33 +1,36 @@
 // 誤字修正適用処理
 // 選択した誤字パターンを本文へ反映する
 
-document.getElementById('applyFixesButton')?.addEventListener('click', () => {
-	const checkboxes = document.querySelectorAll('.typo-checkbox:checked');
+document.addEventListener('DOMContentLoaded', () => {
 
-	if (checkboxes.length === 0) {
-		alert('修正する項目が選択されていません。');
-		return;
-	}
+	document.getElementById('applyFixesButton')?.addEventListener('click', () => {
+		const checkboxes = document.querySelectorAll('.typo-checkbox:checked');
 
-	const confirmList = Array.from(checkboxes)
-		.map(cb => `「${cb.dataset.wrong}」→「${cb.dataset.correct}」`)
-		.join('\n');
+		if (checkboxes.length === 0) {
+			alert('修正する項目が選択されていません。');
+			return;
+		}
 
-	const ok = confirm('以下の内容を修正してもよろしいですか？\n\n' + confirmList);
+		const confirmList = Array.from(checkboxes)
+			.map(cb => `「${cb.dataset.wrong}」→「${cb.dataset.correct}」`)
+			.join('\n');
 
-	if (!ok) {
-		return;
-	}
+		const ok = confirm('以下の内容を修正してもよろしいですか？\n\n' + confirmList);
 
-	const textarea = document.getElementById('content');
-	let text = textarea.value;
+		if (!ok) {
+			return;
+		}
 
-	checkboxes.forEach(cb => {
-		text = safeReplaceAll(
-			text,
-			cb.dataset.wrong,
-			cb.dataset.correct
-		);
+		const textarea = document.getElementById('content');
+		let text = textarea.value;
+
+		checkboxes.forEach(cb => {
+			text = safeReplaceAll(
+				text,
+				cb.dataset.wrong,
+				cb.dataset.correct
+			);
+		});
 	});
 
 	textarea.value = text;
