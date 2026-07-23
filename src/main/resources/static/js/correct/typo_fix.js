@@ -50,47 +50,48 @@ function safeReplaceAll(text, wrong, correct) {
 	return result;
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('click', (event) => {
 
-	document.getElementById('applyFixesButton')?.addEventListener('click', () => {
+	if (event.target.id !== 'applyFixesButton') {
+		return;
+	}
 
-		const checkboxes = document.querySelectorAll('.typo-checkbox:checked');
+	const checkboxes = document.querySelectorAll('.typo-checkbox:checked');
 
-		if (checkboxes.length === 0) {
-			alert('修正する項目が選択されていません。');
-			return;
-		}
+	if (checkboxes.length === 0) {
+		alert('修正する項目が選択されていません。');
+		return;
+	}
 
-		const confirmList = Array.from(checkboxes)
-			.map(cb => `「${cb.dataset.wrong}」→「${cb.dataset.correct}」`)
-			.join('\n');
+	const confirmList = Array.from(checkboxes)
+		.map(cb => `「${cb.dataset.wrong}」→「${cb.dataset.correct}」`)
+		.join('\n');
 
-		const ok = confirm(
-			'以下の内容を修正してもよろしいですか？\n\n' + confirmList
+	const ok = confirm(
+		'以下の内容を修正してもよろしいですか？\n\n' + confirmList
+	);
+
+	if (!ok) {
+		return;
+	}
+
+	const textarea = document.getElementById('content');
+	let text = textarea.value;
+
+	checkboxes.forEach(cb => {
+		text = safeReplaceAll(
+			text,
+			cb.dataset.wrong,
+			cb.dataset.correct
 		);
-
-		if (!ok) {
-			return;
-		}
-
-		const textarea = document.getElementById('content');
-		let text = textarea.value;
-
-		checkboxes.forEach(cb => {
-			text = safeReplaceAll(
-				text,
-				cb.dataset.wrong,
-				cb.dataset.correct
-			);
-		});
-
-		textarea.value = text;
-		contentChanged = true;
-
-		alert('修正しました。');
-
-		document.querySelector('form').action = '/article/correct';
-		document.querySelector('form').submit();
 	});
 
+	textarea.value = text;
+	contentChanged = true;
+
+	alert('修正しました。');
+
+	const form = document.querySelector('form');
+	form.action = '/article/correct';
+	form.submit();
 });
