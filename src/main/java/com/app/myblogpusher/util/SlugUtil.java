@@ -79,6 +79,9 @@ public class SlugUtil {
 		for (EnglishDictionary entry : allEntries) {
 			text = text.replace(entry.getJapanese(), " " + entry.getEnglish() + " ");
 		}
+		
+		// 箇条書き記号は単語区切りとして扱う
+		text = text.replace("•", " ");
 
 		// 残った助詞をPARTICLE_MAPで置換
 		List<Token> tokens = tokenizer.tokenize(text);
@@ -186,6 +189,10 @@ public class SlugUtil {
 		// 長い単語から優先して置換
 		allEntries.sort((a, b) -> b.getJapanese().length() - a.getJapanese().length());
 		String replaced = title;
+		
+		// 箇条書き記号は単語区切りとして扱う
+		replaced = replaced.replace("•", " ");
+		
 		for (EnglishDictionary entry : allEntries) {
 			replaced = replaced.replace(entry.getJapanese(), " " + entry.getEnglish() + " ");
 		}
