@@ -185,6 +185,9 @@ document.getElementById('imageButton').addEventListener('click', function() {
 
 	imageInsertPosition = textarea.selectionStart;
 
+	imageCategoryId = null;
+	imagePage = 0;
+
 	loadDefaultFolderName();
 	loadImageList();
 
