@@ -99,16 +99,21 @@ public class ArticleTypoController {
 		Long targetCategoryId = null;
 
 		if (isGeneral == null || !isGeneral) {
-			String categoryName = "__new__".equals(categorySelect) ? newCategoryName : categorySelect;
 
-			if (categoryName != null && !categoryName.isBlank()) {
-				targetCategoryId = articleCategoryService.findByUserIdAndName(userId, categoryName)
-						.map(category -> articleCategoryService.findReferenceCategoryId(category.getCategoryId()))
-						.orElseGet(() -> articleCategoryService.insertCategory(
-								userId,
-								categoryName,
-								null,
-								categoryName));
+			if ("__new__".equals(categorySelect)) {
+
+				targetCategoryId = articleCategoryService.insertCategory(
+						userId,
+						newCategoryName,
+						null,
+						newCategoryName);
+
+			} else {
+
+				Long categoryId = Long.valueOf(categorySelect);
+
+				targetCategoryId = articleCategoryService
+						.findReferenceCategoryId(categoryId);
 			}
 		}
 
@@ -174,13 +179,25 @@ public class ArticleTypoController {
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 		Long userId = loginUser.getUserId();
 
-		String categoryName = "__new__".equals(categorySelect) ? newCategoryName : categorySelect;
+		Long categoryId = null;
 
-		Long categoryId = (categoryName == null || categoryName.isBlank())
-				? null
-				: articleCategoryService.findByUserIdAndName(userId, categoryName)
-						.map(ArticleCategory::getCategoryId)
-						.orElse(null);
+		if ("__new__".equals(categorySelect)) {
+
+			if (newCategoryName != null && !newCategoryName.isBlank()) {
+				categoryId = articleCategoryService.insertCategory(
+						userId,
+						newCategoryName,
+						null,
+						newCategoryName);
+			}
+
+		} else if (categorySelect != null && !categorySelect.isBlank()) {
+
+			categoryId = Long.valueOf(categorySelect);
+
+			// 添削・誤字検索は親カテゴリー単位で行う
+			categoryId = articleCategoryService.findReferenceCategoryId(categoryId);
+		}
 
 		List<LanguageToolService.LanguageToolMatch> allMatches = languageToolService.checkText(content);
 
