@@ -60,10 +60,19 @@ function loadImageList() {
 
 	list.innerHTML = '';
 
-	fetch('/article/images?page=' + imagePage
-		+ (imageCategoryId ? '&categoryId=' + imageCategoryId : ''))
+	let url =
+		'/article/images?page=' + imagePage;
+
+	// カテゴリー選択時だけ絞り込む
+	if (imageCategoryId) {
+		url += '&categoryId=' + imageCategoryId;
+	}
+
+	fetch(url)
 		.then(res => res.json())
-		.then(images => {
+		.then(page => {
+
+			const images = page.content;
 
 			images.forEach(img => {
 
@@ -72,28 +81,36 @@ function loadImageList() {
 				div.style.cursor = 'pointer';
 				div.style.textAlign = 'center';
 
-				const fileName = img.fileName;
-				const url = img.url;
-
 				div.innerHTML =
 					`
-					
-		<img src="${url}"
-			 style="width:100%;height:150px;object-fit:cover;"
-			 onclick="insertImage('${url}')">
+					<img src="${img.url}"
+						 style="width:100%;height:150px;object-fit:cover;"
+						 onclick="insertImage('${img.url}')">
 
-		<div style="
-			margin-top:5px;
-			font-size:13px;
-			word-break:break-all;
-		">
-			${fileName}
-		</div>
-		`;
+					<div style="
+						margin-top:5px;
+						font-size:13px;
+						word-break:break-all;
+					">
+						${img.fileName}
+					</div>
+					`;
 
 				list.appendChild(div);
 
 			});
+
+
+			document.getElementById('imagePageInfo').textContent =
+				(page.number + 1) + ' / ' + page.totalPages;
+
+
+			document.getElementById('imagePrevButton').disabled =
+				page.first;
+
+
+			document.getElementById('imageNextButton').disabled =
+				page.last;
 
 		});
 
@@ -167,8 +184,6 @@ document.getElementById('imageButton').addEventListener('click', function() {
 	textarea.focus();
 
 	imageInsertPosition = textarea.selectionStart;
-
-	imageShowAll = false;
 
 	loadDefaultFolderName();
 	loadImageList();
