@@ -60,7 +60,7 @@
 						</option>
 
 						<option th:each="category : ${categories}" th:value="${category.categoryId}"
-							th:text="${category.displayName}">
+							th:text="${category.fullPath}">
 						</option>
 
 					</select>

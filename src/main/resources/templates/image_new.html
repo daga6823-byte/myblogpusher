@@ -19,8 +19,7 @@
 				未分類
 			</option>
 
-			<option th:each="category : ${categories}" th:value="${category.categoryId}"
-				th:text="${category.displayName}">
+			<option th:each="category : ${categories}" th:value="${category.categoryId}" th:text="${category.fullPath}">
 			</option>
 
 		</select>
