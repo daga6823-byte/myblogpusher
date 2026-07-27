@@ -10,10 +10,12 @@
 package com.app.myblogpusher.controller.Article;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -42,15 +44,21 @@ public class ArticleImageController {
 	 */
 	@GetMapping("/article/images")
 	@ResponseBody
-	public List<ImageAssetView> getImages(
+	public Page<ImageAssetView> getImages(
 			@RequestParam(required = false) Long categoryId,
+			@RequestParam(defaultValue = "0") int page,
 			HttpSession session) {
 
-		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
+		UserMaster loginUser =
+				(UserMaster) session.getAttribute("loginUser");
 
-		return imageAssetService.listImages(
-		        loginUser.getUserId(),
-		        categoryId);
+		Pageable pageable =
+				PageRequest.of(page, 12);
+
+		return imageAssetService.findImagePage(
+				loginUser.getUserId(),
+				categoryId,
+				pageable);
 	}
 
 	/**

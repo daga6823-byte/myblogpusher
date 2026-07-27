@@ -13,8 +13,9 @@
 // false：現在のカテゴリーのみ
 // true ：全カテゴリー
 // -----------------------------------------------------
-let imageShowAll = false;
 let imageInsertPosition = null;
+let imagePage = 0;
+let imageCategoryId = null;
 
 // -----------------------------------------------------
 // カテゴリーに対応するデフォルトフォルダ名を取得する
@@ -65,7 +66,8 @@ function loadImageList() {
 			? '?categoryId=' + categoryId
 			: '';
 
-	fetch('/article/images' + query)
+	fetch('/article/images?page=' + imagePage
+		+ (imageCategoryId ? '&categoryId=' + imageCategoryId : ''))
 		.then(res => res.json())
 		.then(images => {
 

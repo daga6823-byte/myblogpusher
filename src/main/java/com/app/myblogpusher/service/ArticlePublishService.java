@@ -27,6 +27,9 @@ public class ArticlePublishService {
 	@Autowired
 	private GitHubPushService gitHubPushService;
 
+	@Autowired
+	private HugoArticleService hugoArticleService;
+
 	/**
 	 * 下書きから投稿済み記事を作成または更新する
 	 *
@@ -38,10 +41,24 @@ public class ArticlePublishService {
 
 		ArticleWork work = articleWorkService.findById(workId);
 
-		// 新規投稿の場合
-		if (work.getArticleId() == null) {
+		String hugoPath = hugoArticleService.buildArticlePath(
+				work.getCategoryId(),
+				slug);
+		
+		System.out.println("work.userId = " + work.getUserId());
+		System.out.println("slug = " + slug);
+		System.out.println("hugoPath = " + hugoPath);
 
-			Article article = articleService.createFromWork(
+		Article article = articleService.findByHugoPath(
+		        work.getUserId(),
+		        hugoPath);
+
+		System.out.println("find result = " + article);
+
+		// 新規投稿
+		if (article == null) {
+
+			article = articleService.createFromWork(
 					work,
 					slug);
 
@@ -50,9 +67,9 @@ public class ArticlePublishService {
 					true);
 		}
 
-		// 投稿済み記事の更新の場合
-		Article article = articleService.updateFromWork(
-				articleService.findById(work.getArticleId()),
+		// 更新
+		article = articleService.updateFromWork(
+				article,
 				work,
 				slug);
 

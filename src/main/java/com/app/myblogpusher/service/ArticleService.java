@@ -166,6 +166,20 @@ public class ArticleService {
 	}
 
 	/**
+	 * Hugoパスから投稿済み記事を取得する
+	 */
+	public Article findByHugoPath(
+			Long userId,
+			String hugoPath) {
+
+		return articleRepository
+				.findByUserIdAndHugoPath(
+						userId,
+						hugoPath)
+				.orElse(null);
+	}
+
+	/**
 	 * 公開済み記事一覧取得
 	 */
 	public List<Article> findPublishedByUserId(Long userId) {

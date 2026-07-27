@@ -200,12 +200,6 @@ public class ImageAssetService {
 	 * ・カテゴリー変更
 	 * ・保存先フォルダ変更
 	 */
-	/**
-	 * 登録済み画像情報を更新する
-	 *
-	 * ・カテゴリー変更
-	 * ・保存先フォルダ変更
-	 */
 	public void updateImage(
 			Long imageId,
 			Long categoryId,
@@ -282,14 +276,23 @@ public class ImageAssetService {
 						userId);
 
 		return assets.stream()
-				.map(asset -> new ImageAssetView(
-						asset.getImageId(),
-						asset.getCategoryId(),
-						asset.getFolderName(),
-						asset.getFileName(),
-						null,
-						asset.getUploadDate(),
-						supabaseStorageService.getImageUrl(asset.getStoragePath())))
+				.map(asset -> {
+
+					String categoryName = asset.getCategoryId() == null
+							? "（未分類）"
+							: articleCategoryService.findById(asset.getCategoryId())
+									.map(ArticleCategory::getCategoryName)
+									.orElse("（未分類）");
+
+					return new ImageAssetView(
+							asset.getImageId(),
+							asset.getCategoryId(),
+							asset.getFolderName(),
+							asset.getFileName(),
+							categoryName,
+							asset.getUploadDate(),
+							supabaseStorageService.getImageUrl(asset.getStoragePath()));
+				})
 				.toList();
 	}
 
@@ -311,15 +314,22 @@ public class ImageAssetService {
 					pageable);
 		}
 
-		return page.map(a -> new ImageAssetView(
-				a.getImageId(),
-				a.getCategoryId(),
-				a.getFolderName(),
-				a.getFileName(),
-				articleCategoryService.findById(a.getCategoryId())
-						.map(ArticleCategory::getCategoryName)
-						.orElse("（未分類）"),
-				a.getUploadDate(),
-				supabaseStorageService.getImageUrl(a.getStoragePath())));
+		return page.map(a -> {
+
+			String categoryName = a.getCategoryId() == null
+					? "（未分類）"
+					: articleCategoryService.findById(a.getCategoryId())
+							.map(ArticleCategory::getCategoryName)
+							.orElse("（未分類）");
+
+			return new ImageAssetView(
+					a.getImageId(),
+					a.getCategoryId(),
+					a.getFolderName(),
+					a.getFileName(),
+					categoryName,
+					a.getUploadDate(),
+					supabaseStorageService.getImageUrl(a.getStoragePath()));
+		});
 	}
 }
