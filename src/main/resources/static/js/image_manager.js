@@ -13,8 +13,13 @@
 // false：現在のカテゴリーのみ
 // true ：全カテゴリー
 // -----------------------------------------------------
+// 画像挿入位置
 let imageInsertPosition = null;
+
+// ページ番号
 let imagePage = 0;
+
+// 選択中カテゴリー
 let imageCategoryId = null;
 
 // -----------------------------------------------------
@@ -51,20 +56,9 @@ function loadDefaultFolderName() {
 // -----------------------------------------------------
 function loadImageList() {
 
-	const categoryId = document.getElementById('categorySelect').value;
 	const list = document.getElementById('imageList');
 
 	list.innerHTML = '';
-
-	const useCategory =
-		!imageShowAll &&
-		categoryId &&
-		categoryId !== '__new__';
-
-	const query =
-		useCategory
-			? '?categoryId=' + categoryId
-			: '';
 
 	fetch('/article/images?page=' + imagePage
 		+ (imageCategoryId ? '&categoryId=' + imageCategoryId : ''))
@@ -176,29 +170,10 @@ document.getElementById('imageButton').addEventListener('click', function() {
 
 	imageShowAll = false;
 
-	document.getElementById('imageScopeToggle').textContent =
-		'全カテゴリー表示に切り替え';
-
 	loadDefaultFolderName();
 	loadImageList();
 
 	document.getElementById('imageModal').style.display = 'block';
-
-});
-
-// -----------------------------------------------------
-// 表示範囲切替
-// -----------------------------------------------------
-document.getElementById('imageScopeToggle').addEventListener('click', function() {
-
-	imageShowAll = !imageShowAll;
-
-	this.textContent =
-		imageShowAll
-			? '現在のカテゴリーのみ表示に切り替え'
-			: '全カテゴリー表示に切り替え';
-
-	loadImageList();
 
 });
 
@@ -273,8 +248,10 @@ document.getElementById('imageUploadButton').addEventListener('click', function(
 document.getElementById('imageCategorySelect')
 	.addEventListener('change', function() {
 
-		location.href =
-			'/image/list?categoryId=' + this.value;
+		imageCategoryId = this.value || null;
+		imagePage = 0;
+
+		loadImageList();
 
 	});
 
@@ -285,5 +262,24 @@ document.getElementById('newImageButton')
 
 		location.href =
 			'/article/images/new';
+
+	});
+
+document.getElementById('imagePrevButton')
+	.addEventListener('click', function() {
+
+		if (imagePage > 0) {
+			imagePage--;
+			loadImageList();
+		}
+
+	});
+
+
+document.getElementById('imageNextButton')
+	.addEventListener('click', function() {
+
+		imagePage++;
+		loadImageList();
 
 	});
