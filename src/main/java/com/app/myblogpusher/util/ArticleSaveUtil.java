@@ -58,11 +58,12 @@ public class ArticleSaveUtil {
 				return existing.get().getWorkId();
 			}
 			return articleWorkService.insertArticleWork(
-					userId,
-					categoryId,
-					title,
-					formattedContent,
-					slug);
+			        userId,
+			        null,
+			        categoryId,
+			        title,
+			        formattedContent,
+			        slug);
 		} else {
 			articleWorkService.updateArticleWork(
 					workId,

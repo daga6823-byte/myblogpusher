@@ -30,7 +30,7 @@ public class ArticlePublishedController {
 
 	@Autowired
 	private ArticleService articleService;
-	
+
 	/**
 	 * 投稿済み記事一覧を表示
 	 */
@@ -39,13 +39,11 @@ public class ArticlePublishedController {
 			HttpSession session,
 			Model model) {
 
-		UserMaster loginUser =
-				(UserMaster) session.getAttribute("loginUser");
+		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 
 		Long userId = loginUser.getUserId();
 
-		List<Article> articles =
-				articleService.findPublishedByUserId(userId);
+		List<Article> articles = articleService.findPublishedByUserId(userId);
 
 		model.addAttribute(
 				"articles",
@@ -59,20 +57,17 @@ public class ArticlePublishedController {
 			@RequestParam String slug,
 			HttpSession session) {
 
-		UserMaster loginUser =
-				(UserMaster) session.getAttribute("loginUser");
+		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 
 		Long userId = loginUser.getUserId();
 
-		Article article =
-				articleService.findBySlug(userId, slug);
+		Article article = articleService.findBySlug(userId, slug);
 
 		if (article == null) {
 			return "redirect:/article/published";
 		}
 
-		Optional<ArticleWork> existing =
-				articleWorkService.findBySlug(slug);
+		Optional<ArticleWork> existing = articleWorkService.findBySlug(slug);
 
 		Long workId;
 
@@ -84,6 +79,7 @@ public class ArticlePublishedController {
 
 			workId = articleWorkService.insertArticleWork(
 					userId,
+					article.getArticleId(),
 					article.getCategoryId(),
 					article.getTitle(),
 					article.getContent(),

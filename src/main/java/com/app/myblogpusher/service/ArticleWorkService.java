@@ -44,6 +44,7 @@ public class ArticleWorkService {
 	 */
 	public Long insertArticleWork(
 			Long userId,
+			Long articleId,
 			Long categoryId,
 			String title,
 			String content,
@@ -52,6 +53,7 @@ public class ArticleWorkService {
 		ArticleWork work = new ArticleWork();
 
 		work.setUserId(userId);
+		work.setArticleId(articleId);
 		work.setCategoryId(categoryId);
 		work.setTitle(title);
 		work.setContent(content);
