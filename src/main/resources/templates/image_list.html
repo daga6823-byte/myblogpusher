@@ -92,6 +92,28 @@
 
 	</div>
 
+	<div class="page-area">
+
+		<button type="button" id="prevPageButton" class="btn-back" th:disabled="${currentPage == 0}">
+			← 前
+		</button>
+
+		<select id="pageSelect">
+
+			<option th:each="i : ${#numbers.sequence(0, totalPages - 1)}" th:value="${i}" th:text="${i + 1}"
+				th:selected="${i == currentPage}">
+			</option>
+
+		</select>
+
+		<span th:text="' / ' + ${totalPages} + 'ページ'"></span>
+
+		<button type="button" id="nextPageButton" class="btn-back" th:disabled="${currentPage + 1 >= totalPages}">
+			次 →
+		</button>
+
+	</div>
+
 	<button type="button" id="backButton" class="btn-back" onclick="location.href='/home'">
 		戻る
 	</button>

@@ -4,11 +4,12 @@
 
 package com.app.myblogpusher.controller;
 
-import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,7 +18,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.app.myblogpusher.dto.ImageAssetView;
-import com.app.myblogpusher.entity.ArticleCategory;
 import com.app.myblogpusher.entity.UserMaster;
 import com.app.myblogpusher.repository.ImageAssetRepository;
 import com.app.myblogpusher.service.ArticleCategoryService;
@@ -40,7 +40,7 @@ public class ImageManageController {
 
 	@Autowired
 	private ImageAssetService imageAssetService;
-	
+
 	/**
 	 * 登録済み画像一覧表示
 	 *
@@ -50,41 +50,28 @@ public class ImageManageController {
 	@GetMapping("/image/list")
 	public String list(
 			@RequestParam(required = false) Long categoryId,
+			@RequestParam(defaultValue = "0") int page,
+			@RequestParam(defaultValue = "20") int size,
 			HttpSession session,
 			Model model) {
 
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
-
 		Long userId = loginUser.getUserId();
 
-		List<ImageAssetView> images = (categoryId == null
-				? imageAssetRepository.findByUserIdOrderByUploadDateDesc(userId)
-				: imageAssetRepository.findByUserIdAndCategoryIdOrderByUploadDateDesc(
-						userId,
-						categoryId))
-								.stream()
-								.map(a -> new ImageAssetView(
-										a.getImageId(),
-										a.getCategoryId(),
-										a.getFolderName(),
-										a.getFileName(),
-										Optional.ofNullable(a.getCategoryId())
-												.flatMap(articleCategoryService::findById)
-												.map(ArticleCategory::getCategoryName)
-												.orElse("（未分類）"),
-										a.getUploadDate(),
-										supabaseStorageService.getImageUrl(a.getStoragePath())))
-								.toList();
+		Pageable pageable = PageRequest.of(page, size);
 
-		model.addAttribute(
-				"images",
-				images);
+		Page<ImageAssetView> imagePage = imageAssetService.findImagePage(userId, categoryId, pageable);
 
-		model.addAttribute(
-				"categories",
+		model.addAttribute("images", imagePage.getContent());
+
+		model.addAttribute("categories",
 				articleCategoryService.findByUserId(userId));
 
 		model.addAttribute("selectedCategoryId", categoryId);
+
+		model.addAttribute("currentPage", page);
+		model.addAttribute("totalPages", imagePage.getTotalPages());
+		model.addAttribute("pageSize", size);
 
 		return "image_list";
 	}

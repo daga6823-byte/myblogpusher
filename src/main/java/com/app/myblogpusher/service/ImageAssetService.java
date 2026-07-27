@@ -16,6 +16,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -289,5 +291,35 @@ public class ImageAssetService {
 						asset.getUploadDate(),
 						supabaseStorageService.getImageUrl(asset.getStoragePath())))
 				.toList();
+	}
+
+	public Page<ImageAssetView> findImagePage(
+			Long userId,
+			Long categoryId,
+			Pageable pageable) {
+
+		Page<ImageAsset> page;
+
+		if (categoryId == null) {
+			page = imageAssetRepository.findByUserIdOrderByUploadDateDesc(
+					userId,
+					pageable);
+		} else {
+			page = imageAssetRepository.findByUserIdAndCategoryIdOrderByUploadDateDesc(
+					userId,
+					categoryId,
+					pageable);
+		}
+
+		return page.map(a -> new ImageAssetView(
+				a.getImageId(),
+				a.getCategoryId(),
+				a.getFolderName(),
+				a.getFileName(),
+				articleCategoryService.findById(a.getCategoryId())
+						.map(ArticleCategory::getCategoryName)
+						.orElse("（未分類）"),
+				a.getUploadDate(),
+				supabaseStorageService.getImageUrl(a.getStoragePath())));
 	}
 }

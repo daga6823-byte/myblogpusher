@@ -39,13 +39,92 @@ document.getElementById('importButton').addEventListener('click', () => {
 // -----------------------------------------------------
 document.getElementById('imageCategorySelect').addEventListener('change', function() {
 
-	if (this.value === 'all') {
-		location.href = '/image/list';
+	const category = this.value;
+
+	if (category === 'all') {
+		location.href = '/image/list?page=0';
 	} else {
-		location.href = '/image/list?categoryId=' + this.value;
+		location.href = '/image/list?categoryId=' + category + '&page=0';
 	}
 
 });
+
+// -----------------------------------------------------
+// ページ切替
+// -----------------------------------------------------
+const pageSelect = document.getElementById('pageSelect');
+
+if (pageSelect) {
+
+	pageSelect.addEventListener('change', function() {
+
+		const category = document.getElementById('imageCategorySelect').value;
+		const page = this.value;
+
+		if (category === 'all') {
+			location.href = '/image/list?page=' + page;
+		} else {
+			location.href =
+				'/image/list?categoryId=' + category + '&page=' + page;
+		}
+
+	});
+
+}
+
+// -----------------------------------------------------
+// 前ページ
+// -----------------------------------------------------
+const prevButton = document.getElementById('prevPageButton');
+
+if (prevButton) {
+
+	prevButton.addEventListener('click', function() {
+
+		const category = document.getElementById('imageCategorySelect').value;
+		const current = Number(document.getElementById('pageSelect').value);
+
+		if (current <= 0) {
+			return;
+		}
+
+		const page = current - 1;
+
+		if (category === 'all') {
+			location.href = '/image/list?page=' + page;
+		} else {
+			location.href =
+				'/image/list?categoryId=' + category + '&page=' + page;
+		}
+
+	});
+
+}
+
+// -----------------------------------------------------
+// 次ページ
+// -----------------------------------------------------
+const nextButton = document.getElementById('nextPageButton');
+
+if (nextButton) {
+
+	nextButton.addEventListener('click', function() {
+
+		const category = document.getElementById('imageCategorySelect').value;
+		const current = Number(document.getElementById('pageSelect').value);
+
+		const page = current + 1;
+
+		if (category === 'all') {
+			location.href = '/image/list?page=' + page;
+		} else {
+			location.href =
+				'/image/list?categoryId=' + category + '&page=' + page;
+		}
+
+	});
+
+}
 
 // -----------------------------------------------------
 // 新規画像登録画面
