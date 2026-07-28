@@ -301,16 +301,27 @@ public class PublishedArticleService {
 
 				if (pathParts.length > 1) {
 
-					String categoryName = pathParts[0];
+					Long parentCategoryId = null;
 
-					categoryId = articleCategoryService
-							.findByUserIdAndName(userId, categoryName)
-							.map(c -> c.getCategoryId())
-							.orElseGet(() -> articleCategoryService.insertCategory(
-									userId,
-									categoryName,
-									null,
-									categoryName));
+					for (int i = 0; i < pathParts.length - 1; i++) {
+
+						String categoryName = pathParts[i];
+
+						Long currentParentCategoryId = parentCategoryId;
+
+						categoryId = articleCategoryService
+								.findByUserIdAndName(
+										userId,
+										categoryName)
+								.map(c -> c.getCategoryId())
+								.orElseGet(() -> articleCategoryService.insertCategory(
+										userId,
+										categoryName,
+										currentParentCategoryId,
+										categoryName));
+
+						parentCategoryId = categoryId;
+					}
 				}
 
 				if (existing.isEmpty()) {

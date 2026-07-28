@@ -294,10 +294,15 @@ document.getElementById('imagePrevButton')
 	});
 
 
-document.getElementById('imageNextButton')
-	.addEventListener('click', function() {
+const imageNextButton = document.getElementById('imageNextButton');
+
+if (imageNextButton) {
+
+	imageNextButton.addEventListener('click', function() {
 
 		imagePage++;
 		loadImageList();
 
 	});
+
+}
