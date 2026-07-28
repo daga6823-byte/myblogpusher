@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.app.myblogpusher.dto.ImageAssetView;
+import com.app.myblogpusher.dto.ImageCategoryDto;
 import com.app.myblogpusher.entity.ArticleCategory;
 import com.app.myblogpusher.entity.ImageAsset;
 import com.app.myblogpusher.repository.ImageAssetRepository;
@@ -338,20 +339,15 @@ public class ImageAssetService {
 	 *
 	 * image_assetに存在するカテゴリーのみ返す。
 	 */
-	public List<ImageAssetView> findImageCategories(Long userId) {
+	public List<ImageCategoryDto> findImageCategories(Long userId) {
 
 		return imageAssetRepository.findByUserIdOrderByUploadDateDesc(userId)
 				.stream()
 				.collect(Collectors.toMap(
-						ImageAsset::getCategoryId,
-						a -> new ImageAssetView(
-								null,
+						ImageAsset::getFolderName,
+						a -> new ImageCategoryDto(
 								a.getCategoryId(),
-								a.getFolderName(),
-								null,
-								a.getFolderName(),
-								null,
-								null),
+								a.getFolderName()),
 						(a, b) -> a))
 				.values()
 				.stream()

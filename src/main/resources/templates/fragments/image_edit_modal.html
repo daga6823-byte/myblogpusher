@@ -21,7 +21,7 @@
 
 			<select id="imageCategoryId">
 				<option value="">未分類</option>
-				<option th:each="c : ${categories}" th:value="${c.categoryId}" th:text="${c.displayName}">
+				<option th:each="c : ${categories}" th:value="${c.categoryId}" th:text="${c.folderName}">
 				</option>
 			</select>
 
