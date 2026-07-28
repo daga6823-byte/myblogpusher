@@ -15,6 +15,7 @@ import com.app.myblogpusher.entity.ArticleWork;
 import com.app.myblogpusher.entity.UserMaster;
 import com.app.myblogpusher.service.ArticleService;
 import com.app.myblogpusher.service.ArticleWorkService;
+import com.app.myblogpusher.service.ImageAssetService;
 
 import jakarta.servlet.http.HttpSession;
 
@@ -31,6 +32,9 @@ public class ArticlePublishedController {
 	@Autowired
 	private ArticleService articleService;
 
+	@Autowired
+	private ImageAssetService imageAssetService;
+	
 	/**
 	 * 投稿済み記事一覧を表示
 	 */
@@ -48,6 +52,10 @@ public class ArticlePublishedController {
 		model.addAttribute(
 				"articles",
 				articles);
+		
+		model.addAttribute(
+		        "imageCategories",
+		        imageAssetService.findImageCategories(userId));
 
 		return "article/article_published_list";
 	}

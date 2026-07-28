@@ -344,10 +344,12 @@ public class ImageAssetService {
 		return imageAssetRepository.findByUserIdOrderByUploadDateDesc(userId)
 				.stream()
 				.collect(Collectors.toMap(
-						ImageAsset::getFolderName,
+						ImageAsset::getCategoryId,
 						a -> new ImageCategoryDto(
 								a.getCategoryId(),
-								a.getFolderName()),
+								articleCategoryService.findById(a.getCategoryId())
+										.map(ArticleCategory::getDisplayName)
+										.orElse(a.getFolderName())),
 						(a, b) -> a))
 				.values()
 				.stream()
