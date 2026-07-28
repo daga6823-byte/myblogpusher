@@ -63,60 +63,111 @@ document.querySelectorAll('.btn-update').forEach(btn => {
 });
 
 // 保存
-document.getElementById('saveCategoryButton').addEventListener('click', () => {
+const saveCategoryButton = document.getElementById('saveCategoryButton');
 
-	const params = new URLSearchParams();
+if (saveCategoryButton) {
 
-	let url = '/category/add';
+	saveCategoryButton.addEventListener('click', () => {
 
-	if (editMode) {
-		url = '/category/update';
-		params.append('categoryId', categoryIdInput.value);
-		params.append('newName', categoryNameInput.value.trim());
-	} else {
-		params.append('categoryName', categoryNameInput.value.trim());
-	}
+		const params = new URLSearchParams();
 
-	params.append('displayName', displayNameInput.value.trim());
+		let url = '/category/add';
 
-	if (parentCategoryInput.value) {
-		params.append('parentCategoryId', parentCategoryInput.value);
-	}
+		if (editMode) {
 
-	fetch(url, {
-		method: 'POST',
-		headers: {
-			'Content-Type': 'application/x-www-form-urlencoded'
-		},
-		body: params.toString()
-	})
-		.then(res => res.json())
-		.then(data => {
-			if (data.result === 'ok') {
-				location.reload();
-			} else {
-				alert(data.message);
-			}
-		});
-});
+			url = '/category/update';
+
+			params.append(
+				'categoryId',
+				categoryIdInput.value
+			);
+
+			params.append(
+				'newName',
+				categoryNameInput.value.trim()
+			);
+
+		} else {
+
+			params.append(
+				'categoryName',
+				categoryNameInput.value.trim()
+			);
+		}
+
+		params.append(
+			'displayName',
+			displayNameInput.value.trim()
+		);
+
+		if (parentCategoryInput.value) {
+
+			params.append(
+				'parentCategoryId',
+				parentCategoryInput.value
+			);
+		}
+
+		fetch(url, {
+
+			method: 'POST',
+
+			headers: {
+				'Content-Type': 'application/x-www-form-urlencoded'
+			},
+
+			body: params.toString()
+
+		})
+			.then(res => res.json())
+			.then(data => {
+
+				if (data.result === 'ok') {
+
+					location.reload();
+
+				} else {
+
+					alert(data.message);
+
+				}
+
+			});
+
+	});
+
+}
 
 // キャンセル
-document.getElementById('cancelCategoryButton').addEventListener('click', () => {
-	modal.style.display = 'none';
-});
+const cancelCategoryButton = document.getElementById('cancelCategoryButton');
+
+if (cancelCategoryButton) {
+
+	cancelCategoryButton.addEventListener('click', () => {
+		modal.style.display = 'none';
+	});
+
+}
 
 // カテゴリー追加
-document.getElementById('addCategoryButton').addEventListener('click', () => {
+const addCategoryButton = document.getElementById('addCategoryButton');
 
-	editMode = false;
+if (addCategoryButton) {
 
-	modalTitle.textContent = 'カテゴリー追加';
+	addCategoryButton.addEventListener('click', () => {
 
-	categoryIdInput.value = '';
-	categoryNameInput.value = '';
-	displayNameInput.value = '';
+		editMode = false;
 
-	rebuildParentCategorySelect(null, null);
+		modalTitle.textContent = 'カテゴリー追加';
 
-	modal.style.display = 'block';
-});
+		categoryIdInput.value = '';
+		categoryNameInput.value = '';
+		displayNameInput.value = '';
+
+		rebuildParentCategorySelect(null, null);
+
+		modal.style.display = 'block';
+
+	});
+
+}
