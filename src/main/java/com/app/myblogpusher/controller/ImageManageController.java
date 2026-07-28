@@ -64,8 +64,9 @@ public class ImageManageController {
 
 		model.addAttribute("images", imagePage.getContent());
 
-		model.addAttribute("categories",
-				articleCategoryService.findByUserId(userId));
+		model.addAttribute(
+				"categories",
+				imageAssetService.findImageCategories(userId));
 
 		model.addAttribute("selectedCategoryId", categoryId);
 

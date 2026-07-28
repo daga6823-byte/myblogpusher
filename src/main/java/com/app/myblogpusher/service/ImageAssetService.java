@@ -332,4 +332,29 @@ public class ImageAssetService {
 					supabaseStorageService.getImageUrl(a.getStoragePath()));
 		});
 	}
+
+	/**
+	 * 画像に登録されているカテゴリー一覧を取得する
+	 *
+	 * image_assetに存在するカテゴリーのみ返す。
+	 */
+	public List<ImageAssetView> findImageCategories(Long userId) {
+
+		return imageAssetRepository.findByUserIdOrderByUploadDateDesc(userId)
+				.stream()
+				.collect(Collectors.toMap(
+						ImageAsset::getCategoryId,
+						a -> new ImageAssetView(
+								null,
+								a.getCategoryId(),
+								a.getFolderName(),
+								null,
+								a.getFolderName(),
+								null,
+								null),
+						(a, b) -> a))
+				.values()
+				.stream()
+				.toList();
+	}
 }

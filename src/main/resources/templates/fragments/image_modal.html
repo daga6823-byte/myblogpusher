@@ -55,12 +55,13 @@
 					カテゴリー
 
 					<select id="imageCategorySelect">
+
 						<option value="">
 							すべて
 						</option>
 
-						<option th:each="category : ${categories}" th:value="${category.categoryId}"
-							th:text="${category.fullPath}">
+						<option th:each="category : ${imageCategories}" th:value="${category.categoryId}"
+							th:text="${category.folderName}">
 						</option>
 
 					</select>
