@@ -31,34 +31,50 @@ public class ArticleCategoryService {
 		return articleCategoryRepository.findByUserIdAndCategoryName(userId, categoryName);
 	}
 
+	/**
+	 * カテゴリーを新規登録する
+	 *
+	 * カテゴリー名の入力チェック、
+	 * 重複チェックを行った上で登録する。
+	 */
 	public Long insertCategory(
-			Long userId,
-			String categoryName,
-			Long parentCategoryId,
-			String displayName) {
+	        Long userId,
+	        String categoryName,
+	        Long parentCategoryId,
+	        String displayName) {
 
-		System.out.println("insertCategory");
-		System.out.println("categoryName = " + categoryName);
-		System.out.println("displayName = " + displayName);
-		System.out.println("parentCategoryId = " + parentCategoryId);
+	    if (categoryName == null || categoryName.isBlank()) {
+	        throw new IllegalArgumentException("カテゴリー名を入力してください");
+	    }
 
-		ArticleCategory newCategory = new ArticleCategory();
-		newCategory.setUserId(userId);
-		newCategory.setCategoryName(categoryName);
-		newCategory.setCreateDate(LocalDateTime.now());
-		newCategory.setUpdateDate(LocalDateTime.now());
-		newCategory.setCreateUser(userId);
-		newCategory.setUpdateUser(userId);
-		newCategory.setParentCategoryId(parentCategoryId);
-		newCategory.setDisplayName(displayName);
-		articleCategoryRepository.save(newCategory);
-		return newCategory.getCategoryId();
+	    if (findByUserIdAndName(userId, categoryName).isPresent()) {
+	        throw new IllegalArgumentException("同じ名前のカテゴリーが既に存在します");
+	    }
+
+	    ArticleCategory newCategory = new ArticleCategory();
+	    newCategory.setUserId(userId);
+	    newCategory.setCategoryName(categoryName);
+	    newCategory.setCreateDate(LocalDateTime.now());
+	    newCategory.setUpdateDate(LocalDateTime.now());
+	    newCategory.setCreateUser(userId);
+	    newCategory.setUpdateUser(userId);
+	    newCategory.setParentCategoryId(parentCategoryId);
+	    newCategory.setDisplayName(displayName);
+
+	    articleCategoryRepository.save(newCategory);
+
+	    return newCategory.getCategoryId();
 	}
 
 	public Optional<ArticleCategory> findById(Long categoryId) {
 		return articleCategoryRepository.findById(categoryId);
 	}
 
+	/**
+	 * カテゴリー辞典表示用の一覧を取得する
+	 *
+	 * 誤字登録件数と親カテゴリー表示名を付加して返す。
+	 */
 	public List<CategoryDictionaryView> findDictionaryView(Long userId) {
 
 		List<ArticleCategory> categories = articleCategoryRepository.findByUserId(userId);
@@ -89,32 +105,53 @@ public class ArticleCategoryService {
 						c.getCategoryId(),
 						c.getCategoryName(),
 						c.getParentCategoryId(),
-						categoryNameMap.get(c.getParentCategoryId()),
+						c.getParentCategoryId() == null
+								? null
+								: categoryNameMap.get(c.getParentCategoryId()),
 						c.getDisplayName(),
 						countMap.getOrDefault(c.getCategoryId(), 0L)))
 				.toList();
 	}
 
-	public void updateCategory(Long categoryId,
-			Long userId,
-			String categoryName,
-			Long parentCategoryId,
-			String displayName) {
+	/**
+	 * カテゴリー情報を更新する
+	 *
+	 * カテゴリー名・親カテゴリー・表示名を更新する。
+	 */
+	public void update(
+	        Long categoryId,
+	        Long userId,
+	        String categoryName,
+	        Long parentCategoryId,
+	        String displayName) {
 
-		ArticleCategory category = articleCategoryRepository.findById(categoryId).orElseThrow();
+	    if (categoryName == null || categoryName.isBlank()) {
+	        throw new IllegalArgumentException("カテゴリー名を入力してください");
+	    }
 
-		if (!category.getUserId().equals(userId)) {
-			throw new IllegalStateException("他のユーザーのカテゴリーは変更できません");
-		}
+	    Optional<ArticleCategory> existing =
+	            findByUserIdAndName(userId, categoryName);
 
-		category.setCategoryName(categoryName);
-		category.setParentCategoryId(parentCategoryId);
-		category.setDisplayName(displayName);
-		category.setUpdateUser(userId);
-		category.setUpdateDate(LocalDateTime.now());
+	    if (existing.isPresent()
+	            && !existing.get().getCategoryId().equals(categoryId)) {
+	        throw new IllegalArgumentException("同じ名前のカテゴリーが既に存在します");
+	    }
 
-		System.out.println("entity displayName = " + category.getDisplayName());
-		articleCategoryRepository.save(category);
+	    ArticleCategory category =
+	            articleCategoryRepository.findById(categoryId)
+	                    .orElseThrow();
+
+	    if (!category.getUserId().equals(userId)) {
+	        throw new IllegalStateException("他のユーザーのカテゴリーは変更できません");
+	    }
+
+	    category.setCategoryName(categoryName);
+	    category.setParentCategoryId(parentCategoryId);
+	    category.setDisplayName(displayName);
+	    category.setUpdateUser(userId);
+	    category.setUpdateDate(LocalDateTime.now());
+
+	    articleCategoryRepository.save(category);
 	}
 
 	@Autowired

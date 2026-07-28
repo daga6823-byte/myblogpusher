@@ -1,8 +1,14 @@
+/**
+ * カテゴリー辞典を管理するコントローラー
+ *
+ * カテゴリー一覧表示、
+ * カテゴリーの追加・更新・削除を担当する。
+ */
+
 package com.app.myblogpusher.controller.Category;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -14,7 +20,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.app.myblogpusher.dto.Category.CategoryDictionaryView;
 import com.app.myblogpusher.entity.UserMaster;
-import com.app.myblogpusher.entity.Article.ArticleCategory;
 import com.app.myblogpusher.service.Article.ArticleCategoryService;
 
 import jakarta.servlet.http.HttpSession;
@@ -25,6 +30,9 @@ public class CategoryController {
 	@Autowired
 	private ArticleCategoryService articleCategoryService;
 
+	/**
+	 * カテゴリー辞典一覧を表示
+	 */
 	@GetMapping("/category/list")
 	public String list(HttpSession session, Model model) {
 
@@ -37,6 +45,11 @@ public class CategoryController {
 		return "category/category_list";
 	}
 
+	/**
+	 * カテゴリーを新規登録する
+	 *
+	 * 同名カテゴリーが存在する場合は登録しない。
+	 */
 	@PostMapping("/category/add")
 	@ResponseBody
 	public Map<String, String> add(@RequestParam String categoryName,
@@ -46,23 +59,31 @@ public class CategoryController {
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 		Long userId = loginUser.getUserId();
 
-		if (categoryName == null || categoryName.isBlank()) {
-			return Map.of("result", "error", "message", "カテゴリー名を入力してください");
+		try {
+
+			articleCategoryService.insertCategory(
+					userId,
+					categoryName,
+					parentCategoryId,
+					displayName);
+
+			return Map.of("result", "ok");
+
+		} catch (IllegalArgumentException e) {
+
+			return Map.of(
+					"result", "error",
+					"message", e.getMessage());
 		}
 
-		if (articleCategoryService.findByUserIdAndName(userId, categoryName).isPresent()) {
-			return Map.of("result", "error", "message", "同じ名前のカテゴリーが既に存在します");
-		}
-
-		articleCategoryService.insertCategory(
-				userId,
-				categoryName,
-				parentCategoryId,
-				displayName);
-
-		return Map.of("result", "ok");
 	}
 
+	/**
+	 * カテゴリー情報を更新する
+	 *
+	 * カテゴリー名、表示名、親カテゴリーを更新する。
+	 * 同名カテゴリーが存在する場合は更新しない。
+	 */
 	@PostMapping("/category/update")
 	@ResponseBody
 	public Map<String, String> updateCategory(
@@ -72,28 +93,35 @@ public class CategoryController {
 			@RequestParam(required = false) Long parentCategoryId,
 			HttpSession session) {
 
-		
-		System.out.println("displayName param = " + displayName);
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 		Long userId = loginUser.getUserId();
 
-		Optional<ArticleCategory> existing = articleCategoryService.findByUserIdAndName(userId, newName);
+		try {
 
-		if (existing.isPresent()
-				&& !existing.get().getCategoryId().equals(categoryId)) {
-			return Map.of("result", "error", "message", "同じ名前のカテゴリーが既に存在します");
+			articleCategoryService.update(
+					categoryId,
+					userId,
+					newName,
+					parentCategoryId,
+					displayName);
+
+			return Map.of("result", "ok");
+
+		} catch (IllegalArgumentException e) {
+
+			return Map.of(
+					"result",
+					"error",
+					"message",
+					e.getMessage());
 		}
-
-		articleCategoryService.updateCategory(
-				categoryId,
-				userId,
-				newName,
-				parentCategoryId,
-				displayName);
-		
-		return Map.of("result", "ok");
 	}
 
+	/**
+	 * カテゴリーを削除する
+	 *
+	 * 使用中カテゴリーはサービス側で削除可否を判定する。
+	 */
 	@PostMapping("/category/delete")
 	public String delete(@RequestParam Long categoryId, HttpSession session) {
 

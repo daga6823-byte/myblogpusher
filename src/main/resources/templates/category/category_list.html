@@ -38,13 +38,18 @@
 			<tr th:each="c : ${categories}">
 				<td th:text="${c.categoryName}"></td>
 				<td th:text="${c.displayName}"></td>
-				<td th:text="${c.parentCategoryId}"></td>
+				<td th:text="${c.parentCategoryName}"></td>
 				<td th:text="${c.typoCount}"></td>
 				<td>
-					<form th:if="${c.deletable}" th:action="@{/category/delete}" method="post" style="display:inline;"
+					<form th:action="@{/category/delete}" method="post" style="display:inline;"
 						onsubmit="return confirm('このカテゴリーを削除してもよろしいですか？');">
+
 						<input type="hidden" name="categoryId" th:value="${c.categoryId}">
-						<button type="submit" class="btn-delete">削除</button>
+
+						<button type="submit" class="btn-delete" th:disabled="${!c.deletable}">
+							削除
+						</button>
+
 					</form>
 					<span th:unless="${c.deletable}" style="color:#999; font-size:13px;">使用中</span>
 					<button type="button" class="btn-correct btn-update" th:data-category-id="${c.categoryId}"

@@ -107,8 +107,8 @@ button:disabled {
 	background-color: #c0392b;
 }
 
-.btn-delete:hover {
-	background-color: #962d22;
+.btn-delete:disabled:hover {
+	background-color: #ccc !important;
 }
 
 .btn-clear {
