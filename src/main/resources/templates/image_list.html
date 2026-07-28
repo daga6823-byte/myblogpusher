@@ -41,7 +41,7 @@
 				<option value="all">全カテゴリー</option>
 
 				<option th:each="category : ${categories}" th:value="${category.categoryId}"
-					th:text="${category.fullPath}">
+					th:text="${category.folderName}">
 				</option>
 
 			</select>

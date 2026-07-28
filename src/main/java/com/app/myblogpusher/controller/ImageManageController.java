@@ -19,10 +19,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.app.myblogpusher.dto.ImageAssetView;
 import com.app.myblogpusher.entity.UserMaster;
-import com.app.myblogpusher.repository.ImageAssetRepository;
 import com.app.myblogpusher.service.ArticleCategoryService;
 import com.app.myblogpusher.service.ImageAssetService;
-import com.app.myblogpusher.service.SupabaseStorageService;
 
 import jakarta.servlet.http.HttpSession;
 
@@ -30,13 +28,7 @@ import jakarta.servlet.http.HttpSession;
 public class ImageManageController {
 
 	@Autowired
-	private ImageAssetRepository imageAssetRepository;
-
-	@Autowired
 	private ArticleCategoryService articleCategoryService;
-
-	@Autowired
-	private SupabaseStorageService supabaseStorageService;
 
 	@Autowired
 	private ImageAssetService imageAssetService;
@@ -65,8 +57,8 @@ public class ImageManageController {
 		model.addAttribute("images", imagePage.getContent());
 
 		model.addAttribute(
-				"categories",
-				imageAssetService.findImageCategories(userId));
+		        "imageCategories",
+		        imageAssetService.findImageCategories(userId));
 
 		model.addAttribute("selectedCategoryId", categoryId);
 
@@ -96,9 +88,9 @@ public class ImageManageController {
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 
 		model.addAttribute(
-				"categories",
-				articleCategoryService.findByUserId(
-						loginUser.getUserId()));
+		        "imageCategories",
+		        imageAssetService.findImageCategories(
+		                loginUser.getUserId()));
 
 		return "image_new";
 	}

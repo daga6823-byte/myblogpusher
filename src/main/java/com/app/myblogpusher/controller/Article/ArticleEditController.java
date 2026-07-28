@@ -25,6 +25,7 @@ import com.app.myblogpusher.entity.UserMaster;
 import com.app.myblogpusher.service.ArticleCategoryService;
 import com.app.myblogpusher.service.ArticleWorkService;
 import com.app.myblogpusher.service.ArticleWorkspaceService;
+import com.app.myblogpusher.service.ImageAssetService;
 import com.app.myblogpusher.util.ArticleSaveUtil;
 
 import jakarta.servlet.http.HttpSession;
@@ -43,6 +44,9 @@ public class ArticleEditController {
 
 	@Autowired
 	private ArticleSaveUtil articleSaveUtil;
+	
+	@Autowired
+	private ImageAssetService imageAssetService;
 
 	/**
 	 * 記事編集画面を表示
@@ -63,6 +67,11 @@ public class ArticleEditController {
 		categories.forEach(c -> System.out.println(c.getCategoryId() + " : " + c.getFullPath()));
 
 		model.addAttribute("categories", categories);
+
+		// 画像モーダル用
+		model.addAttribute(
+				"imageCategories",
+				imageAssetService.findImageCategories(userId));
 
 		if (workId != null) {
 			ArticleWork work = articleWorkService.findById(workId);
