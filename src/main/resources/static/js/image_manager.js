@@ -275,13 +275,18 @@ document.getElementById('imageCategorySelect')
 
 
 // 新規画像登録
-document.getElementById('newImageButton')
-	.addEventListener('click', function() {
+const newImageButton = document.getElementById('newImageButton');
+
+if (newImageButton) {
+
+	newImageButton.addEventListener('click', function() {
 
 		location.href =
 			'/article/images/new';
 
 	});
+
+}
 
 document.getElementById('imagePrevButton')
 	.addEventListener('click', function() {
