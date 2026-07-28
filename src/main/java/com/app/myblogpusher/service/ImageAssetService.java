@@ -299,20 +299,20 @@ public class ImageAssetService {
 
 	public Page<ImageAssetView> findImagePage(
 			Long userId,
-			Long categoryId,
+			String folderName,
 			Pageable pageable) {
 
 		Page<ImageAsset> page;
 
-		if (categoryId == null) {
+		if (folderName == null) {
 			page = imageAssetRepository.findByUserIdOrderByUploadDateDesc(
 					userId,
 					pageable);
 		} else {
-			page = imageAssetRepository.findByUserIdAndCategoryIdOrderByUploadDateDesc(
-					userId,
-					categoryId,
-					pageable);
+			page = imageAssetRepository.findByUserIdAndFolderNameOrderByUploadDateDesc(
+			        userId,
+			        folderName,
+			        pageable);
 		}
 
 		return page.map(a -> {
@@ -342,17 +342,11 @@ public class ImageAssetService {
 	public List<ImageCategoryDto> findImageCategories(Long userId) {
 
 		return imageAssetRepository.findByUserIdOrderByUploadDateDesc(userId)
-				.stream()
-				.collect(Collectors.toMap(
-						ImageAsset::getCategoryId,
-						a -> new ImageCategoryDto(
-								a.getCategoryId(),
-								articleCategoryService.findById(a.getCategoryId())
-										.map(ArticleCategory::getDisplayName)
-										.orElse(a.getFolderName())),
-						(a, b) -> a))
-				.values()
-				.stream()
-				.toList();
+	            .stream()
+	            .map(ImageAsset::getFolderName)
+	            .filter(folder -> folder != null && !folder.isBlank())
+	            .distinct()
+	            .map(ImageCategoryDto::new)
+	            .toList();
 	}
 }

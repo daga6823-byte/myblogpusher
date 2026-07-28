@@ -28,5 +28,10 @@ public interface ImageAssetRepository extends JpaRepository<ImageAsset, Long> {
 			Long userId,
 			Long categoryId,
 			Pageable pageable);
+	
+	Page<ImageAsset> findByUserIdAndFolderNameOrderByUploadDateDesc(
+	        Long userId,
+	        String folderName,
+	        Pageable pageable);
 
 }

@@ -45,7 +45,7 @@ public class ArticleImageController {
 	@GetMapping("/article/images")
 	@ResponseBody
 	public Page<ImageAssetView> getImages(
-			@RequestParam(required = false) Long categoryId,
+			@RequestParam(required = false) String folderName,
 			@RequestParam(defaultValue = "0") int page,
 			HttpSession session) {
 
@@ -56,9 +56,9 @@ public class ArticleImageController {
 				PageRequest.of(page, 12);
 
 		return imageAssetService.findImagePage(
-				loginUser.getUserId(),
-				categoryId,
-				pageable);
+		        loginUser.getUserId(),
+		        folderName,
+		        pageable);
 	}
 
 	/**

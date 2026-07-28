@@ -9,23 +9,13 @@ package com.app.myblogpusher.dto;
 
 public class ImageCategoryDto {
 
-	private Long categoryId;
+    private String folderName;
 
-	private String folderName;
+    public ImageCategoryDto(String folderName) {
+        this.folderName = folderName;
+    }
 
-	public ImageCategoryDto(
-			Long categoryId,
-			String folderName) {
-
-		this.categoryId = categoryId;
-		this.folderName = folderName;
-	}
-
-	public Long getCategoryId() {
-		return categoryId;
-	}
-
-	public String getFolderName() {
-		return folderName;
-	}
+    public String getFolderName() {
+        return folderName;
+    }
 }

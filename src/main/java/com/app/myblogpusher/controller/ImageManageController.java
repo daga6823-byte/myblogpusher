@@ -19,16 +19,12 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.app.myblogpusher.dto.ImageAssetView;
 import com.app.myblogpusher.entity.UserMaster;
-import com.app.myblogpusher.service.ArticleCategoryService;
 import com.app.myblogpusher.service.ImageAssetService;
 
 import jakarta.servlet.http.HttpSession;
 
 @Controller
 public class ImageManageController {
-
-	@Autowired
-	private ArticleCategoryService articleCategoryService;
 
 	@Autowired
 	private ImageAssetService imageAssetService;
@@ -41,7 +37,7 @@ public class ImageManageController {
 	 */
 	@GetMapping("/image/list")
 	public String list(
-			@RequestParam(required = false) Long categoryId,
+			@RequestParam(required = false) String folderName,
 			@RequestParam(defaultValue = "0") int page,
 			@RequestParam(defaultValue = "20") int size,
 			HttpSession session,
@@ -52,7 +48,7 @@ public class ImageManageController {
 
 		Pageable pageable = PageRequest.of(page, size);
 
-		Page<ImageAssetView> imagePage = imageAssetService.findImagePage(userId, categoryId, pageable);
+		Page<ImageAssetView> imagePage = imageAssetService.findImagePage(userId, folderName, pageable);
 
 		model.addAttribute("images", imagePage.getContent());
 
@@ -60,7 +56,7 @@ public class ImageManageController {
 		        "imageCategories",
 		        imageAssetService.findImageCategories(userId));
 
-		model.addAttribute("selectedCategoryId", categoryId);
+		model.addAttribute("selectedFolderName", folderName);
 
 		model.addAttribute("currentPage", page);
 		model.addAttribute("totalPages", imagePage.getTotalPages());

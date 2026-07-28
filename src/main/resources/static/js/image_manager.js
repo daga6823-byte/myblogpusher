@@ -20,7 +20,7 @@ let imageInsertPosition = null;
 let imagePage = 0;
 
 // 選択中カテゴリー
-let imageCategoryId = null;
+let imageFolderName = null;
 
 // -----------------------------------------------------
 // カテゴリーに対応するデフォルトフォルダ名を取得する
@@ -64,8 +64,8 @@ function loadImageList() {
 		'/article/images?page=' + imagePage;
 
 	// カテゴリー選択時だけ絞り込む
-	if (imageCategoryId) {
-		url += '&categoryId=' + imageCategoryId;
+	if (imageFolderName) {
+		url += '&folderName=' + encodeURIComponent(imageFolderName);
 	}
 
 	fetch(url)
@@ -266,7 +266,7 @@ document.getElementById('imageUploadButton').addEventListener('click', function(
 document.getElementById('imageCategorySelect')
 	.addEventListener('change', function() {
 
-		imageCategoryId = this.value || null;
+		imageFolderName = this.value || null;
 		imagePage = 0;
 
 		loadImageList();
