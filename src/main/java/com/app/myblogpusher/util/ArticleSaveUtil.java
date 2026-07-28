@@ -12,12 +12,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.app.myblogpusher.entity.ArticleCategory;
-import com.app.myblogpusher.entity.ArticleWork;
-import com.app.myblogpusher.repository.ArticleRepository;
-import com.app.myblogpusher.service.ArticleCategoryService;
-import com.app.myblogpusher.service.ArticleFormatService;
-import com.app.myblogpusher.service.ArticleWorkService;
+import com.app.myblogpusher.entity.Article.ArticleCategory;
+import com.app.myblogpusher.entity.Article.ArticleWork;
+import com.app.myblogpusher.repository.Article.ArticleRepository;
+import com.app.myblogpusher.service.Article.ArticleCategoryService;
+import com.app.myblogpusher.service.Article.ArticleFormatService;
+import com.app.myblogpusher.service.Article.ArticleWorkService;
 
 @Component
 public class ArticleSaveUtil {

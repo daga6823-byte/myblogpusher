@@ -16,9 +16,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import com.app.myblogpusher.entity.UserMaster;
 import com.app.myblogpusher.repository.UserRepositoryRepository;
-import com.app.myblogpusher.service.ArticleWorkspaceService;
 import com.app.myblogpusher.service.LoginService;
 import com.app.myblogpusher.service.PublishedArticleService;
+import com.app.myblogpusher.service.Article.ArticleWorkspaceService;
 
 import jakarta.servlet.http.HttpSession;
 

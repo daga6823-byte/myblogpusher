@@ -4,8 +4,8 @@ import java.time.LocalDateTime;
 
 import org.springframework.stereotype.Component;
 
-import com.app.myblogpusher.entity.Article;
-import com.app.myblogpusher.entity.ArticleWork;
+import com.app.myblogpusher.entity.Article.Article;
+import com.app.myblogpusher.entity.Article.ArticleWork;
 import com.app.myblogpusher.enums.ArticleStatus;
 
 @Component

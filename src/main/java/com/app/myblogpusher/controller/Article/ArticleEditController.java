@@ -18,14 +18,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.app.myblogpusher.dto.CategoryOptionView;
 import com.app.myblogpusher.dto.WorkspaceSaveRequest;
-import com.app.myblogpusher.entity.ArticleWork;
+import com.app.myblogpusher.dto.Category.CategoryOptionView;
 import com.app.myblogpusher.entity.UserMaster;
-import com.app.myblogpusher.service.ArticleCategoryService;
-import com.app.myblogpusher.service.ArticleWorkService;
-import com.app.myblogpusher.service.ArticleWorkspaceService;
-import com.app.myblogpusher.service.ImageAssetService;
+import com.app.myblogpusher.entity.Article.ArticleWork;
+import com.app.myblogpusher.service.Article.ArticleCategoryService;
+import com.app.myblogpusher.service.Article.ArticleWorkService;
+import com.app.myblogpusher.service.Article.ArticleWorkspaceService;
+import com.app.myblogpusher.service.Image.ImageAssetService;
 import com.app.myblogpusher.util.ArticleSaveUtil;
 
 import jakarta.servlet.http.HttpSession;

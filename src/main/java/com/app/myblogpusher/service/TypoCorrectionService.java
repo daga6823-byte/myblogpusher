@@ -17,10 +17,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import com.app.myblogpusher.dto.TypoDictionaryView;
-import com.app.myblogpusher.entity.ArticleCategory;
+import com.app.myblogpusher.dto.Typo.TypoDictionaryView;
 import com.app.myblogpusher.entity.TypoCorrection;
+import com.app.myblogpusher.entity.Article.ArticleCategory;
 import com.app.myblogpusher.repository.TypoCorrectionRepository;
+import com.app.myblogpusher.service.Article.ArticleCategoryService;
 
 @Service
 public class TypoCorrectionService {

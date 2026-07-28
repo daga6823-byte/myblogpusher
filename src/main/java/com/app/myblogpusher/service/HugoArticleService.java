@@ -20,9 +20,9 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.app.myblogpusher.entity.Article;
-import com.app.myblogpusher.entity.ArticleCategory;
-import com.app.myblogpusher.repository.ArticleCategoryRepository;
+import com.app.myblogpusher.entity.Article.Article;
+import com.app.myblogpusher.entity.Article.ArticleCategory;
+import com.app.myblogpusher.repository.Article.ArticleCategoryRepository;
 
 @Service
 public class HugoArticleService {

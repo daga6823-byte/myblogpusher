@@ -19,9 +19,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import com.app.myblogpusher.entity.Article;
 import com.app.myblogpusher.entity.UserRepositoryEntity;
+import com.app.myblogpusher.entity.Article.Article;
 import com.app.myblogpusher.enums.ArticleStatus;
+import com.app.myblogpusher.service.Article.ArticleService;
+import com.app.myblogpusher.service.Article.ArticleWorkService;
 import com.app.myblogpusher.util.ArticleImageUtil;
 
 @Service

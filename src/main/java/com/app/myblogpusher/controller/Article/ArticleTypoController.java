@@ -12,15 +12,15 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.app.myblogpusher.dto.ProofreadResultView;
-import com.app.myblogpusher.dto.TypoScanResultView;
-import com.app.myblogpusher.entity.ArticleCategory;
-import com.app.myblogpusher.entity.ArticleWork;
+import com.app.myblogpusher.dto.Typo.TypoScanResultView;
 import com.app.myblogpusher.entity.UserMaster;
-import com.app.myblogpusher.service.ArticleCategoryService;
-import com.app.myblogpusher.service.ArticleWorkService;
+import com.app.myblogpusher.entity.Article.ArticleCategory;
+import com.app.myblogpusher.entity.Article.ArticleWork;
 import com.app.myblogpusher.service.HomophoneTypoScanService;
 import com.app.myblogpusher.service.LanguageToolService;
 import com.app.myblogpusher.service.TypoCorrectionService;
+import com.app.myblogpusher.service.Article.ArticleCategoryService;
+import com.app.myblogpusher.service.Article.ArticleWorkService;
 import com.app.myblogpusher.util.ArticleSaveUtil;
 
 import jakarta.servlet.http.HttpSession;

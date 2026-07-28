@@ -13,16 +13,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
-import com.app.myblogpusher.entity.ArticleCategory;
-import com.app.myblogpusher.entity.ArticleWork;
 import com.app.myblogpusher.entity.MenuMaster;
 import com.app.myblogpusher.entity.TypoCorrection;
 import com.app.myblogpusher.entity.UserMaster;
-import com.app.myblogpusher.repository.ArticleCategoryRepository;
-import com.app.myblogpusher.repository.ArticleWorkRepository;
+import com.app.myblogpusher.entity.Article.ArticleCategory;
+import com.app.myblogpusher.entity.Article.ArticleWork;
 import com.app.myblogpusher.repository.MenuMasterRepository;
 import com.app.myblogpusher.repository.TypoCorrectionRepository;
 import com.app.myblogpusher.repository.UserMasterRepository;
+import com.app.myblogpusher.repository.Article.ArticleCategoryRepository;
+import com.app.myblogpusher.repository.Article.ArticleWorkRepository;
 
 @Controller
 public class ExportController {

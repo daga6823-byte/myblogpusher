@@ -15,15 +15,15 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import com.app.myblogpusher.dto.PublishPreviewForm;
 import com.app.myblogpusher.dto.SlugAnalysisDto;
-import com.app.myblogpusher.entity.ArticleCategory;
+import com.app.myblogpusher.dto.Publish.PublishPreviewForm;
 import com.app.myblogpusher.entity.UserMaster;
 import com.app.myblogpusher.entity.UserRepositoryEntity;
+import com.app.myblogpusher.entity.Article.ArticleCategory;
 import com.app.myblogpusher.repository.UserRepositoryRepository;
-import com.app.myblogpusher.service.ArticleCategoryService;
-import com.app.myblogpusher.service.ArticlePublishService;
-import com.app.myblogpusher.service.ArticleWorkspaceService;
+import com.app.myblogpusher.service.Article.ArticleCategoryService;
+import com.app.myblogpusher.service.Article.ArticlePublishService;
+import com.app.myblogpusher.service.Article.ArticleWorkspaceService;
 import com.app.myblogpusher.util.SlugUtil;
 
 import jakarta.servlet.http.HttpSession;

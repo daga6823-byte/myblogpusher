@@ -1,0 +1,212 @@
+/**
+ * 投稿済み記事の登録・更新を担当するサービス
+ *
+ * ArticleエンティティのCRUDのみを担当する。
+ * 投稿フローの制御はArticlePublishServiceが行う。
+ */
+package com.app.myblogpusher.service.Article;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.app.myblogpusher.entity.Article.Article;
+import com.app.myblogpusher.entity.Article.ArticleWork;
+import com.app.myblogpusher.enums.ArticleStatus;
+import com.app.myblogpusher.repository.Article.ArticleRepository;
+import com.app.myblogpusher.service.HugoArticleService;
+
+@Service
+public class ArticleService {
+
+	@Autowired
+	private ArticleRepository articleRepository;
+
+	@Autowired
+	private HugoArticleService hugoArticleService;
+
+	public Article createFromWork(ArticleWork work, String slug) {
+
+		Article article = new Article();
+
+		article.setUserId(work.getUserId());
+		article.setCategoryId(work.getCategoryId());
+		article.setTitle(work.getTitle());
+
+		// 画面で編集したslugを使用
+		article.setSlug(slug);
+
+		article.setHugoPath(
+				hugoArticleService.buildArticlePath(
+						work.getCategoryId(),
+						slug));
+
+		article.setContent(work.getContent());
+
+		article.setStatus(ArticleStatus.PUBLISHING);
+
+		LocalDateTime now = LocalDateTime.now();
+
+		article.setCreateDate(now);
+		article.setUpdateDate(now);
+		article.setPublishDate(now);
+
+		article.setCreateUser(work.getCreateUser());
+		article.setUpdateUser(work.getUpdateUser());
+
+		return articleRepository.save(article);
+	}
+
+	/**
+	 * 投稿済み記事を更新
+	 */
+	public Article updateFromWork(
+			Article article,
+			ArticleWork work,
+			String slug) {
+
+		article.setCategoryId(work.getCategoryId());
+		article.setTitle(work.getTitle());
+
+		// 画面で編集したslugを使用
+		article.setSlug(slug);
+
+		article.setHugoPath(
+				hugoArticleService.buildArticlePath(
+						work.getCategoryId(),
+						slug));
+
+		article.setContent(work.getContent());
+
+		article.setUpdateDate(LocalDateTime.now());
+		article.setUpdateUser(work.getUpdateUser());
+
+		article.setStatus(ArticleStatus.PUBLISHING);
+
+		return articleRepository.save(article);
+	}
+
+	/**
+	 * GitHub同期用
+	 * 既存記事なら更新、存在しなければ新規登録
+	 */
+	public Article saveFromGitHub(
+			Long articleId,
+			Long userId,
+			Long categoryId,
+			String slug,
+			String hugoPath,
+			String title,
+			String content,
+			LocalDateTime publishDate) {
+
+		Optional<Article> existing = Optional.empty();
+
+		if (articleId != null) {
+			existing = articleRepository.findById(articleId);
+		}
+
+		Article article = existing.orElseGet(Article::new);
+
+		LocalDateTime articleDate = publishDate;
+
+		if (articleDate == null) {
+			articleDate = LocalDateTime.now();
+		}
+
+		if (article.getArticleId() == null) {
+			article.setUserId(userId);
+			article.setCreateDate(articleDate);
+			article.setCreateUser(userId);
+			article.setCategoryId(categoryId);
+		}
+
+		article.setTitle(title);
+
+		// ファイル名のみ
+		article.setSlug(slug);
+
+		// Hugo上のフルパス
+		article.setHugoPath(hugoPath);
+
+		article.setContent(content);
+
+		article.setStatus(ArticleStatus.PUBLISHED);
+
+		// GitHub記事側の日時を使用
+		article.setPublishDate(articleDate);
+		article.setUpdateDate(articleDate);
+
+		article.setUpdateUser(userId);
+
+		return articleRepository.save(article);
+	}
+
+	public void updateStatus(Long articleId, ArticleStatus status) {
+
+		Article article = articleRepository.findById(articleId)
+				.orElseThrow();
+
+		article.setStatus(status);
+
+		articleRepository.save(article);
+	}
+
+	/**
+	 * 投稿済み記事IDから記事を取得する
+	 */
+	public Article findById(Long articleId) {
+
+		return articleRepository.findById(articleId)
+				.orElseThrow();
+
+	}
+
+	/**
+	 * Hugoパスから投稿済み記事を取得する
+	 */
+	public Article findByHugoPath(
+			Long userId,
+			String hugoPath) {
+
+		return articleRepository
+				.findByUserIdAndHugoPath(
+						userId,
+						hugoPath)
+				.orElse(null);
+	}
+
+	/**
+	 * 公開済み記事一覧取得
+	 */
+	public List<Article> findPublishedByUserId(Long userId) {
+
+		return articleRepository.findByUserIdAndStatusOrderByUpdateDateDesc(
+				userId,
+				ArticleStatus.PUBLISHED);
+	}
+
+	public Article findBySlug(Long userId, String slug) {
+
+		return articleRepository.findByUserIdAndSlug(userId, slug)
+				.orElse(null);
+	}
+
+	/**
+	 * 差分があればDBから記事削除
+	 */
+	@Transactional
+	public void deleteByUserIdAndSlug(
+			Long userId,
+			String slug) {
+
+		articleRepository.deleteByUserIdAndSlug(
+				userId,
+				slug);
+	}
+
+}

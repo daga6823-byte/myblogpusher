@@ -23,11 +23,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import com.app.myblogpusher.dto.PublishedArticleDto;
-import com.app.myblogpusher.dto.PublishedArticleSummaryDto;
-import com.app.myblogpusher.entity.Article;
+import com.app.myblogpusher.dto.Publish.PublishedArticleDto;
+import com.app.myblogpusher.dto.Publish.PublishedArticleSummaryDto;
 import com.app.myblogpusher.entity.UserRepositoryEntity;
-import com.app.myblogpusher.repository.ArticleRepository;
+import com.app.myblogpusher.entity.Article.Article;
+import com.app.myblogpusher.repository.Article.ArticleRepository;
+import com.app.myblogpusher.service.Article.ArticleCategoryService;
+import com.app.myblogpusher.service.Article.ArticleService;
 import com.app.myblogpusher.util.FrontMatterUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

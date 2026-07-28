@@ -12,11 +12,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.app.myblogpusher.dto.TypoDictionaryView;
-import com.app.myblogpusher.entity.ArticleCategory;
+import com.app.myblogpusher.dto.Typo.TypoDictionaryView;
 import com.app.myblogpusher.entity.UserMaster;
-import com.app.myblogpusher.service.ArticleCategoryService;
+import com.app.myblogpusher.entity.Article.ArticleCategory;
 import com.app.myblogpusher.service.TypoCorrectionService;
+import com.app.myblogpusher.service.Article.ArticleCategoryService;
 
 import jakarta.servlet.http.HttpSession;
 

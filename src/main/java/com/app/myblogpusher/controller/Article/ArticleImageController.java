@@ -26,7 +26,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.app.myblogpusher.dto.ImageAssetView;
 import com.app.myblogpusher.entity.ImageAsset;
 import com.app.myblogpusher.entity.UserMaster;
-import com.app.myblogpusher.service.ImageAssetService;
+import com.app.myblogpusher.service.Image.ImageAssetService;
 
 import jakarta.servlet.http.HttpSession;
 
