@@ -60,8 +60,7 @@
 							すべて
 						</option>
 
-						<option th:each="category : ${imageCategories}" th:value="${category.categoryId}"
-							th:text="${category.folderName}">
+						<option th:each="category : ${imageCategories}" th:value="${category.folderName}" th:text="${category.folderName}">
 						</option>
 
 					</select>

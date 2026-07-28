@@ -44,7 +44,10 @@ document.getElementById('imageCategorySelect').addEventListener('change', functi
 	if (category === 'all') {
 		location.href = '/image/list?page=0';
 	} else {
-		location.href = '/image/list?categoryId=' + category + '&page=0';
+		location.href =
+			'/image/list?folderName='
+			+ encodeURIComponent(category)
+			+ '&page=0';
 	}
 
 });
@@ -65,7 +68,9 @@ if (pageSelect) {
 			location.href = '/image/list?page=' + page;
 		} else {
 			location.href =
-				'/image/list?categoryId=' + category + '&page=' + page;
+				'/image/list?folderName='
+				+ encodeURIComponent(category)
+				+ '&page=' + page;
 		}
 
 	});
@@ -94,7 +99,9 @@ if (prevButton) {
 			location.href = '/image/list?page=' + page;
 		} else {
 			location.href =
-				'/image/list?categoryId=' + category + '&page=' + page;
+				'/image/list?folderName='
+				+ encodeURIComponent(category)
+				+ '&page=' + page;
 		}
 
 	});
@@ -119,7 +126,9 @@ if (nextButton) {
 			location.href = '/image/list?page=' + page;
 		} else {
 			location.href =
-				'/image/list?categoryId=' + category + '&page=' + page;
+				'/image/list?folderName='
+				+ encodeURIComponent(category)
+				+ '&page=' + page;
 		}
 
 	});
