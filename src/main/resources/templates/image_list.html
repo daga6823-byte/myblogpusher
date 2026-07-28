@@ -40,8 +40,8 @@
 
 				<option value="all">全カテゴリー</option>
 
-				<option th:each="category : ${categories}" th:value="${category.categoryId}"
-					th:text="${category.folderName}">
+				<option th:each="c : ${imageCategories}" th:value="${c.folderName}" th:text="${c.folderName}"
+					th:selected="${c.folderName == selectedFolderName}">
 				</option>
 
 			</select>
