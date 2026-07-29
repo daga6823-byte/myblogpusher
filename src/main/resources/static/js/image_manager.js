@@ -416,3 +416,67 @@ function loadImageCategories() {
 
 }
 
+// -----------------------------------------------------
+// 保存先フォルダ一覧を再取得する
+//
+// 初回表示時、および新規フォルダ作成後に呼び出す。
+// image_assetに存在するフォルダを選択肢として表示する。
+// -----------------------------------------------------
+function loadImageFolders() {
+
+	const select =
+		document.getElementById('imageFolderSelect');
+
+	if (!select) {
+		return;
+	}
+
+	fetch('/image/folders')
+		.then(res => res.json())
+		.then(folders => {
+
+			const currentValue = select.value;
+
+			select.innerHTML = '';
+
+			const none =
+				document.createElement('option');
+
+			none.value = '';
+			none.textContent = '選択してください';
+
+			select.appendChild(none);
+
+
+			folders.forEach(folder => {
+
+				const option =
+					document.createElement('option');
+
+				option.value = folder;
+				option.textContent = folder;
+
+				select.appendChild(option);
+
+			});
+
+
+			const newOption =
+				document.createElement('option');
+
+			newOption.value = '__new__';
+			newOption.textContent =
+				'＋ 新しいフォルダを追加';
+
+			select.appendChild(newOption);
+
+
+			if (currentValue && currentValue !== '__new__') {
+				select.value = currentValue;
+			}
+
+		});
+
+}
+
+
