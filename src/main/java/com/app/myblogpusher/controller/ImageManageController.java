@@ -109,4 +109,20 @@ public class ImageManageController {
 
 		return Map.of("result", "ok");
 	}
+	
+	/**
+	 * 画像フォルダー一覧を取得する
+	 *
+	 * 画像選択モーダルのカテゴリー一覧再読込で使用する。
+	 */
+	@GetMapping("/image/categories")
+	@ResponseBody
+	public Object imageCategories(HttpSession session) {
+
+		UserMaster loginUser =
+				(UserMaster) session.getAttribute("loginUser");
+
+		return imageAssetService.findImageCategories(
+				loginUser.getUserId());
+	}
 }
