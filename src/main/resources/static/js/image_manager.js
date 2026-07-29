@@ -28,18 +28,21 @@ let imageFolderName = null;
 function loadDefaultFolderName() {
 
 	const categoryId = document.getElementById('categorySelect').value;
-	const folderInput = document.getElementById('imageFolderName');
+	const folderSelect =
+		document.getElementById('imageFolderSelect');
 
 	// 新規カテゴリーはフォルダ名取得不可
 	if (!categoryId || categoryId === '__new__') {
-		folderInput.value = '';
+
+		folderSelect.value = '';
+
 		return;
 	}
 
 	fetch('/article/images/default-folder?categoryId=' + categoryId)
 		.then(res => res.json())
 		.then(data => {
-			folderInput.value = data.folderName || '';
+			folderSelect.value = data.folderName || '';
 		})
 		.catch(err => console.error(err));
 
@@ -188,6 +191,7 @@ document.getElementById('imageButton').addEventListener('click', function() {
 	imageCategoryId = null;
 	imagePage = 0;
 
+	loadImageFolders();
 	loadDefaultFolderName();
 	loadImageList();
 
@@ -201,7 +205,23 @@ document.getElementById('imageButton').addEventListener('click', function() {
 document.getElementById('imageUploadButton').addEventListener('click', function() {
 
 	const fileInput = document.getElementById('imageFileInput');
-	const folderName = document.getElementById('imageFolderName').value.trim();
+	let folderName = '';
+
+	const folderSelect =
+		document.getElementById('imageFolderSelect');
+
+	if (folderSelect.value === '__new__') {
+
+		folderName =
+			document.getElementById('newImageFolderName')
+				.value.trim();
+
+	} else {
+
+		folderName = folderSelect.value;
+
+	}
+
 	const categoryId = document.getElementById('categorySelect').value;
 	const workId = new URLSearchParams(window.location.search).get('workId');
 	const status = document.getElementById('imageUploadStatus');
@@ -242,6 +262,7 @@ document.getElementById('imageUploadButton').addEventListener('click', function(
 
 				fileInput.value = '';
 
+				loadImageFolders();
 				loadImageCategories();
 				loadImageList();
 
@@ -350,3 +371,87 @@ function loadImageCategories() {
 		});
 
 }
+
+const imageFolderSelect =
+	document.getElementById('imageFolderSelect');
+
+const newImageFolderName =
+	document.getElementById('newImageFolderName');
+
+if (imageFolderSelect) {
+
+	imageFolderSelect.addEventListener('change', function() {
+
+		if (this.value === '__new__') {
+
+			newImageFolderName.style.display = 'block';
+
+		} else {
+
+			newImageFolderName.style.display = 'none';
+
+			newImageFolderName.value = '';
+
+		}
+
+	});
+
+}
+
+function loadImageFolders() {
+
+	const select =
+		document.getElementById('imageFolderSelect');
+
+	if (!select) {
+		return;
+	}
+
+	fetch('/image/folders')
+		.then(res => res.json())
+		.then(folders => {
+
+			const currentValue = select.value;
+
+			select.innerHTML = '';
+
+			const none =
+				document.createElement('option');
+
+			none.value = '';
+			none.textContent = '選択してください';
+
+			select.appendChild(none);
+
+
+			folders.forEach(folder => {
+
+				const option =
+					document.createElement('option');
+
+				option.value = folder;
+				option.textContent = folder;
+
+				select.appendChild(option);
+
+			});
+
+
+			const newOption =
+				document.createElement('option');
+
+			newOption.value = '__new__';
+			newOption.textContent =
+				'＋ 新しいフォルダを追加';
+
+			select.appendChild(newOption);
+
+
+			if (currentValue && currentValue !== '__new__') {
+				select.value = currentValue;
+			}
+
+		});
+
+}
+

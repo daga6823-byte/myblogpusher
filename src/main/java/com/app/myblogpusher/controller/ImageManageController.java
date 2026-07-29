@@ -4,6 +4,7 @@
 
 package com.app.myblogpusher.controller;
 
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,8 +54,8 @@ public class ImageManageController {
 		model.addAttribute("images", imagePage.getContent());
 
 		model.addAttribute(
-		        "imageCategories",
-		        imageAssetService.findImageCategories(userId));
+				"imageCategories",
+				imageAssetService.findImageCategories(userId));
 
 		model.addAttribute("selectedFolderName", folderName);
 
@@ -84,9 +85,9 @@ public class ImageManageController {
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 
 		model.addAttribute(
-		        "imageCategories",
-		        imageAssetService.findImageCategories(
-		                loginUser.getUserId()));
+				"imageCategories",
+				imageAssetService.findImageCategories(
+						loginUser.getUserId()));
 
 		return "image_new";
 	}
@@ -109,7 +110,7 @@ public class ImageManageController {
 
 		return Map.of("result", "ok");
 	}
-	
+
 	/**
 	 * 画像フォルダー一覧を取得する
 	 *
@@ -119,10 +120,25 @@ public class ImageManageController {
 	@ResponseBody
 	public Object imageCategories(HttpSession session) {
 
-		UserMaster loginUser =
-				(UserMaster) session.getAttribute("loginUser");
+		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 
 		return imageAssetService.findImageCategories(
 				loginUser.getUserId());
+	}
+
+	/**
+	 * 保存先フォルダ一覧取得
+	 *
+	 * image_assetに登録済みのfolderNameのみ返す。
+	 */
+	@GetMapping("/image/folders")
+	@ResponseBody
+	public List<String> folders(HttpSession session) {
+
+		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
+
+		return imageAssetService.findImageFolders(
+				loginUser.getUserId());
+
 	}
 }

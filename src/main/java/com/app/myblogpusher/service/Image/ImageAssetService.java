@@ -312,9 +312,9 @@ public class ImageAssetService {
 					pageable);
 		} else {
 			page = imageAssetRepository.findByUserIdAndFolderNameOrderByUploadDateDesc(
-			        userId,
-			        folderName,
-			        pageable);
+					userId,
+					folderName,
+					pageable);
 		}
 
 		return page.map(a -> {
@@ -337,18 +337,28 @@ public class ImageAssetService {
 	}
 
 	/**
-	 * 画像に登録されているカテゴリー一覧を取得する
+	 * 画像保存先フォルダ一覧を取得する
 	 *
-	 * image_assetに存在するカテゴリーのみ返す。
+	 * image_assetに登録されているfolderNameのみ返す。
 	 */
 	public List<ImageCategoryDto> findImageCategories(Long userId) {
 
 		return imageAssetRepository.findByUserIdOrderByUploadDateDesc(userId)
-	            .stream()
-	            .map(ImageAsset::getFolderName)
-	            .filter(folder -> folder != null && !folder.isBlank())
-	            .distinct()
-	            .map(ImageCategoryDto::new)
-	            .toList();
+				.stream()
+				.map(ImageAsset::getFolderName)
+				.filter(folder -> folder != null && !folder.isBlank())
+				.distinct()
+				.map(ImageCategoryDto::new)
+				.toList();
+	}
+
+	public List<String> findImageFolders(Long userId) {
+
+		return imageAssetRepository.findByUserIdOrderByUploadDateDesc(userId)
+				.stream()
+				.map(ImageAsset::getFolderName)
+				.filter(folder -> folder != null && !folder.isBlank())
+				.distinct()
+				.toList();
 	}
 }

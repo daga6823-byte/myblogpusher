@@ -44,7 +44,7 @@ public class ArticleEditController {
 
 	@Autowired
 	private ArticleSaveUtil articleSaveUtil;
-	
+
 	@Autowired
 	private ImageAssetService imageAssetService;
 
@@ -69,8 +69,9 @@ public class ArticleEditController {
 		model.addAttribute("categories", categories);
 
 		// 画像モーダル用
+		// 登録済み画像の保存先フォルダ一覧を取得
 		model.addAttribute(
-				"imageCategories",
+				"imageFolders",
 				imageAssetService.findImageCategories(userId));
 
 		if (workId != null) {

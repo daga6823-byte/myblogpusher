@@ -27,7 +27,18 @@
 					保存先フォルダ
 				</label>
 
-				<input type="text" id="imageFolderName" placeholder="カテゴリーから自動入力されます">
+				<select id="imageFolderSelect">
+					<option value="">選択してください</option>
+
+					<option th:each="folder : ${imageFolders}" th:value="${folder}" th:text="${folder}">
+					</option>
+
+					<option value="__new__">
+						＋ 新しいフォルダを追加
+					</option>
+				</select>
+
+				<input type="text" id="newImageFolderName" placeholder="新しいフォルダ名を入力" style="display:none;">
 
 
 				<label for="imageFileInput">
@@ -60,7 +71,8 @@
 							すべて
 						</option>
 
-						<option th:each="category : ${imageCategories}" th:value="${category.folderName}" th:text="${category.folderName}">
+						<option th:each="category : ${imageCategories}" th:value="${category.folderName}"
+							th:text="${category.folderName}">
 						</option>
 
 					</select>
