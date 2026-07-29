@@ -336,40 +336,7 @@ if (imageNextButton) {
 
 function loadImageCategories() {
 
-	const select =
-		document.getElementById('imageCategorySelect');
-
-	fetch('/image/categories')
-		.then(res => res.json())
-		.then(categories => {
-
-			select.innerHTML = '';
-
-			const all =
-				document.createElement('option');
-
-			all.value = '';
-			all.textContent = 'すべて';
-
-			select.appendChild(all);
-
-			categories.forEach(category => {
-
-				const option =
-					document.createElement('option');
-
-				option.value =
-					category.folderName;
-
-				option.textContent =
-					category.folderName;
-
-				select.appendChild(option);
-
-			});
-
-		});
-
+	return;
 }
 
 const imageFolderSelect =
