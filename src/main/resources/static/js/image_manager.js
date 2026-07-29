@@ -191,8 +191,14 @@ document.getElementById('imageButton').addEventListener('click', function() {
 	imageCategoryId = null;
 	imagePage = 0;
 
+	// 新規フォルダ追加時にフォルダ選択へ反映する
 	loadImageFolders();
-	loadDefaultFolderName();
+
+	// 画像一覧絞り込み用カテゴリーを更新する
+	// 保存先フォルダとは別管理
+	loadImageCategories();
+
+	// 新規画像を一覧へ反映する
 	loadImageList();
 
 	document.getElementById('imageModal').style.display = 'block';
@@ -262,14 +268,14 @@ document.getElementById('imageUploadButton').addEventListener('click', function(
 
 				fileInput.value = '';
 
+				// 新規フォルダ追加時に保存先フォルダへ反映する
 				loadImageFolders();
+
+				// 新規フォルダ・画像追加後に一覧絞り込み条件を更新する
 				loadImageCategories();
+
+				// 新規画像を一覧へ反映する
 				loadImageList();
-
-			} else {
-
-				status.textContent =
-					data.message || 'アップロードに失敗しました';
 
 			}
 
@@ -334,11 +340,6 @@ if (imageNextButton) {
 
 }
 
-function loadImageCategories() {
-
-	return;
-}
-
 const imageFolderSelect =
 	document.getElementById('imageFolderSelect');
 
@@ -365,58 +366,51 @@ if (imageFolderSelect) {
 
 }
 
-function loadImageFolders() {
+// -----------------------------------------------------
+// 画像一覧絞り込み用フォルダを再取得する
+//
+// image_assetに登録されている保存先フォルダ名を
+// 画像一覧の絞り込み条件として表示する。
+// 保存先フォルダ選択とは別管理。
+// -----------------------------------------------------
+function loadImageCategories() {
 
 	const select =
-		document.getElementById('imageFolderSelect');
+		document.getElementById('imageCategorySelect');
 
 	if (!select) {
 		return;
 	}
 
-	fetch('/image/folders')
+	fetch('/image/categories')
 		.then(res => res.json())
-		.then(folders => {
-
-			const currentValue = select.value;
+		.then(categories => {
 
 			select.innerHTML = '';
 
-			const none =
+			const all =
 				document.createElement('option');
 
-			none.value = '';
-			none.textContent = '選択してください';
+			all.value = '';
+			all.textContent = 'すべて';
 
-			select.appendChild(none);
+			select.appendChild(all);
 
 
-			folders.forEach(folder => {
+			categories.forEach(category => {
 
 				const option =
 					document.createElement('option');
 
-				option.value = folder;
-				option.textContent = folder;
+				option.value =
+					category.folderName;
+
+				option.textContent =
+					category.folderName;
 
 				select.appendChild(option);
 
 			});
-
-
-			const newOption =
-				document.createElement('option');
-
-			newOption.value = '__new__';
-			newOption.textContent =
-				'＋ 新しいフォルダを追加';
-
-			select.appendChild(newOption);
-
-
-			if (currentValue && currentValue !== '__new__') {
-				select.value = currentValue;
-			}
 
 		});
 
