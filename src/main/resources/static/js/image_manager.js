@@ -216,11 +216,13 @@ document.getElementById('imageUploadButton').addEventListener('click', function(
 	const folderSelect =
 		document.getElementById('imageFolderSelect');
 
-	if (folderSelect.value === '__new__') {
+	const newFolderInput =
+		document.getElementById('newImageFolderName');
 
-		folderName =
-			document.getElementById('newImageFolderName')
-				.value.trim();
+	if (newFolderInput.value.trim()) {
+
+		// 新規フォルダ名が入力されている場合はそれを優先
+		folderName = newFolderInput.value.trim();
 
 	} else {
 
