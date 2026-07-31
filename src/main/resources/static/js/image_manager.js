@@ -148,8 +148,7 @@ function insertImage(url) {
 	} else {
 
 		imageTag =
-			'\n<img src="' + url +
-			'" style="width:100%;">\n';
+			'\n<img src="' + url + '">\n';
 	}
 
 
