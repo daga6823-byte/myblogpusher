@@ -179,6 +179,12 @@ public class ArticleEditController {
 		model.addAttribute(
 				"linkCategories",
 				articleCategoryService.findSelectableCategories(userId));
+		
+		model.addAttribute(
+				"linkSearchCategoryId",
+				currentCategoryId != null
+						? articleCategoryService.findLinkSearchCategoryId(currentCategoryId)
+						: null);
 
 		model.addAttribute(
 				"siteUrl",

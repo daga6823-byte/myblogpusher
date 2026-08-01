@@ -148,11 +148,24 @@ function loadArticleLinkCategory() {
 		const option =
 			document.createElement('option');
 
+
 		option.value =
 			category.categoryId;
 
+
 		option.textContent =
 			category.fullPath;
+
+
+		if (
+			String(category.categoryId)
+			===
+			String(window.linkSearchCategoryId)
+		) {
+
+			option.selected = true;
+
+		}
 
 
 		select.appendChild(option);
@@ -175,35 +188,23 @@ if (articleLinkCategorySelect) {
 		'change',
 		function() {
 
-			const categoryId =
-				this.value;
+			const category =
+				window.linkCategories.find(
+					c => String(c.categoryId) === this.value
+				);
 
 
-			if (!categoryId) {
-
-				filteredArticleLinks =
-					window.publishedArticles;
-
-			} else {
-
-				const category =
-					window.linkCategories.find(
-						c => String(c.categoryId) === categoryId
-					);
-
-
-				if (category) {
-
-					filteredArticleLinks =
-						window.publishedArticles.filter(article =>
-							article.hugoPath.startsWith(
-								category.fullPath
-							)
-						);
-
-				}
-
+			if (!category) {
+				return;
 			}
+
+
+			filteredArticleLinks =
+				window.publishedArticles.filter(article =>
+					article.hugoPath.includes(
+						category.categoryName
+					)
+				);
 
 
 			loadArticleLinkList();
