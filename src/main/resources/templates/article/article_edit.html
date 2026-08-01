@@ -24,6 +24,7 @@
 			<div th:replace="~{fragments/article_form :: formFields}"></div>
 			<div th:replace="~{fragments/code_block_editor :: codeBlockEditor}"></div>
 			<div th:replace="~{fragments/image_modal :: imageModal}"></div>
+			<div th:replace="~{fragments/article_link_modal :: articleLinkModal}"></div>
 
 			<div class="button-row">
 				<button type="submit" formaction="/article/save" class="btn-save" disabled>一時保存</button>
@@ -44,6 +45,7 @@
 	<script th:src="@{/js/frontmatter.js}"></script>
 	<script th:src="@{/js/workspace.js}"></script>
 	<script th:src="@{/js/image_manager.js}"></script>
+	<script th:src="@{/js/link_manager.js}"></script>
 	<script th:src="@{/js/code_editor.js}"></script>
 	<script th:src="@{/js/publish.js}"></script>
 	<script th:src="@{/js/footnote_editor.js}"></script>

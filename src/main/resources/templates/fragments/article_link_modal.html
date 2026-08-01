@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<body>
+
+	<!--
+	記事リンク挿入モーダル
+
+	・投稿済み記事一覧表示
+	・リンク表示名変更
+	・Markdownリンク生成
+
+	記事データ取得はlink_manager.jsで行う
+-->
+	<div th:fragment="articleLinkModal" id="articleLinkModal" style="display:none; position:fixed; top:0; left:0;
+	        width:100%; height:100%;
+	        background:rgba(0,0,0,0.5);
+	        z-index:1000;">
+
+
+		<div style="
+		background:#fff;
+		position:absolute;
+		top:50%;
+		left:50%;
+		transform:translate(-50%, -50%);
+		padding:20px;
+		border-radius:8px;
+		width:70%;
+		max-height:80%;
+		overflow-y:auto;
+	">
+
+
+			<h2>
+				記事リンク挿入
+			</h2>
+
+
+			<!--
+			リンク対象記事一覧
+
+			JSで生成
+		-->
+			<div id="articleLinkList">
+
+			</div>
+
+
+			<!--
+			選択記事の表示名変更
+		-->
+			<div style="margin-top:15px;">
+
+				<label>
+					表示名
+				</label>
+
+				<input type="text" id="articleLinkText" placeholder="記事タイトル">
+
+			</div>
+
+
+			<div style="margin-top:15px;">
+
+				<button type="button" id="articleLinkInsertButton" class="btn-back">
+
+					挿入
+
+				</button>
+
+
+				<button type="button" id="articleLinkCancelButton" class="btn-back">
+
+					キャンセル
+
+				</button>
+
+			</div>
+
+
+		</div>
+
+	</div>
+
+
+</body>
+
+</html>

@@ -28,6 +28,7 @@
 				<div id="insertMenu" class="insert-menu" style="display:none;">
 					<button type="button" id="codeBlockButton">コードブロック</button>
 					<button type="button" id="imageButton">📷 画像挿入</button>
+					<button type="button" id="linkButton">🔗 記事リンク</button>
 					<button type="button" id="footnoteButton">脚注</button>
 				</div>
 			</div>
@@ -39,7 +40,7 @@
 			<textarea id="footnoteInput" rows="3"></textarea>
 			<button type="button" id="insertFootnoteButton">挿入</button>
 		</div>
-		
+
 		<div th:replace="~{article/fragments/reference_selector :: referenceSelector}"></div>
 
 		<label for="draftSelect">公開状態</label>
