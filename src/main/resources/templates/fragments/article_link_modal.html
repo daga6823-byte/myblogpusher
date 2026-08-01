@@ -10,26 +10,13 @@
 	・リンク表示名変更
 	・Markdownリンク生成
 
-	記事データ取得はlink_manager.jsで行う
+	記事データはArticleEditControllerから渡された
+	publishedArticlesをlink_manager.jsで利用する。
 -->
-	<div th:fragment="articleLinkModal" id="articleLinkModal" style="display:none; position:fixed; top:0; left:0;
-	        width:100%; height:100%;
-	        background:rgba(0,0,0,0.5);
-	        z-index:1000;">
+	<div th:fragment="articleLinkModal" id="articleLinkModal" class="article-link-modal" style="display:none;">
 
 
-		<div style="
-		background:#fff;
-		position:absolute;
-		top:50%;
-		left:50%;
-		transform:translate(-50%, -50%);
-		padding:20px;
-		border-radius:8px;
-		width:70%;
-		max-height:80%;
-		overflow-y:auto;
-	">
+		<div class="article-link-dialog">
 
 
 			<h2>
@@ -40,19 +27,19 @@
 			<!--
 			リンク対象記事一覧
 
-			JSで生成
-		-->
-			<div id="articleLinkList">
+			JSで投稿済み記事を表示
+			-->
+			<div id="articleLinkList" class="article-link-list">
 
 			</div>
 
 
 			<!--
 			選択記事の表示名変更
-		-->
-			<div style="margin-top:15px;">
+			-->
+			<div class="article-link-text-area">
 
-				<label>
+				<label for="articleLinkText">
 					表示名
 				</label>
 
@@ -61,7 +48,7 @@
 			</div>
 
 
-			<div style="margin-top:15px;">
+			<div class="article-link-button-area">
 
 				<button type="button" id="articleLinkInsertButton" class="btn-back">
 

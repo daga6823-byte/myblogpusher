@@ -16,7 +16,7 @@ let articleLinkInsertPosition = null;
 
 
 // -----------------------------------------------------
-// リンクメニュー表示
+// 記事リンクモーダル表示
 // -----------------------------------------------------
 const linkButton =
 	document.getElementById('linkButton');
@@ -34,6 +34,9 @@ if (linkButton) {
 			textarea.selectionStart;
 
 
+		loadArticleLinkList();
+
+
 		document.getElementById('articleLinkModal')
 			.style.display = 'block';
 
@@ -43,18 +46,89 @@ if (linkButton) {
 
 
 // -----------------------------------------------------
-// 記事リンクキャンセル
+// 投稿済み記事一覧を表示
+//
+// Thymeleafで渡された記事一覧をJSへ展開
 // -----------------------------------------------------
-const cancelArticleLinkButton =
-	document.getElementById('cancelArticleLinkButton');
+function loadArticleLinkList() {
+
+	const list =
+		document.getElementById('articleLinkList');
+
+	if (!list) {
+		return;
+	}
 
 
-if (cancelArticleLinkButton) {
+	list.innerHTML = '';
 
-	cancelArticleLinkButton.addEventListener('click', function() {
+
+	const articles =
+		window.publishedArticles || [];
+
+
+	articles.forEach(article => {
+
+		const button =
+			document.createElement('button');
+
+
+		button.type = 'button';
+
+		button.textContent =
+			article.title;
+
+
+		button.dataset.slug =
+			article.slug;
+
+		button.dataset.title =
+			article.title;
+
+
+		button.addEventListener('click', function() {
+
+			document
+				.querySelectorAll('#articleLinkList button')
+				.forEach(btn => btn.classList.remove('selected'));
+
+
+			this.classList.add('selected');
+
+
+			document.getElementById('articleLinkText')
+				.value =
+				this.dataset.title;
+
+
+			document.getElementById('articleLinkText')
+				.dataset.slug =
+				this.dataset.slug;
+
+		});
+
+
+		list.appendChild(button);
+
+	});
+
+}
+
+
+// -----------------------------------------------------
+// キャンセル
+// -----------------------------------------------------
+const cancelButton =
+	document.getElementById('articleLinkCancelButton');
+
+
+if (cancelButton) {
+
+	cancelButton.addEventListener('click', function() {
 
 		document.getElementById('articleLinkModal')
 			.style.display = 'none';
+
 
 		articleLinkInsertPosition = null;
 
@@ -64,51 +138,25 @@ if (cancelArticleLinkButton) {
 
 
 // -----------------------------------------------------
-// 記事選択時
-//
-// デフォルト表示文字列は記事タイトル
-// 変更欄で任意文字列へ変更可能
-// -----------------------------------------------------
-const articleLinkSelect =
-	document.getElementById('articleLinkSelect');
-
-
-if (articleLinkSelect) {
-
-	articleLinkSelect.addEventListener('change', function() {
-
-		const selected =
-			this.options[this.selectedIndex];
-
-
-		const title =
-			selected.dataset.title;
-
-
-		document.getElementById('articleLinkText')
-			.value = title || '';
-
-	});
-
-}
-
-
-// -----------------------------------------------------
 // リンク挿入
 // -----------------------------------------------------
-const insertArticleLinkButton =
-	document.getElementById('insertArticleLinkButton');
+const insertButton =
+	document.getElementById('articleLinkInsertButton');
 
 
-if (insertArticleLinkButton) {
+if (insertButton) {
 
-	insertArticleLinkButton.addEventListener('click', function() {
+	insertButton.addEventListener('click', function() {
 
-		const select =
-			document.getElementById('articleLinkSelect');
+		const textInput =
+			document.getElementById('articleLinkText');
 
 
-		if (!select.value) {
+		const slug =
+			textInput.dataset.slug;
+
+
+		if (!slug) {
 
 			alert('記事を選択してください');
 
@@ -117,22 +165,13 @@ if (insertArticleLinkButton) {
 		}
 
 
-		const selected =
-			select.options[select.selectedIndex];
-
-
 		const text =
-			document.getElementById('articleLinkText')
-				.value.trim();
-
-
-		const slug =
-			select.value;
+			textInput.value.trim();
 
 
 		const markdown =
 			'[' +
-			(text || selected.dataset.title) +
+			text +
 			'](/' +
 			slug +
 			'/)';
