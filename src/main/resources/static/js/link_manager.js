@@ -308,6 +308,19 @@ if (insertArticleLinkButton) {
 		textarea.focus();
 
 
+		// 挿入したリンクの直後へカーソルを戻す
+		const cursorPosition =
+			articleLinkInsertPosition !== null
+				? articleLinkInsertPosition + markdown.length
+				: textarea.value.length;
+
+
+		textarea.setSelectionRange(
+			cursorPosition,
+			cursorPosition
+		);
+
+
 		document.getElementById('articleLinkModal')
 			.style.display = 'none';
 
