@@ -172,7 +172,8 @@ if (insertArticleLinkButton) {
 		const markdown =
 			'[' +
 			(text || selectedArticleLink.title) +
-			'](/' +
+			'](' +
+			window.siteBaseUrl +
 			selectedArticleLink.hugoPath +
 			'/)';
 
