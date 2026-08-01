@@ -15,14 +15,18 @@ public class ArticleLinkView {
 	private String hugoPath;
 
 	private String title;
+	
+	private String url;
 
 	public ArticleLinkView(
 			String slug,
 			String hugoPath,
-			String title) {
+			String title,
+			String url) {
 
 		this.slug = slug;
 		this.hugoPath = hugoPath;
 		this.title = title;
+		this.url = url;
 	}
 }

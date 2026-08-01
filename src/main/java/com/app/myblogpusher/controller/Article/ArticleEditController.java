@@ -169,7 +169,10 @@ public class ArticleEditController {
 				.map(article -> new ArticleLinkView(
 						article.getSlug(),
 						article.getHugoPath(),
-						article.getTitle()))
+						article.getTitle(),
+						"https://" + repo.getRepoName().toLowerCase()
+								+ "/" + article.getHugoPath()
+								+ "/"))
 				.collect(Collectors.toList());
 
 		model.addAttribute(
@@ -179,7 +182,7 @@ public class ArticleEditController {
 		model.addAttribute(
 				"linkCategories",
 				articleCategoryService.findSelectableCategories(userId));
-		
+
 		model.addAttribute(
 				"linkSearchCategoryId",
 				currentCategoryId != null

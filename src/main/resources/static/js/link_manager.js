@@ -118,6 +118,10 @@ function loadArticleLinkList() {
 				article.title;
 
 
+			document.getElementById('articleLinkUrl')
+				.value =
+				article.url;
+
 		});
 
 
@@ -265,14 +269,17 @@ if (insertArticleLinkButton) {
 				.value.trim();
 
 
+		const url =
+			document.getElementById('articleLinkUrl')
+				.value.trim();
+
+
 		const markdown =
 			'[' +
 			(text || selectedArticleLink.title) +
 			'](' +
-			window.siteUrl +
-			'/' +
-			selectedArticleLink.hugoPath +
-			'/)';
+			url +
+			')';
 
 
 		const textarea =
