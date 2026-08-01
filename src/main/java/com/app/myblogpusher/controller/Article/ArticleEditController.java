@@ -57,7 +57,7 @@ public class ArticleEditController {
 
 	@Autowired
 	private ArticleRepository articleRepository;
-	
+
 	@Autowired
 	private UserRepositoryRepository userRepositoryRepository;
 
@@ -175,6 +175,10 @@ public class ArticleEditController {
 		model.addAttribute(
 				"publishedArticles",
 				linkArticles);
+
+		model.addAttribute(
+				"linkCategories",
+				articleCategoryService.findSelectableCategories(userId));
 
 		model.addAttribute(
 				"siteUrl",

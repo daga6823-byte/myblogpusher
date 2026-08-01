@@ -21,6 +21,11 @@ let articleLinkInsertPosition = null;
 // -----------------------------------------------------
 let selectedArticleLink = null;
 
+// -----------------------------------------------------
+// 表示中リンク一覧
+// -----------------------------------------------------
+let filteredArticleLinks = [];
+
 
 // -----------------------------------------------------
 // リンクメニュー表示
@@ -42,8 +47,9 @@ if (linkButton) {
 			textarea.selectionStart;
 
 
-		loadArticleLinkList();
+		loadArticleLinkCategory();
 
+		loadArticleLinkList();
 
 		document.getElementById('articleLinkModal')
 			.style.display = 'block';
@@ -60,6 +66,9 @@ if (linkButton) {
 // から取得する
 // -----------------------------------------------------
 function loadArticleLinkList() {
+
+	filteredArticleLinks =
+		window.publishedArticles || [];
 
 	const list =
 		document.getElementById('articleLinkList');
@@ -83,7 +92,7 @@ function loadArticleLinkList() {
 	}
 
 
-	window.publishedArticles.forEach(article => {
+	filteredArticleLinks.forEach(article => {
 
 		const button =
 			document.createElement('button');
@@ -115,6 +124,92 @@ function loadArticleLinkList() {
 		list.appendChild(button);
 
 	});
+
+}
+
+// -----------------------------------------------------
+// リンク検索カテゴリー生成
+// -----------------------------------------------------
+function loadArticleLinkCategory() {
+
+	const select =
+		document.getElementById('articleLinkCategorySelect');
+
+	if (!select || !window.linkCategories) {
+		return;
+	}
+
+
+	select.innerHTML = '';
+
+
+	window.linkCategories.forEach(category => {
+
+		const option =
+			document.createElement('option');
+
+		option.value =
+			category.categoryId;
+
+		option.textContent =
+			category.fullPath;
+
+
+		select.appendChild(option);
+
+	});
+
+}
+
+
+// -----------------------------------------------------
+// カテゴリー変更時
+// -----------------------------------------------------
+const articleLinkCategorySelect =
+	document.getElementById('articleLinkCategorySelect');
+
+
+if (articleLinkCategorySelect) {
+
+	articleLinkCategorySelect.addEventListener(
+		'change',
+		function() {
+
+			const categoryId =
+				this.value;
+
+
+			if (!categoryId) {
+
+				filteredArticleLinks =
+					window.publishedArticles;
+
+			} else {
+
+				const category =
+					window.linkCategories.find(
+						c => String(c.categoryId) === categoryId
+					);
+
+
+				if (category) {
+
+					filteredArticleLinks =
+						window.publishedArticles.filter(article =>
+							article.hugoPath.startsWith(
+								category.fullPath
+							)
+						);
+
+				}
+
+			}
+
+
+			loadArticleLinkList();
+
+		}
+	);
 
 }
 
