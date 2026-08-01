@@ -4,6 +4,7 @@
 // 記事リンク挿入管理
 //
 // ・投稿済み記事一覧表示
+// ・選択記事保持
 // ・Markdownリンク生成
 // ・本文へのリンク挿入
 // =====================================================
@@ -16,10 +17,17 @@ let articleLinkInsertPosition = null;
 
 
 // -----------------------------------------------------
-// 記事リンクモーダル表示
+// 選択中記事
+// -----------------------------------------------------
+let selectedArticleLink = null;
+
+
+// -----------------------------------------------------
+// リンクメニュー表示
 // -----------------------------------------------------
 const linkButton =
 	document.getElementById('linkButton');
+
 
 if (linkButton) {
 
@@ -46,14 +54,16 @@ if (linkButton) {
 
 
 // -----------------------------------------------------
-// 投稿済み記事一覧を表示
+// 投稿済み記事一覧表示
 //
-// Thymeleafで渡された記事一覧をJSへ展開
+// window.publishedArticles
+// から取得する
 // -----------------------------------------------------
 function loadArticleLinkList() {
 
 	const list =
 		document.getElementById('articleLinkList');
+
 
 	if (!list) {
 		return;
@@ -63,11 +73,17 @@ function loadArticleLinkList() {
 	list.innerHTML = '';
 
 
-	const articles =
-		window.publishedArticles || [];
+	if (!window.publishedArticles
+		|| window.publishedArticles.length === 0) {
+
+		list.textContent =
+			'投稿済み記事がありません';
+
+		return;
+	}
 
 
-	articles.forEach(article => {
+	window.publishedArticles.forEach(article => {
 
 		const button =
 			document.createElement('button');
@@ -75,35 +91,23 @@ function loadArticleLinkList() {
 
 		button.type = 'button';
 
+		button.className =
+			'article-link-item';
+
+
 		button.textContent =
-			article.title;
-
-
-		button.dataset.slug =
-			article.slug;
-
-		button.dataset.title =
 			article.title;
 
 
 		button.addEventListener('click', function() {
 
-			document
-				.querySelectorAll('#articleLinkList button')
-				.forEach(btn => btn.classList.remove('selected'));
-
-
-			this.classList.add('selected');
+			selectedArticleLink = article;
 
 
 			document.getElementById('articleLinkText')
 				.value =
-				this.dataset.title;
+				article.title;
 
-
-			document.getElementById('articleLinkText')
-				.dataset.slug =
-				this.dataset.slug;
 
 		});
 
@@ -116,21 +120,23 @@ function loadArticleLinkList() {
 
 
 // -----------------------------------------------------
-// キャンセル
+// 記事リンクキャンセル
 // -----------------------------------------------------
-const cancelButton =
+const cancelArticleLinkButton =
 	document.getElementById('articleLinkCancelButton');
 
 
-if (cancelButton) {
+if (cancelArticleLinkButton) {
 
-	cancelButton.addEventListener('click', function() {
+	cancelArticleLinkButton.addEventListener('click', function() {
 
 		document.getElementById('articleLinkModal')
 			.style.display = 'none';
 
 
 		articleLinkInsertPosition = null;
+
+		selectedArticleLink = null;
 
 	});
 
@@ -140,23 +146,16 @@ if (cancelButton) {
 // -----------------------------------------------------
 // リンク挿入
 // -----------------------------------------------------
-const insertButton =
+const insertArticleLinkButton =
 	document.getElementById('articleLinkInsertButton');
 
 
-if (insertButton) {
+if (insertArticleLinkButton) {
 
-	insertButton.addEventListener('click', function() {
-
-		const textInput =
-			document.getElementById('articleLinkText');
+	insertArticleLinkButton.addEventListener('click', function() {
 
 
-		const slug =
-			textInput.dataset.slug;
-
-
-		if (!slug) {
+		if (!selectedArticleLink) {
 
 			alert('記事を選択してください');
 
@@ -166,14 +165,15 @@ if (insertButton) {
 
 
 		const text =
-			textInput.value.trim();
+			document.getElementById('articleLinkText')
+				.value.trim();
 
 
 		const markdown =
 			'[' +
-			text +
+			(text || selectedArticleLink.title) +
 			'](/' +
-			slug +
+			selectedArticleLink.slug +
 			'/)';
 
 
@@ -208,6 +208,8 @@ if (insertButton) {
 
 
 		articleLinkInsertPosition = null;
+
+		selectedArticleLink = null;
 
 	});
 

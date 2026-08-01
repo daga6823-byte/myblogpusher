@@ -20,8 +20,12 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.app.myblogpusher.dto.WorkspaceSaveRequest;
 import com.app.myblogpusher.dto.Category.CategoryOptionView;
+import com.app.myblogpusher.dto.Publish.PublishedArticleSummaryDto;
 import com.app.myblogpusher.entity.UserMaster;
+import com.app.myblogpusher.entity.UserRepositoryEntity;
 import com.app.myblogpusher.entity.Article.ArticleWork;
+import com.app.myblogpusher.repository.UserRepositoryRepository;
+import com.app.myblogpusher.service.PublishedArticleService;
 import com.app.myblogpusher.service.Article.ArticleCategoryService;
 import com.app.myblogpusher.service.Article.ArticleWorkService;
 import com.app.myblogpusher.service.Article.ArticleWorkspaceService;
@@ -47,6 +51,12 @@ public class ArticleEditController {
 
 	@Autowired
 	private ImageAssetService imageAssetService;
+
+	@Autowired
+	private PublishedArticleService publishedArticleService;
+
+	@Autowired
+	private UserRepositoryRepository userRepositoryRepository;
 
 	/**
 	 * 記事編集画面を表示
@@ -88,6 +98,44 @@ public class ArticleEditController {
 						model.addAttribute("work", work);
 						model.addAttribute("categoryId", ws.getCategoryId());
 					});
+		}
+
+		// -----------------------------------------------------
+		// 投稿済み記事一覧
+		//
+		// 記事リンク挿入用
+		// slugとタイトルを画面へ渡す
+		// -----------------------------------------------------
+		UserRepositoryEntity repo = userRepositoryRepository.findByUserId(userId)
+				.orElse(null);
+
+		if (repo != null) {
+
+			try {
+
+				List<PublishedArticleSummaryDto> publishedArticles = publishedArticleService.getPublishedArticles(
+						repo,
+						loginUser.getCipherKey(),
+						session);
+
+				model.addAttribute(
+						"publishedArticles",
+						publishedArticles);
+
+			} catch (Exception e) {
+
+				model.addAttribute(
+						"publishedArticles",
+						List.of());
+
+			}
+
+		} else {
+
+			model.addAttribute(
+					"publishedArticles",
+					List.of());
+
 		}
 
 		model.addAttribute("saved", saved != null && saved);
