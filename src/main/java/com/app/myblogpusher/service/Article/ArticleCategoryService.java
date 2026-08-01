@@ -38,32 +38,32 @@ public class ArticleCategoryService {
 	 * 重複チェックを行った上で登録する。
 	 */
 	public Long insertCategory(
-	        Long userId,
-	        String categoryName,
-	        Long parentCategoryId,
-	        String displayName) {
+			Long userId,
+			String categoryName,
+			Long parentCategoryId,
+			String displayName) {
 
-	    if (categoryName == null || categoryName.isBlank()) {
-	        throw new IllegalArgumentException("カテゴリー名を入力してください");
-	    }
+		if (categoryName == null || categoryName.isBlank()) {
+			throw new IllegalArgumentException("カテゴリー名を入力してください");
+		}
 
-	    if (findByUserIdAndName(userId, categoryName).isPresent()) {
-	        throw new IllegalArgumentException("同じ名前のカテゴリーが既に存在します");
-	    }
+		if (findByUserIdAndName(userId, categoryName).isPresent()) {
+			throw new IllegalArgumentException("同じ名前のカテゴリーが既に存在します");
+		}
 
-	    ArticleCategory newCategory = new ArticleCategory();
-	    newCategory.setUserId(userId);
-	    newCategory.setCategoryName(categoryName);
-	    newCategory.setCreateDate(LocalDateTime.now());
-	    newCategory.setUpdateDate(LocalDateTime.now());
-	    newCategory.setCreateUser(userId);
-	    newCategory.setUpdateUser(userId);
-	    newCategory.setParentCategoryId(parentCategoryId);
-	    newCategory.setDisplayName(displayName);
+		ArticleCategory newCategory = new ArticleCategory();
+		newCategory.setUserId(userId);
+		newCategory.setCategoryName(categoryName);
+		newCategory.setCreateDate(LocalDateTime.now());
+		newCategory.setUpdateDate(LocalDateTime.now());
+		newCategory.setCreateUser(userId);
+		newCategory.setUpdateUser(userId);
+		newCategory.setParentCategoryId(parentCategoryId);
+		newCategory.setDisplayName(displayName);
 
-	    articleCategoryRepository.save(newCategory);
+		articleCategoryRepository.save(newCategory);
 
-	    return newCategory.getCategoryId();
+		return newCategory.getCategoryId();
 	}
 
 	public Optional<ArticleCategory> findById(Long categoryId) {
@@ -119,39 +119,37 @@ public class ArticleCategoryService {
 	 * カテゴリー名・親カテゴリー・表示名を更新する。
 	 */
 	public void update(
-	        Long categoryId,
-	        Long userId,
-	        String categoryName,
-	        Long parentCategoryId,
-	        String displayName) {
+			Long categoryId,
+			Long userId,
+			String categoryName,
+			Long parentCategoryId,
+			String displayName) {
 
-	    if (categoryName == null || categoryName.isBlank()) {
-	        throw new IllegalArgumentException("カテゴリー名を入力してください");
-	    }
+		if (categoryName == null || categoryName.isBlank()) {
+			throw new IllegalArgumentException("カテゴリー名を入力してください");
+		}
 
-	    Optional<ArticleCategory> existing =
-	            findByUserIdAndName(userId, categoryName);
+		Optional<ArticleCategory> existing = findByUserIdAndName(userId, categoryName);
 
-	    if (existing.isPresent()
-	            && !existing.get().getCategoryId().equals(categoryId)) {
-	        throw new IllegalArgumentException("同じ名前のカテゴリーが既に存在します");
-	    }
+		if (existing.isPresent()
+				&& !existing.get().getCategoryId().equals(categoryId)) {
+			throw new IllegalArgumentException("同じ名前のカテゴリーが既に存在します");
+		}
 
-	    ArticleCategory category =
-	            articleCategoryRepository.findById(categoryId)
-	                    .orElseThrow();
+		ArticleCategory category = articleCategoryRepository.findById(categoryId)
+				.orElseThrow();
 
-	    if (!category.getUserId().equals(userId)) {
-	        throw new IllegalStateException("他のユーザーのカテゴリーは変更できません");
-	    }
+		if (!category.getUserId().equals(userId)) {
+			throw new IllegalStateException("他のユーザーのカテゴリーは変更できません");
+		}
 
-	    category.setCategoryName(categoryName);
-	    category.setParentCategoryId(parentCategoryId);
-	    category.setDisplayName(displayName);
-	    category.setUpdateUser(userId);
-	    category.setUpdateDate(LocalDateTime.now());
+		category.setCategoryName(categoryName);
+		category.setParentCategoryId(parentCategoryId);
+		category.setDisplayName(displayName);
+		category.setUpdateUser(userId);
+		category.setUpdateDate(LocalDateTime.now());
 
-	    articleCategoryRepository.save(category);
+		articleCategoryRepository.save(category);
 	}
 
 	@Autowired
@@ -315,7 +313,7 @@ public class ArticleCategoryService {
 		// ルートカテゴリーしかない場合
 		return categoryId;
 	}
-	
+
 	/**
 	 * フルパスからカテゴリーIDを取得する
 	 *
@@ -325,62 +323,182 @@ public class ArticleCategoryService {
 	 * → ガジェットのcategoryIdを返す
 	 */
 	public Long findCategoryIdByFullPath(
-	        Long userId,
-	        String fullPath) {
+			Long userId,
+			String fullPath) {
 
-	    if (fullPath == null || fullPath.isBlank()) {
-	        return null;
-	    }
+		if (fullPath == null || fullPath.isBlank()) {
+			return null;
+		}
 
-	    List<ArticleCategory> categories =
-	            articleCategoryRepository.findByUserId(userId);
+		List<ArticleCategory> categories = articleCategoryRepository.findByUserId(userId);
 
-	    if (categories.isEmpty()) {
-	        return null;
-	    }
+		if (categories.isEmpty()) {
+			return null;
+		}
 
-	    Map<Long, List<ArticleCategory>> childrenMap = new HashMap<>();
+		Map<Long, List<ArticleCategory>> childrenMap = new HashMap<>();
 
-	    for (ArticleCategory category : categories) {
+		for (ArticleCategory category : categories) {
 
-	        Long parentId = category.getParentCategoryId();
+			Long parentId = category.getParentCategoryId();
 
-	        childrenMap
-	                .computeIfAbsent(parentId, k -> new ArrayList<>())
-	                .add(category);
-	    }
+			childrenMap
+					.computeIfAbsent(parentId, k -> new ArrayList<>())
+					.add(category);
+		}
 
-	    String[] names = fullPath.split("/");
+		String[] names = fullPath.split("/");
 
-	    Long parentId = null;
-	    ArticleCategory current = null;
+		Long parentId = null;
+		ArticleCategory current = null;
 
-	    for (String name : names) {
+		for (String name : names) {
 
-	        List<ArticleCategory> children =
-	                childrenMap.getOrDefault(parentId, List.of());
+			List<ArticleCategory> children = childrenMap.getOrDefault(parentId, List.of());
 
-	        current = children.stream()
-	                .filter(c -> {
+			current = children.stream()
+					.filter(c -> {
 
-	                    String label =
-	                            (c.getDisplayName() != null && !c.getDisplayName().isBlank())
-	                                    ? c.getDisplayName()
-	                                    : c.getCategoryName();
+						String label = (c.getDisplayName() != null && !c.getDisplayName().isBlank())
+								? c.getDisplayName()
+								: c.getCategoryName();
 
-	                    return label.equals(name);
-	                })
-	                .findFirst()
-	                .orElse(null);
+						return label.equals(name);
+					})
+					.findFirst()
+					.orElse(null);
 
-	        if (current == null) {
-	            return null;
-	        }
+			if (current == null) {
+				return null;
+			}
 
-	        parentId = current.getCategoryId();
-	    }
+			parentId = current.getCategoryId();
+		}
 
-	    return current.getCategoryId();
+		return current.getCategoryId();
+	}
+
+	/**
+	 * 記事リンク検索用カテゴリーIDを取得する
+	 *
+	 * 編集中記事のカテゴリーから親を辿り、
+	 * ルート直下カテゴリーを返す。
+	 *
+	 * 例:
+	 * movie/batman/gadget
+	 *
+	 * → batman
+	 */
+	public Long findLinkSearchCategoryId(Long categoryId) {
+
+		if (categoryId == null) {
+			return null;
+		}
+
+		ArticleCategory category = findById(categoryId)
+				.orElse(null);
+
+		if (category == null) {
+			return null;
+		}
+
+		ArticleCategory current = category;
+
+		while (current.getParentCategoryId() != null) {
+
+			ArticleCategory parent = findById(current.getParentCategoryId())
+					.orElse(null);
+
+			if (parent == null) {
+				return null;
+			}
+
+			// 親がルートなら現在カテゴリーが検索対象
+			if (parent.getParentCategoryId() == null) {
+
+				return current.getCategoryId();
+
+			}
+
+			current = parent;
+		}
+
+		// ルートカテゴリーの場合
+		return current.getCategoryId();
+	}
+
+	/**
+	 * 記事リンク検索用カテゴリーのHugoパスを取得する
+	 *
+	 * 例:
+	 * movie/batman/gadget
+	 *
+	 * 検索対象:
+	 * movie/batman
+	 */
+	public String findLinkSearchCategoryPath(Long categoryId) {
+
+		if (categoryId == null) {
+			return null;
+		}
+
+		ArticleCategory category = findById(categoryId)
+				.orElse(null);
+
+		if (category == null) {
+			return null;
+		}
+
+		ArticleCategory current = category;
+
+		while (current.getParentCategoryId() != null) {
+
+			ArticleCategory parent = findById(current.getParentCategoryId())
+					.orElse(null);
+
+			if (parent == null) {
+				return null;
+			}
+
+			// 親がルートの場合
+			// 現在カテゴリーが検索対象
+			if (parent.getParentCategoryId() == null) {
+
+				return buildCategoryPath(current);
+
+			}
+
+			current = parent;
+		}
+
+		// ルートカテゴリーの場合
+		return buildCategoryPath(current);
+	}
+
+	/**
+	 * カテゴリーからHugoパスを作成する
+	 *
+	 * 親を辿って "/" 区切りにする。
+	 */
+	private String buildCategoryPath(ArticleCategory category) {
+
+		List<String> paths = new ArrayList<>();
+
+		ArticleCategory current = category;
+
+		while (current != null) {
+
+			paths.add(0, current.getCategoryName());
+
+			if (current.getParentCategoryId() == null) {
+				break;
+			}
+
+			current = findById(current.getParentCategoryId())
+					.orElse(null);
+		}
+
+		return String.join("/", paths);
 	}
 
 }

@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import com.app.myblogpusher.entity.Article.Article;
 import com.app.myblogpusher.enums.ArticleStatus;
@@ -41,5 +43,25 @@ public interface ArticleRepository extends JpaRepository<Article, Long> {
 			String slug);
 
 	List<Article> findByUserId(Long userId);
+
+	/**
+	 * 記事リンク挿入用
+	 *
+	 * 指定したHugoパス配下の記事を取得する。
+	 *
+	 * 例:
+	 * movie/batman
+	 * ↓
+	 * movie/batman/*
+	 */
+	@Query("""
+			SELECT a
+			FROM Article a
+			WHERE a.userId = :userId
+			AND a.hugoPath LIKE CONCAT(:hugoPath, '%')
+			""")
+	List<Article> findLinkArticles(
+			@Param("userId") Long userId,
+			@Param("hugoPath") String hugoPath);
 
 }

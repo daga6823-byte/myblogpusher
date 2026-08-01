@@ -173,7 +173,8 @@ if (insertArticleLinkButton) {
 			'[' +
 			(text || selectedArticleLink.title) +
 			'](' +
-			window.siteBaseUrl +
+			window.siteUrl +
+			'/' +
 			selectedArticleLink.hugoPath +
 			'/)';
 

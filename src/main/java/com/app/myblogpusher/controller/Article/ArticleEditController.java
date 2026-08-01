@@ -6,6 +6,7 @@
 package com.app.myblogpusher.controller.Article;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -19,13 +20,15 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.app.myblogpusher.dto.WorkspaceSaveRequest;
+import com.app.myblogpusher.dto.Article.ArticleLinkView;
 import com.app.myblogpusher.dto.Category.CategoryOptionView;
-import com.app.myblogpusher.dto.Publish.PublishedArticleSummaryDto;
 import com.app.myblogpusher.entity.UserMaster;
 import com.app.myblogpusher.entity.UserRepositoryEntity;
+import com.app.myblogpusher.entity.Article.Article;
+import com.app.myblogpusher.entity.Article.ArticleCategory;
 import com.app.myblogpusher.entity.Article.ArticleWork;
 import com.app.myblogpusher.repository.UserRepositoryRepository;
-import com.app.myblogpusher.service.PublishedArticleService;
+import com.app.myblogpusher.repository.Article.ArticleRepository;
 import com.app.myblogpusher.service.Article.ArticleCategoryService;
 import com.app.myblogpusher.service.Article.ArticleWorkService;
 import com.app.myblogpusher.service.Article.ArticleWorkspaceService;
@@ -53,8 +56,8 @@ public class ArticleEditController {
 	private ImageAssetService imageAssetService;
 
 	@Autowired
-	private PublishedArticleService publishedArticleService;
-
+	private ArticleRepository articleRepository;
+	
 	@Autowired
 	private UserRepositoryRepository userRepositoryRepository;
 
@@ -70,6 +73,9 @@ public class ArticleEditController {
 
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 		Long userId = loginUser.getUserId();
+
+		UserRepositoryEntity repo = userRepositoryRepository.findByUserId(userId)
+				.orElse(null);
 
 		// カテゴリー選択プルダウン用（categoryId + フルパス表示）
 		List<CategoryOptionView> categories = articleCategoryService.findSelectableCategories(userId);
@@ -101,42 +107,80 @@ public class ArticleEditController {
 		}
 
 		// -----------------------------------------------------
-		// 投稿済み記事一覧
-		//
 		// 記事リンク挿入用
-		// slugとタイトルを画面へ渡す
+		//
+		// 編集中記事のカテゴリーを基準に検索する。
+		// GitHub APIは使用しない。
 		// -----------------------------------------------------
-		UserRepositoryEntity repo = userRepositoryRepository.findByUserId(userId)
-				.orElse(null);
 
-		if (repo != null) {
+		List<Article> articles = List.of();
 
-			try {
+		Long currentCategoryId = null;
 
-				List<PublishedArticleSummaryDto> publishedArticles = publishedArticleService.getPublishedArticles(
-						repo,
-						loginUser.getCipherKey(),
-						session);
+		// 編集中記事
+		if (workId != null) {
 
-				model.addAttribute(
-						"publishedArticles",
-						publishedArticles);
+			ArticleWork work = articleWorkService.findById(workId);
 
-			} catch (Exception e) {
+			currentCategoryId = work.getCategoryId();
 
-				model.addAttribute(
-						"publishedArticles",
-						List.of());
+		}
+
+		// workspace復元時
+		else {
+
+			currentCategoryId = workspaceService.find(userId)
+					.map(ws -> ws.getCategoryId())
+					.orElse(null);
+
+		}
+
+		if (currentCategoryId != null) {
+
+			Long searchCategoryId = articleCategoryService
+					.findLinkSearchCategoryId(currentCategoryId);
+
+			if (searchCategoryId != null) {
+
+				ArticleCategory searchCategory = articleCategoryService
+						.findById(searchCategoryId)
+						.orElse(null);
+
+				if (searchCategory != null) {
+
+					String searchPath = articleCategoryService
+							.findLinkSearchCategoryPath(currentCategoryId);
+
+					if (searchPath != null) {
+
+						articles = articleRepository.findLinkArticles(
+								userId,
+								searchPath);
+
+					}
+
+				}
 
 			}
 
-		} else {
-
-			model.addAttribute(
-					"publishedArticles",
-					List.of());
-
 		}
+
+		List<ArticleLinkView> linkArticles = articles.stream()
+				.map(article -> new ArticleLinkView(
+						article.getSlug(),
+						article.getHugoPath(),
+						article.getTitle()))
+				.collect(Collectors.toList());
+
+		model.addAttribute(
+				"publishedArticles",
+				linkArticles);
+
+		model.addAttribute(
+				"siteUrl",
+				repo != null
+						? "https://" + repo.getRepoName().toLowerCase()
+						: "");
 
 		model.addAttribute("saved", saved != null && saved);
 		return "article/article_edit";
