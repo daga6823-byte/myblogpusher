@@ -89,3 +89,39 @@
 	gap: 10px;
 
 }
+
+/* =====================================================
+   article_link.css
+
+   記事リンク挿入モーダル
+===================================================== */
+
+#articleLinkModal {
+	color: #333;
+}
+
+#articleLinkModal input,
+#articleLinkModal select,
+#articleLinkModal button {
+	color: #333;
+}
+
+#articleLinkList {
+	color: #333;
+}
+
+.article-link-item {
+
+	color: #333;
+
+	background: #fff;
+
+	border: 1px solid #ddd;
+
+	padding: 8px 12px;
+
+	text-align: left;
+
+	cursor: pointer;
+
+}
