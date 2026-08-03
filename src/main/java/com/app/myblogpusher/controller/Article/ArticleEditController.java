@@ -101,6 +101,7 @@ public class ArticleEditController {
 					.orElse(null);
 
 			if (article != null) {
+
 				model.addAttribute(
 						"createDate",
 						article.getCreateDate());
@@ -109,18 +110,16 @@ public class ArticleEditController {
 						"updateDate",
 						article.getUpdateDate());
 			}
+
 		} else {
-			workspaceService.find(userId)
-					.ifPresent(ws -> {
-						ArticleWork workspaceWork = new ArticleWork();
 
-						workspaceWork.setTitle(ws.getTitle());
-						workspaceWork.setContent(ws.getContent());
-						workspaceWork.setCategoryId(ws.getCategoryId());
+			model.addAttribute(
+					"createDate",
+					work.getCreateDate());
 
-						model.addAttribute("work", workspaceWork);
-						model.addAttribute("categoryId", ws.getCategoryId());
-					});
+			model.addAttribute(
+					"updateDate",
+					work.getUpdateDate());
 		}
 
 		// -----------------------------------------------------
