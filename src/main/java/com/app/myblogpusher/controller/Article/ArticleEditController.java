@@ -90,12 +90,18 @@ public class ArticleEditController {
 				"imageFolders",
 				imageAssetService.findImageCategories(userId));
 
-		ArticleWork work = articleWorkService.findById(workId);
+		ArticleWork work = null;
 
-		model.addAttribute("work", work);
-		model.addAttribute("categoryId", work.getCategoryId());
+		if (workId != null) {
 
-		if (work.getArticleId() != null) {
+			work = articleWorkService.findById(workId);
+
+			model.addAttribute("work", work);
+			model.addAttribute("categoryId", work.getCategoryId());
+
+		}
+
+		if (work != null && work.getArticleId() != null) {
 
 			Article article = articleRepository.findById(work.getArticleId())
 					.orElse(null);
@@ -111,7 +117,7 @@ public class ArticleEditController {
 						article.getUpdateDate());
 			}
 
-		} else {
+		} else if (work != null) {
 
 			model.addAttribute(
 					"createDate",
