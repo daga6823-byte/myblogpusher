@@ -123,11 +123,15 @@ public class ArticleEditController {
 
 			model.addAttribute(
 					"createDate",
-					work.getCreateDate());
+					work.getCreateDate() != null
+							? work.getCreateDate().toString()
+							: null);
 
 			model.addAttribute(
 					"updateDate",
-					work.getUpdateDate());
+					work.getUpdateDate() != null
+							? work.getUpdateDate().toString()
+							: null);
 		}
 
 		// -----------------------------------------------------

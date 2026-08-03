@@ -102,7 +102,7 @@ function updateFrontMatterFields(updateDate) {
 	const createDate =
 		window.createDate
 			? window.createDate
-			: buildDateString();
+			: null;
 
 
 	if (existingFrontMatterBody) {
