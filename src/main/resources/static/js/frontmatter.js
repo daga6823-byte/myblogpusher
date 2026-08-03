@@ -105,7 +105,12 @@ function updateFrontMatterFields(updateDate) {
 			: null;
 
 
-	if (existingFrontMatterBody) {
+	if (createDate) {
+
+		dateLine =
+			`date = '${createDate}'`;
+
+	} else if (existingFrontMatterBody) {
 
 		const dateMatch =
 			existingFrontMatterBody.match(/^date = .+$/m);
@@ -113,13 +118,11 @@ function updateFrontMatterFields(updateDate) {
 		dateLine =
 			dateMatch
 				? dateMatch[0]
-				: `date = '${createDate}'`;
+				: '';
 
 	} else {
 
-		dateLine =
-			`date = '${createDate}'`;
-
+		dateLine = '';
 	}
 
 
