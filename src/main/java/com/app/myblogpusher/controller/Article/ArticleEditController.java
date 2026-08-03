@@ -101,37 +101,43 @@ public class ArticleEditController {
 
 		}
 
-		if (work != null && work.getArticleId() != null) {
+		if (work != null) {
 
-			Article article = articleRepository.findById(work.getArticleId())
-					.orElse(null);
+			Article article = null;
+
+			if (work.getArticleId() != null) {
+				article = articleRepository.findById(work.getArticleId())
+						.orElse(null);
+			}
 
 			if (article != null) {
 
 				model.addAttribute(
 						"createDate",
-						article.getCreateDate()
-								.toString());
+						article.getCreateDate() != null
+								? article.getCreateDate().toString()
+								: null);
 
 				model.addAttribute(
 						"updateDate",
-						article.getUpdateDate()
-								.toString());
+						article.getUpdateDate() != null
+								? article.getUpdateDate().toString()
+								: null);
+
+			} else {
+
+				model.addAttribute(
+						"createDate",
+						work.getCreateDate() != null
+								? work.getCreateDate().toString()
+								: null);
+
+				model.addAttribute(
+						"updateDate",
+						work.getUpdateDate() != null
+								? work.getUpdateDate().toString()
+								: null);
 			}
-
-		} else if (work != null) {
-
-			model.addAttribute(
-					"createDate",
-					work.getCreateDate() != null
-							? work.getCreateDate().toString()
-							: null);
-
-			model.addAttribute(
-					"updateDate",
-					work.getUpdateDate() != null
-							? work.getUpdateDate().toString()
-							: null);
 		}
 
 		// -----------------------------------------------------
