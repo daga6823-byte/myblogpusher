@@ -108,16 +108,15 @@ public class ArticleEditController {
 
 			if (article != null) {
 
-				System.out.println("articleId=" + work.getArticleId());
-				System.out.println("createDate=" + article.getCreateDate());
-
 				model.addAttribute(
 						"createDate",
-						article.getCreateDate());
+						article.getCreateDate()
+								.toString());
 
 				model.addAttribute(
 						"updateDate",
-						article.getUpdateDate());
+						article.getUpdateDate()
+								.toString());
 			}
 
 		} else if (work != null) {
