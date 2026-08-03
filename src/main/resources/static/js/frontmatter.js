@@ -97,10 +97,15 @@ function updateFrontMatterFields(updateDate) {
 		parseFrontMatter(currentText);
 
 	let dateLine;
+	let lastmodLine;
+
+	const now = buildDateString();
+
+	lastmodLine = `lastmod = '${now}'`;
 
 	if (updateDate || !existingFrontMatterBody) {
 
-		dateLine = `date = '${buildDateString()}'`;
+		dateLine = `date = '${now}'`;
 
 	} else {
 
@@ -110,7 +115,7 @@ function updateFrontMatterFields(updateDate) {
 		dateLine =
 			dateMatch
 				? dateMatch[0]
-				: `date = '${buildDateString()}'`;
+				: `date = '${now}'`;
 	}
 
 	// Front Matterを除いた本文
@@ -126,6 +131,7 @@ function updateFrontMatterFields(updateDate) {
 		'+++\n'
 		+ `title = '${title}'\n`
 		+ `${dateLine}\n`
+		+ `${lastmodLine}\n`
 		+ `categories = ["${category}"]\n`
 		+ `draft = ${draft}\n`
 		+ `comments = ${comments}\n`
