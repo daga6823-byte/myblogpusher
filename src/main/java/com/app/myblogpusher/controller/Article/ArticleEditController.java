@@ -92,8 +92,15 @@ public class ArticleEditController {
 
 		if (workId != null) {
 			ArticleWork work = articleWorkService.findById(workId);
+
 			model.addAttribute("work", work);
 			model.addAttribute("categoryId", work.getCategoryId());
+
+			Article article = articleRepository.findById(workId).orElse(null);
+
+			if (article != null) {
+				model.addAttribute("createDate", article.getCreateDate());
+			}
 		} else {
 			workspaceService.find(userId)
 					.ifPresent(ws -> {
@@ -103,6 +110,7 @@ public class ArticleEditController {
 						work.setCategoryId(ws.getCategoryId());
 						model.addAttribute("work", work);
 						model.addAttribute("categoryId", ws.getCategoryId());
+						model.addAttribute("createDate", null);
 					});
 		}
 

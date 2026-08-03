@@ -99,15 +99,13 @@ function updateFrontMatterFields(updateDate) {
 	let dateLine;
 	let lastmodLine;
 
-	const now = buildDateString();
+	const createDate =
+		window.createDate
+			? window.createDate
+			: buildDateString();
 
-	lastmodLine = `lastmod = '${now}'`;
 
-	if (updateDate || !existingFrontMatterBody) {
-
-		dateLine = `date = '${now}'`;
-
-	} else {
+	if (existingFrontMatterBody) {
 
 		const dateMatch =
 			existingFrontMatterBody.match(/^date = .+$/m);
@@ -115,7 +113,33 @@ function updateFrontMatterFields(updateDate) {
 		dateLine =
 			dateMatch
 				? dateMatch[0]
-				: `date = '${now}'`;
+				: `date = '${createDate}'`;
+
+	} else {
+
+		dateLine =
+			`date = '${createDate}'`;
+
+	}
+
+
+	if (updateDate) {
+
+		lastmodLine =
+			`lastmod = '${buildDateString()}'`;
+
+	} else {
+
+		const lastmodMatch =
+			existingFrontMatterBody
+				? existingFrontMatterBody.match(/^lastmod = .+$/m)
+				: null;
+
+		lastmodLine =
+			lastmodMatch
+				? lastmodMatch[0]
+				: `lastmod = '${createDate}'`;
+
 	}
 
 	// Front Matterを除いた本文
