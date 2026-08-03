@@ -90,27 +90,36 @@ public class ArticleEditController {
 				"imageFolders",
 				imageAssetService.findImageCategories(userId));
 
-		if (workId != null) {
-			ArticleWork work = articleWorkService.findById(workId);
+		ArticleWork work = articleWorkService.findById(workId);
 
-			model.addAttribute("work", work);
-			model.addAttribute("categoryId", work.getCategoryId());
+		model.addAttribute("work", work);
+		model.addAttribute("categoryId", work.getCategoryId());
 
-			Article article = articleRepository.findById(workId).orElse(null);
+		if (work.getArticleId() != null) {
+
+			Article article = articleRepository.findById(work.getArticleId())
+					.orElse(null);
 
 			if (article != null) {
-				model.addAttribute("createDate", article.getCreateDate());
+				model.addAttribute(
+						"createDate",
+						article.getCreateDate());
+
+				model.addAttribute(
+						"updateDate",
+						article.getUpdateDate());
 			}
 		} else {
 			workspaceService.find(userId)
 					.ifPresent(ws -> {
-						ArticleWork work = new ArticleWork();
-						work.setTitle(ws.getTitle());
-						work.setContent(ws.getContent());
-						work.setCategoryId(ws.getCategoryId());
-						model.addAttribute("work", work);
+						ArticleWork workspaceWork = new ArticleWork();
+
+						workspaceWork.setTitle(ws.getTitle());
+						workspaceWork.setContent(ws.getContent());
+						workspaceWork.setCategoryId(ws.getCategoryId());
+
+						model.addAttribute("work", workspaceWork);
 						model.addAttribute("categoryId", ws.getCategoryId());
-						model.addAttribute("createDate", null);
 					});
 		}
 
@@ -127,8 +136,6 @@ public class ArticleEditController {
 
 		// 編集中記事
 		if (workId != null) {
-
-			ArticleWork work = articleWorkService.findById(workId);
 
 			currentCategoryId = work.getCategoryId();
 
