@@ -108,7 +108,7 @@ function updateFrontMatterFields(updateDate) {
 	if (createDate) {
 
 		dateLine =
-			`date = '${createDate}'`;
+			`date = '${buildCreateDateString(createDate)}'`;
 
 	} else if (existingFrontMatterBody) {
 
@@ -213,4 +213,19 @@ function initFrontMatterSelects() {
 		document.getElementById('commentsSelect').value =
 			commentsMatch[1];
 	}
+}
+
+// -----------------------------------------------------
+// DBから取得した作成日時をHugo用の日付文字列へ変換する
+//
+// DB形式：2026-07-16 20:57:38
+// Hugo形式：2026-07-16T20:57:38+09:00
+// -----------------------------------------------------
+function buildCreateDateString(createDate) {
+
+	if (!createDate) {
+		return '';
+	}
+
+	return createDate.replace(' ', 'T') + '+09:00';
 }
