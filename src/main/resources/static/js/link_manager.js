@@ -21,6 +21,11 @@ let articleLinkInsertPosition = null;
 // -----------------------------------------------------
 let selectedArticleLink = null;
 
+// -----------------------------------------------------
+// 表示中リンク一覧
+// -----------------------------------------------------
+let filteredArticleLinks = [];
+
 
 // -----------------------------------------------------
 // リンクメニュー表示
@@ -63,10 +68,11 @@ if (linkButton) {
 // window.publishedArticles
 // から取得する
 // -----------------------------------------------------
-function loadArticleLinkList() {
+function loadArticleLinkList(articles) {
 
 	filteredArticleLinks =
-		window.publishedArticles || [];
+
+		articles || window.publishedArticles || [];
 
 	const list =
 		document.getElementById('articleLinkList');
@@ -201,15 +207,19 @@ if (articleLinkCategorySelect) {
 			}
 
 
-			filteredArticleLinks =
+			loadArticleLinkList(
+
 				window.publishedArticles.filter(article =>
+
 					article.hugoPath.includes(
+
 						category.categoryName
+
 					)
-				);
 
+				)
 
-			loadArticleLinkList();
+			);
 
 		}
 	);
