@@ -21,11 +21,6 @@ let articleLinkInsertPosition = null;
 // -----------------------------------------------------
 let selectedArticleLink = null;
 
-// -----------------------------------------------------
-// 表示中リンク一覧
-// -----------------------------------------------------
-let filteredArticleLinks = [];
-
 
 // -----------------------------------------------------
 // リンクメニュー表示
@@ -48,6 +43,9 @@ if (linkButton) {
 
 
 		loadArticleLinkCategory();
+
+		filteredArticleLinks =
+			window.publishedArticles || [];
 
 		loadArticleLinkList();
 
