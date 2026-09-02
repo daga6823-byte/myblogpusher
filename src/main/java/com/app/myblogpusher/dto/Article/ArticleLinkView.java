@@ -15,7 +15,7 @@ public class ArticleLinkView {
 	private String hugoPath;
 
 	private String title;
-	
+
 	private String url;
 
 	public ArticleLinkView(

@@ -64,4 +64,12 @@ public interface ArticleRepository extends JpaRepository<Article, Long> {
 			@Param("userId") Long userId,
 			@Param("hugoPath") String hugoPath);
 
+	/**
+	 * 記事リンク挿入用
+	 *
+	 * 指定したカテゴリーの記事を取得する。
+	 */
+	List<Article> findByUserIdAndCategoryIdOrderByUpdateDateDesc(
+			Long userId,
+			Long categoryId);
 }

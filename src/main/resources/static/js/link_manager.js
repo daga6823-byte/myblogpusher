@@ -13,23 +13,28 @@
 // -----------------------------------------------------
 // 記事リンク挿入位置
 // -----------------------------------------------------
+
 let articleLinkInsertPosition = null;
 
 
 // -----------------------------------------------------
 // 選択中記事
 // -----------------------------------------------------
+
 let selectedArticleLink = null;
+
 
 // -----------------------------------------------------
 // 表示中リンク一覧
 // -----------------------------------------------------
+
 let filteredArticleLinks = [];
 
 
 // -----------------------------------------------------
 // リンクメニュー表示
 // -----------------------------------------------------
+
 const linkButton =
 	document.getElementById('linkButton');
 
@@ -68,10 +73,10 @@ if (linkButton) {
 // window.publishedArticles
 // から取得する
 // -----------------------------------------------------
+
 function loadArticleLinkList(articles) {
 
 	filteredArticleLinks =
-
 		articles || window.publishedArticles || [];
 
 	const list =
@@ -79,7 +84,9 @@ function loadArticleLinkList(articles) {
 
 
 	if (!list) {
+
 		return;
+
 	}
 
 
@@ -93,6 +100,7 @@ function loadArticleLinkList(articles) {
 			'投稿済み記事がありません';
 
 		return;
+
 	}
 
 
@@ -124,7 +132,7 @@ function loadArticleLinkList(articles) {
 
 			document.getElementById('articleLinkUrl')
 				.value =
-				article.url;
+				article.hugoPath;
 
 		});
 
@@ -135,16 +143,22 @@ function loadArticleLinkList(articles) {
 
 }
 
+
 // -----------------------------------------------------
 // リンク検索カテゴリー生成
 // -----------------------------------------------------
+
 function loadArticleLinkCategory() {
 
 	const select =
-		document.getElementById('articleLinkCategorySelect');
+		document.getElementById(
+			'articleLinkCategorySelect'
+		);
 
 	if (!select || !window.linkCategories) {
+
 		return;
+
 	}
 
 
@@ -186,40 +200,77 @@ function loadArticleLinkCategory() {
 // -----------------------------------------------------
 // カテゴリー変更時
 // -----------------------------------------------------
+
 const articleLinkCategorySelect =
-	document.getElementById('articleLinkCategorySelect');
+	document.getElementById(
+		'articleLinkCategorySelect'
+	);
 
 
 if (articleLinkCategorySelect) {
 
 	articleLinkCategorySelect.addEventListener(
 		'change',
-		function() {
+		async function() {
 
-			const category =
-				window.linkCategories.find(
-					c => String(c.categoryId) === this.value
-				);
+			const categoryId =
+				this.value;
 
 
-			if (!category) {
+			if (!categoryId) {
+
+				loadArticleLinkList([]);
+
 				return;
+
 			}
 
 
-			loadArticleLinkList(
+			try {
 
-				window.publishedArticles.filter(article =>
+				// カテゴリー変更時にArticleテーブルから
+				// 対象カテゴリーの記事を再取得する
+				const response =
+					await fetch(
+						'/article/link/articles?categoryId='
+						+ encodeURIComponent(categoryId)
+					);
 
-					article.hugoPath.includes(
 
-						category.categoryName
+				if (!response.ok) {
 
-					)
+					throw new Error(
+						'記事リンク一覧の取得に失敗しました'
+					);
 
-				)
+				}
 
-			);
+
+				const articles =
+					await response.json();
+
+
+				// 再取得した記事一覧を保持する
+				window.publishedArticles =
+					articles;
+
+
+				// 再取得した記事一覧を表示する
+				loadArticleLinkList(
+					articles
+				);
+
+
+			} catch (error) {
+
+				console.error(
+					'記事リンク一覧の取得に失敗しました:',
+					error
+				);
+
+				loadArticleLinkList([]);
+
+			}
 
 		}
 	);
@@ -230,23 +281,30 @@ if (articleLinkCategorySelect) {
 // -----------------------------------------------------
 // 記事リンクキャンセル
 // -----------------------------------------------------
+
 const cancelArticleLinkButton =
-	document.getElementById('articleLinkCancelButton');
+	document.getElementById(
+		'articleLinkCancelButton'
+	);
 
 
 if (cancelArticleLinkButton) {
 
-	cancelArticleLinkButton.addEventListener('click', function() {
+	cancelArticleLinkButton.addEventListener(
+		'click',
+		function() {
 
-		document.getElementById('articleLinkModal')
-			.style.display = 'none';
+			document.getElementById(
+				'articleLinkModal'
+			).style.display = 'none';
 
 
-		articleLinkInsertPosition = null;
+			articleLinkInsertPosition = null;
 
-		selectedArticleLink = null;
+			selectedArticleLink = null;
 
-	});
+		}
+	);
 
 }
 
@@ -254,89 +312,103 @@ if (cancelArticleLinkButton) {
 // -----------------------------------------------------
 // リンク挿入
 // -----------------------------------------------------
+
 const insertArticleLinkButton =
-	document.getElementById('articleLinkInsertButton');
+	document.getElementById(
+		'articleLinkInsertButton'
+	);
 
 
 if (insertArticleLinkButton) {
 
-	insertArticleLinkButton.addEventListener('click', function() {
+	insertArticleLinkButton.addEventListener(
+		'click',
+		function() {
 
 
-		if (!selectedArticleLink) {
+			if (!selectedArticleLink) {
 
-			alert('記事を選択してください');
+				alert('記事を選択してください');
 
-			return;
+				return;
+
+			}
+
+
+			const text =
+				document.getElementById(
+					'articleLinkText'
+				).value.trim();
+
+
+			const url =
+				selectedArticleLink.hugoPath;
+
+
+			const markdown =
+				'[' +
+				(text || selectedArticleLink.title) +
+				'](' +
+				url +
+				')';
+
+
+			const textarea =
+				document.querySelector(
+					'textarea[name="content"]'
+				);
+
+
+			if (articleLinkInsertPosition !== null) {
+
+				textarea.value =
+					textarea.value.substring(
+						0,
+						articleLinkInsertPosition
+					)
+					+
+					markdown
+					+
+					textarea.value.substring(
+						articleLinkInsertPosition
+					);
+
+			} else {
+
+				textarea.value +=
+					markdown;
+
+			}
+
+
+			textarea.focus();
+
+
+			// 挿入したリンクの直後へカーソルを戻す
+
+			const cursorPosition =
+				articleLinkInsertPosition !== null
+					? articleLinkInsertPosition
+					+ markdown.length
+					: textarea.value.length;
+
+
+			textarea.setSelectionRange(
+				cursorPosition,
+				cursorPosition
+			);
+
+
+			document.getElementById(
+				'articleLinkModal'
+			).style.display = 'none';
+
+
+			articleLinkInsertPosition = null;
+
+			selectedArticleLink = null;
 
 		}
-
-
-		const text =
-			document.getElementById('articleLinkText')
-				.value.trim();
-
-
-		const url =
-			document.getElementById('articleLinkUrl')
-				.value.trim();
-
-
-		const markdown =
-			'[' +
-			(text || selectedArticleLink.title) +
-			'](' +
-			url +
-			')';
-
-
-		const textarea =
-			document.querySelector('textarea[name="content"]');
-
-
-		if (articleLinkInsertPosition !== null) {
-
-			textarea.value =
-				textarea.value.substring(
-					0,
-					articleLinkInsertPosition)
-				+
-				markdown
-				+
-				textarea.value.substring(
-					articleLinkInsertPosition);
-
-		} else {
-
-			textarea.value += markdown;
-
-		}
-
-
-		textarea.focus();
-
-
-		// 挿入したリンクの直後へカーソルを戻す
-		const cursorPosition =
-			articleLinkInsertPosition !== null
-				? articleLinkInsertPosition + markdown.length
-				: textarea.value.length;
-
-
-		textarea.setSelectionRange(
-			cursorPosition,
-			cursorPosition
-		);
-
-
-		document.getElementById('articleLinkModal')
-			.style.display = 'none';
-
-
-		articleLinkInsertPosition = null;
-
-		selectedArticleLink = null;
-
-	});
+	);
 
 }
