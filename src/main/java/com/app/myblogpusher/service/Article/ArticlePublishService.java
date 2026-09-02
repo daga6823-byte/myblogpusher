@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import com.app.myblogpusher.dto.Article.ArticlePublishResult;
@@ -98,6 +99,7 @@ public class ArticlePublishService {
 	 *
 	 * ArticleWork.status = 1 の記事を対象とする。
 	 */
+	@Async
 	public void publishAsync(
 			UserRepositoryEntity repository,
 			String cipherKey,
