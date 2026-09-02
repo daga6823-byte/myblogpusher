@@ -23,6 +23,7 @@ import com.app.myblogpusher.entity.Article.ArticleCategory;
 import com.app.myblogpusher.repository.UserRepositoryRepository;
 import com.app.myblogpusher.service.Article.ArticleCategoryService;
 import com.app.myblogpusher.service.Article.ArticlePublishService;
+import com.app.myblogpusher.service.Article.ArticleWorkService;
 import com.app.myblogpusher.service.Article.ArticleWorkspaceService;
 import com.app.myblogpusher.util.SlugUtil;
 
@@ -34,6 +35,9 @@ public class PublishController {
 	private final UserRepositoryRepository userRepositoryRepository;
 	private final ArticleCategoryService articleCategoryService;
 	private final ArticlePublishService articlePublishService;
+
+	@Autowired
+	private ArticleWorkService articleWorkService;
 
 	@Autowired
 	private SlugUtil slugUtil;
@@ -105,13 +109,13 @@ public class PublishController {
 
 	@PostMapping("/publish/execute")
 	public String executePublish(
-	        @RequestParam(required = false) Long workId,
-	        @RequestParam String title,
-	        @RequestParam String content,
-	        @RequestParam Long categoryId,
-	        @RequestParam String slug,
-	        HttpSession session,
-	        Model model) {
+			@RequestParam(required = false) Long workId,
+			@RequestParam String title,
+			@RequestParam String content,
+			@RequestParam Long categoryId,
+			@RequestParam String slug,
+			HttpSession session,
+			Model model) {
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 
 		if (loginUser == null) {
@@ -128,14 +132,18 @@ public class PublishController {
 		}
 
 		UserRepositoryEntity repo = repoOpt.get();
-		// 非同期処理を呼び出す（ここでは即座にリダイレクト）
+
+		// 投稿処理開始
+		articleWorkService.updateStatus(workId, 1);
+
+		// 編集用ワークスペースは投稿開始時に削除
+		workspaceService.delete(userId);
+
+		// 投稿処理は非同期で実行する
 		articlePublishService.publishAsync(
 				repo,
 				loginUser.getCipherKey(),
-				workId,
-				slug);
-
-		workspaceService.delete(userId);
+				userId);
 
 		return "redirect:/article/list?published";
 	}

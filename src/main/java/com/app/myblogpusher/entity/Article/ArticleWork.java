@@ -41,6 +41,12 @@ public class ArticleWork {
     @Column(name = "article_id")
     private Long articleId;
     
+    @Column(name = "status")
+    private Integer status;
+    
+    @Column(name = "error_message")
+    private String errorMessage;
+    
     @Column(name = "create_date")
     private LocalDateTime createDate;
 

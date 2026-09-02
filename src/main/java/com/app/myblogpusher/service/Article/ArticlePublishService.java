@@ -7,6 +7,9 @@
 
 package com.app.myblogpusher.service.Article;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -46,14 +49,14 @@ public class ArticlePublishService {
 		String hugoPath = hugoArticleService.buildArticlePath(
 				work.getCategoryId(),
 				slug);
-		
+
 		System.out.println("work.userId = " + work.getUserId());
 		System.out.println("slug = " + slug);
 		System.out.println("hugoPath = " + hugoPath);
 
 		Article article = articleService.findByHugoPath(
-		        work.getUserId(),
-		        hugoPath);
+				work.getUserId(),
+				hugoPath);
 
 		System.out.println("find result = " + article);
 
@@ -75,33 +78,107 @@ public class ArticlePublishService {
 				work,
 				slug);
 
+		// 古い記事の作成日時を投稿時に正規化する
+		if (article.getCreateDate() != null) {
+
+			LocalDateTime normalizedCreateDate = article.getCreateDate().withNano(0);
+
+			article.setCreateDate(normalizedCreateDate);
+
+			article = articleService.save(article);
+		}
+
 		return new ArticlePublishResult(
 				article,
 				false);
 	}
 
 	/**
-	 * 記事を非同期投稿する
+	 * 投稿中の記事をまとめて非同期投稿する
 	 *
-	 * 画面で確定したslugをGitHub投稿まで引き継ぐ。
+	 * ArticleWork.status = 1 の記事を対象とする。
 	 */
 	public void publishAsync(
 			UserRepositoryEntity repository,
 			String cipherKey,
-			Long workId,
-			String slug) {
+			Long userId) {
 
-		ArticlePublishResult result = createOrUpdateArticle(
-				workId,
-				slug);
+		List<ArticleWork> works = articleWorkService.findPublishing(userId);
 
-		// GitHubへ非同期投稿
-		gitHubPushService.pushArticleAsync(
-				repository,
-				cipherKey,
-				result.getArticle(),
-				result.isNewArticle(),
-				workId,
-				slug);
+		for (ArticleWork work : works) {
+
+			try {
+
+				// GitHub APIで投稿可能か確認する
+				if (!gitHubPushService.canPublish(
+						repository,
+						cipherKey)) {
+
+					articleWorkService.updateStatus(
+							work.getWorkId(),
+							2,
+							"GitHub APIで投稿権限を確認できませんでした。");
+
+					continue;
+				}
+
+				String hugoPath = hugoArticleService.buildArticlePath(
+						work.getCategoryId(),
+						work.getSlug());
+
+				// 既存Articleの有無だけ確認する
+				// ここではArticleテーブルを変更しない
+				Article existingArticle = articleService.findByHugoPath(
+						work.getUserId(),
+						hugoPath);
+
+				// GitHub投稿用のArticleをメモリ上だけで作成する
+				Article article = new Article();
+
+				article.setUserId(work.getUserId());
+				article.setCategoryId(work.getCategoryId());
+				article.setTitle(work.getTitle());
+				article.setSlug(work.getSlug());
+				article.setHugoPath(hugoPath);
+				article.setContent(work.getContent());
+
+				// GitHub投稿を実行する
+				// この時点ではArticleテーブルには保存しない
+				gitHubPushService.pushArticle(
+						repository,
+						cipherKey,
+						article,
+						existingArticle == null,
+						work.getSlug());
+
+				// GitHub投稿成功後にArticleを作成・更新する
+				ArticlePublishResult result = createOrUpdateArticle(
+						work.getWorkId(),
+						work.getSlug());
+
+				articleService.updateStatus(
+						result.getArticle().getArticleId(),
+						com.app.myblogpusher.enums.ArticleStatus.PUBLISHED);
+
+				// 投稿完了後にWorkを削除する
+				articleWorkService.delete(
+						work.getWorkId(),
+						userId);
+
+			} catch (Exception e) {
+
+				System.err.println(
+						"投稿処理に失敗しました: "
+								+ e.getMessage());
+
+				e.printStackTrace();
+
+				// 投稿失敗した記事はエラー状態で残す
+				articleWorkService.updateStatus(
+				        work.getWorkId(),
+				        2,
+				        e.getMessage());
+			}
+		}
 	}
 }

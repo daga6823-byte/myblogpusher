@@ -9,6 +9,10 @@ package com.app.myblogpusher.service;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -21,10 +25,11 @@ import org.springframework.stereotype.Service;
 
 import com.app.myblogpusher.entity.UserRepositoryEntity;
 import com.app.myblogpusher.entity.Article.Article;
-import com.app.myblogpusher.enums.ArticleStatus;
 import com.app.myblogpusher.service.Article.ArticleService;
 import com.app.myblogpusher.service.Article.ArticleWorkService;
 import com.app.myblogpusher.util.ArticleImageUtil;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
 public class GitHubPushService {
@@ -88,10 +93,9 @@ public class GitHubPushService {
 					article,
 					slug);
 
-			String commitMessage =
-					newArticle
-							? "Add article: "
-							: "Update article: ";
+			String commitMessage = newArticle
+					? "Add article: "
+					: "Update article: ";
 
 			git.commit()
 					.setMessage(commitMessage + article.getSlug())
@@ -106,10 +110,6 @@ public class GitHubPushService {
 									"git",
 									accessToken))
 					.call();
-
-			articleService.updateStatus(
-					article.getArticleId(),
-					ArticleStatus.PUBLISHED);
 
 		} finally {
 			git.close();
@@ -158,6 +158,58 @@ public class GitHubPushService {
 				.call();
 	}
 
+	/**
+	 * GitHub APIでリポジトリへの投稿権限を確認する
+	 */
+	public boolean canPublish(
+			UserRepositoryEntity repoEntity,
+			String cipherKey)
+			throws Exception {
+
+		String accessToken = tokenCipherService.decrypt(
+				repoEntity.getAccessToken(),
+				repoEntity.getTokenIv(),
+				cipherKey);
+
+		String apiUrl = String.format(
+				"https://api.github.com/repos/%s/%s",
+				repoEntity.getRepoOwner(),
+				repoEntity.getRepoName());
+
+		HttpRequest request = HttpRequest.newBuilder()
+				.uri(URI.create(apiUrl))
+				.header(
+						"Authorization",
+						"Bearer " + accessToken)
+				.header(
+						"Accept",
+						"application/vnd.github+json")
+				.header(
+						"X-GitHub-Api-Version",
+						"2022-11-28")
+				.GET()
+				.build();
+
+		HttpResponse<String> response = HttpClient.newHttpClient()
+				.send(
+						request,
+						HttpResponse.BodyHandlers.ofString());
+
+		if (response.statusCode() != 200) {
+			return false;
+		}
+
+		JsonNode permissions = new ObjectMapper()
+				.readTree(response.body())
+				.get("permissions");
+
+		return permissions != null
+				&& permissions.path("push").asBoolean(false);
+	}
+
+	/**
+	 * 記事を非同期でGitHubへ投稿する
+	 */
 	@Async
 	public void pushArticleAsync(
 			UserRepositoryEntity repository,
@@ -168,7 +220,6 @@ public class GitHubPushService {
 			String slug) {
 
 		try {
-
 			article.setContent(
 					articleImageUtil.convertImageUrl(
 							article.getContent(),
@@ -181,9 +232,10 @@ public class GitHubPushService {
 					newArticle,
 					slug);
 
+			// GitHubへの投稿完了後にWorkを削除する
 			articleWorkService.delete(
-			        workId,
-			        article.getUserId());
+					workId,
+					article.getUserId());
 
 		} catch (Exception e) {
 
@@ -192,6 +244,11 @@ public class GitHubPushService {
 							+ e.getMessage());
 
 			e.printStackTrace();
+
+			// 投稿失敗した記事はエラー状態で残す
+			articleWorkService.updateStatus(
+					workId,
+					2);
 		}
 	}
 }

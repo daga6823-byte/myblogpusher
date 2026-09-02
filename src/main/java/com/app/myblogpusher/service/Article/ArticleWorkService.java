@@ -27,7 +27,6 @@ public class ArticleWorkService {
 	@Autowired
 	private ArticleWorkRepository articleWorkRepository;
 
-
 	/**
 	 * ユーザーの編集中記事一覧を取得する
 	 */
@@ -35,7 +34,6 @@ public class ArticleWorkService {
 
 		return articleWorkRepository.findByUserIdOrderByUpdateDateDesc(userId);
 	}
-
 
 	/**
 	 * 新規下書きを登録する
@@ -66,6 +64,8 @@ public class ArticleWorkService {
 
 		LocalDateTime now = LocalDateTime.now();
 
+		// 投稿前
+		work.setStatus(0);
 		work.setCreateDate(now);
 		work.setUpdateDate(now);
 
@@ -73,7 +73,6 @@ public class ArticleWorkService {
 
 		return work.getWorkId();
 	}
-
 
 	/**
 	 * 既存下書きを更新する
@@ -88,9 +87,8 @@ public class ArticleWorkService {
 			Long userId,
 			String slug) {
 
-		ArticleWork work =
-				articleWorkRepository.findById(workId)
-						.orElseThrow();
+		ArticleWork work = articleWorkRepository.findById(workId)
+				.orElseThrow();
 
 		work.setCategoryId(categoryId);
 		work.setTitle(title);
@@ -105,7 +103,6 @@ public class ArticleWorkService {
 		articleWorkRepository.save(work);
 	}
 
-
 	/**
 	 * workIdから編集中記事を取得する
 	 */
@@ -115,6 +112,38 @@ public class ArticleWorkService {
 				.orElseThrow();
 	}
 
+	/**
+	 * 投稿状態を更新する
+	 *
+	 * 0 = 投稿前
+	 * 1 = 投稿中
+	 * 2 = エラー
+	 */
+	public void updateStatus(
+			Long workId,
+			Integer status) {
+
+		ArticleWork work = articleWorkRepository.findById(workId)
+				.orElseThrow();
+
+		work.setStatus(status);
+
+		articleWorkRepository.save(work);
+	}
+
+	public void updateStatus(
+			Long workId,
+			Integer status,
+			String errorMessage) {
+
+		ArticleWork work = articleWorkRepository.findById(workId)
+				.orElseThrow();
+
+		work.setStatus(status);
+		work.setErrorMessage(errorMessage);
+
+		articleWorkRepository.save(work);
+	}
 
 	/**
 	 * 同一内容の下書きが存在するか確認する
@@ -133,7 +162,6 @@ public class ArticleWorkService {
 						content);
 	}
 
-
 	/**
 	 * 投稿完了後に編集中データを削除する
 	 */
@@ -141,9 +169,8 @@ public class ArticleWorkService {
 			Long workId,
 			Long userId) {
 
-		ArticleWork work =
-				articleWorkRepository.findById(workId)
-						.orElseThrow();
+		ArticleWork work = articleWorkRepository.findById(workId)
+				.orElseThrow();
 
 		if (!work.getUserId().equals(userId)) {
 
@@ -154,13 +181,29 @@ public class ArticleWorkService {
 		articleWorkRepository.delete(work);
 	}
 
-
 	/**
 	 * slugから編集中記事を検索する
 	 */
 	public Optional<ArticleWork> findBySlug(String slug) {
 
 		return articleWorkRepository.findBySlug(slug);
+	}
+
+	/**
+	 * 投稿中の記事を取得する
+	 */
+	public List<ArticleWork> findPublishing(Long userId) {
+
+		return articleWorkRepository.findByUserIdAndStatus(
+				userId,
+				1);
+	}
+
+	/**
+	 * エラー記事を取得する
+	 */
+	public List<ArticleWork> findError(Long userId) {
+		return articleWorkRepository.findByUserIdAndStatus(userId, 2);
 	}
 
 }

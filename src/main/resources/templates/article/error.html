@@ -1,0 +1,46 @@
+<!--
+	投稿エラー記事確認画面
+
+	ArticleWork.status = 2 の記事について、
+	記事タイトルと投稿エラー原因を表示する。
+-->
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8">
+	<title>投稿エラー確認</title>
+</head>
+
+<body>
+
+	<h1>投稿エラー確認</h1>
+
+	<div th:if="${#lists.isEmpty(errorWorks)}">
+		<p>投稿エラーの記事はありません。</p>
+	</div>
+
+	<div th:unless="${#lists.isEmpty(errorWorks)}">
+
+		<div th:each="work : ${errorWorks}">
+
+			<h2 th:text="${work.title}">記事タイトル</h2>
+
+			<p>
+				<strong>エラー原因</strong>
+			</p>
+
+			<p th:text="${work.errorMessage}">
+				エラー内容
+			</p>
+
+			<hr>
+
+		</div>
+
+	</div>
+
+</body>
+
+</html>

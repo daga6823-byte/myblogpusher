@@ -227,5 +227,39 @@ function buildCreateDateString(createDate) {
 		return '';
 	}
 
-	return createDate.replace(' ', 'T') + '+09:00';
+	// YYYY-MM-DD HH:mm:ss へ正規化する
+	const normalized = createDate
+		.replace('T', ' ')
+		.split('.')[0];
+
+	const parts = normalized.split(' ');
+
+	if (parts.length !== 2) {
+		return '';
+	}
+
+	const dateParts = parts[0].split('-');
+	const timeParts = parts[1].split(':');
+
+	// 不足している日時要素を0で補完する
+	while (dateParts.length < 3) {
+		dateParts.push('01');
+	}
+
+	while (timeParts.length < 3) {
+		timeParts.push('00');
+	}
+
+	const date = dateParts
+		.map((part, index) =>
+			index === 0
+				? part.padStart(4, '0')
+				: part.padStart(2, '0'))
+		.join('-');
+
+	const time = timeParts
+		.map(part => part.padStart(2, '0'))
+		.join(':');
+
+	return `${date}T${time}+09:00`;
 }

@@ -209,4 +209,11 @@ public class ArticleService {
 				slug);
 	}
 
+	/**
+	 * 記事を保存する
+	 */
+	public Article save(Article article) {
+		return articleRepository.save(article);
+	}
+
 }
