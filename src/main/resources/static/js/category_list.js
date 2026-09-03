@@ -53,8 +53,12 @@ document.querySelectorAll('.btn-update').forEach(btn => {
 		categoryNameInput.value = btn.dataset.categoryName;
 		displayNameInput.value = btn.dataset.displayName;
 
-		const selectedIds = btn.dataset.parentCategoryIds
-			? btn.dataset.parentCategoryIds.split(',')
+		const category = categories.find(
+			c => String(c.categoryId) === String(categoryIdInput.value)
+		);
+
+		const selectedIds = category
+			? category.parentCategoryIds
 			: [];
 
 		rebuildParentCategorySelect(
