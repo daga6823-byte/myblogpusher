@@ -29,16 +29,29 @@ function rebuildParentCategorySelect(currentId, selectedIds) {
 			return;
 		}
 
-		const option = document.createElement('option');
-		option.value = c.categoryId;
-		option.textContent = c.displayName;
+		const wrapper = document.createElement('label');
+
+		const checkbox = document.createElement('input');
+
+		checkbox.type = 'checkbox';
+		checkbox.name = 'parentCategoryIds';
+		checkbox.value = c.categoryId;
 
 		if (selectedIdSet.has(String(c.categoryId))) {
-			option.selected = true;
+			checkbox.checked = true;
 		}
 
-		parentCategoryInput.appendChild(option);
+		wrapper.appendChild(checkbox);
+		wrapper.appendChild(
+			document.createTextNode(' ' + c.displayName)
+		);
+
+		parentCategoryInput.appendChild(wrapper);
+		parentCategoryInput.appendChild(
+			document.createElement('br')
+		);
 	});
+
 }
 
 // 編集
@@ -108,12 +121,15 @@ if (saveCategoryButton) {
 			displayNameInput.value.trim()
 		);
 
-		Array.from(parentCategoryInput.selectedOptions)
-			.forEach(option => {
+		parentCategoryInput
+			.querySelectorAll('input[name="parentCategoryIds"]:checked')
+			.forEach(checkbox => {
+
 				params.append(
 					'parentCategoryIds',
-					option.value
+					checkbox.value
 				);
+
 			});
 
 		fetch(url, {
