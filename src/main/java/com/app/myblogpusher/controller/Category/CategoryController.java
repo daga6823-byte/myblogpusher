@@ -53,7 +53,7 @@ public class CategoryController {
 	@PostMapping("/category/add")
 	@ResponseBody
 	public Map<String, String> add(@RequestParam String categoryName,
-			@RequestParam(required = false) Long parentCategoryId,
+			@RequestParam(required = false) List<Long> parentCategoryIds,
 			@RequestParam String displayName, HttpSession session) {
 
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
@@ -64,7 +64,7 @@ public class CategoryController {
 			articleCategoryService.insertCategory(
 					userId,
 					categoryName,
-					parentCategoryId,
+					parentCategoryIds,
 					displayName);
 
 			return Map.of("result", "ok");
@@ -90,7 +90,7 @@ public class CategoryController {
 			@RequestParam Long categoryId,
 			@RequestParam String newName,
 			@RequestParam String displayName,
-			@RequestParam(required = false) Long parentCategoryId,
+			@RequestParam(required = false) List<Long> parentCategoryIds,
 			HttpSession session) {
 
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
@@ -102,7 +102,7 @@ public class CategoryController {
 					categoryId,
 					userId,
 					newName,
-					parentCategoryId,
+					parentCategoryIds,
 					displayName);
 
 			return Map.of("result", "ok");

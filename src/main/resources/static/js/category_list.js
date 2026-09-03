@@ -6,19 +6,18 @@ const modalTitle = document.getElementById('categoryModalTitle');
 const categoryIdInput = document.getElementById('categoryId');
 const categoryNameInput = document.getElementById('categoryName');
 const displayNameInput = document.getElementById('displayName');
-const parentCategoryInput = document.getElementById('parentCategoryId');
+const parentCategoryInput = document.getElementById('parentCategoryIds');
 
 let editMode = false;
 
 // 親カテゴリー一覧生成
-function rebuildParentCategorySelect(currentId, selectedId) {
+function rebuildParentCategorySelect(currentId, selectedIds) {
 
 	parentCategoryInput.innerHTML = '';
 
-	const none = document.createElement('option');
-	none.value = '';
-	none.textContent = 'なし';
-	parentCategoryInput.appendChild(none);
+	const selectedIdSet = new Set(
+		(selectedIds || []).map(id => String(id))
+	);
 
 	categories.forEach(c => {
 
@@ -34,7 +33,7 @@ function rebuildParentCategorySelect(currentId, selectedId) {
 		option.value = c.categoryId;
 		option.textContent = c.displayName;
 
-		if (String(c.categoryId) === String(selectedId)) {
+		if (selectedIdSet.has(String(c.categoryId))) {
 			option.selected = true;
 		}
 
@@ -53,9 +52,14 @@ document.querySelectorAll('.btn-update').forEach(btn => {
 		categoryIdInput.value = btn.dataset.categoryId;
 		categoryNameInput.value = btn.dataset.categoryName;
 		displayNameInput.value = btn.dataset.displayName;
+
+		const selectedIds = btn.dataset.parentCategoryIds
+			? btn.dataset.parentCategoryIds.split(',')
+			: [];
+
 		rebuildParentCategorySelect(
 			categoryIdInput.value,
-			btn.dataset.parentCategoryId
+			selectedIds
 		);
 
 		modal.style.display = 'block';
@@ -100,13 +104,13 @@ if (saveCategoryButton) {
 			displayNameInput.value.trim()
 		);
 
-		if (parentCategoryInput.value) {
-
-			params.append(
-				'parentCategoryId',
-				parentCategoryInput.value
-			);
-		}
+		Array.from(parentCategoryInput.selectedOptions)
+			.forEach(option => {
+				params.append(
+					'parentCategoryIds',
+					option.value
+				);
+			});
 
 		fetch(url, {
 
@@ -164,7 +168,7 @@ if (addCategoryButton) {
 		categoryNameInput.value = '';
 		displayNameInput.value = '';
 
-		rebuildParentCategorySelect(null, null);
+		rebuildParentCategorySelect(null, []);
 
 		modal.style.display = 'block';
 

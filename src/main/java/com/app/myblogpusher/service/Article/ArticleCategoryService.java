@@ -49,7 +49,7 @@ public class ArticleCategoryService {
 	public Long insertCategory(
 			Long userId,
 			String categoryName,
-			Long parentCategoryId,
+			List<Long> parentCategoryIds,
 			String displayName) {
 
 		if (categoryName == null || categoryName.isBlank()) {
@@ -69,16 +69,23 @@ public class ArticleCategoryService {
 		newCategory.setUpdateUser(userId);
 
 		// 移行期間中は旧カラムにも保持する。
-		newCategory.setParentCategoryId(parentCategoryId);
+		newCategory.setParentCategoryId(
+				parentCategoryIds == null || parentCategoryIds.isEmpty()
+						? null
+						: parentCategoryIds.get(0));
 
 		newCategory.setDisplayName(displayName);
 
 		articleCategoryRepository.save(newCategory);
 
-		// 新しいカテゴリー関係テーブルにも親子関係を登録する。
-		categoryRelationService.addRelation(
-				newCategory.getCategoryId(),
-				parentCategoryId);
+		// 選択された親カテゴリーごとに親子関係を登録する。
+		if (parentCategoryIds != null) {
+			for (Long parentCategoryId : parentCategoryIds) {
+				categoryRelationService.addRelation(
+						newCategory.getCategoryId(),
+						parentCategoryId);
+			}
+		}
 
 		return newCategory.getCategoryId();
 	}
@@ -117,16 +124,37 @@ public class ArticleCategoryService {
 								? c.getCategoryName()
 								: c.getDisplayName()));
 
+		/*
+		 * カテゴリーの親子関係はCategoryRelationを基準にする。
+		 *
+		 * 1つのカテゴリーが複数の親を持てるため、
+		 * categoryIdごとに複数のparentCategoryIdを取得する。
+		 */
+		List<CategoryRelation> relations = categoryRelationRepository.findAll();
+
 		return categories.stream()
-				.map(c -> new CategoryDictionaryView(
-						c.getCategoryId(),
-						c.getCategoryName(),
-						c.getParentCategoryId(),
-						c.getParentCategoryId() == null
-								? null
-								: categoryNameMap.get(c.getParentCategoryId()),
-						c.getDisplayName(),
-						countMap.getOrDefault(c.getCategoryId(), 0L)))
+				.map(c -> {
+
+					List<Long> parentCategoryIds = relations.stream()
+							.filter(relation -> relation.getCategoryId().equals(c.getCategoryId()))
+							.map(CategoryRelation::getParentCategoryId)
+							.toList();
+
+					String parentCategoryName = parentCategoryIds.stream()
+							.map(categoryNameMap::get)
+							.filter(name -> name != null)
+							.collect(Collectors.joining(", "));
+
+					return new CategoryDictionaryView(
+							c.getCategoryId(),
+							c.getCategoryName(),
+							parentCategoryIds,
+							parentCategoryName.isEmpty()
+									? null
+									: parentCategoryName,
+							c.getDisplayName(),
+							countMap.getOrDefault(c.getCategoryId(), 0L));
+				})
 				.toList();
 	}
 
@@ -139,7 +167,7 @@ public class ArticleCategoryService {
 			Long categoryId,
 			Long userId,
 			String categoryName,
-			Long parentCategoryId,
+			List<Long> parentCategoryIds,
 			String displayName) {
 
 		if (categoryName == null || categoryName.isBlank()) {
@@ -163,7 +191,10 @@ public class ArticleCategoryService {
 		category.setCategoryName(categoryName);
 
 		// 移行期間中は旧カラムにも保持する。
-		category.setParentCategoryId(parentCategoryId);
+		category.setParentCategoryId(
+				parentCategoryIds == null || parentCategoryIds.isEmpty()
+						? null
+						: parentCategoryIds.get(0));
 
 		category.setDisplayName(displayName);
 		category.setUpdateUser(userId);
@@ -171,9 +202,16 @@ public class ArticleCategoryService {
 
 		articleCategoryRepository.save(category);
 
-		// 旧い関係を削除して、新しい親との関係を登録する。
+		// 既存の親子関係を削除して、選択された親との関係を登録する。
 		categoryRelationService.deleteRelationsByCategoryId(categoryId);
-		categoryRelationService.addRelation(categoryId, parentCategoryId);
+
+		if (parentCategoryIds != null) {
+			for (Long parentCategoryId : parentCategoryIds) {
+				categoryRelationService.addRelation(
+						categoryId,
+						parentCategoryId);
+			}
+		}
 	}
 
 	@Autowired
@@ -457,8 +495,7 @@ public class ArticleCategoryService {
 
 				current = categories.stream()
 						.filter(c -> !relations.stream()
-								.anyMatch(relation ->
-										relation.getCategoryId().equals(c.getCategoryId())))
+								.anyMatch(relation -> relation.getCategoryId().equals(c.getCategoryId())))
 						.filter(c -> getCategoryLabel(c).equals(name))
 						.findFirst()
 						.orElse(null);

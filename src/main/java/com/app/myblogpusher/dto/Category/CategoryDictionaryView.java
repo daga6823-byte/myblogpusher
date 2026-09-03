@@ -1,5 +1,7 @@
 package com.app.myblogpusher.dto.Category;
 
+import java.util.List;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -7,14 +9,14 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class CategoryDictionaryView {
 
-    private final Long categoryId;
-    private final String categoryName;
-    private final Long parentCategoryId;
-    private final String parentCategoryName;
-    private final String displayName;
-    private final long typoCount;
+	private final Long categoryId;
+	private final String categoryName;
+	private final List<Long> parentCategoryIds;
+	private final String parentCategoryName;
+	private final String displayName;
+	private final long typoCount;
 
-    public boolean isDeletable() {
-        return typoCount == 0;
-    }
+	public boolean isDeletable() {
+		return typoCount == 0;
+	}
 }
