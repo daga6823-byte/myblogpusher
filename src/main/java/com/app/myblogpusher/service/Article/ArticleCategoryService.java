@@ -13,9 +13,12 @@ import org.springframework.stereotype.Service;
 
 import com.app.myblogpusher.dto.Category.CategoryDictionaryView;
 import com.app.myblogpusher.dto.Category.CategoryOptionView;
+import com.app.myblogpusher.entity.CategoryRelation;
 import com.app.myblogpusher.entity.Article.ArticleCategory;
+import com.app.myblogpusher.repository.CategoryRelationRepository;
 import com.app.myblogpusher.repository.TypoCorrectionRepository;
 import com.app.myblogpusher.repository.Article.ArticleCategoryRepository;
+import com.app.myblogpusher.service.CategoryRelationService;
 
 @Service
 public class ArticleCategoryService {
@@ -30,6 +33,12 @@ public class ArticleCategoryService {
 	public Optional<ArticleCategory> findByUserIdAndName(Long userId, String categoryName) {
 		return articleCategoryRepository.findByUserIdAndCategoryName(userId, categoryName);
 	}
+
+	@Autowired
+	private CategoryRelationService categoryRelationService;
+
+	@Autowired
+	private CategoryRelationRepository categoryRelationRepository;
 
 	/**
 	 * カテゴリーを新規登録する
@@ -58,10 +67,18 @@ public class ArticleCategoryService {
 		newCategory.setUpdateDate(LocalDateTime.now());
 		newCategory.setCreateUser(userId);
 		newCategory.setUpdateUser(userId);
+
+		// 移行期間中は旧カラムにも保持する。
 		newCategory.setParentCategoryId(parentCategoryId);
+
 		newCategory.setDisplayName(displayName);
 
 		articleCategoryRepository.save(newCategory);
+
+		// 新しいカテゴリー関係テーブルにも親子関係を登録する。
+		categoryRelationService.addRelation(
+				newCategory.getCategoryId(),
+				parentCategoryId);
 
 		return newCategory.getCategoryId();
 	}
@@ -144,12 +161,19 @@ public class ArticleCategoryService {
 		}
 
 		category.setCategoryName(categoryName);
+
+		// 移行期間中は旧カラムにも保持する。
 		category.setParentCategoryId(parentCategoryId);
+
 		category.setDisplayName(displayName);
 		category.setUpdateUser(userId);
 		category.setUpdateDate(LocalDateTime.now());
 
 		articleCategoryRepository.save(category);
+
+		// 旧い関係を削除して、新しい親との関係を登録する。
+		categoryRelationService.deleteRelationsByCategoryId(categoryId);
+		categoryRelationService.addRelation(categoryId, parentCategoryId);
 	}
 
 	@Autowired
@@ -157,7 +181,8 @@ public class ArticleCategoryService {
 
 	public void delete(Long categoryId, Long userId) {
 
-		ArticleCategory category = articleCategoryRepository.findById(categoryId).orElseThrow();
+		ArticleCategory category = articleCategoryRepository.findById(categoryId)
+				.orElseThrow();
 
 		if (!category.getUserId().equals(userId)) {
 			throw new IllegalStateException("他のユーザーのカテゴリーは削除できません");
@@ -173,6 +198,12 @@ public class ArticleCategoryService {
 			throw new IllegalStateException("使用中のカテゴリーは削除できません");
 		}
 
+		// このカテゴリー自身が持つ親との関係を削除する。
+		categoryRelationService.deleteRelationsByCategoryId(categoryId);
+
+		// このカテゴリーを親としている子カテゴリー側の関係も削除する。
+		categoryRelationService.deleteRelationsByParentCategoryId(categoryId);
+
 		articleCategoryRepository.delete(category);
 	}
 
@@ -181,33 +212,80 @@ public class ArticleCategoryService {
 	 * ルートからのフルパス付きでカテゴリー一覧を返す（sortOrder順の深さ優先）
 	 */
 	public List<CategoryOptionView> findSelectableCategories(Long userId) {
+
 		List<ArticleCategory> categories = articleCategoryRepository.findByUserId(userId);
+
 		if (categories.isEmpty()) {
 			return List.of();
 		}
 
-		Map<Long, List<ArticleCategory>> childrenByParent = new HashMap<>();
-		List<ArticleCategory> roots = new ArrayList<>();
+		/*
+		 * CategoryRelationから親子関係を構築する。
+		 *
+		 * ArticleCategory自身はカテゴリーそのものを表すため、
+		 * 階層構造はcategory_relationを基準にする。
+		 */
+		List<CategoryRelation> relations = categoryRelationRepository.findAll();
 
-		for (ArticleCategory c : categories) {
-			if (c.getParentCategoryId() == null) {
-				roots.add(c);
-			} else {
-				childrenByParent
-						.computeIfAbsent(c.getParentCategoryId(), k -> new ArrayList<>())
-						.add(c);
+		Map<Long, ArticleCategory> categoryMap = categories.stream()
+				.collect(Collectors.toMap(
+						ArticleCategory::getCategoryId,
+						c -> c));
+
+		Map<Long, List<ArticleCategory>> childrenByParent = new HashMap<>();
+
+		for (CategoryRelation relation : relations) {
+
+			ArticleCategory child = categoryMap.get(relation.getCategoryId());
+			ArticleCategory parent = categoryMap.get(relation.getParentCategoryId());
+
+			// 他ユーザーのカテゴリー関係は対象外にする。
+			if (child == null || parent == null) {
+				continue;
 			}
+
+			childrenByParent
+					.computeIfAbsent(parent.getCategoryId(), k -> new ArrayList<>())
+					.add(child);
 		}
 
-		roots.sort((a, b) -> compareSortOrder(a.getSortOrder(), b.getSortOrder()));
+		/*
+		 * category_relationに親が登録されていないカテゴリーを
+		 * ルートカテゴリーとして扱う。
+		 */
+		List<ArticleCategory> roots = categories.stream()
+				.filter(category -> !hasParentRelation(
+						category.getCategoryId(),
+						relations))
+				.collect(Collectors.toCollection(ArrayList::new));
+
+		roots.sort((a, b) -> compareSortOrder(
+				a.getSortOrder(),
+				b.getSortOrder()));
+
 		childrenByParent.values()
-				.forEach(list -> list.sort((a, b) -> compareSortOrder(a.getSortOrder(), b.getSortOrder())));
+				.forEach(list -> list.sort((a, b) -> compareSortOrder(
+						a.getSortOrder(),
+						b.getSortOrder())));
 
 		List<CategoryOptionView> result = new ArrayList<>();
+
 		for (ArticleCategory root : roots) {
 			appendOption(root, "", childrenByParent, result);
 		}
+
 		return result;
+	}
+
+	/**
+	 * 指定カテゴリーに親カテゴリーとの関係が存在するか確認する。
+	 */
+	private boolean hasParentRelation(
+			Long categoryId,
+			List<CategoryRelation> relations) {
+
+		return relations.stream()
+				.anyMatch(relation -> relation.getCategoryId().equals(categoryId));
 	}
 
 	private void appendOption(
@@ -216,14 +294,23 @@ public class ArticleCategoryService {
 			Map<Long, List<ArticleCategory>> childrenByParent,
 			List<CategoryOptionView> result) {
 
-		String label = (current.getDisplayName() != null && !current.getDisplayName().isBlank())
-				? current.getDisplayName()
-				: current.getCategoryName();
-		String fullPath = parentPath.isEmpty() ? label : parentPath + "/" + label;
+		String label = (current.getDisplayName() != null
+				&& !current.getDisplayName().isBlank())
+						? current.getDisplayName()
+						: current.getCategoryName();
 
-		result.add(new CategoryOptionView(current.getCategoryId(), fullPath));
+		String fullPath = parentPath.isEmpty()
+				? label
+				: parentPath + "/" + label;
 
-		List<ArticleCategory> children = childrenByParent.getOrDefault(current.getCategoryId(), List.of());
+		result.add(new CategoryOptionView(
+				current.getCategoryId(),
+				fullPath));
+
+		List<ArticleCategory> children = childrenByParent.getOrDefault(
+				current.getCategoryId(),
+				List.of());
+
 		for (ArticleCategory child : children) {
 			appendOption(child, fullPath, childrenByParent, result);
 		}
@@ -241,9 +328,7 @@ public class ArticleCategoryService {
 	/**
 	 * 辞書検索に使用するカテゴリーIDを取得する。
 	 *
-	 * ルートカテゴリーは対象外とし、
-	 * 第2階層は自分自身、
-	 * 第3階層以降は親カテゴリーを返す。
+	 * 第2階層のカテゴリーを辞書検索対象とする。
 	 */
 	public Long findDictionaryCategoryId(Long categoryId) {
 
@@ -256,7 +341,6 @@ public class ArticleCategoryService {
 				.orElse(null);
 
 		if (category == null || category.getParentCategoryId() == null) {
-			// ルートカテゴリー
 			return null;
 		}
 
@@ -268,65 +352,66 @@ public class ArticleCategoryService {
 			return null;
 		}
 
-		// 親がルートなら自分自身（第2階層）
 		if (parent.getParentCategoryId() == null) {
 			return category.getCategoryId();
 		}
 
-		// 第3階層以降は親カテゴリー
 		return parent.getCategoryId();
 	}
 
 	/**
-	 * 記事カテゴリーから参考文献登録対象カテゴリーを取得する
+	 * 記事カテゴリーから参考文献登録対象カテゴリーを取得する。
 	 *
-	 * ルート直下カテゴリーを返す。
+	 * 第2階層のカテゴリーを参考文献登録対象とする。
+	 */
+	public Long findReferenceCategoryId(Long categoryId) {
+
+		if (categoryId == null) {
+			return null;
+		}
+
+		ArticleCategory category = articleCategoryRepository
+				.findById(categoryId)
+				.orElse(null);
+
+		if (category == null) {
+			return null;
+		}
+
+		if (category.getParentCategoryId() == null) {
+			return category.getCategoryId();
+		}
+
+		ArticleCategory parent = articleCategoryRepository
+				.findById(category.getParentCategoryId())
+				.orElse(null);
+
+		if (parent == null) {
+			return null;
+		}
+
+		if (parent.getParentCategoryId() == null) {
+			return category.getCategoryId();
+		}
+
+		return parent.getCategoryId();
+	}
+
+	/**
+	 * フルパスからカテゴリーIDを取得する。
+	 *
+	 * CategoryRelationを使用して親子関係を辿る。
 	 *
 	 * 例:
 	 * movie/batman/gadget
 	 *
-	 * の場合
-	 *
-	 * batman
-	 */
-	public Long findReferenceCategoryId(Long categoryId) {
-
-		ArticleCategory category = findById(categoryId)
-				.orElseThrow();
-
-		ArticleCategory current = category;
-
-		while (current.getParentCategoryId() != null) {
-
-			ArticleCategory parent = findById(current.getParentCategoryId())
-					.orElseThrow();
-
-			// 親がルートなら現在カテゴリーが対象
-			if (parent.getParentCategoryId() == null) {
-
-				return current.getCategoryId();
-			}
-
-			current = parent;
-		}
-
-		// ルートカテゴリーしかない場合
-		return categoryId;
-	}
-
-	/**
-	 * フルパスからカテゴリーIDを取得する
-	 *
-	 * 例:
-	 * 映画/バットマン/ガジェット
-	 *
-	 * → ガジェットのcategoryIdを返す
+	 * → gadgetのcategoryId
 	 */
 	public Long findCategoryIdByFullPath(
 			Long userId,
 			String fullPath) {
 
-		if (fullPath == null || fullPath.isBlank()) {
+		if (userId == null || fullPath == null || fullPath.isBlank()) {
 			return null;
 		}
 
@@ -336,105 +421,88 @@ public class ArticleCategoryService {
 			return null;
 		}
 
-		Map<Long, List<ArticleCategory>> childrenMap = new HashMap<>();
+		Map<Long, ArticleCategory> categoryMap = categories.stream()
+				.collect(Collectors.toMap(
+						ArticleCategory::getCategoryId,
+						c -> c));
 
-		for (ArticleCategory category : categories) {
+		Map<Long, List<Long>> childrenMap = new HashMap<>();
 
-			Long parentId = category.getParentCategoryId();
+		List<CategoryRelation> relations = categoryRelationRepository.findAll();
+
+		for (CategoryRelation relation : relations) {
+
+			Long categoryId = relation.getCategoryId();
+			Long parentCategoryId = relation.getParentCategoryId();
+
+			if (!categoryMap.containsKey(categoryId)
+					|| !categoryMap.containsKey(parentCategoryId)) {
+				continue;
+			}
 
 			childrenMap
-					.computeIfAbsent(parentId, k -> new ArrayList<>())
-					.add(category);
+					.computeIfAbsent(parentCategoryId, k -> new ArrayList<>())
+					.add(categoryId);
 		}
 
-		String[] names = fullPath.split("/");
+		String[] pathParts = fullPath.split("/");
 
-		Long parentId = null;
 		ArticleCategory current = null;
 
-		for (String name : names) {
+		for (int i = 0; i < pathParts.length; i++) {
 
-			List<ArticleCategory> children = childrenMap.getOrDefault(parentId, List.of());
+			String name = pathParts[i];
 
-			current = children.stream()
-					.filter(c -> {
+			if (i == 0) {
 
-						String label = (c.getDisplayName() != null && !c.getDisplayName().isBlank())
-								? c.getDisplayName()
-								: c.getCategoryName();
+				current = categories.stream()
+						.filter(c -> !relations.stream()
+								.anyMatch(relation ->
+										relation.getCategoryId().equals(c.getCategoryId())))
+						.filter(c -> getCategoryLabel(c).equals(name))
+						.findFirst()
+						.orElse(null);
 
-						return label.equals(name);
-					})
-					.findFirst()
-					.orElse(null);
+			} else {
+
+				if (current == null) {
+					return null;
+				}
+
+				List<Long> childIds = childrenMap.getOrDefault(
+						current.getCategoryId(),
+						List.of());
+
+				current = childIds.stream()
+						.map(categoryMap::get)
+						.filter(c -> c != null)
+						.filter(c -> getCategoryLabel(c).equals(name))
+						.findFirst()
+						.orElse(null);
+			}
 
 			if (current == null) {
 				return null;
 			}
-
-			parentId = current.getCategoryId();
 		}
 
 		return current.getCategoryId();
 	}
 
 	/**
-	 * 記事リンク検索用カテゴリーIDを取得する
+	 * 記事リンク検索用カテゴリーIDを取得する。
 	 *
-	 * 編集中記事のカテゴリーから親を辿り、
-	 * ルート直下カテゴリーを返す。
-	 *
-	 * 例:
-	 * movie/batman/gadget
-	 *
-	 * → batman
+	 * 第2階層のカテゴリーをリンク検索対象とする。
 	 */
 	public Long findLinkSearchCategoryId(Long categoryId) {
 
-		if (categoryId == null) {
-			return null;
-		}
-
-		ArticleCategory category = findById(categoryId)
-				.orElse(null);
-
-		if (category == null) {
-			return null;
-		}
-
-		ArticleCategory current = category;
-
-		while (current.getParentCategoryId() != null) {
-
-			ArticleCategory parent = findById(current.getParentCategoryId())
-					.orElse(null);
-
-			if (parent == null) {
-				return null;
-			}
-
-			// 親がルートなら現在カテゴリーが検索対象
-			if (parent.getParentCategoryId() == null) {
-
-				return current.getCategoryId();
-
-			}
-
-			current = parent;
-		}
-
-		// ルートカテゴリーの場合
-		return current.getCategoryId();
+		return findReferenceCategoryId(categoryId);
 	}
 
 	/**
-	 * 記事リンク検索用カテゴリーのHugoパスを取得する
+	 * 記事リンク検索用カテゴリーのHugoパスを取得する。
 	 *
-	 * 例:
-	 * movie/batman/gadget
-	 *
-	 * 検索対象:
-	 * movie/batman
+	 * カテゴリーIDから第2階層までのカテゴリー経路を組み立てる。
 	 */
 	public String findLinkSearchCategoryPath(Long categoryId) {
 
@@ -442,63 +510,57 @@ public class ArticleCategoryService {
 			return null;
 		}
 
-		ArticleCategory category = findById(categoryId)
+		ArticleCategory category = articleCategoryRepository
+				.findById(categoryId)
 				.orElse(null);
 
 		if (category == null) {
 			return null;
 		}
 
-		ArticleCategory current = category;
-
-		while (current.getParentCategoryId() != null) {
-
-			ArticleCategory parent = findById(current.getParentCategoryId())
-					.orElse(null);
-
-			if (parent == null) {
-				return null;
-			}
-
-			// 親がルートの場合
-			// 現在カテゴリーが検索対象
-			if (parent.getParentCategoryId() == null) {
-
-				return buildCategoryPath(current);
-
-			}
-
-			current = parent;
+		if (category.getParentCategoryId() == null) {
+			return getCategoryLabel(category);
 		}
 
-		// ルートカテゴリーの場合
-		return buildCategoryPath(current);
+		ArticleCategory parent = articleCategoryRepository
+				.findById(category.getParentCategoryId())
+				.orElse(null);
+
+		if (parent == null) {
+			return getCategoryLabel(category);
+		}
+
+		if (parent.getParentCategoryId() == null) {
+			return getCategoryLabel(parent) + "/" + getCategoryLabel(category);
+		}
+
+		ArticleCategory root = articleCategoryRepository
+				.findById(parent.getParentCategoryId())
+				.orElse(null);
+
+		if (root == null) {
+			return getCategoryLabel(parent) + "/" + getCategoryLabel(category);
+		}
+
+		return getCategoryLabel(root)
+				+ "/"
+				+ getCategoryLabel(parent);
 	}
 
 	/**
-	 * カテゴリーからHugoパスを作成する
+	 * カテゴリーの表示用ラベルを取得する。
 	 *
-	 * 親を辿って "/" 区切りにする。
+	 * displayNameが設定されている場合はdisplayName、
+	 * 未設定の場合はcategoryNameを使用する。
 	 */
-	private String buildCategoryPath(ArticleCategory category) {
+	private String getCategoryLabel(ArticleCategory category) {
 
-		List<String> paths = new ArrayList<>();
-
-		ArticleCategory current = category;
-
-		while (current != null) {
-
-			paths.add(0, current.getCategoryName());
-
-			if (current.getParentCategoryId() == null) {
-				break;
-			}
-
-			current = findById(current.getParentCategoryId())
-					.orElse(null);
+		if (category.getDisplayName() != null
+				&& !category.getDisplayName().isBlank()) {
+			return category.getDisplayName();
 		}
 
-		return String.join("/", paths);
+		return category.getCategoryName();
 	}
 
 }

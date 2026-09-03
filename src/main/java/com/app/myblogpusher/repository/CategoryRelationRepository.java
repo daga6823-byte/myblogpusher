@@ -4,10 +4,15 @@
 
 package com.app.myblogpusher.repository;
 
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.app.myblogpusher.entity.CategoryRelation;
 
 public interface CategoryRelationRepository extends JpaRepository<CategoryRelation, Long> {
 
+	List<CategoryRelation> findByCategoryId(Long categoryId);
+
+	List<CategoryRelation> findByParentCategoryId(Long parentCategoryId);
 }

@@ -27,6 +27,7 @@ import com.app.myblogpusher.dto.Publish.PublishedArticleDto;
 import com.app.myblogpusher.dto.Publish.PublishedArticleSummaryDto;
 import com.app.myblogpusher.entity.UserRepositoryEntity;
 import com.app.myblogpusher.entity.Article.Article;
+import com.app.myblogpusher.repository.CategoryRelationRepository;
 import com.app.myblogpusher.repository.Article.ArticleRepository;
 import com.app.myblogpusher.service.Article.ArticleCategoryService;
 import com.app.myblogpusher.service.Article.ArticleService;
@@ -53,6 +54,12 @@ public class PublishedArticleService {
 
 	@Autowired
 	private ArticleRepository articleRepository;
+
+	@Autowired
+	private CategoryRelationService categoryRelationService;
+
+	@Autowired
+	private CategoryRelationRepository categoryRelationRepository;
 
 	public List<PublishedArticleSummaryDto> getPublishedArticles(UserRepositoryEntity repo, String cipherKey,
 			HttpSession session)
@@ -285,8 +292,6 @@ public class PublishedArticleService {
 
 			List<PublishedArticleSummaryDto> articles = getPublishedArticles(repo, cipherKey, null);
 
-			System.out.println("同期対象件数：" + articles.size());
-
 			for (PublishedArticleSummaryDto summary : articles) {
 
 				Optional<Article> existing = articleRepository.findByUserIdAndHugoPath(
@@ -299,31 +304,25 @@ public class PublishedArticleService {
 
 				Long categoryId = null;
 
-				String[] pathParts = summary.getHugoPath().split("/");
+				/*
+				 * hugoPathの末尾は記事slugなので、
+				 * それを除いた部分をカテゴリーのフルパスとして扱う。
+				 */
+				String hugoPath = summary.getHugoPath();
+				int lastSlash = hugoPath.lastIndexOf("/");
 
-				if (pathParts.length > 1) {
+				if (lastSlash > 0) {
 
-					Long parentCategoryId = null;
+					String categoryPath = hugoPath.substring(0, lastSlash);
 
-					for (int i = 0; i < pathParts.length - 1; i++) {
-
-						String categoryName = pathParts[i];
-
-						Long currentParentCategoryId = parentCategoryId;
-
-						categoryId = articleCategoryService
-								.findByUserIdAndName(
-										userId,
-										categoryName)
-								.map(c -> c.getCategoryId())
-								.orElseGet(() -> articleCategoryService.insertCategory(
-										userId,
-										categoryName,
-										currentParentCategoryId,
-										categoryName));
-
-						parentCategoryId = categoryId;
-					}
+					/*
+					 * CategoryRelationを使って既存カテゴリーを特定する。
+					 *
+					 * 同期処理ではカテゴリーを新規作成・変更しない。
+					 */
+					categoryId = articleCategoryService.findCategoryIdByFullPath(
+							userId,
+							categoryPath);
 				}
 
 				if (existing.isEmpty()) {
@@ -356,25 +355,6 @@ public class PublishedArticleService {
 								summary.getTitle(),
 								summary.getContent(),
 								summary.getUpdateDate());
-					}
-				}
-
-				List<Article> dbArticles = articleRepository.findByUserId(userId);
-
-				for (Article dbArticle : dbArticles) {
-
-					boolean exists = articles.stream()
-							.anyMatch(github -> github.getHugoPath()
-									.equals(dbArticle.getHugoPath()));
-
-					if (!exists) {
-
-						articleService.deleteByUserIdAndSlug(
-								userId,
-								dbArticle.getSlug());
-
-						System.out.println(
-								"削除：" + dbArticle.getHugoPath());
 					}
 				}
 			}
