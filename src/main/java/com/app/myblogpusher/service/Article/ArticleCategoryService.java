@@ -284,6 +284,9 @@ public class ArticleCategoryService {
 				.filter(relation -> categories.stream()
 						.anyMatch(category -> category.getCategoryId()
 								.equals(relation.getCategoryId())))
+				.filter(relation -> relations.stream()
+						.noneMatch(childRelation -> childRelation.getParentCategoryId()
+								.equals(relation.getCategoryId())))
 				.sorted((a, b) -> a.getCategoryPath()
 						.compareToIgnoreCase(b.getCategoryPath()))
 				.forEach(relation -> result.add(
