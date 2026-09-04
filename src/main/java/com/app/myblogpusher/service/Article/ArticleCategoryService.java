@@ -251,7 +251,10 @@ public class ArticleCategoryService {
 
 	/**
 	 * 記事投稿画面のカテゴリー選択プルダウン用に、
-	 * ルートからのフルパス付きでカテゴリー一覧を返す（sortOrder順の深さ優先）
+	 * ルートからのフルパス付きでカテゴリー一覧を返す。
+	 *
+	 * 親カテゴリーを持つカテゴリーのうち、
+	 * 子カテゴリーを持たない末端カテゴリーだけを選択肢にする。
 	 */
 	public List<CategoryOptionView> findSelectableCategories(Long userId) {
 
@@ -262,10 +265,10 @@ public class ArticleCategoryService {
 		}
 
 		/*
-		 * CategoryRelationから親子関係を構築する。
+		 * CategoryRelationからカテゴリー経路を取得する。
 		 *
 		 * ArticleCategory自身はカテゴリーそのものを表すため、
-		 * 階層構造はcategory_relationを基準にする。
+		 * 実際の階層構造とカテゴリー経路はcategory_relationを基準にする。
 		 */
 		List<CategoryRelation> relations = categoryRelationRepository.findAll();
 
@@ -273,10 +276,13 @@ public class ArticleCategoryService {
 
 		/*
 		 * category_relationに登録されているカテゴリー経路を
-		 * そのまま記事投稿画面の選択肢として使用する。
+		 * 記事投稿画面の選択肢として使用する。
 		 *
-		 * category_pathが記事の実際のカテゴリー経路、
-		 * group_idがその経路を識別するIDになる。
+		 * 親カテゴリーを持たないルートカテゴリーは
+		 * category_relationに存在しないため対象外になる。
+		 *
+		 * また、自分のcategory_pathを親として持つ経路が存在する場合は
+		 * 途中カテゴリーなので選択肢から除外する。
 		 */
 		relations.stream()
 				.filter(relation -> relation.getCategoryPath() != null
@@ -285,8 +291,17 @@ public class ArticleCategoryService {
 						.anyMatch(category -> category.getCategoryId()
 								.equals(relation.getCategoryId())))
 				.filter(relation -> relations.stream()
-						.noneMatch(childRelation -> childRelation.getParentCategoryId()
-								.equals(relation.getCategoryId())))
+						.noneMatch(childRelation -> {
+
+							String childPath = childRelation.getCategoryPath();
+							String currentPath = relation.getCategoryPath();
+
+							if (childPath == null || currentPath == null) {
+								return false;
+							}
+
+							return childPath.startsWith(currentPath + "/");
+						}))
 				.sorted((a, b) -> a.getCategoryPath()
 						.compareToIgnoreCase(b.getCategoryPath()))
 				.forEach(relation -> result.add(
