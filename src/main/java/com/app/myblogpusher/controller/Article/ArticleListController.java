@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import com.app.myblogpusher.dto.Article.ArticleWorkView;
 import com.app.myblogpusher.entity.UserMaster;
-import com.app.myblogpusher.entity.Article.ArticleCategory;
 import com.app.myblogpusher.entity.Article.ArticleWork;
 import com.app.myblogpusher.service.Article.ArticleCategoryService;
 import com.app.myblogpusher.service.Article.ArticleWorkService;
@@ -49,8 +48,7 @@ public class ArticleListController {
 				.map(work -> {
 					// categoryIdがnullの下書き（自動保存の不具合等で発生）にも対応する
 					String categoryName = Optional.ofNullable(work.getCategoryGroupId())
-							.flatMap(articleCategoryService::findById)
-							.map(ArticleCategory::getCategoryName)
+							.map(articleCategoryService::findCategoryPathByGroupId)
 							.orElse("（未分類）");
 					return new ArticleWorkView(work.getWorkId(), work.getTitle(), categoryName, work.getUpdateDate());
 				})

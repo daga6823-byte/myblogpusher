@@ -18,4 +18,6 @@ public interface CategoryRelationRepository
 	List<CategoryRelation> findByParentCategoryId(Long parentCategoryId);
 
 	List<CategoryRelation> findByCategoryPath(String categoryPath);
+
+	List<CategoryRelation> findByGroupId(Long groupId);
 }

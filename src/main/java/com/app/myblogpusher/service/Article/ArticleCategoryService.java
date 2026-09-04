@@ -551,6 +551,25 @@ public class ArticleCategoryService {
 	}
 
 	/**
+	 * category_group_idからカテゴリー経路を取得する。
+	 *
+	 * 下書き一覧など、記事が選択したカテゴリー経路を表示する場合に使用する。
+	 */
+	public String findCategoryPathByGroupId(Long groupId) {
+
+		if (groupId == null) {
+			return null;
+		}
+
+		return categoryRelationRepository.findByGroupId(groupId)
+				.stream()
+				.map(CategoryRelation::getCategoryPath)
+				.filter(path -> path != null && !path.isBlank())
+				.findFirst()
+				.orElse(null);
+	}
+
+	/**
 	 * カテゴリーの表示用ラベルを取得する。
 	 *
 	 * displayNameが設定されている場合はdisplayName、
