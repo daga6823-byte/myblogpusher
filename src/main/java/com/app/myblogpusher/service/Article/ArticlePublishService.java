@@ -48,7 +48,7 @@ public class ArticlePublishService {
 		ArticleWork work = articleWorkService.findById(workId);
 
 		String hugoPath = hugoArticleService.buildArticlePath(
-				work.getCategoryId(),
+				work.getCategoryGroupId(),
 				slug);
 
 		System.out.println("work.userId = " + work.getUserId());
@@ -125,7 +125,7 @@ public class ArticlePublishService {
 				}
 
 				String hugoPath = hugoArticleService.buildArticlePath(
-						work.getCategoryId(),
+						work.getCategoryGroupId(),
 						work.getSlug());
 
 				// 既存Articleの有無だけ確認する
@@ -138,7 +138,7 @@ public class ArticlePublishService {
 				Article article = new Article();
 
 				article.setUserId(work.getUserId());
-				article.setCategoryId(work.getCategoryId());
+				article.setCategoryGroupId(work.getCategoryGroupId());
 				article.setTitle(work.getTitle());
 				article.setSlug(work.getSlug());
 				article.setHugoPath(hugoPath);

@@ -88,7 +88,7 @@ public class ArticlePublishedController {
 			workId = articleWorkService.insertArticleWork(
 					userId,
 					article.getArticleId(),
-					article.getCategoryId(),
+					article.getCategoryGroupId(),
 					article.getTitle(),
 					article.getContent(),
 					article.getSlug());

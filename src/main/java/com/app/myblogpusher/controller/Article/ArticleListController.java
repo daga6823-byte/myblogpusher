@@ -48,7 +48,7 @@ public class ArticleListController {
 		List<ArticleWorkView> workViews = works.stream()
 				.map(work -> {
 					// categoryIdがnullの下書き（自動保存の不具合等で発生）にも対応する
-					String categoryName = Optional.ofNullable(work.getCategoryId())
+					String categoryName = Optional.ofNullable(work.getCategoryGroupId())
 							.flatMap(articleCategoryService::findById)
 							.map(ArticleCategory::getCategoryName)
 							.orElse("（未分類）");

@@ -37,10 +37,18 @@ public class ArticleSaveUtil {
 	@Autowired
 	private ArticleRepository articleRepository;
 
-	public Long doSaveDraft(Long workId, String categorySelect, String newCategoryName,
-			String title, String content, Long userId) {
+	public Long doSaveDraft(
+			Long workId,
+			String categorySelect,
+			String newCategoryName,
+			String title,
+			String content,
+			Long userId) {
 
-		Long categoryId = resolveCategoryId(userId, categorySelect, newCategoryName);
+		Long categoryGroupId = resolveCategoryGroupId(
+				userId,
+				categorySelect,
+				newCategoryName);
 
 		String formattedContent = articleFormatService.formatContent(content);
 
@@ -49,45 +57,63 @@ public class ArticleSaveUtil {
 		String slug = slugUtil.generateSlug(title);
 
 		if (workId == null) {
-			if ((title == null || title.isBlank()) && (formattedContent == null || formattedContent.isBlank())) {
+
+			if ((title == null || title.isBlank())
+					&& (formattedContent == null || formattedContent.isBlank())) {
 				return null;
 			}
-			Optional<ArticleWork> existing = articleWorkService.findDuplicate(userId, categoryId, title,
+
+			Optional<ArticleWork> existing = articleWorkService.findDuplicate(
+					userId,
+					categoryGroupId,
+					title,
 					formattedContent);
+
 			if (existing.isPresent()) {
 				return existing.get().getWorkId();
 			}
+
 			return articleWorkService.insertArticleWork(
-			        userId,
-			        null,
-			        categoryId,
-			        title,
-			        formattedContent,
-			        slug);
+					userId,
+					null,
+					categoryGroupId,
+					title,
+					formattedContent,
+					slug);
+
 		} else {
+
 			articleWorkService.updateArticleWork(
 					workId,
-					categoryId,
+					categoryGroupId,
 					title,
 					formattedContent,
 					userId,
 					slug);
+
 			return workId;
 		}
 	}
 
 	/**
-	 * categorySelectを解釈してcategoryIdを返す。
-	 * "__new__"の場合は新規ルートカテゴリー（parentCategoryId=null）として作成する。
-	 * それ以外は選択プルダウンから渡されたcategoryIdの文字列をそのまま数値変換する。
+	 * categorySelectを解釈してcategoryGroupIdを返す。
+	 *
+	 * 既存カテゴリーの場合は、プルダウンから渡されたgroupIdを使用する。
+	 * "__new__"の場合は新規カテゴリーを作成し、そのcategoryIdを
+	 * 下書き段階の暫定的なcategoryGroupIdとして使用する。
 	 */
-	private Long resolveCategoryId(Long userId, String categorySelect, String newCategoryName) {
+	private Long resolveCategoryGroupId(
+			Long userId,
+			String categorySelect,
+			String newCategoryName) {
 
 		System.out.println("categorySelect = " + categorySelect);
 		System.out.println("newCategoryName = " + newCategoryName);
 
 		if ("__new__".equals(categorySelect)) {
-			return articleCategoryService.findByUserIdAndName(userId, newCategoryName)
+
+			return articleCategoryService
+					.findByUserIdAndName(userId, newCategoryName)
 					.map(ArticleCategory::getCategoryId)
 					.orElseGet(() -> articleCategoryService.insertCategory(
 							userId,
@@ -95,6 +121,7 @@ public class ArticleSaveUtil {
 							null,
 							newCategoryName));
 		}
+
 		return Long.parseLong(categorySelect);
 	}
 

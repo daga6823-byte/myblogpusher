@@ -43,7 +43,7 @@ public class ArticleWorkService {
 	public Long insertArticleWork(
 			Long userId,
 			Long articleId,
-			Long categoryId,
+			Long categoryGroupId,
 			String title,
 			String content,
 			String slug) {
@@ -52,7 +52,7 @@ public class ArticleWorkService {
 
 		work.setUserId(userId);
 		work.setArticleId(articleId);
-		work.setCategoryId(categoryId);
+		work.setCategoryGroupId(categoryGroupId);
 		work.setTitle(title);
 		work.setContent(content);
 
@@ -81,7 +81,7 @@ public class ArticleWorkService {
 	 */
 	public void updateArticleWork(
 			Long workId,
-			Long categoryId,
+			Long categoryGroupId,
 			String title,
 			String content,
 			Long userId,
@@ -90,7 +90,7 @@ public class ArticleWorkService {
 		ArticleWork work = articleWorkRepository.findById(workId)
 				.orElseThrow();
 
-		work.setCategoryId(categoryId);
+		work.setCategoryGroupId(categoryGroupId);
 		work.setTitle(title);
 		work.setContent(content);
 
@@ -150,16 +150,16 @@ public class ArticleWorkService {
 	 */
 	public Optional<ArticleWork> findDuplicate(
 			Long userId,
-			Long categoryId,
+			Long categoryGroupId,
 			String title,
 			String content) {
 
 		return articleWorkRepository
-				.findByUserIdAndCategoryIdAndTitleAndContent(
+				.findByUserIdAndCategoryGroupIdAndTitleAndContent(
 						userId,
-						categoryId,
+						categoryGroupId,
 						title,
-						content);
+						content);	
 	}
 
 	/**

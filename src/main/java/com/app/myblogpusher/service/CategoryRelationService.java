@@ -23,16 +23,26 @@ public class CategoryRelationService {
 
 	/**
 	 * カテゴリーと親カテゴリーの関係を登録する。
+	 *
+	 * 既存のcategory_pathに対応するgroup_idがある場合は再利用し、
+	 * 新しいパスの場合はDBのシーケンスでgroup_idを自動採番する。
 	 */
-	public void addRelation(Long categoryId, Long parentCategoryId) {
+	public void addRelation(
+			Long categoryId,
+			Long parentCategoryId,
+			Long groupId,
+			String categoryPath) {
 
-		if (parentCategoryId == null) {
+		if (categoryId == null || parentCategoryId == null
+				|| categoryPath == null || categoryPath.isBlank()) {
 			return;
 		}
 
 		CategoryRelation relation = new CategoryRelation();
 		relation.setCategoryId(categoryId);
 		relation.setParentCategoryId(parentCategoryId);
+		relation.setGroupId(groupId);
+		relation.setCategoryPath(categoryPath);
 
 		categoryRelationRepository.save(relation);
 	}

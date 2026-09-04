@@ -8,19 +8,29 @@ package com.app.myblogpusher.dto.Category;
 
 public class CategoryOptionView {
 
+	private final Long groupId;
 	private final Long categoryId;
-	private final String fullPath;
+	private final String categoryPath;
 
-	public CategoryOptionView(Long categoryId, String fullPath) {
+	public CategoryOptionView(
+			Long groupId,
+			Long categoryId,
+			String categoryPath) {
+
+		this.groupId = groupId;
 		this.categoryId = categoryId;
-		this.fullPath = fullPath;
+		this.categoryPath = categoryPath;
+	}
+
+	public Long getGroupId() {
+		return groupId;
 	}
 
 	public Long getCategoryId() {
 		return categoryId;
 	}
 
-	public String getFullPath() {
-		return fullPath;
+	public String getCategoryPath() {
+		return categoryPath;
 	}
 }

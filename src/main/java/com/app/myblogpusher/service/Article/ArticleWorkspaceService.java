@@ -16,10 +16,10 @@ public class ArticleWorkspaceService {
 	private ArticleWorkspaceRepository repository;
 
 	public void save(
-			Long userId,
-			Long categoryId,
-			String title,
-			String content) {
+	        Long userId,
+	        Long categoryGroupId,
+	        String title,
+	        String content) {
 
 		if (userId == null) {
 		    return;
@@ -29,7 +29,7 @@ public class ArticleWorkspaceService {
 				.orElse(new ArticleWorkspace());
 
 		workspace.setUserId(userId);
-		workspace.setCategoryId(categoryId);
+		workspace.setCategoryGroupId(categoryGroupId);
 		workspace.setTitle(title);
 		workspace.setContent(content);
 		workspace.setUpdateDate(LocalDateTime.now());

@@ -34,7 +34,7 @@ public class ArticleService {
 		Article article = new Article();
 
 		article.setUserId(work.getUserId());
-		article.setCategoryId(work.getCategoryId());
+		article.setCategoryGroupId(work.getCategoryGroupId());
 		article.setTitle(work.getTitle());
 
 		// 画面で編集したslugを使用
@@ -42,7 +42,7 @@ public class ArticleService {
 
 		article.setHugoPath(
 				hugoArticleService.buildArticlePath(
-						work.getCategoryId(),
+						work.getCategoryGroupId(),
 						slug));
 
 		article.setContent(work.getContent());
@@ -69,7 +69,7 @@ public class ArticleService {
 			ArticleWork work,
 			String slug) {
 
-		article.setCategoryId(work.getCategoryId());
+		article.setCategoryGroupId(work.getCategoryGroupId());
 		article.setTitle(work.getTitle());
 
 		// 画面で編集したslugを使用
@@ -77,7 +77,7 @@ public class ArticleService {
 
 		article.setHugoPath(
 				hugoArticleService.buildArticlePath(
-						work.getCategoryId(),
+						work.getCategoryGroupId(),
 						slug));
 
 		article.setContent(work.getContent());
@@ -97,7 +97,7 @@ public class ArticleService {
 	public Article saveFromGitHub(
 			Long articleId,
 			Long userId,
-			Long categoryId,
+			Long categoryGroupId,
 			String slug,
 			String hugoPath,
 			String title,
@@ -122,7 +122,7 @@ public class ArticleService {
 			article.setUserId(userId);
 			article.setCreateDate(articleDate);
 			article.setCreateUser(userId);
-			article.setCategoryId(categoryId);
+			article.setCategoryGroupId(categoryGroupId);
 		}
 
 		article.setTitle(title);

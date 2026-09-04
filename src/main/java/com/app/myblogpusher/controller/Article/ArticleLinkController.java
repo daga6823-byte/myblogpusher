@@ -2,7 +2,7 @@
  * 記事リンク挿入機能を担当するコントローラー
  *
  * 編集画面から別記事へのリンクを作成するため、
- * Articleテーブルから指定カテゴリーの記事一覧をJSONで返却する。
+ * Articleテーブルから指定カテゴリー経路の記事一覧をJSONで返却する。
  *
  * 投稿処理や記事編集処理とは責務を分離する。
  */
@@ -34,11 +34,11 @@ public class ArticleLinkController {
 	/**
 	 * リンク挿入用の記事一覧取得
 	 *
-	 * Articleテーブルから指定カテゴリーの記事を取得する。
+	 * Articleテーブルから指定カテゴリー経路の記事を取得する。
 	 */
 	@GetMapping("/articles")
 	public List<ArticleLinkView> getLinkArticles(
-			@RequestParam Long categoryId,
+			@RequestParam Long categoryGroupId,
 			HttpSession session) {
 
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
@@ -48,9 +48,9 @@ public class ArticleLinkController {
 		}
 
 		List<Article> articles = articleRepository
-				.findByUserIdAndCategoryIdOrderByUpdateDateDesc(
+				.findByUserIdAndCategoryGroupIdOrderByUpdateDateDesc(
 						loginUser.getUserId(),
-						categoryId);
+						categoryGroupId);
 
 		return articles.stream()
 				.map(article -> new ArticleLinkView(

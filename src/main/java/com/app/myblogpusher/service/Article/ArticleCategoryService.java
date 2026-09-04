@@ -80,8 +80,10 @@ public class ArticleCategoryService {
 
 		// 選択された親カテゴリーごとに親子関係を登録する。
 		if (parentCategoryIds != null) {
+
 			for (Long parentCategoryId : parentCategoryIds) {
-				categoryRelationService.addRelation(
+
+				addCategoryRelation(
 						newCategory.getCategoryId(),
 						parentCategoryId);
 			}
@@ -206,8 +208,10 @@ public class ArticleCategoryService {
 		categoryRelationService.deleteRelationsByCategoryId(categoryId);
 
 		if (parentCategoryIds != null) {
+
 			for (Long parentCategoryId : parentCategoryIds) {
-				categoryRelationService.addRelation(
+
+				addCategoryRelation(
 						categoryId,
 						parentCategoryId);
 			}
@@ -265,93 +269,28 @@ public class ArticleCategoryService {
 		 */
 		List<CategoryRelation> relations = categoryRelationRepository.findAll();
 
-		Map<Long, ArticleCategory> categoryMap = categories.stream()
-				.collect(Collectors.toMap(
-						ArticleCategory::getCategoryId,
-						c -> c));
-
-		Map<Long, List<ArticleCategory>> childrenByParent = new HashMap<>();
-
-		for (CategoryRelation relation : relations) {
-
-			ArticleCategory child = categoryMap.get(relation.getCategoryId());
-			ArticleCategory parent = categoryMap.get(relation.getParentCategoryId());
-
-			// 他ユーザーのカテゴリー関係は対象外にする。
-			if (child == null || parent == null) {
-				continue;
-			}
-
-			childrenByParent
-					.computeIfAbsent(parent.getCategoryId(), k -> new ArrayList<>())
-					.add(child);
-		}
-
-		/*
-		 * category_relationに親が登録されていないカテゴリーを
-		 * ルートカテゴリーとして扱う。
-		 */
-		List<ArticleCategory> roots = categories.stream()
-				.filter(category -> !hasParentRelation(
-						category.getCategoryId(),
-						relations))
-				.collect(Collectors.toCollection(ArrayList::new));
-
-		roots.sort((a, b) -> compareSortOrder(
-				a.getSortOrder(),
-				b.getSortOrder()));
-
-		childrenByParent.values()
-				.forEach(list -> list.sort((a, b) -> compareSortOrder(
-						a.getSortOrder(),
-						b.getSortOrder())));
-
 		List<CategoryOptionView> result = new ArrayList<>();
 
-		for (ArticleCategory root : roots) {
-			appendOption(root, "", childrenByParent, result);
-		}
+		/*
+		 * category_relationに登録されているカテゴリー経路を
+		 * そのまま記事投稿画面の選択肢として使用する。
+		 *
+		 * category_pathが記事の実際のカテゴリー経路、
+		 * group_idがその経路を識別するIDになる。
+		 */
+		relations.stream()
+				.filter(relation -> relation.getCategoryPath() != null
+						&& !relation.getCategoryPath().isBlank())
+				.filter(relation -> categories.stream()
+						.anyMatch(category -> category.getCategoryId()
+								.equals(relation.getCategoryId())))
+				.forEach(relation -> result.add(
+						new CategoryOptionView(
+								relation.getGroupId(),
+								relation.getCategoryId(),
+								relation.getCategoryPath())));
 
 		return result;
-	}
-
-	/**
-	 * 指定カテゴリーに親カテゴリーとの関係が存在するか確認する。
-	 */
-	private boolean hasParentRelation(
-			Long categoryId,
-			List<CategoryRelation> relations) {
-
-		return relations.stream()
-				.anyMatch(relation -> relation.getCategoryId().equals(categoryId));
-	}
-
-	private void appendOption(
-			ArticleCategory current,
-			String parentPath,
-			Map<Long, List<ArticleCategory>> childrenByParent,
-			List<CategoryOptionView> result) {
-
-		String label = (current.getDisplayName() != null
-				&& !current.getDisplayName().isBlank())
-						? current.getDisplayName()
-						: current.getCategoryName();
-
-		String fullPath = parentPath.isEmpty()
-				? label
-				: parentPath + "/" + label;
-
-		result.add(new CategoryOptionView(
-				current.getCategoryId(),
-				fullPath));
-
-		List<ArticleCategory> children = childrenByParent.getOrDefault(
-				current.getCategoryId(),
-				List.of());
-
-		for (ArticleCategory child : children) {
-			appendOption(child, fullPath, childrenByParent, result);
-		}
 	}
 
 	/**
@@ -529,59 +468,81 @@ public class ArticleCategoryService {
 	/**
 	 * 記事リンク検索用カテゴリーIDを取得する。
 	 *
-	 * 第2階層のカテゴリーをリンク検索対象とする。
+	 * category_relationのgroup_idで実際のカテゴリー経路を特定し、
+	 * その経路の第2階層カテゴリーをリンク検索対象とする。
 	 */
-	public Long findLinkSearchCategoryId(Long categoryId) {
+	public Long findLinkSearchCategoryId(
+			Long userId,
+			Long groupId) {
 
-		return findReferenceCategoryId(categoryId);
+		if (userId == null || groupId == null) {
+			return null;
+		}
+
+		CategoryRelation relation = categoryRelationRepository.findAll()
+				.stream()
+				.filter(r -> groupId.equals(r.getGroupId()))
+				.findFirst()
+				.orElse(null);
+
+		if (relation == null
+				|| relation.getCategoryPath() == null
+				|| relation.getCategoryPath().isBlank()) {
+			return null;
+		}
+
+		String[] pathParts = relation.getCategoryPath().split("/");
+
+		if (pathParts.length < 2) {
+			return null;
+		}
+
+		String secondCategoryName = pathParts[1];
+
+		return articleCategoryRepository.findByUserId(userId)
+				.stream()
+				.filter(category -> getCategoryLabel(category)
+						.equals(secondCategoryName))
+				.map(ArticleCategory::getCategoryId)
+				.findFirst()
+				.orElse(null);
 	}
 
 	/**
 	 * 記事リンク検索用カテゴリーのHugoパスを取得する。
 	 *
-	 * カテゴリーIDから第2階層までのカテゴリー経路を組み立てる。
+	 * category_relationのgroup_idに登録されている
+	 * category_pathを基準に、第2階層までの経路を取得する。
 	 */
-	public String findLinkSearchCategoryPath(Long categoryId) {
+	public String findLinkSearchCategoryPath(Long groupId) {
 
-		if (categoryId == null) {
+		if (groupId == null) {
 			return null;
 		}
 
-		ArticleCategory category = articleCategoryRepository
-				.findById(categoryId)
+		CategoryRelation relation = categoryRelationRepository.findAll()
+				.stream()
+				.filter(r -> groupId.equals(r.getGroupId()))
+				.findFirst()
 				.orElse(null);
 
-		if (category == null) {
+		if (relation == null
+				|| relation.getCategoryPath() == null
+				|| relation.getCategoryPath().isBlank()) {
 			return null;
 		}
 
-		if (category.getParentCategoryId() == null) {
-			return getCategoryLabel(category);
+		String[] pathParts = relation.getCategoryPath().split("/");
+
+		if (pathParts.length == 0) {
+			return null;
 		}
 
-		ArticleCategory parent = articleCategoryRepository
-				.findById(category.getParentCategoryId())
-				.orElse(null);
-
-		if (parent == null) {
-			return getCategoryLabel(category);
+		if (pathParts.length == 1) {
+			return pathParts[0];
 		}
 
-		if (parent.getParentCategoryId() == null) {
-			return getCategoryLabel(parent) + "/" + getCategoryLabel(category);
-		}
-
-		ArticleCategory root = articleCategoryRepository
-				.findById(parent.getParentCategoryId())
-				.orElse(null);
-
-		if (root == null) {
-			return getCategoryLabel(parent) + "/" + getCategoryLabel(category);
-		}
-
-		return getCategoryLabel(root)
-				+ "/"
-				+ getCategoryLabel(parent);
+		return pathParts[0] + "/" + pathParts[1];
 	}
 
 	/**
@@ -598,6 +559,97 @@ public class ArticleCategoryService {
 		}
 
 		return category.getCategoryName();
+	}
+
+	/**
+	 * カテゴリーと親カテゴリーの関係を登録する。
+	 *
+	 * category_pathが既に存在する場合は、そのgroup_idを再利用する。
+	 * 存在しない場合は新規登録としてgroup_idを自動採番する。
+	 */
+	private void addCategoryRelation(
+			Long categoryId,
+			Long parentCategoryId) {
+
+		ArticleCategory category = articleCategoryRepository
+				.findById(categoryId)
+				.orElseThrow();
+
+		ArticleCategory parentCategory = articleCategoryRepository
+				.findById(parentCategoryId)
+				.orElseThrow();
+
+		List<CategoryRelation> parentRelations = categoryRelationRepository
+				.findByCategoryId(parentCategoryId);
+
+		/*
+		 * 親カテゴリー自身に親子関係がない場合は、
+		 * 親カテゴリーをルートとして直接パスを作る。
+		 */
+		if (parentRelations.isEmpty()) {
+
+			String categoryPath = parentCategory.getCategoryName()
+					+ "/"
+					+ category.getCategoryName();
+
+			Long groupId = categoryRelationRepository
+					.findByCategoryPath(categoryPath)
+					.stream()
+					.map(CategoryRelation::getGroupId)
+					.findFirst()
+					.orElse(null);
+
+			categoryRelationService.addRelation(
+					categoryId,
+					parentCategoryId,
+					groupId,
+					categoryPath);
+			return;
+		}
+
+		/*
+		 * まず、選択された親カテゴリーとの直接の親子パスを登録する。
+		 */
+		String directPath = parentCategory.getCategoryName()
+				+ "/"
+				+ category.getCategoryName();
+
+		Long directGroupId = categoryRelationRepository
+				.findByCategoryPath(directPath)
+				.stream()
+				.map(CategoryRelation::getGroupId)
+				.findFirst()
+				.orElse(null);
+
+		categoryRelationService.addRelation(
+				categoryId,
+				parentCategoryId,
+				directGroupId,
+				directPath);
+
+		/*
+		 * 親カテゴリーが上位カテゴリーの経路を持つ場合は、
+		 * そのすべての経路にも新しいカテゴリーを追加する。
+		 */
+		for (CategoryRelation parentRelation : parentRelations) {
+
+			String categoryPath = parentRelation.getCategoryPath()
+					+ "/"
+					+ category.getCategoryName();
+
+			Long groupId = categoryRelationRepository
+					.findByCategoryPath(categoryPath)
+					.stream()
+					.map(CategoryRelation::getGroupId)
+					.findFirst()
+					.orElse(null);
+
+			categoryRelationService.addRelation(
+					categoryId,
+					parentCategoryId,
+					groupId,
+					categoryPath);
+		}
 	}
 
 }

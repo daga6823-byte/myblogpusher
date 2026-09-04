@@ -34,7 +34,7 @@ public class ArticleMapper {
 	public void copyWorkToArticle(ArticleWork work, Article article) {
 
 		article.setUserId(work.getUserId());
-		article.setCategoryId(work.getCategoryId());
+		article.setCategoryGroupId(work.getCategoryGroupId());
 
 		article.setTitle(work.getTitle());
 		article.setSlug(work.getSlug());

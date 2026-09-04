@@ -77,10 +77,13 @@ public class ArticleEditController {
 		UserRepositoryEntity repo = userRepositoryRepository.findByUserId(userId)
 				.orElse(null);
 
-		// カテゴリー選択プルダウン用（categoryId + フルパス表示）
+		// カテゴリー選択プルダウン用（groupId + categoryId + categoryPath）
 		List<CategoryOptionView> categories = articleCategoryService.findSelectableCategories(userId);
 
-		categories.forEach(c -> System.out.println(c.getCategoryId() + " : " + c.getFullPath()));
+		categories.forEach(c -> System.out.println(
+				c.getGroupId() + " : "
+						+ c.getCategoryId() + " : "
+						+ c.getCategoryPath()));
 
 		model.addAttribute("categories", categories);
 
@@ -97,7 +100,7 @@ public class ArticleEditController {
 			work = articleWorkService.findById(workId);
 
 			model.addAttribute("work", work);
-			model.addAttribute("categoryId", work.getCategoryId());
+			model.addAttribute("categoryGroupId", work.getCategoryGroupId());
 
 		}
 
@@ -149,28 +152,25 @@ public class ArticleEditController {
 
 		List<Article> articles = List.of();
 
-		Long currentCategoryId = null;
+		Long currentCategoryGroupId = null;
 
-		// 編集中記事
 		if (workId != null) {
 
-			currentCategoryId = work.getCategoryId();
+			currentCategoryGroupId = work.getCategoryGroupId();
 
-		}
+		} else {
 
-		// workspace復元時
-		else {
-
-			currentCategoryId = workspaceService.find(userId)
-					.map(ws -> ws.getCategoryId())
+			currentCategoryGroupId = workspaceService.find(userId)
+					.map(ws -> ws.getCategoryGroupId())
 					.orElse(null);
-
 		}
 
-		if (currentCategoryId != null) {
+		if (currentCategoryGroupId != null) {
 
 			Long searchCategoryId = articleCategoryService
-					.findLinkSearchCategoryId(currentCategoryId);
+					.findLinkSearchCategoryId(
+							userId,
+							currentCategoryGroupId);
 
 			if (searchCategoryId != null) {
 
@@ -181,7 +181,8 @@ public class ArticleEditController {
 				if (searchCategory != null) {
 
 					String searchPath = articleCategoryService
-							.findLinkSearchCategoryPath(currentCategoryId);
+							.findLinkSearchCategoryPath(
+									currentCategoryGroupId);
 
 					if (searchPath != null) {
 
@@ -217,8 +218,10 @@ public class ArticleEditController {
 
 		model.addAttribute(
 				"linkSearchCategoryId",
-				currentCategoryId != null
-						? articleCategoryService.findLinkSearchCategoryId(currentCategoryId)
+				currentCategoryGroupId != null
+						? articleCategoryService.findLinkSearchCategoryId(
+								userId,
+								currentCategoryGroupId)
 						: null);
 
 		model.addAttribute(
@@ -228,6 +231,7 @@ public class ArticleEditController {
 						: "");
 
 		model.addAttribute("saved", saved != null && saved);
+
 		return "article/article_edit";
 	}
 
@@ -246,7 +250,13 @@ public class ArticleEditController {
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 		Long userId = loginUser.getUserId();
 
-		Long savedWorkId = articleSaveUtil.doSaveDraft(workId, categorySelect, newCategoryName, title, content, userId);
+		Long savedWorkId = articleSaveUtil.doSaveDraft(
+				workId,
+				categorySelect,
+				newCategoryName,
+				title,
+				content,
+				userId);
 
 		if (savedWorkId == null) {
 			return "redirect:/article/edit";
@@ -255,6 +265,7 @@ public class ArticleEditController {
 		if ("home".equals(redirectTo)) {
 			return "redirect:/home";
 		}
+
 		if ("list".equals(redirectTo)) {
 			return "redirect:/article/list";
 		}
@@ -279,7 +290,7 @@ public class ArticleEditController {
 
 		workspaceService.save(
 				loginUser.getUserId(),
-				req.getCategoryId(),
+				req.getCategoryGroupId(),
 				req.getTitle(),
 				req.getContent());
 
@@ -302,11 +313,13 @@ public class ArticleEditController {
 	@PostMapping("/article/workspace/clear")
 	@ResponseBody
 	public ResponseEntity<Void> clearWorkspace(HttpSession session) {
+
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
+
 		if (loginUser != null) {
 			workspaceService.delete(loginUser.getUserId());
 		}
+
 		return ResponseEntity.ok().build();
 	}
-
 }

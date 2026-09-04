@@ -26,8 +26,8 @@ public class ArticleWork {
     @Column(name = "user_id", nullable = false)
     private Long userId;
 
-    @Column(name = "category_id")
-    private Long categoryId;
+    @Column(name = "category_group_id")
+    private Long categoryGroupId;
 
     @Column(name = "title")
     private String title;

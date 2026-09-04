@@ -39,7 +39,7 @@ public class HugoArticleService {
 
 		// _index.md生成用
 		ArticleCategory category = articleCategoryRepository
-				.findById(article.getCategoryId())
+				.findById(article.getCategoryGroupId())
 				.orElseThrow();
 
 		List<ArticleCategory> categoryPath = buildCategoryPath(category);
@@ -52,7 +52,7 @@ public class HugoArticleService {
 		// 投稿先は投稿確認画面で確定したslugから生成する
 		String hugoPath =
 				buildArticlePath(
-						article.getCategoryId(),
+						article.getCategoryGroupId(),
 						slug);
 
 		Path contentPath = Paths.get(

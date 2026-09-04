@@ -1,15 +1,15 @@
 /**
- * カテゴリー同士の親子関係を表すエンティティ
+ * カテゴリー同士の親子関係とカテゴリー経路を管理するエンティティ
  *
- * ArticleCategoryはカテゴリーそのものを表し、
- * このエンティティでカテゴリーがどの親カテゴリー配下に存在するかを管理する。
- *
- * 1つのカテゴリーを複数の親カテゴリー配下で再利用できる。
+ * ArticleCategoryはカテゴリーそのものを管理し、
+ * CategoryRelationはカテゴリーがどの親カテゴリー配下に存在するか、
+ * またその関係がどのカテゴリー経路に属するかを管理する。
  */
 
 package com.app.myblogpusher.entity;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -34,10 +34,28 @@ public class CategoryRelation {
 	@Column(name = "parent_category_id", nullable = false)
 	private Long parentCategoryId;
 
+	@Column(name = "group_id")
+	private Long groupId;
+
+	@Column(name = "category_path", length = 1000)
+	private String categoryPath;
+
+	@Column(name = "create_date")
+	private LocalDateTime createDate;
+
+	@Column(name = "update_date")
+	private LocalDateTime updateDate;
+
+	@Column(name = "create_user")
+	private Long createUser;
+
+	@Column(name = "update_user")
+	private Long updateUser;
+
 	/**
 	 * category_relationの複合主キーを表す。
 	 *
-	 * category_idとparent_category_idの組み合わせで
+	 * 現時点ではcategory_idとparent_category_idの組み合わせで
 	 * 1つの親子関係を識別する。
 	 */
 	@Getter

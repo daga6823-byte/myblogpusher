@@ -7,7 +7,7 @@ import lombok.Setter;
 @Setter
 public class WorkspaceSaveRequest {	
 	
-	private Long categoryId;
+	private Long categoryGroupId;
 	private String title;
 	private String content;
 }

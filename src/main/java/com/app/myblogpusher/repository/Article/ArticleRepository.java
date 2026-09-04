@@ -69,7 +69,7 @@ public interface ArticleRepository extends JpaRepository<Article, Long> {
 	 *
 	 * 指定したカテゴリーの記事を取得する。
 	 */
-	List<Article> findByUserIdAndCategoryIdOrderByUpdateDateDesc(
+	List<Article> findByUserIdAndCategoryGroupIdOrderByUpdateDateDesc(
 			Long userId,
-			Long categoryId);
+			Long categoryGroupId);
 }

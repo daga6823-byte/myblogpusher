@@ -66,9 +66,14 @@ public class ArticleTypoController {
 		}
 
 		ArticleWork work = articleWorkService.findById(savedWorkId);
-		Long categoryId = work.getCategoryId();
+		Long categoryGroupId = work.getCategoryGroupId();
 
-		List<TypoCorrectionService.TypoMatch> matches = typoCorrectionService.findMatches(categoryId, content);
+		Long categoryId = articleCategoryService
+				.findReferenceCategoryId(categoryGroupId);
+
+		List<TypoCorrectionService.TypoMatch> matches = typoCorrectionService.findMatches(
+				categoryId,
+				content);
 
 		model.addAttribute("categories",
 				articleCategoryService.findSelectableCategories(userId));

@@ -1,61 +1,99 @@
 <!DOCTYPE html>
+
 <html xmlns:th="http://www.thymeleaf.org">
 
 <body>
 
+	<!--
+	 * 記事編集フォームの共通入力項目を担当するフラグメント
+	 *
+	 * カテゴリー、タイトル、本文、公開状態、コメント設定など、
+	 * 記事編集画面で使用する入力項目を提供する。
+	 -->
+
 	<div th:fragment="formFields">
+
 		<input type="hidden" name="workId" th:value="${work != null ? work.workId : ''}">
 
 		<label for="categorySelect">カテゴリー</label>
+
 		<select id="categorySelect" name="categorySelect" onchange="toggleNewCategory()">
+
 			<option value="">選択してください</option>
-			<option th:each="cat : ${categories}" th:value="${cat.categoryId}" th:text="${cat.fullPath}"
-				th:selected="${cat.categoryId == categoryId}"></option>
+
+			<option th:each="cat : ${categories}" th:value="${cat.groupId}" th:text="${cat.categoryPath}"
+				th:selected="${cat.groupId == categoryGroupId}">
+			</option>
+
 			<option value="__new__">＋ 新しいカテゴリーを追加</option>
+
 		</select>
 
 		<input type="text" id="newCategoryName" name="newCategoryName" placeholder="新しいカテゴリー名を入力" style="display:none;">
 
 		<label for="title">タイトル</label>
+
 		<input type="text" id="title" name="title" th:value="${work != null ? work.title : ''}">
 
 		<label for="content">本文（Markdown）</label>
+
 		<div class="content-wrapper">
+
 			<div id="contentHighlight" class="content-highlight"></div>
+
 			<textarea id="content" name="content" th:text="${work != null ? work.content : ''}"></textarea>
+
 			<div class="editor-toolbar">
+
 				<button type="button" id="insertMenuButton" class="btn-insert">＋</button>
+
 				<div id="insertMenu" class="insert-menu" style="display:none;">
+
 					<button type="button" id="codeBlockButton">コードブロック</button>
 					<button type="button" id="imageButton">📷 画像挿入</button>
 					<button type="button" id="linkButton">🔗 記事リンク</button>
 					<button type="button" id="footnoteButton">脚注</button>
+
 				</div>
+
 			</div>
+
 		</div>
 
 		<!-- 脚注入力ダイアログ（codeBlockEditorと同様の構造） -->
+
 		<div id="footnoteEditor" style="display:none;">
+
 			<label for="footnoteInput">脚注テキスト</label>
+
 			<textarea id="footnoteInput" rows="3"></textarea>
+
 			<button type="button" id="insertFootnoteButton">挿入</button>
+
 		</div>
 
 		<div th:replace="~{article/fragments/reference_selector :: referenceSelector}"></div>
 
 		<label for="draftSelect">公開状態</label>
+
 		<select id="draftSelect" name="draftSelect">
+
 			<option value="false">公開する</option>
 			<option value="true">下書き（非公開）</option>
+
 		</select>
 
 		<label for="commentsSelect">コメント</label>
+
 		<select id="commentsSelect" name="commentsSelect">
+
 			<option value="true">コメントを許可する</option>
 			<option value="false">コメントを許可しない</option>
+
 		</select>
 
 		<!-- 参考文献選択ダイアログ -->
+
 		<div id="referenceSelector" style="display:none;">
 
 			<h3>参考文献を選択</h3>
@@ -69,7 +107,9 @@
 		</div>
 
 		<input type="hidden" id="redirectTo" name="redirectTo" value="">
+
 		<input type="hidden" id="workId" name="workId" th:value="${work != null ? work.workId : ''}">
+
 	</div>
 
 </body>

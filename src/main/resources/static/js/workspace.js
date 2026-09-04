@@ -8,37 +8,50 @@
 
 // -----------------------------------------------------
 // 自動保存タイマー
+//
 // 入力のたびにリセットされる
 // -----------------------------------------------------
+
 let workspaceTimer;
 
 // -----------------------------------------------------
 // ワークスペースをサーバへ保存する
 //
-// 新規カテゴリー(__new__)はまだcategoryIdが存在しないため
-// categoryIdは送信しない
+// 新規カテゴリー(__new__)はまだgroupIdが存在しないため
+// categoryGroupIdはnullを送信する
 // -----------------------------------------------------
+
 function saveWorkspace() {
 
 	const categorySelect = document.getElementById('categorySelect').value;
 
-	const categoryId =
+	const categoryGroupId =
 		(categorySelect && categorySelect !== '__new__')
 			? categorySelect
 			: null;
 
 	const data = {
+
 		title: document.getElementById('title').value,
+
 		content: document.getElementById('content').value,
-		categoryId: categoryId
+
+		categoryGroupId: categoryGroupId
+
 	};
 
 	fetch('/article/workspace/save', {
+
 		method: 'POST',
+
 		headers: {
+
 			'Content-Type': 'application/json'
+
 		},
+
 		body: JSON.stringify(data)
+
 	}).catch(err => console.error(err));
 
 }
@@ -49,12 +62,15 @@ function saveWorkspace() {
 // 最後の入力から5秒経過したら保存する
 // 入力が続く間はタイマーをリセットする
 // -----------------------------------------------------
+
 function scheduleWorkspaceSave() {
 
 	clearTimeout(workspaceTimer);
 
 	workspaceTimer = setTimeout(() => {
+
 		saveWorkspace();
+
 	}, 5000);
 
 }
@@ -62,12 +78,15 @@ function scheduleWorkspaceSave() {
 // -----------------------------------------------------
 // タイトル・本文編集時に自動保存予約
 // -----------------------------------------------------
+
 ['title', 'content'].forEach(id => {
 
 	const el = document.getElementById(id);
 
 	if (el) {
+
 		el.addEventListener('input', scheduleWorkspaceSave);
+
 	}
 
 });
@@ -78,10 +97,13 @@ function scheduleWorkspaceSave() {
 // 編集中にセッション切れにならないよう
 // 10分ごとにKeepAliveを送信する
 // -----------------------------------------------------
+
 setInterval(() => {
 
 	fetch('/article/session/keepalive', {
+
 		method: 'POST'
+
 	}).catch(err => console.error(err));
 
 }, 10 * 60 * 1000);
