@@ -82,10 +82,10 @@ public class ArticleCategoryService {
 		if (parentCategoryIds != null) {
 
 			for (Long parentCategoryId : parentCategoryIds) {
-
 				addCategoryRelation(
 						newCategory.getCategoryId(),
-						parentCategoryId);
+						parentCategoryId,
+						userId);
 			}
 		}
 
@@ -210,10 +210,10 @@ public class ArticleCategoryService {
 		if (parentCategoryIds != null) {
 
 			for (Long parentCategoryId : parentCategoryIds) {
-
 				addCategoryRelation(
 						categoryId,
-						parentCategoryId);
+						parentCategoryId,
+						userId);
 			}
 		}
 	}
@@ -606,95 +606,88 @@ public class ArticleCategoryService {
 	 * 親カテゴリーが持つすべてのcategory_pathを基準に、
 	 * 子カテゴリーを追加した経路を生成する。
 	 *
-	 * 既に同じcategory_pathが存在する場合はgroup_idを再利用し、
-	 * 存在しない経路の場合はgroup_idを指定せず、
-	 * PostgreSQLのserialによる自動採番で新規登録する。
+	 * category_pathが既に存在する場合は、そのgroup_idを再利用する。
+	 * 存在しない場合は新規登録としてgroup_idを自動採番する。
 	 */
 	private void addCategoryRelation(
-	        Long categoryId,
-	        Long parentCategoryId) {
+			Long categoryId,
+			Long parentCategoryId,
+			Long userId) {
 
-	    ArticleCategory category = articleCategoryRepository
-	            .findById(categoryId)
-	            .orElseThrow();
+		ArticleCategory category = articleCategoryRepository
+				.findById(categoryId)
+				.orElseThrow();
 
-	    List<CategoryRelation> parentRelations = categoryRelationRepository
-	            .findByCategoryId(parentCategoryId);
+		ArticleCategory parentCategory = articleCategoryRepository
+				.findById(parentCategoryId)
+				.orElseThrow();
 
-	    /*
-	     * 親カテゴリー自身がcategory_relationに存在しない場合は、
-	     * ルートカテゴリーの子として直接パスを作る。
-	     */
-	    if (parentRelations.isEmpty()) {
+		List<CategoryRelation> parentRelations = categoryRelationRepository
+				.findByCategoryId(parentCategoryId);
 
-	        ArticleCategory parentCategory = articleCategoryRepository
-	                .findById(parentCategoryId)
-	                .orElseThrow();
+		/*
+		 * 親カテゴリー自身に経路が存在しない場合は、
+		 * 親カテゴリーをルートとして直接パスを作る。
+		 */
+		if (parentRelations.isEmpty()) {
 
-	        String categoryPath = parentCategory.getCategoryName()
-	                + "/"
-	                + category.getCategoryName();
+			String categoryPath = parentCategory.getCategoryName()
+					+ "/"
+					+ category.getCategoryName();
 
-	        CategoryRelation existingRelation = categoryRelationRepository
-	                .findByCategoryPath(categoryPath)
-	                .stream()
-	                .findFirst()
-	                .orElse(null);
+			Long groupId = categoryRelationRepository
+					.findByCategoryPath(categoryPath)
+					.stream()
+					.map(CategoryRelation::getGroupId)
+					.findFirst()
+					.orElse(null);
 
-	        categoryRelationService.addRelation(
-	                categoryId,
-	                parentCategoryId,
-	                existingRelation == null
-	                        ? null
-	                        : existingRelation.getGroupId(),
-	                categoryPath);
+			categoryRelationService.addRelation(
+					categoryId,
+					parentCategoryId,
+					groupId,
+					categoryPath,
+					userId);
 
-	        return;
-	    }
+			return;
+		}
 
-	    /*
-	     * 親カテゴリーが持つすべての経路を引き継ぎ、
-	     * その末尾に現在のカテゴリーを追加する。
-	     *
-	     * 例:
-	     * character/batman
-	     * game/injustice/character
-	     *
-	     * → character/batman/command
-	     * → game/injustice/character/command
-	     */
-	    for (CategoryRelation parentRelation : parentRelations) {
+		/*
+		 * 親カテゴリーが持つすべての経路を引き継ぎ、
+		 * その末尾に現在のカテゴリーを追加する。
+		 *
+		 * 例:
+		 * character/batman
+		 * game/injustice/character
+		 *
+		 * → character/batman/command
+		 * → game/injustice/character/command
+		 */
+		for (CategoryRelation parentRelation : parentRelations) {
 
-	        String parentPath = parentRelation.getCategoryPath();
+			String parentPath = parentRelation.getCategoryPath();
 
-	        if (parentPath == null || parentPath.isBlank()) {
-	            continue;
-	        }
+			if (parentPath == null || parentPath.isBlank()) {
+				continue;
+			}
 
-	        String categoryPath = parentPath
-	                + "/"
-	                + category.getCategoryName();
+			String categoryPath = parentPath
+					+ "/"
+					+ category.getCategoryName();
 
-	        /*
-	         * 同じcategory_pathが既に存在する場合は、
-	         * 既存のgroup_idをそのまま使用する。
-	         *
-	         * 存在しない場合はgroupIdをnullで渡し、
-	         * PostgreSQLのserialで新しいgroup_idを採番する。
-	         */
-	        CategoryRelation existingRelation = categoryRelationRepository
-	                .findByCategoryPath(categoryPath)
-	                .stream()
-	                .findFirst()
-	                .orElse(null);
+			Long groupId = categoryRelationRepository
+					.findByCategoryPath(categoryPath)
+					.stream()
+					.map(CategoryRelation::getGroupId)
+					.findFirst()
+					.orElse(null);
 
-	        categoryRelationService.addRelation(
-	                categoryId,
-	                parentCategoryId,
-	                existingRelation == null
-	                        ? null
-	                        : existingRelation.getGroupId(),
-	                categoryPath);
-	    }
+			categoryRelationService.addRelation(
+					categoryId,
+					parentCategoryId,
+					groupId,
+					categoryPath,
+					userId);
+		}
 	}
 }
