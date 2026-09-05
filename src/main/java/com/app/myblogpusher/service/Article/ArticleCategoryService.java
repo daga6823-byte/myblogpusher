@@ -603,8 +603,11 @@ public class ArticleCategoryService {
 	/**
 	 * カテゴリーと親カテゴリーの関係を登録する。
 	 *
-	 * category_pathが既に存在する場合は、そのgroup_idを再利用する。
-	 * 存在しない場合は新規登録としてgroup_idを自動採番する。
+	 * 親カテゴリーが持つすべてのcategory_pathを基準に、
+	 * 子カテゴリーを追加した経路を生成する。
+	 *
+	 * これにより、複数の親・複数のカテゴリー経路を持つカテゴリーでも、
+	 * 上位階層を維持した完全なcategory_pathを登録できる。
 	 */
 	private void addCategoryRelation(
 			Long categoryId,
@@ -614,18 +617,18 @@ public class ArticleCategoryService {
 				.findById(categoryId)
 				.orElseThrow();
 
-		ArticleCategory parentCategory = articleCategoryRepository
-				.findById(parentCategoryId)
-				.orElseThrow();
-
 		List<CategoryRelation> parentRelations = categoryRelationRepository
 				.findByCategoryId(parentCategoryId);
 
 		/*
-		 * 親カテゴリー自身に親子関係がない場合は、
-		 * 親カテゴリーをルートとして直接パスを作る。
+		 * 親カテゴリー自身がcategory_relationに存在しない場合は、
+		 * ルートカテゴリーの子として直接パスを作る。
 		 */
 		if (parentRelations.isEmpty()) {
+
+			ArticleCategory parentCategory = articleCategoryRepository
+					.findById(parentCategoryId)
+					.orElseThrow();
 
 			String categoryPath = parentCategory.getCategoryName()
 					+ "/"
@@ -643,36 +646,28 @@ public class ArticleCategoryService {
 					parentCategoryId,
 					groupId,
 					categoryPath);
+
 			return;
 		}
 
 		/*
-		 * まず、選択された親カテゴリーとの直接の親子パスを登録する。
-		 */
-		String directPath = parentCategory.getCategoryName()
-				+ "/"
-				+ category.getCategoryName();
-
-		Long directGroupId = categoryRelationRepository
-				.findByCategoryPath(directPath)
-				.stream()
-				.map(CategoryRelation::getGroupId)
-				.findFirst()
-				.orElse(null);
-
-		categoryRelationService.addRelation(
-				categoryId,
-				parentCategoryId,
-				directGroupId,
-				directPath);
-
-		/*
-		 * 親カテゴリーが上位カテゴリーの経路を持つ場合は、
-		 * そのすべての経路にも新しいカテゴリーを追加する。
+		 * 親カテゴリーが持つすべての経路を引き継ぎ、
+		 * その末尾に現在のカテゴリーを追加する。
+		 *
+		 * 例:
+		 * game/injustice/character
+		 *
+		 * → game/injustice/character/command
 		 */
 		for (CategoryRelation parentRelation : parentRelations) {
 
-			String categoryPath = parentRelation.getCategoryPath()
+			String parentPath = parentRelation.getCategoryPath();
+
+			if (parentPath == null || parentPath.isBlank()) {
+				continue;
+			}
+
+			String categoryPath = parentPath
 					+ "/"
 					+ category.getCategoryName();
 
