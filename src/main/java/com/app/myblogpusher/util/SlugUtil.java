@@ -79,9 +79,11 @@ public class SlugUtil {
 		for (EnglishDictionary entry : allEntries) {
 			text = text.replace(entry.getJapanese(), " " + entry.getEnglish() + " ");
 		}
-		
+
 		// 箇条書き記号は単語区切りとして扱う
-		text = text.replace("•", " ");
+		// 「・」と「•」は無視する
+		text = text.replace("・", " ")
+				.replace("•", " ");
 
 		// 残った助詞をPARTICLE_MAPで置換
 		List<Token> tokens = tokenizer.tokenize(text);
@@ -186,15 +188,24 @@ public class SlugUtil {
 		List<SlugAnalysisDto> result = new ArrayList<>();
 		List<EnglishDictionary> allEntries = englishDictionaryRepository.findAll();
 
-		// 長い単語から優先して置換
+		// 長い単語から優先して辞書を適用する
 		allEntries.sort((a, b) -> b.getJapanese().length() - a.getJapanese().length());
-		String replaced = title;
-		
+
 		// 箇条書き記号は単語区切りとして扱う
-		replaced = replaced.replace("•", " ");
-		
+		// 「・」と「•」は無視する
+		String replaced = title
+				.replace("・", " ")
+				.replace("•", " ");
+
+		// 英語辞典を長い日本語から優先して適用する。
+		// 辞書登録済みの日本語は英単語へ変換してからKuromojiに渡すことで、
+		// Kuromojiによる意図しない分割を防ぐ。
+		allEntries.sort((a, b) -> b.getJapanese().length() - a.getJapanese().length());
+
 		for (EnglishDictionary entry : allEntries) {
-			replaced = replaced.replace(entry.getJapanese(), " " + entry.getEnglish() + " ");
+			replaced = replaced.replace(
+					entry.getJapanese(),
+					" " + entry.getEnglish() + " ");
 		}
 
 		List<Token> tokens = tokenizer.tokenize(replaced);
@@ -240,21 +251,21 @@ public class SlugUtil {
 				continue;
 
 			if (converted.equals("ed")) {
-			    if (result.length() > 0 && result.charAt(result.length() - 1) == '-') {
-			        result.setLength(result.length() - 1);
-			    }
-			    String current = result.toString();
-			    String lastWord = current.contains("-")
-			        ? current.substring(current.lastIndexOf("-") + 1)
-			        : current;
-			    // 既にedで終わっていればスキップ
-			    if (lastWord.endsWith("ed")) {
-			        result.append("-");
-			    } else {
-			        result.append("ed-");
-			    }
+				if (result.length() > 0 && result.charAt(result.length() - 1) == '-') {
+					result.setLength(result.length() - 1);
+				}
+				String current = result.toString();
+				String lastWord = current.contains("-")
+						? current.substring(current.lastIndexOf("-") + 1)
+						: current;
+				// 既にedで終わっていればスキップ
+				if (lastWord.endsWith("ed")) {
+					result.append("-");
+				} else {
+					result.append("ed-");
+				}
 			} else {
-			    result.append(converted).append("-");
+				result.append(converted).append("-");
 			}
 		}
 
