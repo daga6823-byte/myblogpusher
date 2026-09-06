@@ -19,9 +19,9 @@ public interface ArticleWorkRepository extends JpaRepository<ArticleWork, Long> 
 	Optional<ArticleWork> findBySlug(String slug);
 
 	/**
-	 * ユーザーの指定ステータスの記事を取得する
+	 * ユーザーの指定ステータスの記事を更新日時の降順で取得する
 	 */
-	List<ArticleWork> findByUserIdAndStatus(
+	List<ArticleWork> findByUserIdAndStatusOrderByUpdateDateDesc(
 			Long userId,
 			Integer status);
 

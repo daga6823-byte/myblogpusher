@@ -194,7 +194,7 @@ public class ArticleWorkService {
 	 */
 	public List<ArticleWork> findPublishing(Long userId) {
 
-		return articleWorkRepository.findByUserIdAndStatus(
+		return articleWorkRepository.findByUserIdAndStatusOrderByUpdateDateDesc(
 				userId,
 				1);
 	}
@@ -203,7 +203,7 @@ public class ArticleWorkService {
 	 * エラー記事を取得する
 	 */
 	public List<ArticleWork> findError(Long userId) {
-		return articleWorkRepository.findByUserIdAndStatus(userId, 2);
+		return articleWorkRepository.findByUserIdAndStatusOrderByUpdateDateDesc(userId, 2);
 	}
 	
 	/**
@@ -211,7 +211,7 @@ public class ArticleWorkService {
 	 */
 	public List<ArticleWork> findDrafts(Long userId) {
 
-		return articleWorkRepository.findByUserIdAndStatus(
+		return articleWorkRepository.findByUserIdAndStatusOrderByUpdateDateDesc(
 				userId,
 				0);
 	}
