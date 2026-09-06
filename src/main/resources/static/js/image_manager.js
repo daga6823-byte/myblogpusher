@@ -256,7 +256,7 @@ document.getElementById('imageUploadButton').addEventListener('click', function(
 		body: formData
 	})
 		.then(res => res.json())
-				.then(data => {
+		.then(data => {
 
 			if (data.result === 'ok') {
 
@@ -390,16 +390,18 @@ function loadImageCategories() {
 		.then(res => res.json())
 		.then(categories => {
 
+			const currentValue = imageFolderName;
+
 			select.innerHTML = '';
 
 			const all =
 				document.createElement('option');
 
 			all.value = '';
+
 			all.textContent = 'すべて';
 
 			select.appendChild(all);
-
 
 			categories.forEach(category => {
 
@@ -415,6 +417,11 @@ function loadImageCategories() {
 				select.appendChild(option);
 
 			});
+
+			// アップロード後も画像一覧の絞り込みカテゴリーを保持する
+			if (currentValue) {
+				select.value = currentValue;
+			}
 
 		});
 
