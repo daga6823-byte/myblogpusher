@@ -1,11 +1,11 @@
 /**
- * カテゴリー参考文献管理を担当するController
+ * カテゴリー経路ごとの参考文献管理を担当するController
  *
- * カテゴリーごとの参考文献一覧表示、
+ * カテゴリー経路単位で参考文献一覧表示、
  * 登録、削除処理を管理する。
  */
 
-package com.app.myblogpusher.controller.Category;
+package com.app.myblogpusher.controller.Article;
 
 import java.util.List;
 
@@ -16,23 +16,27 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.app.myblogpusher.entity.CategoryRelation;
 import com.app.myblogpusher.entity.UserMaster;
 import com.app.myblogpusher.entity.Article.ArticleReference;
-import com.app.myblogpusher.service.Article.ArticleCategoryService;
+import com.app.myblogpusher.repository.CategoryRelationRepository;
 import com.app.myblogpusher.service.Article.ArticleReferenceService;
 
 import jakarta.servlet.http.HttpSession;
 
 @Controller
-public class CategoryReferenceController {
+public class ArticleReferenceController {
 
 	private final ArticleReferenceService articleReferenceService;
 
-	public CategoryReferenceController(
+	private final CategoryRelationRepository categoryRelationRepository;
+
+	public ArticleReferenceController(
 			ArticleReferenceService articleReferenceService,
-			ArticleCategoryService articleCategoryService) {
+			CategoryRelationRepository categoryRelationRepository) {
 
 		this.articleReferenceService = articleReferenceService;
+		this.categoryRelationRepository = categoryRelationRepository;
 	}
 
 	/**
@@ -40,7 +44,7 @@ public class CategoryReferenceController {
 	 */
 	@GetMapping("/category/reference")
 	public String referenceList(
-			@RequestParam Long categoryId,
+			@RequestParam Long groupId,
 			HttpSession session,
 			Model model) {
 
@@ -48,21 +52,20 @@ public class CategoryReferenceController {
 
 		Long userId = loginUser.getUserId();
 
-		List<ArticleReference> references = articleReferenceService.findByCategory(
+		List<ArticleReference> references = articleReferenceService.findByGroup(
 				userId,
-				categoryId);
+				groupId);
 
-		model.addAttribute(
-				"references",
-				references);
+		CategoryRelation relation = categoryRelationRepository.findByGroupId(groupId)
+				.stream()
+				.findFirst()
+				.orElseThrow();
 
-		model.addAttribute(
-				"categoryId",
-				categoryId);
-
+		model.addAttribute("references", references);
+		model.addAttribute("groupId", groupId);
 		model.addAttribute(
 				"categoryName",
-				articleReferenceService.getReferenceCategoryName(categoryId));
+				relation.getCategoryPath());
 
 		return "category/reference_list";
 	}
@@ -72,23 +75,20 @@ public class CategoryReferenceController {
 	 */
 	@PostMapping("/category/reference/save")
 	public String save(
-			@RequestParam Long categoryId,
+			@RequestParam Long groupId,
 			@RequestParam String referenceName,
 			@RequestParam(required = false) String url,
 			HttpSession session) {
 
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 
-		Long referenceCategoryId = articleReferenceService.resolveReferenceCategoryId(categoryId);
-
 		articleReferenceService.save(
 				loginUser.getUserId(),
-				referenceCategoryId,
+				groupId,
 				referenceName,
 				url);
 
-		return "redirect:/category/reference?categoryId="
-				+ referenceCategoryId;
+		return "redirect:/category/reference?groupId=" + groupId;
 	}
 
 	/**
@@ -97,47 +97,38 @@ public class CategoryReferenceController {
 	@PostMapping("/category/reference/delete")
 	public String delete(
 			@RequestParam Long referenceId,
-			@RequestParam Long categoryId) {
+			@RequestParam Long groupId) {
 
-		articleReferenceService.delete(
-				referenceId);
+		articleReferenceService.delete(referenceId);
 
-		return "redirect:/category/reference?categoryId=" + categoryId;
+		return "redirect:/category/reference?groupId=" + groupId;
 	}
 
 	/**
-	 * 指定カテゴリーの参考文献一覧をJSONで取得する
+	 * 指定カテゴリー経路の参考文献一覧をJSONで取得する
 	 *
 	 * 脚注挿入時に登録済み参考文献を選択するために使用する。
 	 */
 	@GetMapping("/category/reference/list")
 	@ResponseBody
 	public List<ArticleReference> referenceJson(
-			@RequestParam Long categoryId,
+			@RequestParam Long groupId,
 			HttpSession session) {
 
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 
-		Long referenceCategoryId = articleReferenceService.resolveReferenceCategoryId(categoryId);
-
-		return articleReferenceService.findByCategory(
+		return articleReferenceService.findByGroup(
 				loginUser.getUserId(),
-				referenceCategoryId);
+				groupId);
 	}
 
 	/**
-	 * カテゴリーから参考文献管理画面へ遷移する
-	 *
-	 * 記事カテゴリーが深い階層の場合、
-	 * 登録対象カテゴリー（ルート直下）へ補正する。
+	 * カテゴリー経路から参考文献管理画面へ遷移する
 	 */
 	@GetMapping("/category/reference/open")
 	public String openReference(
-			@RequestParam Long categoryId) {
+			@RequestParam Long groupId) {
 
-		Long referenceCategoryId = articleReferenceService.resolveReferenceCategoryId(categoryId);
-
-		return "redirect:/category/reference?categoryId="
-				+ referenceCategoryId;
+		return "redirect:/category/reference?groupId=" + groupId;
 	}
 }

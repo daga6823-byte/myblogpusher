@@ -1,7 +1,7 @@
 /**
  * 記事参考文献情報へのDBアクセスを担当するRepository
  *
- * カテゴリー単位で登録された参考文献の検索・保存・削除を行う。
+ * カテゴリー経路単位で登録された参考文献の検索・保存・削除を行う。
  */
 
 package com.app.myblogpusher.repository.Article;
@@ -15,15 +15,15 @@ import com.app.myblogpusher.entity.Article.ArticleReference;
 public interface ArticleReferenceRepository extends JpaRepository<ArticleReference, Long> {
 
 	/**
-	 * ユーザー・カテゴリー単位で参考文献を取得する
+	 * ユーザー・カテゴリー経路単位で参考文献を取得する
 	 */
-	List<ArticleReference> findByUserIdAndCategoryIdOrderByReferenceNameAsc(
+	List<ArticleReference> findByUserIdAndGroupIdOrderByReferenceNameAsc(
 			Long userId,
-			Long categoryId);
+			Long groupId);
 
 	/**
-	 * 同一カテゴリー内の参考文献検索
+	 * 同一カテゴリー経路内の参考文献検索
 	 */
-	List<ArticleReference> findByCategoryIdOrderByReferenceNameAsc(
-			Long categoryId);
+	List<ArticleReference> findByGroupIdOrderByReferenceNameAsc(
+			Long groupId);
 }

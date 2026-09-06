@@ -1,32 +1,37 @@
 <!--
 カテゴリー参考文献管理画面
 
-選択カテゴリーに紐付く参考文献を管理する。
+選択カテゴリー経路に紐付く参考文献を管理する。
+
 参考文献名は必須、URLは書籍対応のため任意。
 -->
 
 <!DOCTYPE html>
+
 <html xmlns:th="http://www.thymeleaf.org">
 
 <head>
+
 	<meta charset="UTF-8">
+
 	<title>参考文献管理</title>
+
 	<link rel="stylesheet" th:href="@{/css/common.css}">
+
 </head>
 
 <body>
 
 	<h1>参考文献管理</h1>
 
-
 	<h2 th:text="'登録先カテゴリー：' + ${categoryName}">
 	</h2>
 
 	<!-- 登録フォーム -->
+
 	<form th:action="@{/category/reference/save}" method="post">
 
-		<input type="hidden" name="categoryId" th:value="${categoryId}">
-
+		<input type="hidden" name="groupId" th:value="${groupId}">
 
 		<label>
 			参考文献名
@@ -34,13 +39,11 @@
 
 		<input type="text" name="referenceName" required>
 
-
 		<label>
 			URL
 		</label>
 
 		<input type="text" name="url">
-
 
 		<button type="button" id="saveReferenceButton" class="btn-save">
 			登録
@@ -48,19 +51,16 @@
 
 	</form>
 
-
-
 	<hr>
 
-
-
 	<!-- 登録済み参考文献一覧 -->
-	<h2>登録済み参考文献</h2>
 
+	<h2>登録済み参考文献</h2>
 
 	<table>
 
 		<tr>
+
 			<th>
 				名称
 			</th>
@@ -72,14 +72,13 @@
 			<th>
 				操作
 			</th>
-		</tr>
 
+		</tr>
 
 		<tr th:each="reference : ${references}">
 
 			<td th:text="${reference.referenceName}">
 			</td>
-
 
 			<td>
 
@@ -89,15 +88,13 @@
 
 			</td>
 
-
 			<td>
 
 				<form th:action="@{/category/reference/delete}" method="post">
 
 					<input type="hidden" name="referenceId" th:value="${reference.referenceId}">
 
-					<input type="hidden" name="categoryId" th:value="${categoryId}">
-
+					<input type="hidden" name="groupId" th:value="${groupId}">
 
 					<button type="submit">
 						削除
@@ -109,9 +106,7 @@
 
 		</tr>
 
-
 	</table>
-
 
 </body>
 

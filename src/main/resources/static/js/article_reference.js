@@ -1,15 +1,19 @@
-// =====================================================
-// footnote_editor.js
-//
-// 脚注挿入機能
-// ・脚注入力ダイアログ表示
-// ・カーソル位置へ [^n] を挿入
-// ・本文末尾へ [^n]: 脚注テキスト を追記
-// =====================================================
+/**
+ * 参考文献・脚注挿入機能
+ *
+ * ・脚注入力ダイアログ表示
+ * ・登録済み参考文献の取得
+ * ・参考文献の登録
+ * ・カーソル位置へ [^n] を挿入
+ * ・本文末尾へ [^n]: 脚注テキスト を追記
+ *
+ * 参考文献はCategoryRelationのgroupId単位で管理する。
+ */
 
 // -----------------------------------------------------
 // 次の脚注番号を取得
 // -----------------------------------------------------
+
 function getNextFootnoteNumber(text) {
 
 	const matches = [...text.matchAll(/\[\^(\d+)\]/g)];
@@ -48,18 +52,18 @@ document.getElementById('footnoteButton')
 		document.getElementById('insertMenu')
 			.style.display = 'none';
 
-		const categoryId =
+		const groupId =
 			document.getElementById('categorySelect')
 				.value;
 
-		if (!categoryId || categoryId === '__new__') {
+		if (!groupId || groupId === '__new__') {
 			alert('カテゴリーを選択してください');
 			return;
 		}
 
 		const response =
 			await fetch(
-				`/category/reference/list?categoryId=${categoryId}`
+				`/category/reference/list?groupId=${groupId}`
 			);
 
 		const references =
@@ -71,26 +75,20 @@ document.getElementById('footnoteButton')
 		const list =
 			document.getElementById('referenceList');
 
-
 		list.innerHTML = '';
-
 
 		references.forEach(reference => {
 
 			const label =
 				document.createElement('label');
 
-
 			const checkbox =
 				document.createElement('input');
 
 			checkbox.type = 'checkbox';
-
 			checkbox.name = 'referenceCheck';
-
 			checkbox.value =
 				JSON.stringify(reference);
-
 
 			label.appendChild(checkbox);
 
@@ -100,15 +98,12 @@ document.getElementById('footnoteButton')
 				)
 			);
 
-
 			list.appendChild(label);
 
 			list.appendChild(
 				document.createElement('br')
 			);
-
 		});
-
 
 		selector.style.display = 'block';
 	});
@@ -116,6 +111,7 @@ document.getElementById('footnoteButton')
 // -----------------------------------------------------
 // 選択した参考文献を脚注として挿入
 // -----------------------------------------------------
+
 function insertFootnote(reference) {
 
 	const textarea =
@@ -133,13 +129,11 @@ function insertFootnote(reference) {
 	const end =
 		textarea.selectionEnd;
 
-
 	// 本文へ脚注番号挿入
 	textarea.value =
 		textarea.value.substring(0, start)
 		+ marker
 		+ textarea.value.substring(end);
-
 
 	// 末尾へ脚注定義追加
 	if (!textarea.value.endsWith('\n')) {
@@ -153,9 +147,7 @@ function insertFootnote(reference) {
 
 		textarea.value +=
 			`\n${reference.url}`;
-
 	}
-
 
 	textarea.focus();
 
@@ -172,13 +164,13 @@ function insertFootnote(reference) {
 // =====================================================
 // 参考文献登録
 //
-// 入力した参考文献をカテゴリーへ登録する
+// 入力した参考文献をカテゴリー経路へ登録する
 // =====================================================
 
 document.getElementById('saveReferenceButton')
 	.addEventListener('click', async () => {
 
-		const categoryId =
+		const groupId =
 			document.getElementById('categorySelect').value;
 
 		const referenceName =
@@ -187,83 +179,68 @@ document.getElementById('saveReferenceButton')
 		const url =
 			document.getElementById('referenceUrl').value.trim();
 
-
 		if (!referenceName) {
 			alert('参考文献名を入力してください');
 			return;
 		}
-
 
 		await fetch('/category/reference/save', {
 
 			method: 'POST',
 
 			headers: {
-				'Content-Type': 'application/x-www-form-urlencoded'
+				'Content-Type':
+					'application/x-www-form-urlencoded'
 			},
 
 			body:
-				`categoryId=${categoryId}`
+				`groupId=${groupId}`
 				+ `&referenceName=${encodeURIComponent(referenceName)}`
 				+ `&url=${encodeURIComponent(url)}`
-
 		});
-
 
 		document.getElementById('referenceName').value = '';
 		document.getElementById('referenceUrl').value = '';
 
-
 		await loadReferences();
-
 	});
 
 // =====================================================
 // 登録済み参考文献を再取得して表示更新
 // =====================================================
+
 async function loadReferences() {
 
-	const categoryId =
+	const groupId =
 		document.getElementById('categorySelect').value;
-
 
 	const response =
 		await fetch(
-			`/category/reference/list?categoryId=${categoryId}`
+			`/category/reference/list?groupId=${groupId}`
 		);
-
 
 	const references =
 		await response.json();
 
-
 	const list =
 		document.getElementById('referenceList');
 
-
 	list.innerHTML = '';
-
 
 	references.forEach(reference => {
 
 		const label =
 			document.createElement('label');
 
-
 		const checkbox =
 			document.createElement('input');
 
-
 		checkbox.type = 'checkbox';
-
 		checkbox.name = 'referenceCheck';
-
 		checkbox.value =
 			JSON.stringify(reference);
 
-
 		label.appendChild(checkbox);
-
 
 		label.appendChild(
 			document.createTextNode(
@@ -271,20 +248,18 @@ async function loadReferences() {
 			)
 		);
 
-
 		list.appendChild(label);
 
 		list.appendChild(
 			document.createElement('br')
 		);
-
 	});
-
 }
 
 // =====================================================
 // 選択した参考文献を脚注として挿入
 // =====================================================
+
 document.getElementById('insertReferenceButton')
 	.addEventListener('click', () => {
 
@@ -293,21 +268,16 @@ document.getElementById('insertReferenceButton')
 				'input[name="referenceCheck"]:checked'
 			);
 
-
 		if (!checked) {
 			alert('参考文献を選択してください');
 			return;
 		}
 
-
 		const reference =
 			JSON.parse(checked.value);
 
-
 		insertFootnote(reference);
-
 
 		document.getElementById('referenceSelector')
 			.style.display = 'none';
-
 	});

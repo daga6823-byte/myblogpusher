@@ -1,7 +1,7 @@
 /**
  * 記事内で使用する参考文献情報を管理するEntity
  *
- * カテゴリー単位で参考文献名とURLを保持する。
+ * カテゴリー経路単位で参考文献名とURLを保持する。
  * URLは書籍などURLを持たない資料にも対応するためNULL許容。
  */
 
@@ -27,7 +27,14 @@ public class ArticleReference {
 
 	private Long userId;
 
-	private Long categoryId;
+	/**
+	 * 参考文献を紐付けるカテゴリー経路
+	 *
+	 * CategoryRelation.groupIdを保持する。
+	 * 例えば movie/batman 配下の記事で使用する参考文献なら、
+	 * movie/batman を表すgroupIdを設定する。
+	 */
+	private Long groupId;
 
 	private String referenceName;
 
