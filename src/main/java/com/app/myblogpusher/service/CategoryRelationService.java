@@ -20,65 +20,98 @@ import com.app.myblogpusher.repository.CategoryRelationRepository;
 @Service
 public class CategoryRelationService {
 
-    @Autowired
-    private CategoryRelationRepository categoryRelationRepository;
+	@Autowired
+	private CategoryRelationRepository categoryRelationRepository;
 
-    /**
-     * カテゴリーと親カテゴリーの関係を登録する。
-     *
-     * groupIdが指定されている場合は既存のgroupIdを使用し、
-     * 未指定の場合はPostgreSQLのserialによる自動採番に任せる。
-     */
-    public void addRelation(
-            Long categoryId,
-            Long parentCategoryId,
-            Long groupId,
-            String categoryPath,
-            Long userId) {
+	/**
+	 * カテゴリーと親カテゴリーの関係を登録する。
+	 *
+	 * groupIdが指定されている場合は既存のgroupIdを使用し、
+	 * 未指定の場合はPostgreSQLのserialによる自動採番に任せる。
+	 */
+	public void addRelation(
+			Long categoryId,
+			Long parentCategoryId,
+			Long groupId,
+			String categoryPath,
+			Long userId) {
 
-        if (categoryId == null
-                || parentCategoryId == null
-                || categoryPath == null
-                || categoryPath.isBlank()) {
-            return;
-        }
+		if (categoryId == null
+				|| parentCategoryId == null
+				|| categoryPath == null
+				|| categoryPath.isBlank()) {
+			return;
+		}
 
-        LocalDateTime now = LocalDateTime.now();
+		LocalDateTime now = LocalDateTime.now();
 
-        CategoryRelation relation = new CategoryRelation();
+		CategoryRelation relation = new CategoryRelation();
 
-        relation.setGroupId(groupId);
-        relation.setCategoryId(categoryId);
-        relation.setParentCategoryId(parentCategoryId);
-        relation.setCategoryPath(categoryPath);
+		relation.setGroupId(groupId);
+		relation.setCategoryId(categoryId);
+		relation.setParentCategoryId(parentCategoryId);
+		relation.setCategoryPath(categoryPath);
 
-        relation.setCreateDate(now);
-        relation.setUpdateDate(now);
-        relation.setCreateUser(userId);
-        relation.setUpdateUser(userId);
+		relation.setCreateDate(now);
+		relation.setUpdateDate(now);
+		relation.setCreateUser(userId);
+		relation.setUpdateUser(userId);
 
-        categoryRelationRepository.save(relation);
-    }
+		categoryRelationRepository.save(relation);
+	}
 
-    /**
-     * 指定カテゴリーの親子関係をすべて削除する。
-     */
-    public void deleteRelationsByCategoryId(Long categoryId) {
+	/**
+	 * 指定カテゴリーの親子関係をすべて削除する。
+	 */
+	public void deleteRelationsByCategoryId(Long categoryId) {
 
-        List<CategoryRelation> relations = categoryRelationRepository
-                .findByCategoryId(categoryId);
+		List<CategoryRelation> relations = categoryRelationRepository
+				.findByCategoryId(categoryId);
 
-        categoryRelationRepository.deleteAll(relations);
-    }
+		categoryRelationRepository.deleteAll(relations);
+	}
 
-    /**
-     * 指定カテゴリーを親としている関係をすべて削除する。
-     */
-    public void deleteRelationsByParentCategoryId(Long parentCategoryId) {
+	/**
+	 * 指定カテゴリーを親としている関係をすべて削除する。
+	 */
+	public void deleteRelationsByParentCategoryId(Long parentCategoryId) {
 
-        List<CategoryRelation> relations = categoryRelationRepository
-                .findByParentCategoryId(parentCategoryId);
+		List<CategoryRelation> relations = categoryRelationRepository
+				.findByParentCategoryId(parentCategoryId);
 
-        categoryRelationRepository.deleteAll(relations);
-    }
+		categoryRelationRepository.deleteAll(relations);
+	}
+
+	/**
+	 * 指定されたカテゴリー経路の参考文献管理用groupIdを取得する。
+	 *
+	 * 参考文献はルートカテゴリー直下のカテゴリー単位で管理する。
+	 * 例えば movie/batman/gadget の場合は、
+	 * movie/batman のgroupIdを返す。
+	 */
+	public Long resolveReferenceGroupId(Long groupId) {
+
+		CategoryRelation relation = categoryRelationRepository
+				.findByGroupId(groupId)
+				.stream()
+				.findFirst()
+				.orElseThrow();
+
+		String categoryPath = relation.getCategoryPath();
+
+		String[] parts = categoryPath.split("/");
+
+		if (parts.length <= 2) {
+			return groupId;
+		}
+
+		String referencePath = parts[0] + "/" + parts[1];
+
+		return categoryRelationRepository
+				.findByCategoryPath(referencePath)
+				.stream()
+				.findFirst()
+				.orElseThrow()
+				.getGroupId();
+	}
 }

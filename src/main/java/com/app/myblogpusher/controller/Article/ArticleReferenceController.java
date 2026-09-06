@@ -3,6 +3,10 @@
  *
  * カテゴリー経路単位で参考文献一覧表示、
  * 登録、削除処理を管理する。
+ *
+ * 参考文献はルートカテゴリー直下のカテゴリー単位で管理するため、
+ * 記事側の深いカテゴリー経路が指定された場合は、
+ * CategoryRelationServiceで参考文献管理用groupIdへ変換する。
  */
 
 package com.app.myblogpusher.controller.Article;
@@ -20,6 +24,7 @@ import com.app.myblogpusher.entity.CategoryRelation;
 import com.app.myblogpusher.entity.UserMaster;
 import com.app.myblogpusher.entity.Article.ArticleReference;
 import com.app.myblogpusher.repository.CategoryRelationRepository;
+import com.app.myblogpusher.service.CategoryRelationService;
 import com.app.myblogpusher.service.Article.ArticleReferenceService;
 
 import jakarta.servlet.http.HttpSession;
@@ -31,12 +36,16 @@ public class ArticleReferenceController {
 
 	private final CategoryRelationRepository categoryRelationRepository;
 
+	private final CategoryRelationService categoryRelationService;
+
 	public ArticleReferenceController(
 			ArticleReferenceService articleReferenceService,
-			CategoryRelationRepository categoryRelationRepository) {
+			CategoryRelationRepository categoryRelationRepository,
+			CategoryRelationService categoryRelationService) {
 
 		this.articleReferenceService = articleReferenceService;
 		this.categoryRelationRepository = categoryRelationRepository;
+		this.categoryRelationService = categoryRelationService;
 	}
 
 	/**
@@ -52,17 +61,20 @@ public class ArticleReferenceController {
 
 		Long userId = loginUser.getUserId();
 
+		// 指定されたカテゴリー経路を参考文献管理単位へ変換する。
+		Long referenceGroupId = categoryRelationService.resolveReferenceGroupId(groupId);
+
 		List<ArticleReference> references = articleReferenceService.findByGroup(
 				userId,
-				groupId);
+				referenceGroupId);
 
-		CategoryRelation relation = categoryRelationRepository.findByGroupId(groupId)
+		CategoryRelation relation = categoryRelationRepository.findByGroupId(referenceGroupId)
 				.stream()
 				.findFirst()
 				.orElseThrow();
 
 		model.addAttribute("references", references);
-		model.addAttribute("groupId", groupId);
+		model.addAttribute("groupId", referenceGroupId);
 		model.addAttribute(
 				"categoryName",
 				relation.getCategoryPath());
@@ -82,13 +94,17 @@ public class ArticleReferenceController {
 
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 
+		// 念のため、登録時も参考文献管理単位へ変換する。
+		Long referenceGroupId = categoryRelationService.resolveReferenceGroupId(groupId);
+
 		articleReferenceService.save(
 				loginUser.getUserId(),
-				groupId,
+				referenceGroupId,
 				referenceName,
 				url);
 
-		return "redirect:/category/reference?groupId=" + groupId;
+		return "redirect:/category/reference?groupId="
+				+ referenceGroupId;
 	}
 
 	/**
@@ -117,9 +133,12 @@ public class ArticleReferenceController {
 
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 
+		// 記事の深いカテゴリー経路を参考文献管理単位へ変換する。
+		Long referenceGroupId = categoryRelationService.resolveReferenceGroupId(groupId);
+
 		return articleReferenceService.findByGroup(
 				loginUser.getUserId(),
-				groupId);
+				referenceGroupId);
 	}
 
 	/**
@@ -129,6 +148,11 @@ public class ArticleReferenceController {
 	public String openReference(
 			@RequestParam Long groupId) {
 
-		return "redirect:/category/reference?groupId=" + groupId;
+		// 深いカテゴリーから開いた場合も、
+		// ルート直下のカテゴリーを参考文献管理単位とする。
+		Long referenceGroupId = categoryRelationService.resolveReferenceGroupId(groupId);
+
+		return "redirect:/category/reference?groupId="
+				+ referenceGroupId;
 	}
 }
