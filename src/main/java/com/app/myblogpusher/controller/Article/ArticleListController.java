@@ -43,7 +43,7 @@ public class ArticleListController {
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 		Long userId = loginUser.getUserId();
 
-		List<ArticleWork> works = articleWorkService.findByUserId(userId);
+		List<ArticleWork> works = articleWorkService.findDrafts(userId);
 		List<ArticleWorkView> workViews = works.stream()
 				.map(work -> {
 					// categoryIdがnullの下書き（自動保存の不具合等で発生）にも対応する

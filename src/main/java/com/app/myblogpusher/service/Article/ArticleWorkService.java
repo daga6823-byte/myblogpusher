@@ -205,5 +205,15 @@ public class ArticleWorkService {
 	public List<ArticleWork> findError(Long userId) {
 		return articleWorkRepository.findByUserIdAndStatus(userId, 2);
 	}
+	
+	/**
+	 * 投稿前の下書きを取得する
+	 */
+	public List<ArticleWork> findDrafts(Long userId) {
+
+		return articleWorkRepository.findByUserIdAndStatus(
+				userId,
+				0);
+	}
 
 }
