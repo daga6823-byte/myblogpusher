@@ -96,7 +96,6 @@ public class ImageManageController {
 	@ResponseBody
 	public Map<String, Object> updateImage(
 			@RequestParam Long imageId,
-			@RequestParam(required = false) Long categoryId,
 			@RequestParam String folderName,
 			HttpSession session) {
 
@@ -104,7 +103,6 @@ public class ImageManageController {
 
 		imageAssetService.updateImage(
 				imageId,
-				categoryId,
 				folderName,
 				loginUser.getUserId());
 

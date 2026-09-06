@@ -17,8 +17,7 @@ public interface ImageAssetRepository extends JpaRepository<ImageAsset, Long> {
 	List<ImageAsset> findByUserIdOrderByUploadDateDesc(Long userId);
 
 	List<ImageAsset> findByUserIdAndCategoryIdOrderByUploadDateDesc(
-			Long userId,
-			Long categoryId);
+			Long userId);
 
 	Page<ImageAsset> findByUserIdOrderByUploadDateDesc(
 			Long userId,
@@ -26,7 +25,6 @@ public interface ImageAssetRepository extends JpaRepository<ImageAsset, Long> {
 
 	Page<ImageAsset> findByUserIdAndCategoryIdOrderByUploadDateDesc(
 			Long userId,
-			Long categoryId,
 			Pageable pageable);
 	
 	Page<ImageAsset> findByUserIdAndFolderNameOrderByUploadDateDesc(

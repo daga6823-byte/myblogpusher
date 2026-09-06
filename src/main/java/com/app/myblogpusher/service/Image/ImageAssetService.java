@@ -66,7 +66,6 @@ public class ImageAssetService {
 			MultipartFile file,
 			String folderName,
 			Long categoryId,
-			Long workId,
 			Long userId) throws IOException {
 
 		String resolvedFolderName;
@@ -117,8 +116,6 @@ public class ImageAssetService {
 
 		ImageAsset asset = new ImageAsset();
 		asset.setUserId(userId);
-		asset.setCategoryId(categoryId);
-		asset.setWorkId(workId);
 		asset.setFolderName(resolvedFolderName);
 		asset.setFileName(fileName);
 		asset.setStoragePath(storagePath);
@@ -137,9 +134,21 @@ public class ImageAssetService {
 	 * categoryIdが指定されればそのカテゴリー分だけに絞り込む
 	 */
 	public List<String> listImageUrls(Long userId, Long categoryId) {
-		List<ImageAsset> assets = (categoryId != null)
-				? imageAssetRepository.findByUserIdAndCategoryIdOrderByUploadDateDesc(userId, categoryId)
-				: imageAssetRepository.findByUserIdOrderByUploadDateDesc(userId);
+		List<ImageAsset> assets;
+
+		if (categoryId != null) {
+
+			String folderName = resolveDefaultFolderName(categoryId);
+
+			assets = imageAssetRepository.findByUserIdOrderByUploadDateDesc(userId)
+					.stream()
+					.filter(asset -> folderName.equals(asset.getFolderName()))
+					.toList();
+
+		} else {
+
+			assets = imageAssetRepository.findByUserIdOrderByUploadDateDesc(userId);
+		}
 
 		return assets.stream()
 				.map(a -> supabaseStorageService.getImageUrl(a.getStoragePath()))
@@ -175,12 +184,8 @@ public class ImageAssetService {
 			String folderName = lastSlash >= 0 ? path.substring(0, lastSlash) : "";
 			String fileName = lastSlash >= 0 ? path.substring(lastSlash + 1) : path;
 
-			Long matchedCategoryId = slugToCategoryId.get(folderName);
-
 			ImageAsset asset = new ImageAsset();
 			asset.setUserId(userId);
-			asset.setCategoryId(matchedCategoryId);
-			asset.setWorkId(null);
 			asset.setFolderName(folderName);
 			asset.setFileName(fileName);
 			asset.setStoragePath(path);
@@ -205,7 +210,6 @@ public class ImageAssetService {
 	 */
 	public void updateImage(
 			Long imageId,
-			Long categoryId,
 			String folderName,
 			Long userId) {
 
@@ -223,7 +227,6 @@ public class ImageAssetService {
 			asset.setStoragePath(newStoragePath);
 		}
 
-		asset.setCategoryId(categoryId);
 		asset.setUpdateUser(userId);
 		asset.setUpdateDate(LocalDateTime.now());
 
@@ -269,27 +272,24 @@ public class ImageAssetService {
 	 */
 	public List<ImageAssetView> listImages(
 			Long userId,
-			Long categoryId) {
+			String folderName) {
 
-		List<ImageAsset> assets = (categoryId != null)
-				? imageAssetRepository.findByUserIdAndCategoryIdOrderByUploadDateDesc(
+		List<ImageAsset> assets = (folderName != null)
+				? imageAssetRepository.findByUserIdAndFolderNameOrderByUploadDateDesc(
 						userId,
-						categoryId)
+						folderName,
+						org.springframework.data.domain.Pageable.unpaged())
+						.getContent()
 				: imageAssetRepository.findByUserIdOrderByUploadDateDesc(
 						userId);
 
 		return assets.stream()
 				.map(asset -> {
 
-					String categoryName = asset.getCategoryId() == null
-							? "（未分類）"
-							: articleCategoryService.findById(asset.getCategoryId())
-									.map(ArticleCategory::getCategoryName)
-									.orElse("（未分類）");
+					String categoryName = asset.getFolderName();
 
 					return new ImageAssetView(
 							asset.getImageId(),
-							asset.getCategoryId(),
 							asset.getFolderName(),
 							asset.getFileName(),
 							categoryName,
@@ -319,15 +319,10 @@ public class ImageAssetService {
 
 		return page.map(a -> {
 
-			String categoryName = a.getCategoryId() == null
-					? "（未分類）"
-					: articleCategoryService.findById(a.getCategoryId())
-							.map(ArticleCategory::getCategoryName)
-							.orElse("（未分類）");
+			String categoryName = a.getFolderName();
 
 			return new ImageAssetView(
 					a.getImageId(),
-					a.getCategoryId(),
 					a.getFolderName(),
 					a.getFileName(),
 					categoryName,

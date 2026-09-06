@@ -31,9 +31,6 @@ public class ImageAsset {
 	@Column(name = "user_id", nullable = false)
 	private Long userId;
 
-	@Column(name = "category_id")
-	private Long categoryId;
-
 	@Column(name = "work_id")
 	private Long workId;
 

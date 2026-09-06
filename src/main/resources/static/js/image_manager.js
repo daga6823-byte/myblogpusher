@@ -230,7 +230,6 @@ document.getElementById('imageUploadButton').addEventListener('click', function(
 	}
 
 	const categoryId = document.getElementById('categorySelect').value;
-	const workId = new URLSearchParams(window.location.search).get('workId');
 	const status = document.getElementById('imageUploadStatus');
 
 	if (!fileInput.files.length) {
@@ -248,10 +247,6 @@ document.getElementById('imageUploadButton').addEventListener('click', function(
 
 	if (folderName) {
 		formData.append('folderName', folderName);
-	}
-
-	if (workId) {
-		formData.append('workId', workId);
 	}
 
 	status.textContent = 'アップロード中...';

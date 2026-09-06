@@ -49,16 +49,14 @@ public class ArticleImageController {
 			@RequestParam(defaultValue = "0") int page,
 			HttpSession session) {
 
-		UserMaster loginUser =
-				(UserMaster) session.getAttribute("loginUser");
+		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 
-		Pageable pageable =
-				PageRequest.of(page, 12);
+		Pageable pageable = PageRequest.of(page, 12);
 
 		return imageAssetService.findImagePage(
-		        loginUser.getUserId(),
-		        folderName,
-		        pageable);
+				loginUser.getUserId(),
+				folderName,
+				pageable);
 	}
 
 	/**
@@ -84,7 +82,6 @@ public class ArticleImageController {
 			@RequestParam MultipartFile file,
 			@RequestParam(required = false) Long categoryId,
 			@RequestParam(required = false) String folderName,
-			@RequestParam(required = false) Long workId,
 			HttpSession session) {
 
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
@@ -97,7 +94,6 @@ public class ArticleImageController {
 					file,
 					folderName,
 					categoryId,
-					workId,
 					userId);
 
 			return Map.of(
