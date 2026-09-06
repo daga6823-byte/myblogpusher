@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.app.myblogpusher.dto.ImageAssetView;
@@ -100,6 +101,14 @@ public class ArticleImageController {
 					"result", "ok",
 					"folderName", asset.getFolderName(),
 					"fileName", asset.getFileName());
+
+		} catch (HttpClientErrorException e) {
+
+			return Map.of(
+					"result",
+					"error",
+					"message",
+					"アップロード中にエラーが発生しました");
 
 		} catch (IOException e) {
 

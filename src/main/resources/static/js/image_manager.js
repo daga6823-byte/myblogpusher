@@ -256,7 +256,7 @@ document.getElementById('imageUploadButton').addEventListener('click', function(
 		body: formData
 	})
 		.then(res => res.json())
-		.then(data => {
+				.then(data => {
 
 			if (data.result === 'ok') {
 
@@ -265,13 +265,21 @@ document.getElementById('imageUploadButton').addEventListener('click', function(
 				fileInput.value = '';
 
 				// 新規フォルダ追加時に保存先フォルダへ反映する
+
 				loadImageFolders();
 
 				// 新規フォルダ・画像追加後に一覧絞り込み条件を更新する
+
 				loadImageCategories();
 
 				// 新規画像を一覧へ反映する
+
 				loadImageList();
+
+			} else {
+
+				status.textContent =
+					data.message || 'アップロードに失敗しました';
 
 			}
 
