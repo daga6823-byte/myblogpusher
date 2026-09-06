@@ -6,6 +6,7 @@
 -->
 
 <!DOCTYPE html>
+
 <html xmlns:th="http://www.thymeleaf.org">
 
 <div th:fragment="referenceSelector" id="referenceSelector" style="display:none;">
@@ -15,36 +16,36 @@
 	<label>
 		参考文献名
 	</label>
-
 	<input type="text" id="referenceName">
-
 
 	<label>
 		URL
 	</label>
-
 	<input type="text" id="referenceUrl">
-
 
 	<button type="button" id="saveReferenceButton" class="btn-save">
 		登録
 	</button>
 
-
 	<hr>
-
 
 	<h3>登録済み参考文献</h3>
 
+	<!-- 参考文献を取得するカテゴリーを選択する -->
+	<label for="referenceCategorySelect">
+		カテゴリー
+	</label>
+
+	<select id="referenceCategorySelect">
+		<option value="">すべて</option>
+	</select>
 
 	<div id="referenceList">
 	</div>
 
-
 	<button type="button" id="insertReferenceButton" class="btn-publish">
 		挿入
 	</button>
-
 
 	<button type="button" id="cancelReferenceButton" class="btn-back">
 		キャンセル

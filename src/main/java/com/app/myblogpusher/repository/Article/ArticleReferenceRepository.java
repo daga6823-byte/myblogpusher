@@ -26,4 +26,7 @@ public interface ArticleReferenceRepository extends JpaRepository<ArticleReferen
 	 */
 	List<ArticleReference> findByGroupIdOrderByReferenceNameAsc(
 			Long groupId);
+	
+	List<ArticleReference> findByUserIdOrderByReferenceNameAsc(
+			Long userId);
 }

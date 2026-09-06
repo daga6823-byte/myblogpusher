@@ -40,6 +40,15 @@ public class ArticleReferenceService {
 	}
 
 	/**
+	 * ユーザーが登録した参考文献をすべて取得する
+	 */
+	public List<ArticleReference> findAll(Long userId) {
+
+		return articleReferenceRepository
+				.findByUserIdOrderByReferenceNameAsc(userId);
+	}
+
+	/**
 	 * 参考文献を登録する
 	 */
 	public ArticleReference save(

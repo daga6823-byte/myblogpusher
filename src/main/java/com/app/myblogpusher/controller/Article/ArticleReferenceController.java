@@ -24,6 +24,7 @@ import com.app.myblogpusher.entity.CategoryRelation;
 import com.app.myblogpusher.entity.UserMaster;
 import com.app.myblogpusher.entity.Article.ArticleReference;
 import com.app.myblogpusher.repository.CategoryRelationRepository;
+import com.app.myblogpusher.repository.Article.ArticleReferenceRepository;
 import com.app.myblogpusher.service.CategoryRelationService;
 import com.app.myblogpusher.service.Article.ArticleReferenceService;
 
@@ -34,15 +35,19 @@ public class ArticleReferenceController {
 
 	private final ArticleReferenceService articleReferenceService;
 
+	private final ArticleReferenceRepository articleReferenceRepository;
+
 	private final CategoryRelationRepository categoryRelationRepository;
 
 	private final CategoryRelationService categoryRelationService;
 
 	public ArticleReferenceController(
+			ArticleReferenceRepository articleReferenceRepository,
 			ArticleReferenceService articleReferenceService,
 			CategoryRelationRepository categoryRelationRepository,
 			CategoryRelationService categoryRelationService) {
 
+		this.articleReferenceRepository = articleReferenceRepository;
 		this.articleReferenceService = articleReferenceService;
 		this.categoryRelationRepository = categoryRelationRepository;
 		this.categoryRelationService = categoryRelationService;
@@ -128,17 +133,12 @@ public class ArticleReferenceController {
 	@GetMapping("/category/reference/list")
 	@ResponseBody
 	public List<ArticleReference> referenceJson(
-			@RequestParam Long groupId,
 			HttpSession session) {
 
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 
-		// 記事の深いカテゴリー経路を参考文献管理単位へ変換する。
-		Long referenceGroupId = categoryRelationService.resolveReferenceGroupId(groupId);
-
-		return articleReferenceService.findByGroup(
-				loginUser.getUserId(),
-				referenceGroupId);
+		return articleReferenceService.findAll(
+				loginUser.getUserId());
 	}
 
 	/**
