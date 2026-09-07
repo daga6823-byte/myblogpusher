@@ -225,14 +225,23 @@ function loadArticleLinkCategory() {
 			'articleLinkCategorySelect'
 		);
 
+	const articleCategorySelect =
+		document.getElementById(
+			'categorySelect'
+		);
+
 	if (
 		!select ||
-		!window.linkCategories
+		!window.linkCategories ||
+		!articleCategorySelect
 	) {
 
 		return;
 
 	}
+
+	const currentCategoryGroupId =
+		articleCategorySelect.value;
 
 	select.innerHTML = '';
 
@@ -241,19 +250,19 @@ function loadArticleLinkCategory() {
 		const option =
 			document.createElement('option');
 
-		// APIにはカテゴリー経路を識別するgroupIdを送る。
+		// リンク検索APIにはgroupIdを渡す。
 		option.value =
 			category.groupId;
 
 		option.textContent =
 			category.categoryPath;
 
-		// 現在の記事に対応するカテゴリーは
-		// categoryIdで判定する。
+		// 編集中の記事と同じカテゴリー経路を
+		// 初期選択状態にする。
 		if (
-			String(category.categoryId)
+			String(category.groupId)
 			===
-			String(window.linkSearchCategoryId)
+			String(currentCategoryGroupId)
 		) {
 
 			option.selected = true;

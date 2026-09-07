@@ -220,11 +220,7 @@ public class ArticleEditController {
 
 		model.addAttribute(
 				"linkSearchCategoryId",
-				currentCategoryGroupId != null
-						? articleCategoryService.findLinkSearchCategoryId(
-								userId,
-								currentCategoryGroupId)
-						: null);
+				currentCategoryGroupId);
 
 		model.addAttribute(
 				"siteUrl",
