@@ -1,12 +1,11 @@
 /**
- * カテゴリー経路ごとの参考文献管理を担当するController
+ * カテゴリー経路を基準とした参考文献管理を担当するController
  *
- * カテゴリー経路単位で参考文献一覧表示、
- * 登録、削除処理を管理する。
+ * 記事のカテゴリー経路(groupId)を入口として、
+ * 参考文献を共有するカテゴリーのcategoryIdへ変換して管理する。
  *
- * 参考文献はルートカテゴリー直下のカテゴリー単位で管理するため、
- * 記事側の深いカテゴリー経路が指定された場合は、
- * CategoryRelationServiceで参考文献管理用groupIdへ変換する。
+ * 参考文献そのものはカテゴリー経路ではなく、
+ * 共通カテゴリー（例：batman）に紐付ける。
  */
 
 package com.app.myblogpusher.controller.Article;
@@ -61,17 +60,22 @@ public class ArticleReferenceController {
 
 		Long userId = loginUser.getUserId();
 
-		// 指定されたカテゴリー経路を参考文献管理単位へ変換する。
+		// 深いカテゴリー経路から参考文献管理用の経路へ変換する。
 		Long referenceGroupId = categoryPathService.resolveReferenceGroupId(groupId);
-
-		List<ArticleReference> references = articleReferenceService.findByGroup(
-				userId,
-				referenceGroupId);
 
 		CategoryRelation relation = categoryRelationRepository.findByGroupId(referenceGroupId)
 				.stream()
 				.findFirst()
 				.orElseThrow();
+
+		// 参考文献は経路ではなく、
+		// その経路が属する共通カテゴリーに紐付けて取得する。
+		Long referenceCategoryId = categoryPathService.findReferenceCategoryIdByGroupId(
+				referenceGroupId);
+
+		List<ArticleReference> references = articleReferenceService.findByCategory(
+				userId,
+				referenceCategoryId);
 
 		model.addAttribute("references", references);
 		model.addAttribute("groupId", referenceGroupId);
@@ -94,14 +98,19 @@ public class ArticleReferenceController {
 
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 
-		// 念のため、登録時も参考文献管理単位へ変換する。
-		Long referenceGroupId = categoryPathService.resolveReferenceGroupId(groupId);
+		// 現在の記事カテゴリーのgroupIdから、
+		// 参考文献を共有するカテゴリーのcategoryIdを取得する。
+		Long referenceCategoryId = categoryPathService.findReferenceCategoryIdByGroupId(
+				groupId);
 
 		articleReferenceService.save(
 				loginUser.getUserId(),
-				referenceGroupId,
+				referenceCategoryId,
 				referenceName,
 				url);
+
+		// 管理画面へ戻す際は、表示用のgroupIdを使用する。
+		Long referenceGroupId = categoryPathService.resolveReferenceGroupId(groupId);
 
 		return "redirect:/category/reference?groupId="
 				+ referenceGroupId;
@@ -121,10 +130,11 @@ public class ArticleReferenceController {
 	}
 
 	/**
-	 * 指定された記事カテゴリーを基準に参考文献一覧をJSONで取得する
+	 * 指定された記事カテゴリーを基準に
+	 * 参考文献一覧をJSONで取得する。
 	 *
-	 * 記事の深いカテゴリー経路が指定された場合も、
-	 * 参考文献管理用のgroupIdへ変換して取得する。
+	 * 記事のgroupIdから共通カテゴリーのcategoryIdを取得し、
+	 * そのカテゴリーに登録された参考文献を返却する。
 	 */
 	@GetMapping("/category/reference/list")
 	@ResponseBody
@@ -134,11 +144,12 @@ public class ArticleReferenceController {
 
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 
-		Long referenceGroupId = categoryPathService.resolveReferenceGroupId(groupId);
+		Long referenceCategoryId = categoryPathService.findReferenceCategoryIdByGroupId(
+				groupId);
 
-		return articleReferenceService.findByGroup(
+		return articleReferenceService.findByCategory(
 				loginUser.getUserId(),
-				referenceGroupId);
+				referenceCategoryId);
 	}
 
 	/**

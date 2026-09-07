@@ -15,18 +15,18 @@ import com.app.myblogpusher.entity.Article.ArticleReference;
 public interface ArticleReferenceRepository extends JpaRepository<ArticleReference, Long> {
 
 	/**
-	 * ユーザー・カテゴリー経路単位で参考文献を取得する
+	 * ユーザー・カテゴリー単位で参考文献を取得する
 	 */
-	List<ArticleReference> findByUserIdAndGroupIdOrderByReferenceNameAsc(
+	List<ArticleReference> findByUserIdAndCategoryIdOrderByReferenceNameAsc(
 			Long userId,
-			Long groupId);
+			Long categoryId);
 
 	/**
-	 * 同一カテゴリー経路内の参考文献検索
+	 * 同一カテゴリー内の参考文献検索
 	 */
-	List<ArticleReference> findByGroupIdOrderByReferenceNameAsc(
-			Long groupId);
-	
+	List<ArticleReference> findByCategoryIdOrderByReferenceNameAsc(
+			Long categoryId);
+
 	List<ArticleReference> findByUserIdOrderByReferenceNameAsc(
 			Long userId);
 }

@@ -29,14 +29,12 @@ public class ArticleReferenceService {
 	/**
 	 * カテゴリー経路に紐付く参考文献一覧を取得する
 	 */
-	public List<ArticleReference> findByGroup(
+	public List<ArticleReference> findByCategory(
 			Long userId,
-			Long groupId) {
-
+			Long categoryId) {
 		return articleReferenceRepository
-				.findByUserIdAndGroupIdOrderByReferenceNameAsc(
-						userId,
-						groupId);
+				.findByUserIdAndCategoryIdOrderByReferenceNameAsc(
+						userId, categoryId);
 	}
 
 	/**
@@ -53,14 +51,13 @@ public class ArticleReferenceService {
 	 */
 	public ArticleReference save(
 			Long userId,
-			Long groupId,
+			Long categoryId,
 			String referenceName,
 			String url) {
 
 		ArticleReference reference = new ArticleReference();
-
 		reference.setUserId(userId);
-		reference.setGroupId(groupId);
+		reference.setCategoryId(categoryId);
 		reference.setReferenceName(referenceName);
 		reference.setUrl(url);
 		reference.setCreateDate(LocalDateTime.now());
