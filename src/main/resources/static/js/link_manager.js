@@ -241,17 +241,17 @@ function loadArticleLinkCategory() {
 		const option =
 			document.createElement('option');
 
-		// ArticleLinkControllerは
-		// categoryGroupIdを受け取るため、
-		// カテゴリー経路のgroupIdを使用する。
+		// APIにはカテゴリー経路を識別するgroupIdを送る。
 		option.value =
 			category.groupId;
 
 		option.textContent =
-			category.fullPath;
+			category.categoryPath;
 
+		// 現在の記事に対応するカテゴリーは
+		// categoryIdで判定する。
 		if (
-			String(category.groupId)
+			String(category.categoryId)
 			===
 			String(window.linkSearchCategoryId)
 		) {
