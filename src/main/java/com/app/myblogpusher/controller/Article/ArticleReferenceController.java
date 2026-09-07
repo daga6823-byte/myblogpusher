@@ -24,8 +24,7 @@ import com.app.myblogpusher.entity.CategoryRelation;
 import com.app.myblogpusher.entity.UserMaster;
 import com.app.myblogpusher.entity.Article.ArticleReference;
 import com.app.myblogpusher.repository.CategoryRelationRepository;
-import com.app.myblogpusher.repository.Article.ArticleReferenceRepository;
-import com.app.myblogpusher.service.CategoryRelationService;
+import com.app.myblogpusher.service.CategoryPathService;
 import com.app.myblogpusher.service.Article.ArticleReferenceService;
 
 import jakarta.servlet.http.HttpSession;
@@ -35,22 +34,18 @@ public class ArticleReferenceController {
 
 	private final ArticleReferenceService articleReferenceService;
 
-	private final ArticleReferenceRepository articleReferenceRepository;
-
 	private final CategoryRelationRepository categoryRelationRepository;
 
-	private final CategoryRelationService categoryRelationService;
+	private final CategoryPathService categoryPathService;
 
 	public ArticleReferenceController(
-			ArticleReferenceRepository articleReferenceRepository,
 			ArticleReferenceService articleReferenceService,
 			CategoryRelationRepository categoryRelationRepository,
-			CategoryRelationService categoryRelationService) {
+			CategoryPathService categoryPathService) {
 
-		this.articleReferenceRepository = articleReferenceRepository;
 		this.articleReferenceService = articleReferenceService;
 		this.categoryRelationRepository = categoryRelationRepository;
-		this.categoryRelationService = categoryRelationService;
+		this.categoryPathService = categoryPathService;
 	}
 
 	/**
@@ -67,7 +62,7 @@ public class ArticleReferenceController {
 		Long userId = loginUser.getUserId();
 
 		// 指定されたカテゴリー経路を参考文献管理単位へ変換する。
-		Long referenceGroupId = categoryRelationService.resolveReferenceGroupId(groupId);
+		Long referenceGroupId = categoryPathService.resolveReferenceGroupId(groupId);
 
 		List<ArticleReference> references = articleReferenceService.findByGroup(
 				userId,
@@ -100,7 +95,7 @@ public class ArticleReferenceController {
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 
 		// 念のため、登録時も参考文献管理単位へ変換する。
-		Long referenceGroupId = categoryRelationService.resolveReferenceGroupId(groupId);
+		Long referenceGroupId = categoryPathService.resolveReferenceGroupId(groupId);
 
 		articleReferenceService.save(
 				loginUser.getUserId(),
@@ -150,7 +145,7 @@ public class ArticleReferenceController {
 
 		// 深いカテゴリーから開いた場合も、
 		// ルート直下のカテゴリーを参考文献管理単位とする。
-		Long referenceGroupId = categoryRelationService.resolveReferenceGroupId(groupId);
+		Long referenceGroupId = categoryPathService.resolveReferenceGroupId(groupId);
 
 		return "redirect:/category/reference?groupId="
 				+ referenceGroupId;

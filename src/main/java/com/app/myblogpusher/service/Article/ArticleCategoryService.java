@@ -395,6 +395,50 @@ public class ArticleCategoryService {
 	}
 
 	/**
+	 * カテゴリー経路のgroupIdから、
+	 * 添削・誤字検索で使用する第2階層のcategoryIdを取得する。
+	 *
+	 * 例:
+	 * movie/batman/gadget
+	 *
+	 * → movie/batman
+	 * → batmanのcategoryId
+	 */
+	public Long findTypoCategoryIdByGroupId(Long groupId) {
+
+		if (groupId == null) {
+			return null;
+		}
+
+		CategoryRelation relation = categoryRelationRepository
+				.findByGroupId(groupId)
+				.stream()
+				.findFirst()
+				.orElse(null);
+
+		if (relation == null
+				|| relation.getCategoryPath() == null
+				|| relation.getCategoryPath().isBlank()) {
+			return null;
+		}
+
+		String[] pathParts = relation.getCategoryPath().split("/");
+
+		if (pathParts.length < 2) {
+			return null;
+		}
+
+		String referencePath = pathParts[0] + "/" + pathParts[1];
+
+		return categoryRelationRepository
+				.findByCategoryPath(referencePath)
+				.stream()
+				.findFirst()
+				.map(CategoryRelation::getCategoryId)
+				.orElse(null);
+	}
+
+	/**
 	 * フルパスからカテゴリーIDを取得する。
 	 *
 	 * CategoryRelationを使用して親子関係を辿る。

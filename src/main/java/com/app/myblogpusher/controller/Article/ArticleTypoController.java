@@ -16,6 +16,7 @@ import com.app.myblogpusher.dto.Typo.TypoScanResultView;
 import com.app.myblogpusher.entity.UserMaster;
 import com.app.myblogpusher.entity.Article.ArticleCategory;
 import com.app.myblogpusher.entity.Article.ArticleWork;
+import com.app.myblogpusher.service.CategoryPathService;
 import com.app.myblogpusher.service.HomophoneTypoScanService;
 import com.app.myblogpusher.service.LanguageToolService;
 import com.app.myblogpusher.service.TypoCorrectionService;
@@ -39,6 +40,9 @@ public class ArticleTypoController {
 
 	@Autowired
 	private ArticleSaveUtil articleSaveUtil;
+
+	@Autowired
+	private CategoryPathService categoryPathService;
 
 	//添削画面
 	@PostMapping("/article/correct")
@@ -67,9 +71,8 @@ public class ArticleTypoController {
 
 		ArticleWork work = articleWorkService.findById(savedWorkId);
 		Long categoryGroupId = work.getCategoryGroupId();
-
-		Long categoryId = articleCategoryService
-				.findReferenceCategoryId(categoryGroupId);
+		Long categoryId = categoryPathService
+				.findTypoCategoryIdByGroupId(categoryGroupId);
 
 		List<TypoCorrectionService.TypoMatch> matches = typoCorrectionService.findMatches(
 				categoryId,
@@ -200,8 +203,9 @@ public class ArticleTypoController {
 
 			categoryId = Long.valueOf(categorySelect);
 
-			// 添削・誤字検索は親カテゴリー単位で行う
-			categoryId = articleCategoryService.findReferenceCategoryId(categoryId);
+			// 添削・誤字検索は第2階層カテゴリー単位で行う
+			categoryId = categoryPathService
+					.findTypoCategoryIdByGroupId(categoryId);
 		}
 
 		List<LanguageToolService.LanguageToolMatch> allMatches = languageToolService.checkText(content);
