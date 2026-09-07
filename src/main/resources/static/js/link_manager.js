@@ -4,9 +4,12 @@
 // 記事リンク挿入管理
 //
 // ・投稿済み記事一覧表示
+// ・カテゴリー変更による記事再取得
 // ・選択記事保持
 // ・Markdownリンク生成
 // ・本文へのリンク挿入
+//
+// 記事一覧はArticleテーブルから取得する。
 // =====================================================
 
 
@@ -32,6 +35,59 @@ let filteredArticleLinks = [];
 
 
 // -----------------------------------------------------
+// カテゴリー指定で記事一覧を取得
+// -----------------------------------------------------
+
+async function fetchArticleLinkList(categoryGroupId) {
+
+	if (!categoryGroupId) {
+
+		loadArticleLinkList([]);
+
+		return;
+
+	}
+
+	try {
+
+		// Articleテーブルから
+		// 指定カテゴリー経路の記事を取得する。
+		const response =
+			await fetch(
+				'/article/link/articles?categoryGroupId='
+				+ encodeURIComponent(categoryGroupId)
+			);
+
+		if (!response.ok) {
+
+			throw new Error(
+				'記事リンク一覧の取得に失敗しました'
+			);
+
+		}
+
+		const articles =
+			await response.json();
+
+		// 取得した記事一覧を保持する。
+		filteredArticleLinks = articles;
+
+		loadArticleLinkList(articles);
+
+	} catch (error) {
+
+		console.error(
+			'記事リンク一覧の取得に失敗しました:',
+			error
+		);
+
+		loadArticleLinkList([]);
+
+	}
+}
+
+
+// -----------------------------------------------------
 // リンクメニュー表示
 // -----------------------------------------------------
 
@@ -41,26 +97,46 @@ const linkButton =
 
 if (linkButton) {
 
-	linkButton.addEventListener('click', function() {
+	linkButton.addEventListener('click', async function() {
 
 		const textarea =
-			document.querySelector('textarea[name="content"]');
+			document.querySelector(
+				'textarea[name="content"]'
+			);
+
+		if (!textarea) {
+
+			return;
+
+		}
 
 		textarea.focus();
 
 		articleLinkInsertPosition =
 			textarea.selectionStart;
 
-
+		// リンク検索カテゴリーを生成する。
 		loadArticleLinkCategory();
 
-		filteredArticleLinks =
-			window.publishedArticles || [];
+		const categorySelect =
+			document.getElementById(
+				'articleLinkCategorySelect'
+			);
 
-		loadArticleLinkList();
+		const categoryGroupId =
+			categorySelect
+				? categorySelect.value
+				: null;
 
-		document.getElementById('articleLinkModal')
-			.style.display = 'block';
+		// モーダルを開いた時点で
+		// 現在選択されているカテゴリーの記事を取得する。
+		await fetchArticleLinkList(
+			categoryGroupId
+		);
+
+		document.getElementById(
+			'articleLinkModal'
+		).style.display = 'block';
 
 	});
 
@@ -69,19 +145,17 @@ if (linkButton) {
 
 // -----------------------------------------------------
 // 投稿済み記事一覧表示
-//
-// window.publishedArticles
-// から取得する
 // -----------------------------------------------------
 
 function loadArticleLinkList(articles) {
 
 	filteredArticleLinks =
-		articles || window.publishedArticles || [];
+		articles || [];
 
 	const list =
-		document.getElementById('articleLinkList');
-
+		document.getElementById(
+			'articleLinkList'
+		);
 
 	if (!list) {
 
@@ -89,12 +163,12 @@ function loadArticleLinkList(articles) {
 
 	}
 
-
 	list.innerHTML = '';
 
-
-	if (!window.publishedArticles
-		|| window.publishedArticles.length === 0) {
+	if (
+		!filteredArticleLinks ||
+		filteredArticleLinks.length === 0
+	) {
 
 		list.textContent =
 			'投稿済み記事がありません';
@@ -103,39 +177,35 @@ function loadArticleLinkList(articles) {
 
 	}
 
-
 	filteredArticleLinks.forEach(article => {
 
 		const button =
 			document.createElement('button');
-
 
 		button.type = 'button';
 
 		button.className =
 			'article-link-item';
 
-
 		button.textContent =
 			article.title;
 
-
 		button.addEventListener('click', function() {
 
-			selectedArticleLink = article;
+			selectedArticleLink =
+				article;
 
-
-			document.getElementById('articleLinkText')
-				.value =
+			document.getElementById(
+				'articleLinkText'
+			).value =
 				article.title;
 
-
-			document.getElementById('articleLinkUrl')
-				.value =
+			document.getElementById(
+				'articleLinkUrl'
+			).value =
 				article.hugoPath;
 
 		});
-
 
 		list.appendChild(button);
 
@@ -155,32 +225,33 @@ function loadArticleLinkCategory() {
 			'articleLinkCategorySelect'
 		);
 
-	if (!select || !window.linkCategories) {
+	if (
+		!select ||
+		!window.linkCategories
+	) {
 
 		return;
 
 	}
 
-
 	select.innerHTML = '';
-
 
 	window.linkCategories.forEach(category => {
 
 		const option =
 			document.createElement('option');
 
-
+		// ArticleLinkControllerは
+		// categoryGroupIdを受け取るため、
+		// カテゴリー経路のgroupIdを使用する。
 		option.value =
-			category.categoryId;
-
+			category.groupId;
 
 		option.textContent =
 			category.fullPath;
 
-
 		if (
-			String(category.categoryId)
+			String(category.groupId)
 			===
 			String(window.linkSearchCategoryId)
 		) {
@@ -188,7 +259,6 @@ function loadArticleLinkCategory() {
 			option.selected = true;
 
 		}
-
 
 		select.appendChild(option);
 
@@ -213,64 +283,12 @@ if (articleLinkCategorySelect) {
 		'change',
 		async function() {
 
-			const categoryId =
+			const categoryGroupId =
 				this.value;
 
-
-			if (!categoryId) {
-
-				loadArticleLinkList([]);
-
-				return;
-
-			}
-
-
-			try {
-
-				// カテゴリー変更時にArticleテーブルから
-				// 対象カテゴリーの記事を再取得する
-				const response =
-					await fetch(
-						'/article/link/articles?categoryId='
-						+ encodeURIComponent(categoryId)
-					);
-
-
-				if (!response.ok) {
-
-					throw new Error(
-						'記事リンク一覧の取得に失敗しました'
-					);
-
-				}
-
-
-				const articles =
-					await response.json();
-
-
-				// 再取得した記事一覧を保持する
-				window.publishedArticles =
-					articles;
-
-
-				// 再取得した記事一覧を表示する
-				loadArticleLinkList(
-					articles
-				);
-
-
-			} catch (error) {
-
-				console.error(
-					'記事リンク一覧の取得に失敗しました:',
-					error
-				);
-
-				loadArticleLinkList([]);
-
-			}
+			await fetchArticleLinkList(
+				categoryGroupId
+			);
 
 		}
 	);
@@ -298,10 +316,11 @@ if (cancelArticleLinkButton) {
 				'articleLinkModal'
 			).style.display = 'none';
 
+			articleLinkInsertPosition =
+				null;
 
-			articleLinkInsertPosition = null;
-
-			selectedArticleLink = null;
+			selectedArticleLink =
+				null;
 
 		}
 	);
@@ -325,7 +344,6 @@ if (insertArticleLinkButton) {
 		'click',
 		function() {
 
-
 			if (!selectedArticleLink) {
 
 				alert('記事を選択してください');
@@ -334,16 +352,13 @@ if (insertArticleLinkButton) {
 
 			}
 
-
 			const text =
 				document.getElementById(
 					'articleLinkText'
 				).value.trim();
 
-
 			const url =
 				selectedArticleLink.hugoPath;
-
 
 			const markdown =
 				'[' +
@@ -352,14 +367,14 @@ if (insertArticleLinkButton) {
 				url +
 				')';
 
-
 			const textarea =
 				document.querySelector(
 					'textarea[name="content"]'
 				);
 
-
-			if (articleLinkInsertPosition !== null) {
+			if (
+				articleLinkInsertPosition !== null
+			) {
 
 				textarea.value =
 					textarea.value.substring(
@@ -380,33 +395,29 @@ if (insertArticleLinkButton) {
 
 			}
 
-
 			textarea.focus();
 
-
 			// 挿入したリンクの直後へカーソルを戻す
-
 			const cursorPosition =
 				articleLinkInsertPosition !== null
 					? articleLinkInsertPosition
 					+ markdown.length
 					: textarea.value.length;
 
-
 			textarea.setSelectionRange(
 				cursorPosition,
 				cursorPosition
 			);
 
-
 			document.getElementById(
 				'articleLinkModal'
 			).style.display = 'none';
 
+			articleLinkInsertPosition =
+				null;
 
-			articleLinkInsertPosition = null;
-
-			selectedArticleLink = null;
+			selectedArticleLink =
+				null;
 
 		}
 	);
