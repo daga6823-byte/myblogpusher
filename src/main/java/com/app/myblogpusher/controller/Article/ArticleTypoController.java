@@ -80,7 +80,10 @@ public class ArticleTypoController {
 
 		model.addAttribute("categories",
 				articleCategoryService.findSelectableCategories(userId));
+		model.addAttribute("categories",
+				articleCategoryService.findSelectableCategories(userId));
 		model.addAttribute("work", work);
+		model.addAttribute("categoryGroupId", categoryGroupId);
 		model.addAttribute("typoMatches", matches);
 		model.addAttribute("categoryId", categoryId);
 
