@@ -140,15 +140,36 @@ document.getElementById('footnoteButton')
 		}
 
 		// カテゴリー選択肢を作成
+		// 取得した参考文献を表示カテゴリーで絞り込むために使用する。
+
 		loadReferenceCategories();
 
-		// 「すべて」を初期選択
-		document.getElementById('referenceCategorySelect')
-			.value = '';
+		const groupId =
+			document.getElementById('categorySelect').value;
 
-		// 参考文献を全件取得
+		if (!groupId || groupId === '__new__') {
+
+			alert('記事のカテゴリーを選択してください');
+
+			return;
+
+		}
+
+		// 現在の記事カテゴリーを基準に
+		// 参考文献を取得する。
+
 		const response =
-			await fetch('/category/reference/list');
+			await fetch(
+				`/category/reference/list?groupId=${encodeURIComponent(groupId)}`
+			);
+
+		if (!response.ok) {
+
+			alert('参考文献の取得に失敗しました');
+
+			return;
+
+		}
 
 		referenceCache =
 			await response.json();
@@ -246,9 +267,8 @@ function insertFootnote(reference) {
 document.getElementById('saveReferenceButton')
 	.addEventListener('click', async () => {
 
-		const groupId =
-			document.getElementById('referenceCategorySelect')
-				.value;
+		const articleGroupId =
+			document.getElementById('categorySelect').value;
 
 		const referenceName =
 			document.getElementById('referenceName')
@@ -258,14 +278,20 @@ document.getElementById('saveReferenceButton')
 			document.getElementById('referenceUrl')
 				.value.trim();
 
-		if (!groupId) {
-			alert('参考文献を登録するカテゴリーを選択してください');
+		if (!articleGroupId || articleGroupId === '__new__') {
+
+			alert('記事のカテゴリーを選択してください');
+
 			return;
+
 		}
 
 		if (!referenceName) {
+
 			alert('参考文献名を入力してください');
+
 			return;
+
 		}
 
 		await fetch('/category/reference/save', {
@@ -278,17 +304,17 @@ document.getElementById('saveReferenceButton')
 			},
 
 			body:
-				`groupId=${groupId}`
+				`groupId=${encodeURIComponent(articleGroupId)}`
 				+ `&referenceName=${encodeURIComponent(referenceName)}`
 				+ `&url=${encodeURIComponent(url)}`
 		});
 
 		document.getElementById('referenceName').value = '';
+
 		document.getElementById('referenceUrl').value = '';
 
-		// 登録後は参考文献一覧を再取得せず、
-		// 次回ダイアログを開いたときに最新状態を取得する。
 		referenceCache = [];
+
 	});
 
 // =====================================================

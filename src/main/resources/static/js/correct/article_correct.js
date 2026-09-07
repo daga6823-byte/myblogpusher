@@ -15,3 +15,15 @@ window.addEventListener('DOMContentLoaded', () => {
 	syncSelectAllState();
 
 });
+
+const backButton = document.getElementById('backButton');
+
+if (backButton) {
+    backButton.addEventListener('click', () => {
+        const workId =
+            document.querySelector('input[name="workId"]').value;
+
+        window.location.href =
+            `/article/edit?workId=${workId}`;
+    });
+}

@@ -121,19 +121,24 @@ public class ArticleReferenceController {
 	}
 
 	/**
-	 * 指定カテゴリー経路の参考文献一覧をJSONで取得する
+	 * 指定された記事カテゴリーを基準に参考文献一覧をJSONで取得する
 	 *
-	 * 脚注挿入時に登録済み参考文献を選択するために使用する。
+	 * 記事の深いカテゴリー経路が指定された場合も、
+	 * 参考文献管理用のgroupIdへ変換して取得する。
 	 */
 	@GetMapping("/category/reference/list")
 	@ResponseBody
 	public List<ArticleReference> referenceJson(
+			@RequestParam Long groupId,
 			HttpSession session) {
 
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 
-		return articleReferenceService.findAll(
-				loginUser.getUserId());
+		Long referenceGroupId = categoryPathService.resolveReferenceGroupId(groupId);
+
+		return articleReferenceService.findByGroup(
+				loginUser.getUserId(),
+				referenceGroupId);
 	}
 
 	/**
