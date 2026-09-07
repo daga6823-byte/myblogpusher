@@ -314,15 +314,6 @@ public class ArticleCategoryService {
 	}
 
 	/**
-	 * sortOrderの比較用。null(未設定)は0として扱う
-	 */
-	private int compareSortOrder(Integer a, Integer b) {
-		int av = a == null ? 0 : a;
-		int bv = b == null ? 0 : b;
-		return Integer.compare(av, bv);
-	}
-
-	/**
 	 * 辞書検索に使用するカテゴリーIDを取得する。
 	 *
 	 * 第2階層のカテゴリーを辞書検索対象とする。

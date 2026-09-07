@@ -18,7 +18,7 @@
 
 <body>
 
-	<div class="container">
+	<div class="box">
 
 		<h1>投稿エラー確認</h1>
 
@@ -42,7 +42,7 @@
 
 				<!-- 既存の編集画面へ戻って記事を修正する -->
 				<a th:href="@{/article/edit(workId=${work.workId})}">
-					<button type="button">修正</button>
+					<button type="button" class="btn-edit">修正</button>
 				</a>
 
 				<hr>
@@ -54,14 +54,15 @@
 		<!-- 既存画面と同じ戻る・ログアウト導線 -->
 		<div class="button-area">
 
-			<button type="button" id="backButton">
+			<button type="button" id="backButton" class="btn-back">
 				戻る
 			</button>
-
+			
 			<form th:action="@{/logout}" method="post">
-				<button type="submit">
+				<button type="submit" class="btn-delete">
 					ログアウト
 				</button>
+			</form>
 			</form>
 
 		</div>

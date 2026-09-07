@@ -217,9 +217,7 @@ function loadArticleLinkList(articles) {
 // -----------------------------------------------------
 // リンク検索カテゴリー生成
 // -----------------------------------------------------
-
 function loadArticleLinkCategory() {
-
 	const select =
 		document.getElementById(
 			'articleLinkCategorySelect'
@@ -235,18 +233,17 @@ function loadArticleLinkCategory() {
 		!window.linkCategories ||
 		!articleCategorySelect
 	) {
-
 		return;
-
 	}
 
+	// 編集中の記事が保持しているgroupIdをそのまま使用する。
+	// categoryIdへの変換は行わない。
 	const currentCategoryGroupId =
 		articleCategorySelect.value;
 
 	select.innerHTML = '';
 
 	window.linkCategories.forEach(category => {
-
 		const option =
 			document.createElement('option');
 
@@ -257,22 +254,14 @@ function loadArticleLinkCategory() {
 		option.textContent =
 			category.categoryPath;
 
-		// 編集中の記事と同じカテゴリー経路を
-		// 初期選択状態にする。
-		if (
-			String(category.groupId)
-			===
-			String(currentCategoryGroupId)
-		) {
-
-			option.selected = true;
-
-		}
-
 		select.appendChild(option);
-
 	});
 
+	// 現在の記事と同じgroupIdを初期選択する。
+	// groupIdが存在しない場合は先頭を勝手に選択しない。
+	if (currentCategoryGroupId) {
+		select.value = currentCategoryGroupId;
+	}
 }
 
 
