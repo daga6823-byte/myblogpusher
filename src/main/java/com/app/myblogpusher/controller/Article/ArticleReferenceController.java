@@ -1,11 +1,14 @@
 /**
- * カテゴリー経路を基準とした参考文献管理を担当するController
+ * カテゴリーを基準とした参考文献管理を担当するController
  *
  * 記事のカテゴリー経路(groupId)を入口として、
  * 参考文献を共有するカテゴリーのcategoryIdへ変換して管理する。
  *
  * 参考文献そのものはカテゴリー経路ではなく、
  * 共通カテゴリー（例：batman）に紐付ける。
+ *
+ * 参考文献管理画面のカテゴリー選択には、
+ * 実際に参考文献が登録されているカテゴリーだけを表示する。
  */
 
 package com.app.myblogpusher.controller.Article;
@@ -21,9 +24,11 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.app.myblogpusher.entity.CategoryRelation;
 import com.app.myblogpusher.entity.UserMaster;
+import com.app.myblogpusher.entity.Article.ArticleCategory;
 import com.app.myblogpusher.entity.Article.ArticleReference;
 import com.app.myblogpusher.repository.CategoryRelationRepository;
 import com.app.myblogpusher.service.CategoryPathService;
+import com.app.myblogpusher.service.Article.ArticleCategoryService;
 import com.app.myblogpusher.service.Article.ArticleReferenceService;
 
 import jakarta.servlet.http.HttpSession;
@@ -33,16 +38,20 @@ public class ArticleReferenceController {
 
 	private final ArticleReferenceService articleReferenceService;
 
+	private final ArticleCategoryService articleCategoryService;
+
 	private final CategoryRelationRepository categoryRelationRepository;
 
 	private final CategoryPathService categoryPathService;
 
 	public ArticleReferenceController(
 			ArticleReferenceService articleReferenceService,
+			ArticleCategoryService articleCategoryService,
 			CategoryRelationRepository categoryRelationRepository,
 			CategoryPathService categoryPathService) {
 
 		this.articleReferenceService = articleReferenceService;
+		this.articleCategoryService = articleCategoryService;
 		this.categoryRelationRepository = categoryRelationRepository;
 		this.categoryPathService = categoryPathService;
 	}
@@ -77,11 +86,23 @@ public class ArticleReferenceController {
 				userId,
 				referenceCategoryId);
 
+		// 実際に参考文献が登録されているカテゴリーだけを取得する。
+		List<Long> referenceCategoryIds = articleReferenceService.findRegisteredCategoryIds(userId);
+
+		List<ArticleCategory> referenceCategories = referenceCategoryIds.stream()
+				.map(articleCategoryService::findById)
+				.flatMap(java.util.Optional::stream)
+				.toList();
+
 		model.addAttribute("references", references);
 		model.addAttribute("groupId", referenceGroupId);
 		model.addAttribute(
 				"categoryName",
 				relation.getCategoryPath());
+
+		model.addAttribute(
+				"referenceCategories",
+				referenceCategories);
 
 		return "category/reference_list";
 	}
@@ -130,26 +151,20 @@ public class ArticleReferenceController {
 	}
 
 	/**
-	 * 指定された記事カテゴリーを基準に
-	 * 参考文献一覧をJSONで取得する。
+	 * 登録済み参考文献をJSONで取得する
 	 *
-	 * 記事のgroupIdから共通カテゴリーのcategoryIdを取得し、
-	 * そのカテゴリーに登録された参考文献を返却する。
+	 * ログインユーザーが登録している参考文献を全カテゴリーから取得する。
+	 * 画面側のreferenceCategorySelectでcategoryIdを使って絞り込む。
 	 */
 	@GetMapping("/category/reference/list")
 	@ResponseBody
 	public List<ArticleReference> referenceJson(
-			@RequestParam Long groupId,
 			HttpSession session) {
 
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 
-		Long referenceCategoryId = categoryPathService.findReferenceCategoryIdByGroupId(
-				groupId);
-
-		return articleReferenceService.findByCategory(
-				loginUser.getUserId(),
-				referenceCategoryId);
+		return articleReferenceService.findAll(
+				loginUser.getUserId());
 	}
 
 	/**
@@ -165,5 +180,27 @@ public class ArticleReferenceController {
 
 		return "redirect:/category/reference?groupId="
 				+ referenceGroupId;
+	}
+
+	/**
+	 * 参考文献が登録されているカテゴリー一覧を取得する
+	 *
+	 * article_referenceに実際に登録されているcategoryIdだけを対象とする。
+	 * カテゴリー階層やCategoryRelationから候補を生成しない。
+	 */
+	@GetMapping("/category/reference/categories")
+	@ResponseBody
+	public List<ArticleCategory> referenceCategories(
+			HttpSession session) {
+
+		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
+
+		List<Long> categoryIds = articleReferenceService.findRegisteredCategoryIds(
+				loginUser.getUserId());
+
+		return categoryIds.stream()
+				.map(articleCategoryService::findById)
+				.flatMap(java.util.Optional::stream)
+				.toList();
 	}
 }

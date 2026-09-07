@@ -38,7 +38,7 @@ public class ArticleReferenceService {
 	}
 
 	/**
-	 * ユーザーが登録した参考文献をすべて取得する
+	 * ユーザーが登録している参考文献を全件取得する
 	 */
 	public List<ArticleReference> findAll(Long userId) {
 
@@ -71,5 +71,12 @@ public class ArticleReferenceService {
 	 */
 	public void delete(Long referenceId) {
 		articleReferenceRepository.deleteById(referenceId);
+	}
+
+	/**
+	 * 参考文献が登録されているカテゴリーID一覧を取得する
+	 */
+	public List<Long> findRegisteredCategoryIds(Long userId) {
+		return articleReferenceRepository.findDistinctCategoryIdByUserId(userId);
 	}
 }

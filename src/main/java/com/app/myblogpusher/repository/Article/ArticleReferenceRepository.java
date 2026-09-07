@@ -29,4 +29,9 @@ public interface ArticleReferenceRepository extends JpaRepository<ArticleReferen
 
 	List<ArticleReference> findByUserIdOrderByReferenceNameAsc(
 			Long userId);
+
+	/**
+	 * ユーザーが参考文献を登録しているカテゴリーID一覧を取得する
+	 */
+	List<Long> findDistinctCategoryIdByUserId(Long userId);
 }

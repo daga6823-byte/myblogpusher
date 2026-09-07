@@ -38,9 +38,10 @@ function getNextFootnoteNumber(text) {
 
 // =====================================================
 // 参考文献カテゴリーを作成
+//
+// 参考文献が実際に登録されているカテゴリーだけを取得する。
 // =====================================================
-
-function loadReferenceCategories() {
+async function loadReferenceCategories() {
 
 	const select =
 		document.getElementById('referenceCategorySelect');
@@ -59,13 +60,24 @@ function loadReferenceCategories() {
 
 	select.appendChild(allOption);
 
-	(window.linkCategories || []).forEach(category => {
+	const response =
+		await fetch('/category/reference/categories');
+
+	if (!response.ok) {
+		alert('参考文献カテゴリーの取得に失敗しました');
+		return;
+	}
+
+	const categories =
+		await response.json();
+
+	categories.forEach(category => {
 
 		const option =
 			document.createElement('option');
 
-		option.value = category.groupId;
-		option.textContent = category.categoryPath;
+		option.value = category.categoryId;
+		option.textContent = category.categoryName;
 
 		select.appendChild(option);
 	});
@@ -142,7 +154,7 @@ document.getElementById('footnoteButton')
 		// カテゴリー選択肢を作成
 		// 取得した参考文献を表示カテゴリーで絞り込むために使用する。
 
-		loadReferenceCategories();
+		await loadReferenceCategories();
 
 		const groupId =
 			document.getElementById('categorySelect').value;
@@ -189,11 +201,11 @@ document.getElementById('footnoteButton')
 document.getElementById('referenceCategorySelect')
 	.addEventListener('change', () => {
 
-		const groupId =
+		const categoryId =
 			document.getElementById('referenceCategorySelect')
 				.value;
 
-		if (!groupId) {
+		if (!categoryId) {
 			displayReferences(referenceCache);
 			return;
 		}
@@ -201,7 +213,7 @@ document.getElementById('referenceCategorySelect')
 		const references =
 			referenceCache.filter(
 				reference =>
-					String(reference.groupId) === String(groupId)
+					String(reference.categoryId) === String(categoryId)
 			);
 
 		displayReferences(references);
