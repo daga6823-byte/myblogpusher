@@ -7,7 +7,7 @@
  * カテゴリーに基づくデフォルトフォルダ名の取得を行う。
  */
 
-package com.app.myblogpusher.controller.Article;
+package com.app.myblogpusher.controller;
 
 import java.io.IOException;
 import java.util.Map;
@@ -32,7 +32,7 @@ import com.app.myblogpusher.service.Image.ImageAssetService;
 import jakarta.servlet.http.HttpSession;
 
 @Controller
-public class ArticleImageController {
+public class ImageAssetController {
 
 	@Autowired
 	private ImageAssetService imageAssetService;
@@ -120,12 +120,6 @@ public class ArticleImageController {
 		}
 	}
 
-	/**
-	 * 画像削除
-	 *
-	 * Supabase Storageから画像を削除後、
-	 * DB(image_asset)のレコードも削除する。
-	 */
 	/**
 	 * 画像削除
 	 *

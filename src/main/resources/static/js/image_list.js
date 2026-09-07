@@ -154,9 +154,6 @@ document.querySelectorAll('.btn-update').forEach(btn => {
 		document.getElementById('imageId').value =
 			btn.dataset.imageId;
 
-		document.getElementById('imageCategoryId').value =
-			btn.dataset.categoryId ?? '';
-
 		document.getElementById('imageFolderName').value =
 			btn.dataset.folderName ?? '';
 
@@ -187,10 +184,6 @@ document.getElementById('saveImageButton').addEventListener('click', () => {
 	params.append(
 		'imageId',
 		document.getElementById('imageId').value);
-
-	params.append(
-		'categoryId',
-		document.getElementById('imageCategoryId').value);
 
 	params.append(
 		'folderName',
