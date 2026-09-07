@@ -163,6 +163,8 @@ public class ArticleEditController {
 			currentCategoryGroupId = workspaceService.find(userId)
 					.map(ws -> ws.getCategoryGroupId())
 					.orElse(null);
+
+			model.addAttribute("categoryGroupId", currentCategoryGroupId);
 		}
 
 		if (currentCategoryGroupId != null) {
