@@ -1,0 +1,18 @@
+<!--
+	共通ヘッダー
+	・左側にMBPロゴを表示
+	・右側にログインユーザー名とログアウトボタンを表示
+-->
+<header th:fragment="header" class="common-header">
+	<div class="header-logo">
+		<a th:href="@{/home}">MBP</a>
+	</div>
+
+	<div class="header-user">
+		<span th:text="${session.loginUser.userName}"></span>
+
+		<form th:action="@{/logout}" method="post">
+			<button type="submit">ログアウト</button>
+		</form>
+	</div>
+</header>

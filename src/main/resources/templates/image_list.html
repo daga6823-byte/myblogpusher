@@ -25,7 +25,7 @@
 </head>
 
 <body>
-
+	<div th:replace="~{fragments/header :: header}"></div>
 	<!-- 画像編集モーダル -->
 	<div th:replace="~{fragments/image_edit_modal :: imageEditModal}"></div>
 
@@ -74,7 +74,7 @@
 			<div class="image-category" th:text="${img.categoryName}">
 			</div>
 
-			<div class="image-date" th:text="${img.uploadDate}">
+			<div class="image-date" th:text="${#temporals.format(img.uploadDate, 'yyyy-MM-dd')}">
 			</div>
 
 			<!-- 編集 -->

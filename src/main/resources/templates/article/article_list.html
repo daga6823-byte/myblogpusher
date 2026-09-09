@@ -10,6 +10,7 @@
 </head>
 
 <body>
+	<div th:replace="~{fragments/header :: header}"></div>
 	<div th:if="${published}" class="success-message">
 		投稿しました。
 	</div>

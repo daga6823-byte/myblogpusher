@@ -11,6 +11,7 @@
 </head>
 
 <body>
+	<div th:replace="~{fragments/header :: header}"></div>
 	<div class="home-header">
 		<h1>カテゴリー辞典</h1>
 		<form th:action="@{/logout}" method="post">

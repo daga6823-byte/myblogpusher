@@ -1,0 +1,45 @@
+/*
+ * 共通ヘッダー
+ * MBPロゴ、ログインユーザー名、ログアウトボタンのレイアウトを担当する。
+ */
+
+.common-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	height: 56px;
+	padding: 0 24px;
+	background-color: #1976d2;
+	box-sizing: border-box;
+}
+
+.header-logo a {
+	color: #fff;
+	text-decoration: none;
+	font-size: 24px;
+	font-weight: bold;
+}
+
+.header-user {
+	display: flex;
+	align-items: center;
+	gap: 16px;
+	color: #fff;
+}
+
+.header-user form {
+	margin: 0;
+}
+
+.header-user button {
+	padding: 6px 12px;
+	border: 1px solid #fff;
+	border-radius: 4px;
+	background-color: transparent;
+	color: #fff;
+	cursor: pointer;
+}
+
+.header-user button:hover {
+	background-color: rgba(255, 255, 255, 0.15);
+}
