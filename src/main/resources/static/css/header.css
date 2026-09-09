@@ -3,6 +3,38 @@
  * MBPロゴ、ログインユーザー名、ログアウトボタンのレイアウトを担当する。
  */
 
+.header-logo {
+	background: transparent;
+	border: none;
+	padding: 0;
+	margin: 0;
+}
+
+.header-logo a {
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 70px;
+	height: 42px;
+	color: #fff;
+	text-decoration: none;
+	overflow: hidden;
+}
+
+.header-logo-icon {
+	position: absolute;
+	font-size: 46px;
+	opacity: 0.18;
+}
+
+.header-logo-text {
+	position: relative;
+	z-index: 1;
+	font-size: 22px;
+	font-weight: bold;
+}
+
 .common-header {
 	display: flex;
 	justify-content: space-between;
@@ -43,3 +75,18 @@
 .header-user button:hover {
 	background-color: rgba(255, 255, 255, 0.15);
 }
+
+.header-logo {
+	background: transparent;
+	border: none;
+	padding: 0;
+	margin: 0;
+}
+
+.header-logo a {
+	color: #fff;
+	text-decoration: none;
+	font-size: 24px;
+	font-weight: bold;
+}
+
