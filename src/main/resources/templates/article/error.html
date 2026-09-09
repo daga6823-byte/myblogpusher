@@ -2,7 +2,7 @@
 	投稿エラー記事確認画面
 
 	ArticleWork.status = 2 の記事について、
-	記事タイトルと投稿エラー原因を表示する。
+	記事タイトルと投稿エラー原因を一覧表示する。
 -->
 
 <!DOCTYPE html>
@@ -17,7 +17,10 @@
 </head>
 
 <body>
-<div th:replace="~{fragments/header :: header}"></div>
+
+	<!-- 共通ヘッダー -->
+	<div th:replace="~{fragments/header :: header}"></div>
+
 	<div class="box">
 
 		<h1>投稿エラー確認</h1>
@@ -26,44 +29,47 @@
 			<p>投稿エラーの記事はありません。</p>
 		</div>
 
-		<div th:unless="${#lists.isEmpty(errorWorks)}">
+		<table th:unless="${#lists.isEmpty(errorWorks)}" class="error-list">
 
-			<div th:each="work : ${errorWorks}">
+			<thead>
+				<tr>
+					<th>記事タイトル</th>
+					<th>エラー原因</th>
+					<th>操作</th>
+				</tr>
+			</thead>
 
-				<h2 th:text="${work.title}">記事タイトル</h2>
+			<tbody>
 
-				<p>
-					<strong>エラー原因</strong>
-				</p>
+				<tr th:each="work : ${errorWorks}">
 
-				<p th:text="${work.errorMessage}">
-					エラー内容
-				</p>
+					<td th:text="${work.title}">
+						記事タイトル
+					</td>
 
-				<!-- 既存の編集画面へ戻って記事を修正する -->
-				<a th:href="@{/article/edit(workId=${work.workId})}">
-					<button type="button" class="btn-edit">修正</button>
-				</a>
+					<td th:text="${work.errorMessage}">
+						エラー内容
+					</td>
 
-				<hr>
+					<td>
+						<a th:href="@{/article/edit(workId=${work.workId})}">
+							<button type="button" class="btn-edit">
+								修正
+							</button>
+						</a>
+					</td>
 
-			</div>
+				</tr>
 
-		</div>
+			</tbody>
 
-		<!-- 既存画面と同じ戻る・ログアウト導線 -->
+		</table>
+
 		<div class="button-area">
 
 			<button type="button" id="backButton" class="btn-back">
 				戻る
 			</button>
-			
-			<form th:action="@{/logout}" method="post">
-				<button type="submit" class="btn-delete">
-					ログアウト
-				</button>
-			</form>
-			</form>
 
 		</div>
 
