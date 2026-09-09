@@ -1,28 +1,39 @@
 <!--
 	共通ヘッダー
+
 	・左側にMBPロゴを表示
+	・MBPの背景にMaterial Symbolsのアイコンを表示
 	・右側にログインユーザー名とログアウトボタンを表示
 -->
 
 <th:block th:fragment="header">
 
+	<!-- 共通ヘッダー用CSS -->
+	<link rel="stylesheet" th:href="@{/css/header.css}">
+
+	<!-- Material Symbols -->
 	<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined">
 
 	<header class="common-header">
 
 		<div class="header-logo">
-			<a th:href="@{/home}">
-				<span class="material-symbols-outlined header-logo-icon">article</span>
-				<span class="header-logo-text">MBP</span>
-			</a>
+
+			<span class="material-symbols-outlined header-logo-icon">
+				article
+			</span>
+
+			<a th:href="@{/home}" class="header-logo-text">MBP</a>
+
 		</div>
 
 		<div class="header-user">
+
 			<span th:text="${session.loginUser.userName}"></span>
 
 			<form th:action="@{/logout}" method="post">
 				<button type="submit">ログアウト</button>
 			</form>
+
 		</div>
 
 	</header>
