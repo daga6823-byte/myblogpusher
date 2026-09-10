@@ -275,7 +275,6 @@ function insertFootnote(reference) {
 // =====================================================
 // 参考文献登録
 // =====================================================
-
 document.getElementById('saveReferenceButton')
 	.addEventListener('click', async () => {
 
@@ -291,42 +290,55 @@ document.getElementById('saveReferenceButton')
 				.value.trim();
 
 		if (!articleGroupId || articleGroupId === '__new__') {
-
 			alert('記事のカテゴリーを選択してください');
-
 			return;
-
 		}
 
 		if (!referenceName) {
-
 			alert('参考文献名を入力してください');
-
 			return;
-
 		}
 
-		await fetch('/category/reference/save', {
+		const response =
+			await fetch('/category/reference/save', {
 
-			method: 'POST',
+				method: 'POST',
 
-			headers: {
-				'Content-Type':
-					'application/x-www-form-urlencoded'
-			},
+				headers: {
+					'Content-Type':
+						'application/x-www-form-urlencoded'
+				},
 
-			body:
-				`groupId=${encodeURIComponent(articleGroupId)}`
-				+ `&referenceName=${encodeURIComponent(referenceName)}`
-				+ `&url=${encodeURIComponent(url)}`
-		});
+				body:
+					`groupId=${encodeURIComponent(articleGroupId)}`
+					+ `&referenceName=${encodeURIComponent(referenceName)}`
+					+ `&url=${encodeURIComponent(url)}`
+			});
+
+		if (!response.ok) {
+			alert('参考文献の登録に失敗しました');
+			return;
+		}
 
 		document.getElementById('referenceName').value = '';
-
 		document.getElementById('referenceUrl').value = '';
 
-		referenceCache = [];
+		// 登録後、現在の記事カテゴリーの参考文献を再取得して表示する。
+		const listResponse =
+			await fetch(
+				`/category/reference/list?groupId=${encodeURIComponent(articleGroupId)}`
+			);
 
+		if (!listResponse.ok) {
+			alert('参考文献一覧の再取得に失敗しました');
+			return;
+		}
+
+		referenceCache =
+			await listResponse.json();
+
+		// ページ全体をリロードせず、登録後の一覧だけ再表示する。
+		displayReferences(referenceCache);
 	});
 
 // =====================================================
