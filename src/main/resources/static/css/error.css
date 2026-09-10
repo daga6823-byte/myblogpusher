@@ -1,0 +1,6 @@
+.error-message {
+	max-height: 300px;
+	overflow-y: auto;
+	white-space: pre-wrap;
+	word-break: break-word;
+}

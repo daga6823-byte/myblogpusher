@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 
 import com.app.myblogpusher.entity.Article.Article;
 import com.app.myblogpusher.entity.Article.ArticleCategory;
+import com.app.myblogpusher.repository.CategoryRelationRepository;
 import com.app.myblogpusher.repository.Article.ArticleCategoryRepository;
 
 @Service
@@ -30,6 +31,9 @@ public class HugoArticleService {
 	@Autowired
 	private ArticleCategoryRepository articleCategoryRepository;
 
+	@Autowired
+	private CategoryRelationRepository categoryRelationRepository;
+
 	public void createArticle(
 			Git git,
 			String repoPath,
@@ -37,9 +41,15 @@ public class HugoArticleService {
 			String slug)
 			throws IOException, GitAPIException {
 
-		// _index.md生成用
+		Long categoryId = categoryRelationRepository
+				.findByGroupId(article.getCategoryGroupId())
+				.stream()
+				.findFirst()
+				.orElseThrow()
+				.getCategoryId();
+
 		ArticleCategory category = articleCategoryRepository
-				.findById(article.getCategoryGroupId())
+				.findById(categoryId)
 				.orElseThrow();
 
 		List<ArticleCategory> categoryPath = buildCategoryPath(category);
@@ -50,10 +60,9 @@ public class HugoArticleService {
 				categoryPath);
 
 		// 投稿先は投稿確認画面で確定したslugから生成する
-		String hugoPath =
-				buildArticlePath(
-						article.getCategoryGroupId(),
-						slug);
+		String hugoPath = buildArticlePath(
+				article.getCategoryGroupId(),
+				slug);
 
 		Path contentPath = Paths.get(
 				repoPath,
@@ -140,8 +149,15 @@ public class HugoArticleService {
 			Long categoryId,
 			String slug) {
 
+		Long actualCategoryId = categoryRelationRepository
+				.findByGroupId(categoryId)
+				.stream()
+				.findFirst()
+				.orElseThrow()
+				.getCategoryId();
+
 		ArticleCategory category = articleCategoryRepository
-				.findById(categoryId)
+				.findById(actualCategoryId)
 				.orElseThrow();
 
 		List<ArticleCategory> categoryPath = buildCategoryPath(category);
