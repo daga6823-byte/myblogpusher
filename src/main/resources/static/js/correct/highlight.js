@@ -159,4 +159,11 @@ document.getElementById('content')?.addEventListener('scroll', () => {
 /**
  * 初期表示時にハイライトを描画する
  */
+
 window.addEventListener('DOMContentLoaded', renderHighlight);
+
+/**
+ * 本文変更時にハイライトを再描画する
+ */
+document.getElementById('content')?.addEventListener('input', renderHighlight);
+
