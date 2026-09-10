@@ -12,8 +12,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -41,23 +39,18 @@ public class HugoArticleService {
 			String slug)
 			throws IOException, GitAPIException {
 
-		Long categoryId = categoryRelationRepository
+		String categoryPath = categoryRelationRepository
 				.findByGroupId(article.getCategoryGroupId())
 				.stream()
 				.findFirst()
 				.orElseThrow()
-				.getCategoryId();
-
-		ArticleCategory category = articleCategoryRepository
-				.findById(categoryId)
-				.orElseThrow();
-
-		List<ArticleCategory> categoryPath = buildCategoryPath(category);
+				.getCategoryPath();
 
 		createCategoryIndexesRecursively(
 				git,
 				repoPath,
-				categoryPath);
+				categoryPath,
+				article.getUserId());
 
 		// 投稿先は投稿確認画面で確定したslugから生成する
 		String hugoPath = buildArticlePath(
@@ -80,34 +73,21 @@ public class HugoArticleService {
 				.call();
 	}
 
-	private List<ArticleCategory> buildCategoryPath(ArticleCategory category) {
-
-		List<ArticleCategory> path = new ArrayList<>();
-
-		ArticleCategory current = category;
-
-		while (current != null) {
-
-			path.add(0, current);
-
-			current = current.getParentCategoryId() == null
-					? null
-					: articleCategoryRepository.findById(current.getParentCategoryId()).orElse(null);
-		}
-
-		return path;
-	}
-
 	private void createCategoryIndexesRecursively(
 			Git git,
 			String repoPath,
-			List<ArticleCategory> categoryPath)
+			String categoryPath,
+			Long userId)
 			throws IOException, GitAPIException {
 
 		Path currentDir = Paths.get(repoPath, "content");
 		StringBuilder relativePath = new StringBuilder("content");
 
-		for (ArticleCategory category : categoryPath) {
+		for (String categoryName : categoryPath.split("/")) {
+
+			ArticleCategory category = articleCategoryRepository
+					.findByUserIdAndCategoryName(userId, categoryName)
+					.orElseThrow();
 
 			String slug = category.getCategoryName();
 
@@ -146,35 +126,16 @@ public class HugoArticleService {
 	 * movie/batman/gadget/grapple-gun
 	 */
 	public String buildArticlePath(
-			Long categoryId,
+			Long categoryGroupId,
 			String slug) {
 
-		Long actualCategoryId = categoryRelationRepository
-				.findByGroupId(categoryId)
+		String categoryPath = categoryRelationRepository
+				.findByGroupId(categoryGroupId)
 				.stream()
 				.findFirst()
 				.orElseThrow()
-				.getCategoryId();
+				.getCategoryPath();
 
-		ArticleCategory category = articleCategoryRepository
-				.findById(actualCategoryId)
-				.orElseThrow();
-
-		List<ArticleCategory> categoryPath = buildCategoryPath(category);
-
-		StringBuilder path = new StringBuilder();
-
-		for (ArticleCategory c : categoryPath) {
-
-			if (!path.isEmpty()) {
-				path.append("/");
-			}
-
-			path.append(c.getCategoryName());
-		}
-
-		path.append("/").append(slug);
-
-		return path.toString();
+		return categoryPath + "/" + slug;
 	}
 }
