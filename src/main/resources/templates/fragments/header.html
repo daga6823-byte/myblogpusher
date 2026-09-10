@@ -17,21 +17,20 @@
 	<header class="common-header">
 
 		<div class="header-logo">
-
-			<span class="material-symbols-outlined header-logo-icon">
-				article
-			</span>
-
+			<span class="material-symbols-outlined header-logo-icon" aria-hidden="true">auto_stories</span>
 			<a th:href="@{/home}" class="header-logo-text">MBP</a>
-
 		</div>
 
 		<div class="header-user">
 
-			<span th:text="${session.loginUser.userName}"></span>
+			<span class="header-user-name" th:text="${session.loginUser.userName}">
+				ユーザー名
+			</span>
 
 			<form th:action="@{/logout}" method="post">
-				<button type="submit">ログアウト</button>
+				<button type="submit" class="header-logout">
+					ログアウト
+				</button>
 			</form>
 
 		</div>
