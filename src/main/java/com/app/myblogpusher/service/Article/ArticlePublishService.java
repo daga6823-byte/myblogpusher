@@ -7,6 +7,8 @@
 
 package com.app.myblogpusher.service.Article;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -168,18 +170,24 @@ public class ArticlePublishService {
 						userId);
 
 			} catch (Exception e) {
-
 				System.err.println(
 						"投稿処理に失敗しました: "
 								+ e.getMessage());
-
 				e.printStackTrace();
 
-				// 投稿失敗した記事はエラー状態で残す
+				StringWriter sw = new StringWriter();
+				PrintWriter pw = new PrintWriter(sw);
+
+				e.printStackTrace(pw);
+
+				String errorMessage = sw.toString();
+
+				// 投稿失敗した記事はエラー状態で残す。
+				// 例外メッセージだけでなく、スタックトレースもDBへ保存する。
 				articleWorkService.updateStatus(
-				        work.getWorkId(),
-				        2,
-				        e.getMessage());
+						work.getWorkId(),
+						2,
+						errorMessage);
 			}
 		}
 	}
