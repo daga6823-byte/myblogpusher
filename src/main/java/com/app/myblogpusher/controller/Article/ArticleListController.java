@@ -81,9 +81,8 @@ public class ArticleListController {
 				.toList();
 
 		/*
-		 * カテゴリー選択用の一覧を、
-		 * すでに取得した下書き一覧から作成する。
-		 * カテゴリーごとにDBへ問い合わせることはしない。
+		 * カテゴリー選択用の一覧も、
+		 * 下書き一覧に表示する完全なカテゴリー経路から作成する。
 		 */
 		List<String> categoryNames = workViews.stream()
 				.map(ArticleWorkView::getCategoryName)
