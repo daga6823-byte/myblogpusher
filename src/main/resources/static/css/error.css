@@ -1,6 +1,25 @@
+.error-list {
+	width: 100%;
+	table-layout: fixed;
+}
+
+.error-list th:nth-child(1),
+.error-list td:nth-child(1) {
+	width: 25%;
+}
+
+.error-list th:nth-child(2),
+.error-list td:nth-child(2) {
+	width: 65%;
+}
+
+.error-list th:nth-child(3),
+.error-list td:nth-child(3) {
+	width: 10%;
+}
+
 .error-message {
-	max-height: 300px;
+	max-height: 150px;
 	overflow-y: auto;
 	white-space: pre-wrap;
-	word-break: break-word;
 }

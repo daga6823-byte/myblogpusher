@@ -48,8 +48,10 @@
 						記事タイトル
 					</td>
 
-					<td th:text="${work.errorMessage}">
-						エラー内容
+					<td>
+						<div class="error-message" th:text="${work.errorMessage}">
+							エラー内容
+						</div>
 					</td>
 
 					<td>
