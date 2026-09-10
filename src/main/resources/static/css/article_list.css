@@ -1,26 +1,81 @@
 th,
+
 td {
+
 	text-align: left;
+
 	padding: 10px;
+
 	border-bottom: 1px solid #ddd;
+
 	font-size: 14px;
+
+}
+
+/* 一覧操作 */
+
+.list-controls {
+
+	display: flex;
+
+	gap: 15px;
+
+	margin-bottom: 15px;
+
+}
+
+.list-control {
+
+	display: flex;
+
+	align-items: center;
+
+	gap: 8px;
+
+}
+
+.list-control label {
+
+	font-size: 14px;
+
+}
+
+.list-control select {
+
+	padding: 5px 8px;
+
+	font-size: 14px;
+
 }
 
 /* 新規作成ボタン */
+
 a.new-button {
+
 	display: inline-block;
+
 	text-decoration: none;
+
 }
 
 a.new-button.btn-back {
+
 	color: #fff;
+
 }
 
 .success-message {
+
 	color: #2e7d32;
+
 	background: #e8f5e9;
+
 	border: 1px solid #81c784;
+
 	padding: 10px;
+
 	margin-bottom: 15px;
+
 	border-radius: 4px;
+
 }

@@ -20,27 +20,6 @@ a:hover {
 	background-color: #555;
 }
 
-/* ログアウトボタン */
-.home-header {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	margin-bottom: 24px;
-}
-
 .home-header h1 {
 	margin-bottom: 0;
-}
-
-.btn-logout-link {
-	background: none;
-	border: none;
-	color: #0366d6;
-	font-size: 14px;
-	cursor: pointer;
-	padding: 4px 8px;
-}
-
-.btn-logout-link:hover {
-	text-decoration: underline;
 }

@@ -5,8 +5,9 @@
 
 package com.app.myblogpusher.controller.Article;
 
+import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -18,7 +19,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import com.app.myblogpusher.dto.Article.ArticleWorkView;
 import com.app.myblogpusher.entity.UserMaster;
 import com.app.myblogpusher.entity.Article.ArticleWork;
-import com.app.myblogpusher.service.Article.ArticleCategoryService;
+import com.app.myblogpusher.repository.CategoryRelationRepository;
 import com.app.myblogpusher.service.Article.ArticleWorkService;
 
 import jakarta.servlet.http.HttpSession;
@@ -30,43 +31,84 @@ public class ArticleListController {
 	private ArticleWorkService articleWorkService;
 
 	@Autowired
-	private ArticleCategoryService articleCategoryService;
+	private CategoryRelationRepository categoryRelationRepository;
 
-	/**
-	 * 下書き一覧画面を表示
-	 */
 	@GetMapping("/article/list")
 	public String list(
 			@RequestParam(required = false) Boolean published,
 			HttpSession session,
 			Model model) {
+
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 		Long userId = loginUser.getUserId();
 
 		List<ArticleWork> works = articleWorkService.findDrafts(userId);
+
+		Map<Long, String> categoryPathMap = new HashMap<>();
+
+		categoryRelationRepository.findAll()
+				.forEach(relation -> {
+
+					if (relation.getGroupId() == null
+							|| relation.getCategoryPath() == null
+							|| relation.getCategoryPath().isBlank()) {
+						return;
+					}
+
+					categoryPathMap.putIfAbsent(
+							relation.getGroupId(),
+							relation.getCategoryPath());
+				});
+
 		List<ArticleWorkView> workViews = works.stream()
 				.map(work -> {
-					// categoryIdがnullの下書き（自動保存の不具合等で発生）にも対応する
-					String categoryName = Optional.ofNullable(work.getCategoryGroupId())
-							.map(articleCategoryService::findCategoryPathByGroupId)
-							.orElse("（未分類）");
-					return new ArticleWorkView(work.getWorkId(), work.getTitle(), categoryName, work.getUpdateDate());
+
+					String categoryName = "（未分類）";
+
+					if (work.getCategoryGroupId() != null) {
+						categoryName = categoryPathMap.getOrDefault(
+								work.getCategoryGroupId(),
+								"（未分類）");
+					}
+
+					return new ArticleWorkView(
+							work.getWorkId(),
+							work.getTitle(),
+							work.getCategoryGroupId(),
+							categoryName,
+							work.getUpdateDate());
 				})
 				.toList();
 
+		/*
+		 * カテゴリー選択用の一覧を、
+		 * すでに取得した下書き一覧から作成する。
+		 * カテゴリーごとにDBへ問い合わせることはしない。
+		 */
+		List<String> categoryNames = workViews.stream()
+				.map(ArticleWorkView::getCategoryName)
+				.filter(name -> name != null && !name.isBlank())
+				.distinct()
+				.sorted()
+				.toList();
+
 		model.addAttribute("works", workViews);
+		model.addAttribute("categoryNames", categoryNames);
 		model.addAttribute("published", published != null && published);
+
 		return "article/article_list";
 	}
 
-	/**
-	 * 下書きを削除
-	 */
 	@PostMapping("/article/delete")
-	public String delete(@RequestParam Long workId, HttpSession session) {
+	public String delete(
+			@RequestParam Long workId,
+			HttpSession session) {
+
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 		Long userId = loginUser.getUserId();
+
 		articleWorkService.delete(workId, userId);
+
 		return "redirect:/article/list";
 	}
 }

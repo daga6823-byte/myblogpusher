@@ -15,9 +15,6 @@
 	<div class="box">
 		<div class="home-header">
 			<h1 th:text="${userName} + ' さん、ようこそ'"></h1>
-			<form th:action="@{/logout}" method="post">
-				<button type="submit" class="btn-logout-link">ログアウト</button>
-			</form>
 		</div>
 
 		<div th:if="${isGuest}" class="guest-notice">

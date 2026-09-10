@@ -1,54 +1,145 @@
 <!DOCTYPE html>
+
 <html xmlns:th="http://www.thymeleaf.org">
 
 <head>
+
 	<meta charset="UTF-8">
+
 	<title>下書き一覧</title>
+
 	<link rel="stylesheet" th:href="@{/css/article_list.css}">
 	<link rel="stylesheet" th:href="@{/css/common.css}">
+
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 </head>
 
 <body>
+
 	<div th:replace="~{fragments/header :: header}"></div>
+
 	<div th:if="${published}" class="success-message">
 		投稿しました。
 	</div>
 
 	<div class="box">
+
 		<h1>下書き一覧</h1>
 
+		<!--
+			下書きの表示条件を選択する。
+			カテゴリーの絞り込みと並び順は、
+			取得済みの一覧をJavaScript側で処理する。
+		-->
+		<div class="list-controls">
+
+			<div class="list-control">
+
+				<label for="categoryFilter">
+					カテゴリー
+				</label>
+
+				<select id="categoryFilter">
+					<option value="">すべて</option>
+
+					<option th:each="category : ${categoryNames}" th:value="${category}" th:text="${category}">
+					</option>
+
+				</select>
+
+			</div>
+
+			<div class="list-control">
+
+				<label for="sortOrder">
+					並び順
+				</label>
+
+				<select id="sortOrder">
+
+					<option value="update-desc">
+						更新日時が新しい順
+					</option>
+
+					<option value="update-asc">
+						更新日時が古い順
+					</option>
+
+					<option value="title-asc">
+						タイトル順
+					</option>
+
+					<option value="title-desc">
+						タイトル逆順
+					</option>
+
+				</select>
+
+			</div>
+
+		</div>
+
 		<table>
+
 			<thead>
+
 				<tr>
+
 					<th>タイトル</th>
 					<th>カテゴリー</th>
 					<th>更新日時</th>
 					<th></th>
+
 				</tr>
+
 			</thead>
-			<tbody>
-				<tr th:each="w : ${works}">
+
+			<tbody id="articleList">
+
+				<tr th:each="w : ${works}" th:data-category-group-id="${w.categoryGroupId}"
+					th:data-category-name="${w.categoryName}">
+
 					<td th:text="${w.title}"></td>
+
 					<td th:text="${w.categoryName}"></td>
+
 					<td class="local-date" th:attr="data-date=${w.updateDate}">
 					</td>
+
 					<td>
-						<a class="edit-link btn-edit" th:href="@{/article/edit(workId=${w.workId})}">編集</a>
+
+						<a class="edit-link btn-edit" th:href="@{/article/edit(workId=${w.workId})}">
+							編集
+						</a>
+
 						<form th:action="@{/article/delete}" method="post" style="display:inline;"
 							onsubmit="return confirm('この下書きを削除してもよろしいですか？');">
+
 							<input type="hidden" name="workId" th:value="${w.workId}">
-							<button type="submit" class="btn-delete">削除</button>
+
+							<button type="submit" class="btn-delete">
+								削除
+							</button>
+
 						</form>
+
 					</td>
+
 				</tr>
+
 			</tbody>
+
 		</table>
 
 		<a class="new-button btn-back" th:href="@{/article/edit}">
 			新規作成
 		</a>
-		<button type="button" id="backButton" class="btn-back">戻る</button>
+
+		<button type="button" id="backButton" class="btn-back">
+			戻る
+		</button>
+
 	</div>
 
 	<script th:src="@{/js/article_list.js}"></script>
