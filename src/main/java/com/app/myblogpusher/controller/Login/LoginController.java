@@ -44,7 +44,7 @@ public class LoginController {
 
 	@GetMapping("/login")
 	public String loginForm() {
-		return "login";
+		return "login/login";
 	}
 
 	@PostMapping("/login")
@@ -64,8 +64,7 @@ public class LoginController {
 			String region = loginService.findLoginRegion(ipAddress);
 
 			// 初回ログイン時はGoogle Authenticatorの設定を行う。
-			if (user.getTwoFactorAuthenticatedAt() == null
-					&& loginHistoryService.findPreviousLogin(user.getUserId()) == null) {
+			if (user.getTwoFactorAuthenticatedAt() == null) {
 
 				session.setAttribute("twoFactorUserId", user.getUserId());
 				session.setAttribute("twoFactorIpAddress", ipAddress);
@@ -111,7 +110,7 @@ public class LoginController {
 			return "redirect:/home";
 		} else {
 			model.addAttribute("error", "ログインIDまたはパスワードが間違っています");
-			return "login";
+			return "login/login";
 		}
 	}
 
