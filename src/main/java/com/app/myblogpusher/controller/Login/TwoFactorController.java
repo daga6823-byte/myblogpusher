@@ -87,7 +87,7 @@ public class TwoFactorController {
 
 		model.addAttribute("qrCode", qrCode);
 
-		return "login/login_2fa_setup";
+		return "Login/login_2fa_setup";
 	}
 
 	/**
@@ -128,7 +128,7 @@ public class TwoFactorController {
 
 			model.addAttribute("qrCode", qrCode);
 
-			return "login/login_2fa_setup";
+			return "Login/login_2fa_setup";
 		}
 
 		// 初回2FA認証が成功した日時を記録する。
@@ -156,7 +156,7 @@ public class TwoFactorController {
 			return "redirect:/login";
 		}
 
-		return "login/login_2fa";
+		return "Login/login_2fa";
 	}
 
 	/**
@@ -203,7 +203,7 @@ public class TwoFactorController {
 					"error",
 					"2FA認証に失敗しました。セキュリティ上、ログインを中止しました。");
 
-			return "login/security_alert";
+			return "Login/security_alert";
 		}
 
 		// 2FA認証成功日時を更新する。
