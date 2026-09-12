@@ -21,7 +21,6 @@ import com.app.myblogpusher.entity.UserMaster;
 import com.app.myblogpusher.repository.UserMasterRepository;
 import com.app.myblogpusher.repository.UserRepositoryRepository;
 import com.app.myblogpusher.service.PublishedArticleService;
-import com.app.myblogpusher.service.SecurityMailService;
 import com.app.myblogpusher.service.Article.ArticleWorkspaceService;
 import com.app.myblogpusher.service.Login.LoginHistoryService;
 import com.app.myblogpusher.service.Login.TwoFactorService;
@@ -40,8 +39,8 @@ public class TwoFactorController {
 	@Autowired
 	private LoginHistoryService loginHistoryService;
 
-	@Autowired
-	private SecurityMailService securityMailService;
+//	@Autowired
+//	private SecurityMailService securityMailService;
 
 	@Autowired
 	private ArticleWorkspaceService workspaceService;
@@ -189,10 +188,10 @@ public class TwoFactorController {
 				code)) {
 
 			// 2FA認証失敗をユーザーの登録メールアドレスへ通知する。
-			securityMailService.sendTwoFactorFailureNotice(
-					user,
-					(String) session.getAttribute("twoFactorIpAddress"),
-					(String) session.getAttribute("twoFactorRegion"));
+//			securityMailService.sendTwoFactorFailureNotice(
+//					user,
+//					(String) session.getAttribute("twoFactorIpAddress"),
+//					(String) session.getAttribute("twoFactorRegion"));
 
 			// 認証失敗後は2FA用のセッション情報を破棄してログインを拒否する。
 			session.removeAttribute("twoFactorUserId");
