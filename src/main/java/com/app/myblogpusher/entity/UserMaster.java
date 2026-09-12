@@ -72,4 +72,5 @@ public class UserMaster {
 
 	@Column(name = "two_factor_authenticated_at")
 	private LocalDateTime twoFactorAuthenticatedAt;
+	
 }
