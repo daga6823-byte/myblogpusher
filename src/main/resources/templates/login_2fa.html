@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8">
+	<title>2FA認証</title>
+	<link rel="stylesheet" th:href="@{/css/common.css}">
+	<link rel="stylesheet" th:href="@{/css/register.css}">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+<body>
+
+	<div class="register-box">
+
+		<h1>2FA認証</h1>
+
+		<p>
+			Google Authenticatorに表示されている6桁の認証コードを入力してください。
+		</p>
+
+		<p class="error" th:if="${error}" th:text="${error}">
+		</p>
+
+		<form th:action="@{/login/2fa}" method="post">
+
+			<label for="code">認証コード</label>
+
+			<input type="text" id="code" name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6"
+				autocomplete="one-time-code" required>
+
+			<button type="submit">
+				認証する
+			</button>
+
+		</form>
+
+	</div>
+
+</body>
+
+</html>

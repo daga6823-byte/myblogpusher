@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8">
+	<title>SECURITY ALERT</title>
+	<link rel="stylesheet" th:href="@{/css/login.css}">
+	<link rel="stylesheet" th:href="@{/css/security_alert.css}">
+	<link rel="stylesheet" th:href="@{/css/common.css}">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+</head>
+
+<body class="security-alert-body">
+
+	<div class="security-alert">
+		<h1>SECURITY ALERT</h1>
+
+		<p>2FA認証に失敗しました。</p>
+
+		<div class="security-alert-warning">
+			<p>セキュリティ上の理由により、ログインを中止しました。</p>
+			<p>登録されているメールアドレスへセキュリティ通知を送信しました。</p>
+		</div>
+
+		<p>心当たりがない場合は、パスワードを変更してください。</p>
+
+		<a th:href="@{/login}" class="security-alert-button">
+			ログイン画面へ戻る
+		</a>
+	</div>
+
+</body>
+
+</html>

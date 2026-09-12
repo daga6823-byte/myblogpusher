@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8">
+	<title>2FA設定</title>
+	<link rel="stylesheet" th:href="@{/css/common.css}">
+	<link rel="stylesheet" th:href="@{/css/register.css}">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+<body>
+
+	<div class="register-box">
+
+		<h1>2FA設定</h1>
+
+		<p>
+			Google Authenticatorで以下のQRコードを読み取ってください。
+		</p>
+
+		<!-- Google Authenticator登録用のQRコードを表示する。 -->
+		<div class="two-factor-qr">
+			<img th:src="${qrCode}" alt="Google Authenticator登録用QRコード">
+		</div>
+
+		<p>
+			登録後、アプリに表示された6桁の認証コードを入力してください。
+		</p>
+
+		<p class="error" th:if="${error}" th:text="${error}">
+		</p>
+
+		<form th:action="@{/login/2fa/setup}" method="post">
+
+			<label for="code">認証コード</label>
+
+			<input type="text" id="code" name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6"
+				autocomplete="one-time-code" required>
+
+			<button type="submit">
+				2FA設定を完了する
+			</button>
+
+		</form>
+
+	</div>
+
+</body>
+
+</html>

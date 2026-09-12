@@ -6,16 +6,20 @@
 	<title>新規登録</title>
 	<link rel="stylesheet" th:href="@{/css/register.css}">
 	<link rel="stylesheet" th:href="@{/css/common.css}">
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/lipis/flag-icons@7.3.2/css/flag-icons.min.css">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 
 <body>
 	<div class="register-box">
+
 		<h1>新規登録</h1>
 
-		<p class="error" th:if="${error}" th:text="${error}"></p>
+		<p class="error" th:if="${error}" th:text="${error}">
+		</p>
 
 		<form th:action="@{/register}" method="post">
+
 			<label for="loginId">ログインID</label>
 			<input type="text" id="loginId" name="loginId" required>
 
@@ -28,9 +32,123 @@
 			<label for="email">メールアドレス</label>
 			<input type="email" id="email" name="email">
 
+			<label for="region">国籍</label>
+
+			<!--
+				国旗と国名を表示する国籍選択コンボボックス。
+				実際に送信する値はISO 3166-1 alpha-2の国コードとする。
+			-->
+			<div class="country-select">
+				<button type="button" id="countrySelectButton" class="country-select-button">
+
+					<span id="selectedCountryFlag" class="fi fi-jp">
+					</span>
+
+					<span id="selectedCountryName">
+						日本
+					</span>
+				</button>
+
+				<div id="countryOptions" class="country-options">
+
+					<button type="button" class="country-option" data-code="jp" data-name="日本">
+						<span class="fi fi-jp"></span>
+						<span>日本</span>
+					</button>
+
+					<button type="button" class="country-option" data-code="us" data-name="アメリカ合衆国">
+						<span class="fi fi-us"></span>
+						<span>アメリカ合衆国</span>
+					</button>
+
+					<button type="button" class="country-option" data-code="gb" data-name="イギリス">
+						<span class="fi fi-gb"></span>
+						<span>イギリス</span>
+					</button>
+
+					<button type="button" class="country-option" data-code="kr" data-name="韓国">
+						<span class="fi fi-kr"></span>
+						<span>韓国</span>
+					</button>
+
+					<button type="button" class="country-option" data-code="cn" data-name="中国">
+						<span class="fi fi-cn"></span>
+						<span>中国</span>
+					</button>
+				</div>
+			</div>
+
+			<!--
+				Controllerへ送信する国コード。
+				初期値は日本（JP）。
+			-->
+			<input type="hidden" id="region" name="region" value="JP">
+
 			<button type="submit">登録</button>
+
 		</form>
 	</div>
+
+	<script>
+		const countrySelectButton =
+			document.getElementById('countrySelectButton');
+
+		const countryOptions =
+			document.getElementById('countryOptions');
+
+		const selectedCountryFlag =
+			document.getElementById('selectedCountryFlag');
+
+		const selectedCountryName =
+			document.getElementById('selectedCountryName');
+
+		const regionInput =
+			document.getElementById('region');
+
+		/*
+		 * 国籍コンボボックスの開閉。
+		 */
+		countrySelectButton.addEventListener('click', () => {
+			countryOptions.classList.toggle('show');
+		});
+
+		/*
+		 * 国を選択したら、表示と送信用の国コードを更新する。
+		 */
+		document.querySelectorAll('.country-option')
+			.forEach(option => {
+
+				option.addEventListener('click', () => {
+
+					const code =
+						option.dataset.code;
+
+					const name =
+						option.dataset.name;
+
+					selectedCountryFlag.className =
+						'fi fi-' + code;
+
+					selectedCountryName.textContent =
+						name;
+
+					regionInput.value =
+						code.toUpperCase();
+
+					countryOptions.classList.remove('show');
+				});
+			});
+
+		/*
+		 * コンボボックス外をクリックしたら閉じる。
+		 */
+		document.addEventListener('click', event => {
+
+			if (!event.target.closest('.country-select')) {
+				countryOptions.classList.remove('show');
+			}
+		});
+	</script>
 </body>
 
 </html>

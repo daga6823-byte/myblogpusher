@@ -1,4 +1,4 @@
-package com.app.myblogpusher.controller;
+package com.app.myblogpusher.controller.Login;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;

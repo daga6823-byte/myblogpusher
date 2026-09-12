@@ -72,3 +72,54 @@ input[type="password"] {
 	border-radius: 4px;
 	font-size: 16px;
 }
+
+.security-alert-body {
+	background-color: #300000;
+}
+
+.security-alert {
+	width: min(600px, 90%);
+	padding: 40px;
+	box-sizing: border-box;
+	background-color: #8b0000;
+	color: #fff;
+	border: 3px solid #ff0000;
+	border-radius: 8px;
+	box-shadow: 0 0 30px rgba(255, 0, 0, 0.6);
+	text-align: center;
+}
+
+.security-alert h1 {
+	margin: 0 0 30px;
+	font-size: 42px;
+	font-weight: 900;
+	letter-spacing: 3px;
+}
+
+.security-alert p {
+	line-height: 1.8;
+	margin: 12px 0;
+}
+
+.security-alert-warning {
+	margin: 30px 0;
+	padding: 20px;
+	background-color: #500000;
+	border: 1px solid #ff6666;
+	border-radius: 4px;
+}
+
+.security-alert-button {
+	display: inline-block;
+	margin-top: 20px;
+	padding: 12px 30px;
+	background-color: #fff;
+	color: #8b0000;
+	text-decoration: none;
+	font-weight: bold;
+	border-radius: 4px;
+}
+
+.security-alert-button:hover {
+	background-color: #eee;
+}

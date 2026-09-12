@@ -52,18 +52,24 @@ public class UserMaster {
 	@Column(name = "update_date")
 	private LocalDateTime updateDate;
 
-	@Column(name = "create_user")
-	private Long createUser;
-
-	@Column(name = "update_user")
-	private Long updateUser;
-
 	@Column(name = "role")
 	private Integer role;
 
-	@Column(name = "status")
-	private String status;
+	@Column(name = "user_status")
+	private String userStatus;
 
 	@Column(name = "cipher_key")
 	private String cipherKey;
+	
+	@Column(name = "region")
+	private String region;
+
+	@Column(name = "login_failed_count")
+	private Integer loginFailedCount;
+
+	@Column(name = "two_factor_secret")
+	private String twoFactorSecret;
+
+	@Column(name = "two_factor_authenticated_at")
+	private LocalDateTime twoFactorAuthenticatedAt;
 }

@@ -1,14 +1,34 @@
 <!DOCTYPE html>
+
 <html xmlns:th="http://www.thymeleaf.org">
 
 <head>
 	<meta charset="UTF-8">
 	<title>登録完了</title>
+	<link rel="stylesheet" th:href="@{/css/register.css}">
+	<link rel="stylesheet" th:href="@{/css/common.css}">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 
 <body>
-	<h1 th:text="${message}"></h1>
+
+	```
+	<div class="register-box">
+
+		<h1>登録完了</h1>
+
+		<p class="register-message" th:text="${message}">
+			登録が完了しました。
+		</p>
+
+		<!-- 登録完了後にログイン画面へ戻るためのボタン。 -->
+		<a th:href="@{/login}" class="back-login-button">
+			ログイン画面へ戻る
+		</a>
+
+	</div>
+	```
+
 </body>
 
 </html>

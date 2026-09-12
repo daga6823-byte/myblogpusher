@@ -3,7 +3,7 @@
  * ログイン成功時に投稿済み記事一覧を非同期で先読みし、記事一覧画面の表示を高速化する
  */
 
-package com.app.myblogpusher.controller;
+package com.app.myblogpusher.controller.Login;
 
 import java.util.Optional;
 
@@ -16,10 +16,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import com.app.myblogpusher.entity.UserMaster;
 import com.app.myblogpusher.repository.UserRepositoryRepository;
-import com.app.myblogpusher.service.LoginService;
 import com.app.myblogpusher.service.PublishedArticleService;
 import com.app.myblogpusher.service.Article.ArticleWorkspaceService;
+import com.app.myblogpusher.service.Login.LoginHistoryService;
+import com.app.myblogpusher.service.Login.LoginService;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 
 @Controller
@@ -37,6 +39,9 @@ public class LoginController {
 	@Autowired
 	private PublishedArticleService publishedArticleService;
 
+	@Autowired
+	private LoginHistoryService loginHistoryService;
+
 	@GetMapping("/login")
 	public String loginForm() {
 		return "login";
@@ -45,14 +50,53 @@ public class LoginController {
 	@PostMapping("/login")
 	public String login(@RequestParam String loginId,
 			@RequestParam String password,
+			HttpServletRequest request,
 			HttpSession session,
 			Model model) {
 		Optional<UserMaster> userOpt = loginService.findAuthenticatedUser(loginId, password);
+
+		// 変更後
 		if (userOpt.isPresent()) {
 			UserMaster user = userOpt.get();
 
+			String ipAddress = request.getRemoteAddr();
+			String userAgent = request.getHeader("User-Agent");
+			String region = loginService.findLoginRegion(ipAddress);
+
+			// 初回ログイン時はGoogle Authenticatorの設定を行う。
+			if (user.getTwoFactorAuthenticatedAt() == null
+					&& loginHistoryService.findPreviousLogin(user.getUserId()) == null) {
+
+				session.setAttribute("twoFactorUserId", user.getUserId());
+				session.setAttribute("twoFactorIpAddress", ipAddress);
+				session.setAttribute("twoFactorRegion", region);
+				session.setAttribute("twoFactorUserAgent", userAgent);
+
+				return "redirect:/login/2fa/setup";
+			}
+
+			// IP・region・2FA認証日時から追加認証の必要性を判定する。
+			if (loginService.requiresTwoFactor(
+					user,
+					ipAddress,
+					region)) {
+
+				session.setAttribute("twoFactorUserId", user.getUserId());
+				session.setAttribute("twoFactorIpAddress", ipAddress);
+				session.setAttribute("twoFactorRegion", region);
+				session.setAttribute("twoFactorUserAgent", userAgent);
+
+				return "redirect:/login/2fa";
+			}
+
 			// ログイン前に前のセッションのワークスペースをクリア
 			workspaceService.delete(user.getUserId());
+
+			loginHistoryService.recordLogin(
+					user.getUserId(),
+					ipAddress,
+					region,
+					userAgent);
 
 			// 新しいセッションを設定
 			session.setAttribute("loginUser", user);

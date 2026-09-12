@@ -15,20 +15,16 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 import com.app.myblogpusher.entity.MenuMaster;
 import com.app.myblogpusher.entity.TypoCorrection;
-import com.app.myblogpusher.entity.UserMaster;
 import com.app.myblogpusher.entity.Article.ArticleCategory;
 import com.app.myblogpusher.entity.Article.ArticleWork;
 import com.app.myblogpusher.repository.MenuMasterRepository;
 import com.app.myblogpusher.repository.TypoCorrectionRepository;
-import com.app.myblogpusher.repository.UserMasterRepository;
 import com.app.myblogpusher.repository.Article.ArticleCategoryRepository;
 import com.app.myblogpusher.repository.Article.ArticleWorkRepository;
 
 @Controller
 public class ExportController {
 
-	@Autowired
-	private UserMasterRepository userMasterRepository;
 	@Autowired
 	private ArticleCategoryRepository articleCategoryRepository;
 	@Autowired
@@ -43,18 +39,6 @@ public class ExportController {
 
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		ZipOutputStream zos = new ZipOutputStream(baos);
-
-		writeCsv(zos, "user_master.csv",
-				new String[] { "user_id", "login_id", "password", "user_name", "email", "reg_ip", "reg_port",
-						"reg_hostname", "user_agent", "role", "status", "create_date", "update_date", "create_user",
-						"update_user" },
-				userMasterRepository.findAll(),
-				(UserMaster u) -> new String[] {
-						str(u.getUserId()), u.getLoginId(), u.getPassword(), u.getUserName(), u.getEmail(),
-						u.getRegIp(), str(u.getRegPort()), u.getRegHostname(), u.getUserAgent(),
-						str(u.getRole()), u.getStatus(), str(u.getCreateDate()), str(u.getUpdateDate()),
-						str(u.getCreateUser()), str(u.getUpdateUser())
-				});
 
 		writeCsv(zos, "article_category.csv",
 				new String[] { "category_id", "user_id", "category_name", "create_date", "update_date", "create_user",
