@@ -56,10 +56,13 @@ public class TwoFactorController {
 	 */
 	@GetMapping("/login/2fa/setup")
 	public String setupForm(
-			HttpSession session,
-			Model model) {
+	        HttpSession session,
+	        Model model) {
 
-		Long userId = (Long) session.getAttribute("twoFactorUserId");
+	    System.out.println("2FA SETUP GET: sessionId=" + session.getId()
+	            + ", userId=" + session.getAttribute("twoFactorUserId"));
+
+	    Long userId = (Long) session.getAttribute("twoFactorUserId");
 
 		if (userId == null) {
 			return "redirect:/login";

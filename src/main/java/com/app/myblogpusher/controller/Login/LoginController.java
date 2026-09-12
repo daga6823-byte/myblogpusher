@@ -71,6 +71,9 @@ public class LoginController {
 				session.setAttribute("twoFactorRegion", region);
 				session.setAttribute("twoFactorUserAgent", userAgent);
 
+				System.out.println("2FA SETUP: sessionId=" + session.getId()
+				        + ", userId=" + session.getAttribute("twoFactorUserId"));
+
 				return "redirect:/login/2fa/setup";
 			}
 
