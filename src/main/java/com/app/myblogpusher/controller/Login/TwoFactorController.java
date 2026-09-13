@@ -59,10 +59,11 @@ public class TwoFactorController {
 	        HttpSession session,
 	        Model model) {
 
-	    System.out.println("2FA SETUP GET: sessionId=" + session.getId()
-	            + ", userId=" + session.getAttribute("twoFactorUserId"));
+		System.out.println("2FA SETUP GET: 開始");
 
-	    Long userId = (Long) session.getAttribute("twoFactorUserId");
+		Long userId = (Long) session.getAttribute("twoFactorUserId");
+
+		System.out.println("2FA SETUP GET: userId=" + userId);
 
 		if (userId == null) {
 			return "redirect:/login";
@@ -76,6 +77,11 @@ public class TwoFactorController {
 		}
 
 		UserMaster user = userOpt.get();
+		
+		System.out.println("2FA SETUP GET: secret="
+		        + (user.getTwoFactorSecret() != null
+		                ? "存在"
+		                : "null"));
 
 		// TOTP秘密鍵が存在しない場合は2FA設定を続行できない。
 		if (user.getTwoFactorSecret() == null
@@ -85,10 +91,14 @@ public class TwoFactorController {
 		}
 
 		String qrCode = twoFactorService.generateQrCode(
-				user.getTwoFactorSecret(),
-				user.getLoginId());
+		        user.getTwoFactorSecret(),
+		        user.getLoginId());
+
+		System.out.println("2FA SETUP GET: QR生成完了");
 
 		model.addAttribute("qrCode", qrCode);
+
+		System.out.println("2FA SETUP GET: テンプレート返却");
 
 		return "Login/login_2fa_setup";
 	}
