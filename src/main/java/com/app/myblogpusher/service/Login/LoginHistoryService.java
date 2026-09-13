@@ -22,6 +22,9 @@ public class LoginHistoryService {
 	@Autowired
 	private LoginHistoryRepository loginHistoryRepository;
 
+	@Autowired
+	private LoginHistoryCleanupAsyncService loginHistoryCleanupAsyncService;
+
 	/**
 	 * ログイン成功時の履歴を保存する。
 	 *
@@ -44,12 +47,8 @@ public class LoginHistoryService {
 
 		history = loginHistoryRepository.save(history);
 
-		List<LoginHistory> histories = loginHistoryRepository
-				.findByUserIdOrderByLoginDateDesc(userId);
-
-		for (int i = 2; i < histories.size(); i++) {
-			loginHistoryRepository.delete(histories.get(i));
-		}
+		// 古い履歴の整理はログイン処理を止めないよう非同期で実行する。
+		loginHistoryCleanupAsyncService.cleanupAsync(userId);
 
 		return history.getId();
 	}
@@ -74,14 +73,9 @@ public class LoginHistoryService {
 	 */
 	public LoginHistory findLatestLogin(Long userId) {
 
-		List<LoginHistory> histories = loginHistoryRepository
-				.findByUserIdOrderByLoginDateDesc(userId);
-
-		if (histories.isEmpty()) {
-			return null;
-		}
-
-		return histories.get(0);
+		return loginHistoryRepository
+				.findFirstByUserIdOrderByLoginDateDesc(userId)
+				.orElse(null);
 	}
 
 	/**

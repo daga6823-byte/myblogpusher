@@ -27,7 +27,6 @@ import com.app.myblogpusher.dto.Publish.PublishedArticleDto;
 import com.app.myblogpusher.dto.Publish.PublishedArticleSummaryDto;
 import com.app.myblogpusher.entity.UserRepositoryEntity;
 import com.app.myblogpusher.entity.Article.Article;
-import com.app.myblogpusher.repository.CategoryRelationRepository;
 import com.app.myblogpusher.repository.Article.ArticleRepository;
 import com.app.myblogpusher.service.Article.ArticleCategoryService;
 import com.app.myblogpusher.service.Article.ArticleService;
@@ -54,12 +53,6 @@ public class PublishedArticleService {
 
 	@Autowired
 	private ArticleRepository articleRepository;
-
-	@Autowired
-	private CategoryRelationService categoryRelationService;
-
-	@Autowired
-	private CategoryRelationRepository categoryRelationRepository;
 
 	public List<PublishedArticleSummaryDto> getPublishedArticles(UserRepositoryEntity repo, String cipherKey,
 			HttpSession session)
