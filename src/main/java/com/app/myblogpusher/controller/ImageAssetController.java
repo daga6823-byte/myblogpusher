@@ -10,12 +10,10 @@
 package com.app.myblogpusher.controller;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -45,19 +43,14 @@ public class ImageAssetController {
 	 */
 	@GetMapping("/article/images")
 	@ResponseBody
-	public Page<ImageAssetView> getImages(
-			@RequestParam(required = false) String folderName,
-			@RequestParam(defaultValue = "0") int page,
-			HttpSession session) {
+	public List<ImageAssetView> getImages(
+	        HttpSession session) {
 
-		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
+	    UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 
-		Pageable pageable = PageRequest.of(page, 12);
-
-		return imageAssetService.findImagePage(
-				loginUser.getUserId(),
-				folderName,
-				pageable);
+	    return imageAssetService.listImages(
+	            loginUser.getUserId(),
+	            null);
 	}
 
 	/**

@@ -11,7 +11,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -174,12 +173,6 @@ public class ImageAssetService {
 				.map(ImageAsset::getStoragePath)
 				.collect(Collectors.toSet());
 
-		Map<String, Long> slugToCategoryId = articleCategoryService.findByUserId(userId).stream()
-				.collect(Collectors.toMap(
-						c -> slugUtil.generateCategorySlug(c.getCategoryName()),
-						ArticleCategory::getCategoryId,
-						(a, b) -> a));
-
 		int importedCount = 0;
 
 		for (String path : allPaths) {
@@ -289,6 +282,18 @@ public class ImageAssetService {
 			Long userId,
 			String folderName) {
 
+		// 全カテゴリーの場合は、ログイン時に先読みしたキャッシュを利用する。
+		if (folderName == null) {
+
+			List<ImageAssetView> cachedImages = imageAssetCache.getImages(userId);
+
+			if (cachedImages != null) {
+
+				return cachedImages;
+
+			}
+		}
+
 		List<ImageAsset> assets = (folderName != null)
 				? imageAssetRepository.findByUserIdAndFolderNameOrderByUploadDateDesc(
 						userId,
@@ -318,17 +323,6 @@ public class ImageAssetService {
 			Long userId,
 			String folderName,
 			Pageable pageable) {
-
-		// 全カテゴリーの1ページ目は、ログイン時に先読みしたキャッシュを利用する。
-		if (folderName == null && pageable.getPageNumber() == 0) {
-
-			Page<ImageAssetView> cachedImages =
-					imageAssetCache.getImages(userId);
-
-			if (cachedImages != null) {
-				return cachedImages;
-			}
-		}
 
 		Page<ImageAsset> page;
 

@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
 import com.app.myblogpusher.dto.ImageAssetView;
@@ -22,18 +21,19 @@ import com.app.myblogpusher.dto.ImageCategoryDto;
 @Component
 public class ImageAssetCache {
 
-	private final ConcurrentMap<Long, Page<ImageAssetView>> imageCache = new ConcurrentHashMap<>();
+	private final ConcurrentMap<Long, List<ImageAssetView>> imageCache =
+	        new ConcurrentHashMap<>();
 
 	private final ConcurrentMap<Long, List<ImageCategoryDto>> categoryCache = new ConcurrentHashMap<>();
 
 	private final ConcurrentMap<Long, List<String>> folderCache = new ConcurrentHashMap<>();
 
-	public void putImages(Long userId, Page<ImageAssetView> images) {
-		imageCache.put(userId, images);
+	public void putImages(Long userId, List<ImageAssetView> images) {
+	    imageCache.put(userId, images);
 	}
 
-	public Page<ImageAssetView> getImages(Long userId) {
-		return imageCache.get(userId);
+	public List<ImageAssetView> getImages(Long userId) {
+	    return imageCache.get(userId);
 	}
 	
 	public void putCategories(
