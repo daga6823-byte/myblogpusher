@@ -56,38 +56,31 @@ public class TwoFactorController {
 	 */
 	@GetMapping("/login/2fa/setup")
 	public String setupForm(HttpSession session, Model model) {
+	    Long userId = (Long) session.getAttribute("twoFactorUserId");
 
-		Long userId = (Long) session.getAttribute("twoFactorUserId");
+	    Optional<UserMaster> userOpt = userMasterRepository.findById(userId);
 
-		System.out.println("2FA SETUP GET: sessionId=" + session.getId()
-				+ ", userId=" + userId);
+	    if (userOpt.isEmpty()) {
+	        System.out.println("2FA SETUP: user not found: " + userId);
+	        session.removeAttribute("twoFactorUserId");
+	        return "redirect:/login";
+	    }
 
-		if (userId == null) {
-			System.out.println("2FA SETUP: twoFactorUserId is NULL");
-			return "redirect:/login";
-		}
+	    UserMaster user = userOpt.get();
 
-		Optional<UserMaster> userOpt = userMasterRepository.findById(userId);
+	    System.out.println("2FA SETUP: user found: " + user.getUserId());
+	    System.out.println("2FA SETUP: twoFactorSecret="
+	            + (user.getTwoFactorSecret() == null
+	                    ? "NULL"
+	                    : user.getTwoFactorSecret()));
 
-		if (userOpt.isEmpty()) {
-			System.out.println("2FA SETUP: user not found: " + userId);
-			session.removeAttribute("twoFactorUserId");
-			return "redirect:/login";
-		}
+	    if (user.getTwoFactorSecret() == null
+	            || user.getTwoFactorSecret().isBlank()) {
 
-		UserMaster user = userOpt.get();
-
-		System.out.println("2FA SETUP: secret="
-				+ (user.getTwoFactorSecret() == null ? "NULL" : "EXISTS"));
-
-		if (user.getTwoFactorSecret() == null
-				|| user.getTwoFactorSecret().isBlank()) {
-
-			System.out.println("2FA SETUP: twoFactorSecret is NULL/BLANK");
-
-			session.removeAttribute("twoFactorUserId");
-			return "redirect:/login";
-		}
+	        System.out.println("2FA SETUP: twoFactorSecret is NULL/BLANK");
+	        session.removeAttribute("twoFactorUserId");
+	        return "redirect:/login";
+	    }
 
 		String qrCode = twoFactorService.generateQrCode(
 				user.getTwoFactorSecret(),
