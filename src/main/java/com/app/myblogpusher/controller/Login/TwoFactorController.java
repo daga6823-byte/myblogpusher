@@ -39,8 +39,8 @@ public class TwoFactorController {
 	@Autowired
 	private LoginHistoryService loginHistoryService;
 
-//	@Autowired
-//	private SecurityMailService securityMailService;
+	//	@Autowired
+	//	private SecurityMailService securityMailService;
 
 	@Autowired
 	private ArticleWorkspaceService workspaceService;
@@ -55,44 +55,43 @@ public class TwoFactorController {
 	 * 初回ログイン時のGoogle Authenticator設定画面を表示する。
 	 */
 	@GetMapping("/login/2fa/setup")
-	public String setupForm(
-	        HttpSession session,
-	        Model model) {
-
-		System.out.println("2FA SETUP GET: 開始");
+	public String setupForm(HttpSession session, Model model) {
 
 		Long userId = (Long) session.getAttribute("twoFactorUserId");
 
-		System.out.println("2FA SETUP GET: userId=" + userId);
+		System.out.println("2FA SETUP GET: sessionId=" + session.getId()
+				+ ", userId=" + userId);
 
 		if (userId == null) {
+			System.out.println("2FA SETUP: twoFactorUserId is NULL");
 			return "redirect:/login";
 		}
 
 		Optional<UserMaster> userOpt = userMasterRepository.findById(userId);
 
 		if (userOpt.isEmpty()) {
+			System.out.println("2FA SETUP: user not found: " + userId);
 			session.removeAttribute("twoFactorUserId");
 			return "redirect:/login";
 		}
 
 		UserMaster user = userOpt.get();
-		
-		System.out.println("2FA SETUP GET: secret="
-		        + (user.getTwoFactorSecret() != null
-		                ? "存在"
-		                : "null"));
 
-		// TOTP秘密鍵が存在しない場合は2FA設定を続行できない。
+		System.out.println("2FA SETUP: secret="
+				+ (user.getTwoFactorSecret() == null ? "NULL" : "EXISTS"));
+
 		if (user.getTwoFactorSecret() == null
 				|| user.getTwoFactorSecret().isBlank()) {
+
+			System.out.println("2FA SETUP: twoFactorSecret is NULL/BLANK");
+
 			session.removeAttribute("twoFactorUserId");
 			return "redirect:/login";
 		}
 
 		String qrCode = twoFactorService.generateQrCode(
-		        user.getTwoFactorSecret(),
-		        user.getLoginId());
+				user.getTwoFactorSecret(),
+				user.getLoginId());
 
 		System.out.println("2FA SETUP GET: QR生成完了");
 
@@ -201,10 +200,10 @@ public class TwoFactorController {
 				code)) {
 
 			// 2FA認証失敗をユーザーの登録メールアドレスへ通知する。
-//			securityMailService.sendTwoFactorFailureNotice(
-//					user,
-//					(String) session.getAttribute("twoFactorIpAddress"),
-//					(String) session.getAttribute("twoFactorRegion"));
+			//			securityMailService.sendTwoFactorFailureNotice(
+			//					user,
+			//					(String) session.getAttribute("twoFactorIpAddress"),
+			//					(String) session.getAttribute("twoFactorRegion"));
 
 			// 認証失敗後は2FA用のセッション情報を破棄してログインを拒否する。
 			session.removeAttribute("twoFactorUserId");
