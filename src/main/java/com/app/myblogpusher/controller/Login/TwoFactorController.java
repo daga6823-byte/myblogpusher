@@ -56,31 +56,35 @@ public class TwoFactorController {
 	 */
 	@GetMapping("/login/2fa/setup")
 	public String setupForm(HttpSession session, Model model) {
-	    Long userId = (Long) session.getAttribute("twoFactorUserId");
+		Long userId = (Long) session.getAttribute("twoFactorUserId");
 
-	    Optional<UserMaster> userOpt = userMasterRepository.findById(userId);
+		Optional<UserMaster> userOpt = userMasterRepository.findById(userId);
 
-	    if (userOpt.isEmpty()) {
-	        System.out.println("2FA SETUP: user not found: " + userId);
-	        session.removeAttribute("twoFactorUserId");
-	        return "redirect:/login";
-	    }
+		if (userOpt.isEmpty()) {
+			System.out.println("2FA SETUP: user not found: " + userId);
+			session.removeAttribute("twoFactorUserId");
+			return "redirect:/login";
+		}
 
-	    UserMaster user = userOpt.get();
+		UserMaster user = userOpt.get();
 
-	    System.out.println("2FA SETUP: user found: " + user.getUserId());
-	    System.out.println("2FA SETUP: twoFactorSecret="
-	            + (user.getTwoFactorSecret() == null
-	                    ? "NULL"
-	                    : user.getTwoFactorSecret()));
+		System.out.println("2FA SETUP: user found: " + user.getUserId());
 
-	    if (user.getTwoFactorSecret() == null
-	            || user.getTwoFactorSecret().isBlank()) {
+		// 既存ユーザーなど、まだ2FA秘密鍵が登録されていない場合は、
+		// 初回設定用の秘密鍵を生成してDBへ保存する。
+		if (user.getTwoFactorSecret() == null
+				|| user.getTwoFactorSecret().isBlank()) {
 
-	        System.out.println("2FA SETUP: twoFactorSecret is NULL/BLANK");
-	        session.removeAttribute("twoFactorUserId");
-	        return "redirect:/login";
-	    }
+			System.out.println("2FA SETUP: twoFactorSecret is NULL/BLANK");
+			System.out.println("2FA SETUP: 秘密鍵を新規生成します");
+
+			String secret = twoFactorService.generateSecret();
+
+			user.setTwoFactorSecret(secret);
+			userMasterRepository.save(user);
+
+			System.out.println("2FA SETUP: twoFactorSecret generated and saved");
+		}
 
 		String qrCode = twoFactorService.generateQrCode(
 				user.getTwoFactorSecret(),
