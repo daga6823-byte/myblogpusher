@@ -74,7 +74,7 @@ public class LoginController {
 				System.out.println("2FA SETUP: sessionId=" + session.getId()
 				        + ", userId=" + session.getAttribute("twoFactorUserId"));
 
-				return "Login/login_2fa_setup";
+				return "redirect:/login/2fa/setup";
 			}
 
 			// IP・region・2FA認証日時から追加認証の必要性を判定する。
