@@ -1,0 +1,84 @@
+/*
+ * typo_dict.css
+ *
+ * 誤字辞典一覧画面のスタイルを定義するCSS
+ * ・誤字辞典の一覧表
+ * ・新規登録・一括操作エリア
+ * ・操作ボタン
+ * ・スマートフォンでの横幅対応
+ */
+
+/* 誤字辞典一覧表 */
+table {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+/* 新規登録・一括操作エリア */
+.typo-form,
+.typo-bulk-controls {
+	width: 100%;
+	box-sizing: border-box;
+}
+
+/* スマートフォン対応 */
+@media (max-width: 600px) {
+
+	/* 検索フォームを縦方向に並べる */
+	body>form {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px;
+		align-items: center;
+	}
+
+	/* 一覧表は横スクロールできるようにする */
+	table {
+		display: block;
+		overflow-x: auto;
+		white-space: nowrap;
+		-webkit-overflow-scrolling: touch;
+	}
+
+	/* 各列が潰れすぎないようにする */
+	table th,
+	table td {
+		min-width: 100px;
+	}
+
+	/* チェックボックス列 */
+	table th:first-child,
+	table td:first-child {
+		min-width: 45px;
+	}
+
+	/* 操作ボタン列 */
+	table th:last-child,
+	table td:last-child {
+		min-width: 150px;
+	}
+
+	/* 編集・削除ボタンを横並びで収める */
+	table td:last-child {
+		white-space: nowrap;
+	}
+
+	/* ページ操作 */
+	#pagination {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		align-items: center;
+		gap: 8px;
+	}
+
+	#pagination select {
+		margin: 0 8px !important;
+	}
+
+	/* 戻るボタンが画面幅からはみ出さないようにする */
+	#backButton {
+		max-width: 100%;
+		box-sizing: border-box;
+	}
+}

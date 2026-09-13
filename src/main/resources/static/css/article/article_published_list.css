@@ -1,0 +1,77 @@
+/*
+ * article_published_list.css
+ *
+ * 投稿済み記事一覧画面のスタイルを定義するCSS
+ * ・投稿済み記事一覧表
+ * ・編集・削除ボタン
+ * ・戻るボタン
+ * ・スマートフォンでの横幅対応
+ */
+
+/* 投稿済み記事一覧表 */
+table {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+th,
+td {
+	padding: 10px;
+	border-bottom: 1px solid #ddd;
+	text-align: left;
+	font-size: 14px;
+}
+
+/* 操作ボタン */
+td a.btn-save,
+td button.btn-delete {
+	display: inline-block;
+	box-sizing: border-box;
+	text-decoration: none;
+}
+
+/* 戻るボタン */
+#backButton {
+	margin-top: 16px;
+}
+
+/* スマートフォン対応 */
+@media (max-width: 600px) {
+
+	/* 一覧表は横スクロールできるようにする */
+	table {
+		display: block;
+		overflow-x: auto;
+		white-space: nowrap;
+		-webkit-overflow-scrolling: touch;
+	}
+
+	/* タイトル列 */
+	table th:first-child,
+	table td:first-child {
+		min-width: 220px;
+	}
+
+	/* 更新日時列 */
+	table th:nth-child(2),
+	table td:nth-child(2) {
+		min-width: 140px;
+	}
+
+	/* 操作列 */
+	table th:last-child,
+	table td:last-child {
+		min-width: 130px;
+	}
+
+	/* 操作ボタンが横方向に潰れないようにする */
+	table td:last-child {
+		white-space: nowrap;
+	}
+
+	/* 戻るボタンが画面幅からはみ出さないようにする */
+	#backButton {
+		max-width: 100%;
+		box-sizing: border-box;
+	}
+}
