@@ -9,7 +9,6 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import com.app.myblogpusher.interceptor.LoginCheckInterceptor;
 
-
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
@@ -18,18 +17,24 @@ public class WebConfig implements WebMvcConfigurer {
 		return new BCryptPasswordEncoder();
 	}
 
+	@Bean
+	public LoginCheckInterceptor loginCheckInterceptor() {
+		return new LoginCheckInterceptor();
+	}
+
 	@Override
 	public void addInterceptors(InterceptorRegistry registry) {
-		registry.addInterceptor(new LoginCheckInterceptor())
+
+		registry.addInterceptor(loginCheckInterceptor())
 				.addPathPatterns("/**")
 				.excludePathPatterns(
-					    "/login",
-					    "/login/forgot",
-					    "/login/reset",
-					    "/register",
-					    "/health",
-					    "/css/**",
-					    "/js/**",
-					    "/images/**");
+						"/login",
+						"/login/forgot",
+						"/login/reset",
+						"/register",
+						"/health",
+						"/css/**",
+						"/js/**",
+						"/images/**");
 	}
 }
