@@ -59,7 +59,14 @@ public class LoginController {
 		if (userOpt.isPresent()) {
 			UserMaster user = userOpt.get();
 
-			String ipAddress = request.getRemoteAddr();
+			// Cloudflare経由の場合は、実際のクライアントIPを取得する。
+			// ヘッダーが取得できない場合は、従来どおり接続元IPを使用する。
+			String ipAddress = request.getHeader("CF-Connecting-IP");
+
+			if (ipAddress == null || ipAddress.isBlank()) {
+				ipAddress = request.getRemoteAddr();
+			}
+
 			String userAgent = request.getHeader("User-Agent");
 			String region = loginService.findLoginRegion(ipAddress);
 
@@ -72,7 +79,7 @@ public class LoginController {
 				session.setAttribute("twoFactorUserAgent", userAgent);
 
 				System.out.println("2FA SETUP: sessionId=" + session.getId()
-				        + ", userId=" + session.getAttribute("twoFactorUserId"));
+						+ ", userId=" + session.getAttribute("twoFactorUserId"));
 
 				return "redirect:/login/2fa/setup";
 			}
