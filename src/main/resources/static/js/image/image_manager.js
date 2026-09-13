@@ -63,21 +63,37 @@ function loadImageList() {
 
 	list.innerHTML = '';
 
-	let url =
-		'/article/images?page=' + imagePage;
+	fetch('/article/images')
 
-	// カテゴリー選択時だけ絞り込む
-	if (imageFolderName) {
-		url += '&folderName=' + encodeURIComponent(imageFolderName);
-	}
-
-	fetch(url)
 		.then(res => res.json())
-		.then(page => {
 
-			const images = page.content;
+		.then(images => {
 
-			images.forEach(img => {
+			// カテゴリーで絞り込む。
+			if (imageFolderName) {
+				images = images.filter(
+					img => img.folderName === imageFolderName
+				);
+			}
+
+			// 画像追加モーダルでは1ページ12件を表示する。
+			const imagesPerPage = 12;
+			const totalPages =
+				Math.ceil(images.length / imagesPerPage);
+
+			if (totalPages === 0) {
+				imagePage = 0;
+			} else if (imagePage >= totalPages) {
+				imagePage = totalPages - 1;
+			}
+
+			const start =
+				imagePage * imagesPerPage;
+
+			const pageImages =
+				images.slice(start, start + imagesPerPage);
+
+			pageImages.forEach(img => {
 
 				const div = document.createElement('div');
 
@@ -87,36 +103,47 @@ function loadImageList() {
 				div.innerHTML =
 					`
 					<img src="${img.url}"
+
 						 style="width:100%;height:150px;object-fit:cover;"
+
 						 onclick="insertImage('${img.url}')">
 
 					<div style="
+
 						margin-top:5px;
+
 						font-size:13px;
+
 						word-break:break-all;
+
 					">
+
 						${img.fileName}
+
 					</div>
+
 					`;
 
 				list.appendChild(div);
 
 			});
 
-
 			document.getElementById('imagePageInfo').textContent =
-				(page.number + 1) + ' / ' + page.totalPages;
-
+				totalPages === 0
+					? '0 / 0'
+					: (imagePage + 1) + ' / ' + totalPages;
 
 			document.getElementById('imagePrevButton').disabled =
-				page.first;
-
+				imagePage === 0;
 
 			document.getElementById('imageNextButton').disabled =
-				page.last;
+				totalPages === 0 ||
+				imagePage + 1 >= totalPages;
 
+		})
+		.catch(err => {
+			console.error('画像一覧の取得に失敗しました', err);
 		});
-
 }
 
 // -----------------------------------------------------
