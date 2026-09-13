@@ -48,6 +48,9 @@ public class ImageAssetService {
 	@Autowired
 	private ImageConvertService imageConvertService;
 
+	@Autowired
+	private ImageAssetCache imageAssetCache;
+
 	/**
 	 * カテゴリーからデフォルトのフォルダ名（スラッグ）を求める
 	 */
@@ -126,6 +129,10 @@ public class ImageAssetService {
 		asset.setUpdateDate(LocalDateTime.now());
 
 		imageAssetRepository.save(asset);
+
+		// 画像情報が変更されたため、次回表示時に最新情報を取得する。
+		imageAssetCache.clear(userId);
+
 		return asset;
 	}
 
@@ -232,6 +239,10 @@ public class ImageAssetService {
 
 		imageAssetRepository.save(asset);
 
+		// フォルダ変更により画像一覧・フォルダ一覧が変わるため、
+		// 次回表示時に最新情報を取得する。
+		imageAssetCache.clear(userId);
+
 	}
 
 	/**
@@ -262,6 +273,10 @@ public class ImageAssetService {
 
 		// DB削除
 		imageAssetRepository.delete(asset);
+
+		// 画像削除により一覧・カテゴリー・フォルダ情報が変わるため、
+		// 次回表示時に最新情報を取得する。
+		imageAssetCache.clear(userId);
 	}
 
 	/**
@@ -304,6 +319,17 @@ public class ImageAssetService {
 			String folderName,
 			Pageable pageable) {
 
+		// 全カテゴリーの1ページ目は、ログイン時に先読みしたキャッシュを利用する。
+		if (folderName == null && pageable.getPageNumber() == 0) {
+
+			Page<ImageAssetView> cachedImages =
+					imageAssetCache.getImages(userId);
+
+			if (cachedImages != null) {
+				return cachedImages;
+			}
+		}
+
 		Page<ImageAsset> page;
 
 		if (folderName == null) {
@@ -338,6 +364,12 @@ public class ImageAssetService {
 	 */
 	public List<ImageCategoryDto> findImageCategories(Long userId) {
 
+		List<ImageCategoryDto> cachedCategories = imageAssetCache.getCategories(userId);
+
+		if (cachedCategories != null) {
+			return cachedCategories;
+		}
+
 		return imageAssetRepository.findByUserIdOrderByUploadDateDesc(userId)
 				.stream()
 				.map(ImageAsset::getFolderName)
@@ -348,6 +380,12 @@ public class ImageAssetService {
 	}
 
 	public List<String> findImageFolders(Long userId) {
+
+		List<String> cachedFolders = imageAssetCache.getFolders(userId);
+
+		if (cachedFolders != null) {
+			return cachedFolders;
+		}
 
 		return imageAssetRepository.findByUserIdOrderByUploadDateDesc(userId)
 				.stream()

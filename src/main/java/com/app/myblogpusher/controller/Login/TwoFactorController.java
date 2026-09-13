@@ -22,6 +22,7 @@ import com.app.myblogpusher.repository.UserMasterRepository;
 import com.app.myblogpusher.repository.UserRepositoryRepository;
 import com.app.myblogpusher.service.PublishedArticleService;
 import com.app.myblogpusher.service.Article.ArticleWorkspaceService;
+import com.app.myblogpusher.service.Image.ImageAssetPreloadAsyncService;
 import com.app.myblogpusher.service.Login.LoginHistoryService;
 import com.app.myblogpusher.service.Login.TwoFactorService;
 
@@ -51,6 +52,9 @@ public class TwoFactorController {
 
 	@Autowired
 	private PublishedArticleService publishedArticleService;
+
+	@Autowired
+	private ImageAssetPreloadAsyncService imageAssetPreloadAsyncService;
 
 	/**
 	 * 初回ログイン時のGoogle Authenticator設定画面を表示する。
@@ -175,10 +179,10 @@ public class TwoFactorController {
 	 */
 	@PostMapping("/login/2fa")
 	public String verify(
-	        @RequestParam String code,
-	        HttpServletRequest request,
-	        HttpSession session,
-	        Model model) {
+			@RequestParam String code,
+			HttpServletRequest request,
+			HttpSession session,
+			Model model) {
 
 		Long userId = (Long) session.getAttribute("twoFactorUserId");
 
@@ -268,8 +272,11 @@ public class TwoFactorController {
 		// 2FA経由でも投稿済み記事一覧を非同期で先読みする。
 		userRepositoryRepository.findByUserId(user.getUserId())
 				.ifPresent(repo -> publishedArticleService.syncArticles(
-						repo,
-						user.getCipherKey(),
-						user.getUserId()));
+						repo, user.getCipherKey(), user.getUserId()));
+
+		// 2FA経由のログインでも画像一覧の初回表示に必要な情報を先読みする。
+		imageAssetPreloadAsyncService.preloadAsync(user.getUserId());
+
+		session.removeAttribute("twoFactorUserId");
 	}
 }

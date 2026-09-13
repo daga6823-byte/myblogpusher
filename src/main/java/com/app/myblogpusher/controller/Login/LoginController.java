@@ -18,6 +18,7 @@ import com.app.myblogpusher.entity.UserMaster;
 import com.app.myblogpusher.repository.UserRepositoryRepository;
 import com.app.myblogpusher.service.PublishedArticleService;
 import com.app.myblogpusher.service.Article.ArticleWorkspaceService;
+import com.app.myblogpusher.service.Image.ImageAssetPreloadAsyncService;
 import com.app.myblogpusher.service.Login.LoginHistoryService;
 import com.app.myblogpusher.service.Login.LoginRegionAsyncService;
 import com.app.myblogpusher.service.Login.LoginService;
@@ -45,6 +46,9 @@ public class LoginController {
 
 	@Autowired
 	private LoginRegionAsyncService loginRegionAsyncService;
+
+	@Autowired
+	private ImageAssetPreloadAsyncService imageAssetPreloadAsyncService;
 
 	@GetMapping("/login")
 	public String loginForm() {
@@ -119,6 +123,9 @@ public class LoginController {
 							repo,
 							user.getCipherKey(),
 							user.getUserId()));
+
+			// 画像一覧の初回表示に必要な情報をバックグラウンドで先読みする。
+			imageAssetPreloadAsyncService.preloadAsync(user.getUserId());
 
 			return "redirect:/home";
 		} else {
