@@ -19,6 +19,7 @@ import com.app.myblogpusher.repository.UserRepositoryRepository;
 import com.app.myblogpusher.service.PublishedArticleService;
 import com.app.myblogpusher.service.Article.ArticleWorkspaceService;
 import com.app.myblogpusher.service.Login.LoginHistoryService;
+import com.app.myblogpusher.service.Login.LoginRegionAsyncService;
 import com.app.myblogpusher.service.Login.LoginService;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -41,6 +42,9 @@ public class LoginController {
 
 	@Autowired
 	private LoginHistoryService loginHistoryService;
+
+	@Autowired
+	private LoginRegionAsyncService loginRegionAsyncService;
 
 	@GetMapping("/login")
 	public String loginForm() {
@@ -68,14 +72,12 @@ public class LoginController {
 			}
 
 			String userAgent = request.getHeader("User-Agent");
-			String region = loginService.findLoginRegion(ipAddress);
 
 			// 初回ログイン時はGoogle Authenticatorの設定を行う。
 			if (user.getTwoFactorAuthenticatedAt() == null) {
 
 				session.setAttribute("twoFactorUserId", user.getUserId());
 				session.setAttribute("twoFactorIpAddress", ipAddress);
-				session.setAttribute("twoFactorRegion", region);
 				session.setAttribute("twoFactorUserAgent", userAgent);
 
 				System.out.println("2FA SETUP: sessionId=" + session.getId()
@@ -84,15 +86,12 @@ public class LoginController {
 				return "redirect:/login/2fa/setup";
 			}
 
-			// IP・region・2FA認証日時から追加認証の必要性を判定する。
 			if (loginService.requiresTwoFactor(
 					user,
-					ipAddress,
-					region)) {
+					ipAddress)) {
 
 				session.setAttribute("twoFactorUserId", user.getUserId());
 				session.setAttribute("twoFactorIpAddress", ipAddress);
-				session.setAttribute("twoFactorRegion", region);
 				session.setAttribute("twoFactorUserAgent", userAgent);
 
 				return "redirect:/login/2fa";
@@ -101,13 +100,17 @@ public class LoginController {
 			// ログイン前に前のセッションのワークスペースをクリア
 			workspaceService.delete(user.getUserId());
 
-			loginHistoryService.recordLogin(
+			// regionはまだ取得できていないため、nullのまま履歴を作成する。
+			Long historyId = loginHistoryService.recordLogin(
 					user.getUserId(),
 					ipAddress,
-					region,
+					null,
 					userAgent);
 
-			// 新しいセッションを設定
+			// 次回の画面遷移までに、ログイン元regionをバックグラウンドで取得する。
+			loginRegionAsyncService.updateRegionAsync(historyId, ipAddress);
+
+			session.setAttribute("loginRegionVerified", false);
 			session.setAttribute("loginUser", user);
 
 			// 投稿済み記事一覧を非同期で先読みし、記事一覧画面の表示を高速化する

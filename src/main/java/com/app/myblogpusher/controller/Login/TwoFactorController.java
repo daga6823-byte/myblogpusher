@@ -25,6 +25,7 @@ import com.app.myblogpusher.service.Article.ArticleWorkspaceService;
 import com.app.myblogpusher.service.Login.LoginHistoryService;
 import com.app.myblogpusher.service.Login.TwoFactorService;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 
 @Controller
@@ -105,6 +106,7 @@ public class TwoFactorController {
 	@PostMapping("/login/2fa/setup")
 	public String setup(
 			@RequestParam String code,
+			HttpServletRequest request,
 			HttpSession session,
 			Model model) {
 
@@ -148,7 +150,7 @@ public class TwoFactorController {
 
 		userMasterRepository.save(user);
 
-		completeLogin(user, session);
+		completeLogin(user, request, session);
 
 		return "redirect:/home";
 	}
@@ -173,9 +175,10 @@ public class TwoFactorController {
 	 */
 	@PostMapping("/login/2fa")
 	public String verify(
-			@RequestParam String code,
-			HttpSession session,
-			Model model) {
+	        @RequestParam String code,
+	        HttpServletRequest request,
+	        HttpSession session,
+	        Model model) {
 
 		Long userId = (Long) session.getAttribute("twoFactorUserId");
 
@@ -224,7 +227,7 @@ public class TwoFactorController {
 
 		userMasterRepository.save(user);
 
-		completeLogin(user, session);
+		completeLogin(user, request, session);
 
 		return "redirect:/home";
 	}
@@ -237,12 +240,11 @@ public class TwoFactorController {
 	 */
 	private void completeLogin(
 			UserMaster user,
+			HttpServletRequest request,
 			HttpSession session) {
 
 		String ipAddress = (String) session.getAttribute("twoFactorIpAddress");
-
 		String region = (String) session.getAttribute("twoFactorRegion");
-
 		String userAgent = (String) session.getAttribute("twoFactorUserAgent");
 
 		// ログイン前に前のセッションのワークスペースをクリアする。
@@ -254,8 +256,14 @@ public class TwoFactorController {
 				region,
 				userAgent);
 
-		// 2FA認証完了後に通常のログインセッションを設定する。
-		session.setAttribute("loginUser", user);
+		// 2FA判定に使用した古いセッションを破棄し、
+		// ログイン成功後は新しいセッションを使用する。
+		session.invalidate();
+
+		HttpSession newSession = request.getSession(true);
+
+		// 新しいセッションにログインユーザーを設定する。
+		newSession.setAttribute("loginUser", user);
 
 		// 2FA経由でも投稿済み記事一覧を非同期で先読みする。
 		userRepositoryRepository.findByUserId(user.getUserId())
@@ -263,11 +271,5 @@ public class TwoFactorController {
 						repo,
 						user.getCipherKey(),
 						user.getUserId()));
-
-		// 2FA判定用に一時保存していたセッション情報を削除する。
-		session.removeAttribute("twoFactorUserId");
-		session.removeAttribute("twoFactorIpAddress");
-		session.removeAttribute("twoFactorRegion");
-		session.removeAttribute("twoFactorUserAgent");
 	}
 }

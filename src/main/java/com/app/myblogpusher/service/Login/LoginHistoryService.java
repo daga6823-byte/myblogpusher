@@ -28,7 +28,7 @@ public class LoginHistoryService {
 	 * 保存後、同一ユーザーの古い履歴を削除して
 	 * 最大2件だけ残す。
 	 */
-	public void recordLogin(
+	public Long recordLogin(
 			Long userId,
 			String ipAddress,
 			String region,
@@ -42,7 +42,7 @@ public class LoginHistoryService {
 		history.setUserAgent(userAgent);
 		history.setLoginDate(LocalDateTime.now());
 
-		loginHistoryRepository.save(history);
+		history = loginHistoryRepository.save(history);
 
 		List<LoginHistory> histories = loginHistoryRepository
 				.findByUserIdOrderByLoginDateDesc(userId);
@@ -50,6 +50,38 @@ public class LoginHistoryService {
 		for (int i = 2; i < histories.size(); i++) {
 			loginHistoryRepository.delete(histories.get(i));
 		}
+
+		return history.getId();
+	}
+
+	/**
+	 * 非同期で取得したログイン元regionを履歴へ反映する。
+	 */
+	public void updateRegion(Long historyId, String region) {
+
+		if (historyId == null || region == null || region.isBlank()) {
+			return;
+		}
+
+		loginHistoryRepository.findById(historyId).ifPresent(history -> {
+			history.setRegion(region);
+			loginHistoryRepository.save(history);
+		});
+	}
+
+	/**
+	 * 最新のログイン履歴を取得する。
+	 */
+	public LoginHistory findLatestLogin(Long userId) {
+
+		List<LoginHistory> histories = loginHistoryRepository
+				.findByUserIdOrderByLoginDateDesc(userId);
+
+		if (histories.isEmpty()) {
+			return null;
+		}
+
+		return histories.get(0);
 	}
 
 	/**

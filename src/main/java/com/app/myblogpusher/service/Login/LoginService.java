@@ -104,16 +104,8 @@ public class LoginService {
 	 * ・パスワードを3回連続で間違えている
 	 */
 	public boolean requiresTwoFactor(
-			UserMaster user,
-			String ipAddress,
-			String region) {
-
-		// 登録regionとログイン元regionが異なる場合は2FAを要求する。
-		if (region != null
-				&& user.getRegion() != null
-				&& !user.getRegion().equalsIgnoreCase(region)) {
-			return true;
-		}
+	        UserMaster user,
+	        String ipAddress) {
 
 		// パスワードを3回連続で間違えている場合は2FAを要求する。
 		if (user.getLoginFailedCount() != null
