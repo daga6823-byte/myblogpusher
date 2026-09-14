@@ -16,12 +16,14 @@ import com.app.myblogpusher.dto.Typo.TypoScanResultView;
 import com.app.myblogpusher.entity.UserMaster;
 import com.app.myblogpusher.entity.Article.ArticleCategory;
 import com.app.myblogpusher.entity.Article.ArticleWork;
-import com.app.myblogpusher.service.CategoryPathService;
 import com.app.myblogpusher.service.HomophoneTypoScanService;
 import com.app.myblogpusher.service.LanguageToolService;
 import com.app.myblogpusher.service.TypoCorrectionService;
 import com.app.myblogpusher.service.Article.ArticleCategoryService;
 import com.app.myblogpusher.service.Article.ArticleWorkService;
+import com.app.myblogpusher.service.Category.CategoryHierarchyResolver;
+import com.app.myblogpusher.service.Category.CategoryPathService;
+import com.app.myblogpusher.service.Category.CategorySelectionService;
 import com.app.myblogpusher.util.ArticleSaveUtil;
 
 import jakarta.servlet.http.HttpSession;
@@ -43,6 +45,12 @@ public class ArticleTypoController {
 
 	@Autowired
 	private CategoryPathService categoryPathService;
+	
+	@Autowired
+	private CategorySelectionService categorySelectionService;
+	
+	@Autowired
+	private CategoryHierarchyResolver categoryHierarchyResolver;
 
 	//添削画面
 	@PostMapping("/article/correct")
@@ -79,9 +87,7 @@ public class ArticleTypoController {
 				content);
 
 		model.addAttribute("categories",
-				articleCategoryService.findSelectableCategories(userId));
-		model.addAttribute("categories",
-				articleCategoryService.findSelectableCategories(userId));
+				categorySelectionService.findSelectableCategories(userId));
 		model.addAttribute("work", work);
 		model.addAttribute("categoryGroupId", categoryGroupId);
 		model.addAttribute("typoMatches", matches);
@@ -123,7 +129,7 @@ public class ArticleTypoController {
 
 				Long categoryId = Long.valueOf(categorySelect);
 
-				targetCategoryId = articleCategoryService
+				targetCategoryId = categoryHierarchyResolver
 						.findReferenceCategoryId(categoryId);
 			}
 		}

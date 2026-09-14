@@ -22,12 +22,16 @@ import com.app.myblogpusher.entity.TypoCorrection;
 import com.app.myblogpusher.entity.Article.ArticleCategory;
 import com.app.myblogpusher.repository.TypoCorrectionRepository;
 import com.app.myblogpusher.service.Article.ArticleCategoryService;
+import com.app.myblogpusher.service.Category.CategoryHierarchyResolver;
 
 @Service
 public class TypoCorrectionService {
 
 	@Autowired
 	private TypoCorrectionRepository typoCorrectionRepository;
+	
+	@Autowired
+	private CategoryHierarchyResolver categoryHierarchyResolver;
 
 	public List<TypoMatch> findMatches(Long categoryId, String content) {
 
@@ -201,7 +205,7 @@ public class TypoCorrectionService {
 	public List<LanguageToolService.LanguageToolMatch> excludeKnownTypos(
 			Long categoryId, List<LanguageToolService.LanguageToolMatch> ltMatches) {
 
-		Long dictionaryCategoryId = articleCategoryService.findDictionaryCategoryId(categoryId);
+		Long dictionaryCategoryId = categoryHierarchyResolver.findDictionaryCategoryId(categoryId);
 
 		List<TypoCorrection> rules = typoCorrectionRepository.findByCategoryIdOrCategoryIdIsNull(
 				dictionaryCategoryId);

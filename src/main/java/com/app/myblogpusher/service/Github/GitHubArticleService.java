@@ -6,7 +6,7 @@
  *
  * DBへの記事同期処理はPublishedArticleSyncServiceが担当する。
  */
-package com.app.myblogpusher.service;
+package com.app.myblogpusher.service.Github;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import com.app.myblogpusher.dto.Publish.PublishedArticleDto;
 import com.app.myblogpusher.dto.Publish.PublishedArticleSummaryDto;
 import com.app.myblogpusher.entity.UserRepositoryEntity;
+import com.app.myblogpusher.service.TokenCipherService;
 import com.app.myblogpusher.util.FrontMatterUtil;
 
 import jakarta.servlet.http.HttpSession;

@@ -6,7 +6,7 @@
  * また、その関係がどのカテゴリー経路に属するかを管理する。
  */
 
-package com.app.myblogpusher.service;
+package com.app.myblogpusher.service.Category;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -234,19 +234,6 @@ public class CategoryRelationService {
 						userId);
 			}
 		}
-
-		/*
-		 * 変更後の経路として使用されなくなったRelationだけ削除する。
-		 *
-		 * 使用したRelationのgroupIdは維持されるため、
-		 * Article / ArticleWorkから参照されていても壊れない。
-		 */
-		for (CategoryRelation existingRelation : existingRelations) {
-
-			if (!usedRelations.contains(existingRelation)) {
-				categoryRelationRepository.delete(existingRelation);
-			}
-		}
 	}
 
 	private void updateOrCreateRelation(
@@ -258,45 +245,16 @@ public class CategoryRelationService {
 			Long userId) {
 
 		CategoryRelation existing = existingRelations.stream()
-				// 同じ経路が既に存在する場合は、そのRelationを再利用する。
-				.filter(relation -> !usedRelations.contains(relation)
-						&& categoryPath.equals(
-								relation.getCategoryPath()))
+				.filter(relation -> categoryPath.equals(
+						relation.getCategoryPath()))
 				.findFirst()
 				.orElse(null);
 
-		if (existing == null) {
-			// 経路が変わった場合でも、同じ親を持つ既存RelationのgroupIdを再利用する。
-			existing = existingRelations.stream()
-					.filter(relation -> !usedRelations.contains(relation)
-							&& parentCategoryId.equals(
-									relation.getParentCategoryId()))
-					.findFirst()
-					.orElse(null);
-		}
-
-		if (existing == null) {
-			// 親も変わった場合は、未使用の既存groupIdを再利用する。
-			existing = existingRelations.stream()
-					.filter(relation -> !usedRelations.contains(relation))
-					.findFirst()
-					.orElse(null);
-		}
-
 		if (existing != null) {
-
-			existing.setParentCategoryId(parentCategoryId);
-			existing.setCategoryPath(categoryPath);
-			existing.setUpdateDate(LocalDateTime.now());
-			existing.setUpdateUser(userId);
-
-			categoryRelationRepository.save(existing);
 			usedRelations.add(existing);
-
 			return;
 		}
 
-		// 既存groupIdを再利用できない場合だけ新規Relationを作成する。
 		CategoryRelation relation = new CategoryRelation();
 		relation.setCategoryId(categoryId);
 		relation.setParentCategoryId(parentCategoryId);

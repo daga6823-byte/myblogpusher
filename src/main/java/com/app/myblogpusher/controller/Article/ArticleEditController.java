@@ -32,6 +32,8 @@ import com.app.myblogpusher.repository.Article.ArticleRepository;
 import com.app.myblogpusher.service.Article.ArticleCategoryService;
 import com.app.myblogpusher.service.Article.ArticleWorkService;
 import com.app.myblogpusher.service.Article.ArticleWorkspaceService;
+import com.app.myblogpusher.service.Category.CategoryPathService;
+import com.app.myblogpusher.service.Category.CategorySelectionService;
 import com.app.myblogpusher.service.Image.ImageAssetService;
 import com.app.myblogpusher.util.ArticleSaveUtil;
 
@@ -60,6 +62,12 @@ public class ArticleEditController {
 
 	@Autowired
 	private UserRepositoryRepository userRepositoryRepository;
+	
+	@Autowired
+	private CategorySelectionService categorySelectionService;
+	
+	@Autowired
+	private CategoryPathService categoryPathService;
 
 	/**
 	 * 記事編集画面を表示
@@ -78,7 +86,7 @@ public class ArticleEditController {
 				.orElse(null);
 
 		// カテゴリー選択プルダウン用（groupId + categoryId + categoryPath）
-		List<CategoryOptionView> categories = articleCategoryService.findSelectableCategories(userId);
+		List<CategoryOptionView> categories = categorySelectionService.findSelectableCategories(userId);
 
 		categories.forEach(c -> System.out.println(
 				c.getGroupId() + " : "
@@ -169,7 +177,7 @@ public class ArticleEditController {
 
 		if (currentCategoryGroupId != null) {
 
-			Long searchCategoryId = articleCategoryService
+			Long searchCategoryId = categoryPathService
 					.findLinkSearchCategoryId(
 							userId,
 							currentCategoryGroupId);
@@ -182,9 +190,9 @@ public class ArticleEditController {
 
 				if (searchCategory != null) {
 
-					String searchPath = articleCategoryService
-							.findLinkSearchCategoryPath(
-									currentCategoryGroupId);
+					String searchPath = categoryPathService
+					        .findSecondLevelPath(
+					                currentCategoryGroupId);
 
 					if (searchPath != null) {
 
@@ -216,7 +224,7 @@ public class ArticleEditController {
 
 		model.addAttribute(
 				"linkCategories",
-				articleCategoryService.findSelectableCategories(userId));
+				categorySelectionService.findSelectableCategories(userId));
 
 		model.addAttribute(
 				"linkSearchCategoryId",

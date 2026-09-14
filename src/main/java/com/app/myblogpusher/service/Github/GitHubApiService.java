@@ -7,7 +7,7 @@
 *
 * 取得した記事のDTO変換やDBへの同期処理は担当しない。
   */
-package com.app.myblogpusher.service;
+package com.app.myblogpusher.service.Github;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;

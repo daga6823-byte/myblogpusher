@@ -1,24 +1,16 @@
 package com.app.myblogpusher.service.Article;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.app.myblogpusher.dto.Category.CategoryDictionaryView;
-import com.app.myblogpusher.dto.Category.CategoryOptionView;
-import com.app.myblogpusher.entity.CategoryRelation;
 import com.app.myblogpusher.entity.Article.ArticleCategory;
-import com.app.myblogpusher.repository.CategoryRelationRepository;
 import com.app.myblogpusher.repository.TypoCorrectionRepository;
 import com.app.myblogpusher.repository.Article.ArticleCategoryRepository;
-import com.app.myblogpusher.service.CategoryPathService;
-import com.app.myblogpusher.service.CategoryRelationService;
+import com.app.myblogpusher.service.Category.CategoryRelationService;
 
 @Service
 public class ArticleCategoryService {
@@ -36,12 +28,6 @@ public class ArticleCategoryService {
 
 	@Autowired
 	private CategoryRelationService categoryRelationService;
-
-	@Autowired
-	private CategoryRelationRepository categoryRelationRepository;
-
-	@Autowired
-	private CategoryPathService categoryPathService;
 
 	/**
 	 * カテゴリーを新規登録する
@@ -97,70 +83,6 @@ public class ArticleCategoryService {
 	}
 
 	/**
-	 * カテゴリー辞典表示用の一覧を取得する
-	 *
-	 * 誤字登録件数と親カテゴリー表示名を付加して返す。
-	 */
-	public List<CategoryDictionaryView> findDictionaryView(Long userId) {
-
-		List<ArticleCategory> categories = articleCategoryRepository.findByUserId(userId);
-
-		if (categories.isEmpty()) {
-			return List.of();
-		}
-
-		List<Long> categoryIds = categories.stream()
-				.map(ArticleCategory::getCategoryId)
-				.toList();
-
-		Map<Long, Long> countMap = typoCorrectionRepository.countByCategoryIds(categoryIds)
-				.stream()
-				.collect(Collectors.toMap(
-						row -> (Long) row[0],
-						row -> (Long) row[1]));
-
-		Map<Long, String> categoryNameMap = categories.stream()
-				.collect(Collectors.toMap(
-						ArticleCategory::getCategoryId,
-						c -> c.getDisplayName() == null
-								? c.getCategoryName()
-								: c.getDisplayName()));
-
-		/*
-		 * カテゴリーの親子関係はCategoryRelationを基準にする。
-		 *
-		 * 1つのカテゴリーが複数の親を持てるため、
-		 * categoryIdごとに複数のparentCategoryIdを取得する。
-		 */
-		List<CategoryRelation> relations = categoryRelationRepository.findAll();
-
-		return categories.stream()
-				.map(c -> {
-
-					List<Long> parentCategoryIds = relations.stream()
-							.filter(relation -> relation.getCategoryId().equals(c.getCategoryId()))
-							.map(CategoryRelation::getParentCategoryId)
-							.toList();
-
-					String parentCategoryName = parentCategoryIds.stream()
-							.map(categoryNameMap::get)
-							.filter(name -> name != null)
-							.collect(Collectors.joining(", "));
-
-					return new CategoryDictionaryView(
-							c.getCategoryId(),
-							c.getCategoryName(),
-							parentCategoryIds,
-							parentCategoryName.isEmpty()
-									? null
-									: parentCategoryName,
-							c.getDisplayName(),
-							countMap.getOrDefault(c.getCategoryId(), 0L));
-				})
-				.toList();
-	}
-
-	/**
 	 * カテゴリー情報を更新する
 	 *
 	 * カテゴリー名・親カテゴリー・表示名を更新する。
@@ -204,8 +126,9 @@ public class ArticleCategoryService {
 
 		articleCategoryRepository.save(category);
 
-		// 既存のRelationを必要以上に削除せず、親子関係を更新する。
-		categoryRelationService.updateRelations(
+		// 選択された親とのカテゴリー経路を追加登録する。
+		// 既存のRelationは削除・変更しない。
+		categoryRelationService.addCategoryRelations(
 				categoryId,
 				parentCategoryIds,
 				userId);
@@ -240,204 +163,5 @@ public class ArticleCategoryService {
 		categoryRelationService.deleteRelationsByParentCategoryId(categoryId);
 
 		articleCategoryRepository.delete(category);
-	}
-
-	/**
-	 * 記事投稿画面のカテゴリー選択プルダウン用に、
-	 * ルートからのフルパス付きでカテゴリー一覧を返す。
-	 *
-	 * 親カテゴリーを持つカテゴリーのうち、
-	 * 子カテゴリーを持たない末端カテゴリーだけを選択肢にする。
-	 */
-	public List<CategoryOptionView> findSelectableCategories(Long userId) {
-
-		List<ArticleCategory> categories = articleCategoryRepository.findByUserId(userId);
-
-		if (categories.isEmpty()) {
-			return List.of();
-		}
-
-		/*
-		 * CategoryRelationからカテゴリー経路を取得する。
-		 *
-		 * ArticleCategory自身はカテゴリーそのものを表すため、
-		 * 実際の階層構造とカテゴリー経路はcategory_relationを基準にする。
-		 */
-		List<CategoryRelation> relations = categoryRelationRepository.findAll();
-
-		List<CategoryOptionView> result = new ArrayList<>();
-
-		/*
-		 * category_relationに登録されているカテゴリー経路を
-		 * 記事投稿画面の選択肢として使用する。
-		 *
-		 * 親カテゴリーを持たないルートカテゴリーは
-		 * category_relationに存在しないため対象外になる。
-		 *
-		 * また、自分のcategory_pathを親として持つ経路が存在する場合は
-		 * 途中カテゴリーなので選択肢から除外する。
-		 */
-		relations.stream()
-				.filter(relation -> relation.getCategoryPath() != null
-						&& !relation.getCategoryPath().isBlank())
-				.filter(relation -> categories.stream()
-						.anyMatch(category -> category.getCategoryId()
-								.equals(relation.getCategoryId())))
-				.filter(relation -> relations.stream()
-						.noneMatch(childRelation -> {
-
-							String childPath = childRelation.getCategoryPath();
-							String currentPath = relation.getCategoryPath();
-
-							if (childPath == null || currentPath == null) {
-								return false;
-							}
-
-							return childPath.startsWith(currentPath + "/");
-						}))
-				.sorted((a, b) -> a.getCategoryPath()
-						.compareToIgnoreCase(b.getCategoryPath()))
-				.forEach(relation -> result.add(
-						new CategoryOptionView(
-								relation.getGroupId(),
-								relation.getCategoryId(),
-								relation.getCategoryPath())));
-
-		return result;
-	}
-
-	/**
-	 * 辞書検索に使用するカテゴリーIDを取得する。
-	 *
-	 * 第2階層のカテゴリーを辞書検索対象とする。
-	 */
-	public Long findDictionaryCategoryId(Long categoryId) {
-
-		if (categoryId == null) {
-			return null;
-		}
-
-		ArticleCategory category = articleCategoryRepository
-				.findById(categoryId)
-				.orElse(null);
-
-		if (category == null || category.getParentCategoryId() == null) {
-			return null;
-		}
-
-		ArticleCategory parent = articleCategoryRepository
-				.findById(category.getParentCategoryId())
-				.orElse(null);
-
-		if (parent == null) {
-			return null;
-		}
-
-		if (parent.getParentCategoryId() == null) {
-			return category.getCategoryId();
-		}
-
-		return parent.getCategoryId();
-	}
-
-	/**
-	 * 記事カテゴリーから参考文献登録対象カテゴリーを取得する。
-	 *
-	 * 第2階層のカテゴリーを参考文献登録対象とする。
-	 */
-	public Long findReferenceCategoryId(Long categoryId) {
-
-		if (categoryId == null) {
-			return null;
-		}
-
-		ArticleCategory category = articleCategoryRepository
-				.findById(categoryId)
-				.orElse(null);
-
-		if (category == null) {
-			return null;
-		}
-
-		if (category.getParentCategoryId() == null) {
-			return category.getCategoryId();
-		}
-
-		ArticleCategory parent = articleCategoryRepository
-				.findById(category.getParentCategoryId())
-				.orElse(null);
-
-		if (parent == null) {
-			return null;
-		}
-
-		if (parent.getParentCategoryId() == null) {
-			return category.getCategoryId();
-		}
-
-		return parent.getCategoryId();
-	}
-
-	/**
-	 * カテゴリー経路のgroupIdから、
-	 * 添削・誤字検索で使用する第2階層のcategoryIdを取得する。
-	 *
-	 * 例:
-	 * movie/batman/gadget
-	 *
-	 * → movie/batman
-	 * → batmanのcategoryId
-	 */
-	public Long findTypoCategoryIdByGroupId(Long groupId) {
-		return categoryPathService.findTypoCategoryIdByGroupId(groupId);
-	}
-
-	/**
-	 * フルパスからカテゴリーIDを取得する。
-	 *
-	 * CategoryRelationを使用して親子関係を辿る。
-	 *
-	 * 例:
-	 * movie/batman/gadget
-	 *
-	 * → gadgetのcategoryId
-	 */
-	public Long findCategoryIdByFullPath(
-			Long userId,
-			String fullPath) {
-
-		return categoryPathService.findCategoryIdByFullPath(userId, fullPath);
-	}
-
-	/**
-	 * 記事リンク検索用カテゴリーIDを取得する。
-	 *
-	 * category_relationのgroup_idで実際のカテゴリー経路を特定し、
-	 * その経路の第2階層カテゴリーをリンク検索対象とする。
-	 */
-	public Long findLinkSearchCategoryId(
-			Long userId,
-			Long groupId) {
-
-		return categoryPathService.findLinkSearchCategoryId(userId, groupId);
-	}
-
-	/**
-	 * 記事リンク検索用カテゴリーのHugoパスを取得する。
-	 *
-	 * category_relationのgroup_idに登録されている
-	 * category_pathを基準に、第2階層までの経路を取得する。
-	 */
-	public String findLinkSearchCategoryPath(Long groupId) {
-		return categoryPathService.findSecondLevelPath(groupId);
-	}
-
-	/**
-	 * category_group_idからカテゴリー経路を取得する。
-	 *
-	 * 下書き一覧など、記事が選択したカテゴリー経路を表示する場合に使用する。
-	 */
-	public String findCategoryPathByGroupId(Long groupId) {
-		return categoryPathService.findCategoryPathByGroupId(groupId);
 	}
 }

@@ -20,8 +20,9 @@ import com.app.myblogpusher.dto.Publish.PublishedArticleSummaryDto;
 import com.app.myblogpusher.entity.UserRepositoryEntity;
 import com.app.myblogpusher.entity.Article.Article;
 import com.app.myblogpusher.repository.Article.ArticleRepository;
-import com.app.myblogpusher.service.Article.ArticleCategoryService;
 import com.app.myblogpusher.service.Article.ArticleService;
+import com.app.myblogpusher.service.Category.CategoryPathService;
+import com.app.myblogpusher.service.Github.GitHubArticleService;
 
 @Service
 public class PublishedArticleSyncService {
@@ -33,7 +34,7 @@ public class PublishedArticleSyncService {
 	private ArticleService articleService;
 
 	@Autowired
-	private ArticleCategoryService articleCategoryService;
+	private CategoryPathService categoryPathService;
 
 	@Autowired
 	private ArticleRepository articleRepository;
@@ -85,7 +86,7 @@ public class PublishedArticleSyncService {
 					 *
 					 * 同期処理ではカテゴリーを新規作成・変更しない。
 					 */
-					categoryId = articleCategoryService
+					categoryId = categoryPathService
 							.findCategoryIdByFullPath(
 									userId,
 									categoryPath);

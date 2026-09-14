@@ -8,7 +8,7 @@
 * ArticleCategoryそのもののCRUDは担当しない。
   */
 
-package com.app.myblogpusher.service;
+package com.app.myblogpusher.service.Category;
 
 import java.util.ArrayList;
 import java.util.HashMap;

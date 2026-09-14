@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import com.app.myblogpusher.dto.Category.CategoryDictionaryView;
 import com.app.myblogpusher.entity.UserMaster;
 import com.app.myblogpusher.service.Article.ArticleCategoryService;
+import com.app.myblogpusher.service.Category.CategoryDictionaryViewService;
 
 import jakarta.servlet.http.HttpSession;
 
@@ -29,6 +30,9 @@ public class CategoryController {
 
 	@Autowired
 	private ArticleCategoryService articleCategoryService;
+
+	@Autowired
+	private CategoryDictionaryViewService categoryDictionaryViewService;
 
 	/**
 	 * カテゴリー辞典一覧を表示
@@ -39,7 +43,7 @@ public class CategoryController {
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 		Long userId = loginUser.getUserId();
 
-		List<CategoryDictionaryView> categories = articleCategoryService.findDictionaryView(userId);
+		List<CategoryDictionaryView> categories = categoryDictionaryViewService.findDictionaryView(userId);
 		model.addAttribute("categories", categories);
 
 		return "category/category_list";

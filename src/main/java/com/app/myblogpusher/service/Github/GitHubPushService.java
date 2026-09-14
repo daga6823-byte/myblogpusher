@@ -5,7 +5,7 @@
  * Hugo用Markdown生成はHugoArticleServiceへ委譲する。
  */
 
-package com.app.myblogpusher.service;
+package com.app.myblogpusher.service.Github;
 
 import java.io.File;
 import java.io.IOException;
@@ -25,6 +25,8 @@ import org.springframework.stereotype.Service;
 
 import com.app.myblogpusher.entity.UserRepositoryEntity;
 import com.app.myblogpusher.entity.Article.Article;
+import com.app.myblogpusher.service.HugoArticleService;
+import com.app.myblogpusher.service.TokenCipherService;
 import com.app.myblogpusher.service.Article.ArticleWorkService;
 import com.app.myblogpusher.util.ArticleImageUtil;
 import com.fasterxml.jackson.databind.JsonNode;

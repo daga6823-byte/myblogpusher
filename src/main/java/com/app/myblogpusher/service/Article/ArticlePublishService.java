@@ -20,8 +20,8 @@ import com.app.myblogpusher.dto.Article.ArticlePublishResult;
 import com.app.myblogpusher.entity.UserRepositoryEntity;
 import com.app.myblogpusher.entity.Article.Article;
 import com.app.myblogpusher.entity.Article.ArticleWork;
-import com.app.myblogpusher.service.GitHubPushService;
 import com.app.myblogpusher.service.HugoArticleService;
+import com.app.myblogpusher.service.Github.GitHubPushService;
 
 @Service
 public class ArticlePublishService {
