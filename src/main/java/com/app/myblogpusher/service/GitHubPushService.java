@@ -25,7 +25,6 @@ import org.springframework.stereotype.Service;
 
 import com.app.myblogpusher.entity.UserRepositoryEntity;
 import com.app.myblogpusher.entity.Article.Article;
-import com.app.myblogpusher.service.Article.ArticleService;
 import com.app.myblogpusher.service.Article.ArticleWorkService;
 import com.app.myblogpusher.util.ArticleImageUtil;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -43,9 +42,6 @@ public class GitHubPushService {
 	private ArticleImageUtil articleImageUtil;
 
 	@Autowired
-	private ArticleService articleService;
-
-	@Autowired
 	private ArticleWorkService articleWorkService;
 
 	public GitHubPushService(
@@ -61,6 +57,7 @@ public class GitHubPushService {
 			UserRepositoryEntity repoEntity,
 			String cipherKey,
 			Article article,
+			Article existingArticle,
 			boolean newArticle,
 			String slug)
 			throws IOException, GitAPIException {
@@ -86,6 +83,19 @@ public class GitHubPushService {
 				accessToken);
 
 		try {
+
+			// 既存記事のカテゴリー変更などでHugoパスが変わった場合、
+			// 既存ファイルを削除せず、新しいパスへ移動する。
+			if (existingArticle != null
+					&& existingArticle.getHugoPath() != null
+					&& !existingArticle.getHugoPath().equals(article.getHugoPath())) {
+
+				hugoArticleService.moveArticle(
+						git,
+						repoPath,
+						existingArticle.getHugoPath(),
+						article.getHugoPath());
+			}
 
 			hugoArticleService.createArticle(
 					git,
@@ -229,6 +239,7 @@ public class GitHubPushService {
 					repository,
 					cipherKey,
 					article,
+					null,
 					newArticle,
 					slug);
 

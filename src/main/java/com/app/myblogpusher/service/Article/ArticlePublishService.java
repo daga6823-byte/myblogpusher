@@ -57,9 +57,13 @@ public class ArticlePublishService {
 		System.out.println("slug = " + slug);
 		System.out.println("hugoPath = " + hugoPath);
 
-		Article article = articleService.findByHugoPath(
-				work.getUserId(),
-				hugoPath);
+		// ArticleWork.articleIdがあれば、元になった投稿済み記事を取得する。
+		// カテゴリー変更後のhugoPathではなく、元の記事IDを基準に既存記事を判定する。
+		Article article = null;
+
+		if (work.getArticleId() != null) {
+			article = articleService.findById(work.getArticleId());
+		}
 
 		System.out.println("find result = " + article);
 
@@ -130,11 +134,14 @@ public class ArticlePublishService {
 						work.getCategoryGroupId(),
 						work.getSlug());
 
-				// 既存Articleの有無だけ確認する
-				// ここではArticleテーブルを変更しない
-				Article existingArticle = articleService.findByHugoPath(
-						work.getUserId(),
-						hugoPath);
+				// ArticleWork.articleIdを基準に元の記事を取得する。
+				// カテゴリー変更後のhugoPathではなく、元の記事そのものを特定する。
+				Article existingArticle = null;
+
+				if (work.getArticleId() != null) {
+					existingArticle = articleService.findById(
+							work.getArticleId());
+				}
 
 				// GitHub投稿用のArticleをメモリ上だけで作成する
 				Article article = new Article();
@@ -152,6 +159,7 @@ public class ArticlePublishService {
 						repository,
 						cipherKey,
 						article,
+						existingArticle,
 						existingArticle == null,
 						work.getSlug());
 

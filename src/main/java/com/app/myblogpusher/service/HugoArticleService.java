@@ -138,4 +138,47 @@ public class HugoArticleService {
 
 		return categoryPath + "/" + slug;
 	}
+
+	/**
+	 * 既存記事のHugoファイルを新しいカテゴリー経路へ移動する
+	 *
+	 * 既存ファイルを削除して作り直すのではなく、
+	 * Files.move()で移動することで既存記事を維持する。
+	 */
+	public void moveArticle(
+			Git git,
+			String repoPath,
+			String oldHugoPath,
+			String newHugoPath)
+			throws IOException, GitAPIException {
+
+		Path oldPath = Paths.get(
+				repoPath,
+				"content",
+				oldHugoPath + ".md");
+
+		Path newPath = Paths.get(
+				repoPath,
+				"content",
+				newHugoPath + ".md");
+
+		if (!Files.exists(oldPath)) {
+			throw new IOException(
+					"移動元の記事ファイルが存在しません: "
+							+ oldPath);
+		}
+
+		// 新しいカテゴリー階層が存在しない場合は作成する。
+		Files.createDirectories(newPath.getParent());
+
+		// 既存記事を削除せず、新しいHugoパスへ移動する。
+		Files.move(
+				oldPath,
+				newPath);
+
+		// 移動をGitの変更として登録する。
+		git.add()
+				.addFilepattern("content")
+				.call();
+	}
 }
