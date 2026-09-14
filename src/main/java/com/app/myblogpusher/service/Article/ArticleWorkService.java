@@ -159,7 +159,7 @@ public class ArticleWorkService {
 						userId,
 						categoryGroupId,
 						title,
-						content);	
+						content);
 	}
 
 	/**
@@ -205,7 +205,7 @@ public class ArticleWorkService {
 	public List<ArticleWork> findError(Long userId) {
 		return articleWorkRepository.findByUserIdAndStatusOrderByUpdateDateDesc(userId, 2);
 	}
-	
+
 	/**
 	 * 投稿前の下書きを取得する
 	 */
@@ -214,6 +214,14 @@ public class ArticleWorkService {
 		return articleWorkRepository.findByUserIdAndStatusOrderByUpdateDateDesc(
 				userId,
 				0);
+	}
+
+	public void updateCategoryGroupId(Long workId, Long categoryGroupId) {
+	    ArticleWork work = articleWorkRepository.findById(workId)
+	            .orElseThrow();
+
+	    work.setCategoryGroupId(categoryGroupId);
+	    articleWorkRepository.save(work);
 	}
 
 }

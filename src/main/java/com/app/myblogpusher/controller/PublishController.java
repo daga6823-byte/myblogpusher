@@ -133,6 +133,12 @@ public class PublishController {
 
 		UserRepositoryEntity repo = repoOpt.get();
 
+		// 投稿時に選択されたカテゴリー経路をArticleWorkへ反映する。
+		// categoryIdは画面上の名称とは異なり、CategoryRelation.groupIdを指す。
+		articleWorkService.updateCategoryGroupId(
+		        workId,
+		        categoryId);
+
 		// 投稿処理開始
 		articleWorkService.updateStatus(workId, 1);
 
