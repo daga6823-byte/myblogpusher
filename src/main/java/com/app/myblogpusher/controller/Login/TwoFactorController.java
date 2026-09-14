@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import com.app.myblogpusher.entity.UserMaster;
 import com.app.myblogpusher.repository.UserMasterRepository;
 import com.app.myblogpusher.repository.UserRepositoryRepository;
-import com.app.myblogpusher.service.PublishedArticleService;
+import com.app.myblogpusher.service.PublishedArticleSyncService;
 import com.app.myblogpusher.service.Article.ArticleWorkspaceService;
 import com.app.myblogpusher.service.Image.ImageAssetPreloadAsyncService;
 import com.app.myblogpusher.service.Login.LoginHistoryService;
@@ -51,10 +51,10 @@ public class TwoFactorController {
 	private UserRepositoryRepository userRepositoryRepository;
 
 	@Autowired
-	private PublishedArticleService publishedArticleService;
-
-	@Autowired
 	private ImageAssetPreloadAsyncService imageAssetPreloadAsyncService;
+	
+	@Autowired
+	private PublishedArticleSyncService publishedArticleSyncService;
 
 	/**
 	 * 初回ログイン時のGoogle Authenticator設定画面を表示する。
@@ -271,7 +271,7 @@ public class TwoFactorController {
 
 		// 2FA経由でも投稿済み記事一覧を非同期で先読みする。
 		userRepositoryRepository.findByUserId(user.getUserId())
-				.ifPresent(repo -> publishedArticleService.syncArticles(
+				.ifPresent(repo -> publishedArticleSyncService.syncArticles(
 						repo, user.getCipherKey(), user.getUserId()));
 
 		// 2FA経由のログインでも画像一覧の初回表示に必要な情報を先読みする。

@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import com.app.myblogpusher.entity.UserMaster;
 import com.app.myblogpusher.repository.UserRepositoryRepository;
-import com.app.myblogpusher.service.PublishedArticleService;
+import com.app.myblogpusher.service.PublishedArticleSyncService;
 import com.app.myblogpusher.service.Article.ArticleWorkspaceService;
 import com.app.myblogpusher.service.Image.ImageAssetPreloadAsyncService;
 import com.app.myblogpusher.service.Login.LoginHistoryService;
@@ -39,9 +39,6 @@ public class LoginController {
 	private UserRepositoryRepository userRepositoryRepository;
 
 	@Autowired
-	private PublishedArticleService publishedArticleService;
-
-	@Autowired
 	private LoginHistoryService loginHistoryService;
 
 	@Autowired
@@ -49,6 +46,9 @@ public class LoginController {
 
 	@Autowired
 	private ImageAssetPreloadAsyncService imageAssetPreloadAsyncService;
+	
+	@Autowired
+	private PublishedArticleSyncService publishedArticleSyncService;
 
 	@GetMapping("/login")
 	public String loginForm() {
@@ -119,7 +119,7 @@ public class LoginController {
 
 			// 投稿済み記事一覧を非同期で先読みし、記事一覧画面の表示を高速化する
 			userRepositoryRepository.findByUserId(user.getUserId())
-					.ifPresent(repo -> publishedArticleService.syncArticles(
+					.ifPresent(repo -> publishedArticleSyncService.syncArticles(
 							repo,
 							user.getCipherKey(),
 							user.getUserId()));
