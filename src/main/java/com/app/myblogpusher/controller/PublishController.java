@@ -142,6 +142,9 @@ public class PublishController {
 		articleWorkService.updateCategoryGroupId(
 				workId,
 				categoryId);
+		
+		// 投稿前確認画面で確定したslugをArticleWorkへ反映する。
+		articleWorkService.updateSlug(workId, slug);
 
 		// 投稿処理開始
 		articleWorkService.updateStatus(workId, 1);

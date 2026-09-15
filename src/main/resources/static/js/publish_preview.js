@@ -89,37 +89,6 @@ function syncEnglish(btn) {
 		converted;
 }
 
-
-/**
- * slug更新処理
- *
- * 形態素解析結果の変換後文字列から、
- * 投稿ファイル名用slugを再生成する。
- *
- * 画面上で変換結果を変更した場合、
- * ファイル名欄へリアルタイム反映する。
- */
-function updateSlug() {
-
-	const inputs = document.querySelectorAll('[id^="converted_"]');
-
-	let parts = [];
-
-	inputs.forEach(input => {
-
-		if (input.value.trim()) {
-
-			parts.push(
-				input.value.trim().toLowerCase()
-			);
-		}
-	});
-
-	document.getElementById('slugInput').value =
-		parts.join('-');
-}
-
-
 /**
  * 形態素解析結果変更監視
  *
@@ -132,4 +101,3 @@ document.querySelectorAll('[id^="converted_"]')
 		input.addEventListener('input', updateSlug);
 
 	});
-	

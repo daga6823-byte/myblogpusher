@@ -85,6 +85,14 @@
 					style="display:none;">選択した項目を修正</button>
 			</div>
 
+			<script th:inline="javascript">
+				window.categorySelects =
+		/*[[${categories}]]*/[];
+				window.categoryPath =
+		/*[[${categoryPath}]]*/ null;
+			</script>
+
+			<script th:src="@{/js/category_select.js}"></script>
 			<script th:src="@{/js/correct/button_state.js}"></script>
 			<script th:src="@{/js/correct/highlight.js}"></script>
 			<script th:src="@{/js/correct/proofread.js}"></script>
@@ -96,6 +104,7 @@
 			<script th:src="@{/js/code_editor.js}"></script>
 			<script th:src="@{/js/article_reference.js}"></script>
 			<script th:src="@{/js/correct/article_correct.js}"></script>
+
 </body>
 
 </html>

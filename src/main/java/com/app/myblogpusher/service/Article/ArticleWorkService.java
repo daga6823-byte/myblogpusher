@@ -217,11 +217,27 @@ public class ArticleWorkService {
 	}
 
 	public void updateCategoryGroupId(Long workId, Long categoryGroupId) {
-	    ArticleWork work = articleWorkRepository.findById(workId)
-	            .orElseThrow();
+		ArticleWork work = articleWorkRepository.findById(workId)
+				.orElseThrow();
 
-	    work.setCategoryGroupId(categoryGroupId);
-	    articleWorkRepository.save(work);
+		work.setCategoryGroupId(categoryGroupId);
+		articleWorkRepository.save(work);
+	}
+
+	/**
+	 * 投稿前確認画面で確定したslugを更新する
+	 */
+	public void updateSlug(
+			Long workId,
+			String slug) {
+
+		ArticleWork work = articleWorkRepository.findById(workId)
+				.orElseThrow();
+
+		work.setSlug(slug);
+		work.setUpdateDate(LocalDateTime.now());
+
+		articleWorkRepository.save(work);
 	}
 
 }
