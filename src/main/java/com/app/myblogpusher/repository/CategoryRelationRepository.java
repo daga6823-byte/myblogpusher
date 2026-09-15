@@ -9,13 +9,18 @@ import com.app.myblogpusher.entity.CategoryRelation;
 
 @Repository
 public interface CategoryRelationRepository
-        extends JpaRepository<CategoryRelation, Long> {
+		extends JpaRepository<CategoryRelation, Long> {
 
-    List<CategoryRelation> findByCategoryId(Long categoryId);
+	List<CategoryRelation> findByCategoryId(Long categoryId);
 
-    List<CategoryRelation> findByParentCategoryId(Long parentCategoryId);
+	List<CategoryRelation> findByParentCategoryId(Long parentCategoryId);
 
-    List<CategoryRelation> findByCategoryPath(String categoryPath);
+	List<CategoryRelation> findByCategoryPath(String categoryPath);
 
-    List<CategoryRelation> findByGroupId(Long groupId);
+	List<CategoryRelation> findByGroupId(Long groupId);
+
+	boolean existsByCategoryIdAndParentCategoryIdAndCategoryPath(
+			Long categoryId,
+			Long parentCategoryId,
+			String categoryPath);
 }

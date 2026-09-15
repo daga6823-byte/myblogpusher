@@ -42,10 +42,23 @@ public class CategoryRelationService {
 			String categoryPath,
 			Long userId) {
 
-		if (categoryId == null
-				|| parentCategoryId == null
-				|| categoryPath == null
-				|| categoryPath.isBlank()) {
+		if (categoryRelationRepository
+		        .existsByCategoryIdAndParentCategoryIdAndCategoryPath(
+		                categoryId,
+		                parentCategoryId,
+		                categoryPath)) {
+		    return;
+		}
+
+		// 同じカテゴリー・親カテゴリー・カテゴリー経路が
+		// すでに存在する場合は重複登録しない。
+		boolean exists = categoryRelationRepository
+				.findByCategoryId(categoryId)
+				.stream()
+				.anyMatch(relation -> parentCategoryId.equals(relation.getParentCategoryId())
+						&& categoryPath.equals(relation.getCategoryPath()));
+
+		if (exists) {
 			return;
 		}
 
