@@ -92,6 +92,10 @@ document.addEventListener('click', (event) => {
 	alert('修正しました。');
 
 	const form = document.querySelector('form');
+
+	// 現在のカテゴリー選択状態をhidden inputへ反映してから送信する。
+	updateCategoryPath();
+
 	form.action = '/article/correct';
 	form.submit();
 });

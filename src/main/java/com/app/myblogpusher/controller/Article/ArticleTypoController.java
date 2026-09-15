@@ -229,7 +229,7 @@ public class ArticleTypoController {
 					.orElseThrow()
 					.getGroupId();
 
-			Long typoCategoryId = categoryPathService
+			categoryId = categoryPathService
 					.findTypoCategoryIdByGroupId(categoryGroupId);
 		}
 

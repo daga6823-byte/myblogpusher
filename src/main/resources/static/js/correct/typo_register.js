@@ -33,9 +33,13 @@ document.getElementById('addTypoButton')?.addEventListener('click', () => {
 				document.getElementById('newWrongWord').value = '';
 				document.getElementById('newCorrectWord').value = '';
 
-				// 修正後、フォームを再送信して添削画面を最新の状態で再表示する
-				document.querySelector('form').action = '/article/correct';
-				document.querySelector('form').submit();
+				const form = document.querySelector('form');
+
+				// 現在のカテゴリー選択状態をhidden inputへ反映してから再表示する。
+				updateCategoryPath();
+
+				form.action = '/article/correct';
+				form.submit();
 			} else if (data.result === 'duplicate') {
 				alert(data.message);
 			}
