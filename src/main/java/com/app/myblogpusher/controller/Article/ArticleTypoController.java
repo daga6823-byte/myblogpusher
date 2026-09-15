@@ -16,12 +16,12 @@ import com.app.myblogpusher.dto.Typo.TypoScanResultView;
 import com.app.myblogpusher.entity.UserMaster;
 import com.app.myblogpusher.entity.Article.ArticleCategory;
 import com.app.myblogpusher.entity.Article.ArticleWork;
+import com.app.myblogpusher.repository.CategoryRelationRepository;
 import com.app.myblogpusher.service.HomophoneTypoScanService;
 import com.app.myblogpusher.service.LanguageToolService;
 import com.app.myblogpusher.service.TypoCorrectionService;
 import com.app.myblogpusher.service.Article.ArticleCategoryService;
 import com.app.myblogpusher.service.Article.ArticleWorkService;
-import com.app.myblogpusher.service.Category.CategoryHierarchyResolver;
 import com.app.myblogpusher.service.Category.CategoryPathService;
 import com.app.myblogpusher.service.Category.CategorySelectionService;
 import com.app.myblogpusher.util.ArticleSaveUtil;
@@ -45,12 +45,12 @@ public class ArticleTypoController {
 
 	@Autowired
 	private CategoryPathService categoryPathService;
-	
+
 	@Autowired
 	private CategorySelectionService categorySelectionService;
-	
+
 	@Autowired
-	private CategoryHierarchyResolver categoryHierarchyResolver;
+	private CategoryRelationRepository categoryRelationRepository;
 
 	//添削画面
 	@PostMapping("/article/correct")
@@ -79,6 +79,12 @@ public class ArticleTypoController {
 
 		ArticleWork work = articleWorkService.findById(savedWorkId);
 		Long categoryGroupId = work.getCategoryGroupId();
+
+		// 現在選択されているカテゴリー経路を取得する。
+		// categoryGroupIdはCategoryRelation.groupIdを指す。
+		String categoryPath = categorySelectionService
+				.findCategoryPathByGroupId(categoryGroupId);
+
 		Long categoryId = categoryPathService
 				.findTypoCategoryIdByGroupId(categoryGroupId);
 
@@ -87,9 +93,10 @@ public class ArticleTypoController {
 				content);
 
 		model.addAttribute("categories",
-				categorySelectionService.findSelectableCategories(userId));
+				categorySelectionService.findCategorySelects(userId));
 		model.addAttribute("work", work);
 		model.addAttribute("categoryGroupId", categoryGroupId);
+		model.addAttribute("categoryPath", categoryPath);
 		model.addAttribute("typoMatches", matches);
 		model.addAttribute("categoryId", categoryId);
 
@@ -127,10 +134,15 @@ public class ArticleTypoController {
 
 			} else {
 
-				Long categoryId = Long.valueOf(categorySelect);
+				Long categoryGroupId = categoryRelationRepository
+						.findByCategoryPath(categorySelect)
+						.stream()
+						.findFirst()
+						.orElseThrow()
+						.getGroupId();
 
-				targetCategoryId = categoryHierarchyResolver
-						.findReferenceCategoryId(categoryId);
+				targetCategoryId = categoryPathService
+						.findTypoCategoryIdByGroupId(categoryGroupId);
 			}
 		}
 
@@ -210,11 +222,15 @@ public class ArticleTypoController {
 
 		} else if (categorySelect != null && !categorySelect.isBlank()) {
 
-			categoryId = Long.valueOf(categorySelect);
+			Long categoryGroupId = categoryRelationRepository
+					.findByCategoryPath(categorySelect)
+					.stream()
+					.findFirst()
+					.orElseThrow()
+					.getGroupId();
 
-			// 添削・誤字検索は第2階層カテゴリー単位で行う
-			categoryId = categoryPathService
-					.findTypoCategoryIdByGroupId(categoryId);
+			Long typoCategoryId = categoryPathService
+					.findTypoCategoryIdByGroupId(categoryGroupId);
 		}
 
 		List<LanguageToolService.LanguageToolMatch> allMatches = languageToolService.checkText(content);

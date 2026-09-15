@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.app.myblogpusher.entity.Article.ArticleCategory;
 import com.app.myblogpusher.entity.Article.ArticleWork;
+import com.app.myblogpusher.repository.CategoryRelationRepository;
 import com.app.myblogpusher.repository.Article.ArticleRepository;
 import com.app.myblogpusher.service.Article.ArticleCategoryService;
 import com.app.myblogpusher.service.Article.ArticleFormatService;
@@ -36,6 +37,9 @@ public class ArticleSaveUtil {
 
 	@Autowired
 	private ArticleRepository articleRepository;
+	
+	@Autowired
+	private CategoryRelationRepository categoryRelationRepository;
 
 	public Long doSaveDraft(
 			Long workId,
@@ -98,9 +102,9 @@ public class ArticleSaveUtil {
 	/**
 	 * categorySelectを解釈してcategoryGroupIdを返す。
 	 *
-	 * 既存カテゴリーの場合は、プルダウンから渡されたgroupIdを使用する。
-	 * "__new__"の場合は新規カテゴリーを作成し、そのcategoryIdを
-	 * 下書き段階の暫定的なcategoryGroupIdとして使用する。
+	 * 既存カテゴリーの場合は、画面から渡されたcategoryPathから
+	 * CategoryRelationを検索してgroupIdを取得する。
+	 * "__new__"の場合は新規カテゴリーを作成する。
 	 */
 	private Long resolveCategoryGroupId(
 			Long userId,
@@ -122,7 +126,16 @@ public class ArticleSaveUtil {
 							newCategoryName));
 		}
 
-		return Long.parseLong(categorySelect);
+		if (categorySelect == null || categorySelect.isBlank()) {
+			return null;
+		}
+
+		return categoryRelationRepository
+				.findByCategoryPath(categorySelect)
+				.stream()
+				.findFirst()
+				.map(relation -> relation.getGroupId())
+				.orElseThrow();
 	}
 
 	@Transactional

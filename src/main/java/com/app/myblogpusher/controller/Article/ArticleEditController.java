@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.app.myblogpusher.dto.WorkspaceSaveRequest;
 import com.app.myblogpusher.dto.Article.ArticleLinkView;
-import com.app.myblogpusher.dto.Category.CategoryOptionView;
+import com.app.myblogpusher.dto.Category.CategorySelectView;
 import com.app.myblogpusher.entity.UserMaster;
 import com.app.myblogpusher.entity.UserRepositoryEntity;
 import com.app.myblogpusher.entity.Article.Article;
@@ -62,10 +62,10 @@ public class ArticleEditController {
 
 	@Autowired
 	private UserRepositoryRepository userRepositoryRepository;
-	
+
 	@Autowired
 	private CategorySelectionService categorySelectionService;
-	
+
 	@Autowired
 	private CategoryPathService categoryPathService;
 
@@ -85,13 +85,9 @@ public class ArticleEditController {
 		UserRepositoryEntity repo = userRepositoryRepository.findByUserId(userId)
 				.orElse(null);
 
-		// カテゴリー選択プルダウン用（groupId + categoryId + categoryPath）
-		List<CategoryOptionView> categories = categorySelectionService.findSelectableCategories(userId);
-
-		categories.forEach(c -> System.out.println(
-				c.getGroupId() + " : "
-						+ c.getCategoryId() + " : "
-						+ c.getCategoryPath()));
+		// 記事編集画面のカテゴリー階層選択用データを一括取得する。
+		// 階層の表示・切り替えはJavaScript側で行う。
+		List<CategorySelectView> categories = categorySelectionService.findCategorySelects(userId);
 
 		model.addAttribute("categories", categories);
 
@@ -109,6 +105,13 @@ public class ArticleEditController {
 
 			model.addAttribute("work", work);
 			model.addAttribute("categoryGroupId", work.getCategoryGroupId());
+
+			// 現在選択されているカテゴリー経路を取得する。
+			// categoryGroupIdはCategoryRelation.groupIdを指す。
+			String categoryPath = categorySelectionService
+					.findCategoryPathByGroupId(work.getCategoryGroupId());
+
+			model.addAttribute("categoryPath", categoryPath);
 
 		}
 
@@ -191,8 +194,8 @@ public class ArticleEditController {
 				if (searchCategory != null) {
 
 					String searchPath = categoryPathService
-					        .findSecondLevelPath(
-					                currentCategoryGroupId);
+							.findSecondLevelPath(
+									currentCategoryGroupId);
 
 					if (searchPath != null) {
 

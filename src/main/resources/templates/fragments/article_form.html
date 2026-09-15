@@ -17,17 +17,13 @@
 
 		<label for="categorySelect">カテゴリー</label>
 
-		<select id="categorySelect" name="categorySelect" onchange="toggleNewCategory()">
+		<div id="categorySelectors">
+			<select class="category-level">
+				<option value="">選択してください</option>
+			</select>
+		</div>
 
-			<option value="">選択してください</option>
-
-			<option th:each="cat : ${categories}" th:value="${cat.groupId}" th:text="${cat.categoryPath}"
-				th:selected="${cat.groupId == categoryGroupId}">
-			</option>
-
-			<option value="__new__">＋ 新しいカテゴリーを追加</option>
-
-		</select>
+		<input type="hidden" id="categorySelect" name="categorySelect" value="">
 
 		<input type="text" id="newCategoryName" name="newCategoryName" placeholder="新しいカテゴリー名を入力" style="display:none;">
 

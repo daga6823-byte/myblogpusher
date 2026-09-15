@@ -43,31 +43,42 @@ function buildDateString() {
 		+ offsetStr;
 }
 
+// 修正後
 // -----------------------------------------------------
 // 選択中カテゴリー名を取得する
 //
-// categorySelectのvalueはcategoryIdなので
-// 表示テキスト(フルパス)の最後をカテゴリー名として使用する
+// 階層セレクトで最後に選択されたカテゴリーの
+// 表示名を取得する。
 // -----------------------------------------------------
 function getSelectedCategoryLabel() {
+	const selects = document.querySelectorAll('.category-level');
 
-	const categorySelect = document.getElementById('categorySelect');
-	const newCategoryName = document.getElementById('newCategoryName').value.trim();
-
-	// 新規カテゴリー
-	if (categorySelect.value === '__new__') {
-		return newCategoryName;
+	if (!selects.length) {
+		return '';
 	}
 
-	const selectedOption =
-		categorySelect.options[categorySelect.selectedIndex];
+	let selectedCategoryName = '';
 
-	const fullPath =
-		selectedOption ? selectedOption.text : '';
+	selects.forEach(select => {
 
-	const segments = fullPath.split('/');
+		if (!select.value) {
+			return;
+		}
 
-	return segments[segments.length - 1];
+		const option = select.options[select.selectedIndex];
+
+		if (option) {
+			selectedCategoryName = option.textContent.trim();
+		}
+	});
+
+	if (selectedCategoryName) {
+		return selectedCategoryName;
+	}
+
+	const newCategoryName = document.getElementById('newCategoryName');
+
+	return newCategoryName ? newCategoryName.value.trim() : '';
 }
 
 // -----------------------------------------------------

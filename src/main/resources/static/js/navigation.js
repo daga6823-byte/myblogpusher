@@ -64,13 +64,24 @@ function updateButtonState() {
 // -----------------------------------------------------
 // 入力内容変更時に保存ボタン状態を更新
 // -----------------------------------------------------
-['categorySelect', 'newCategoryName', 'content'].forEach(id => {
-	const el = document.getElementById(id);
+document.addEventListener('input', event => {
 
-	if (el) {
-		el.addEventListener('input', updateButtonState);
-		el.addEventListener('change', updateButtonState);
+	if (event.target.matches('.category-level, #newCategoryName, #content')) {
+
+		updateButtonState();
+
 	}
+
+});
+
+document.addEventListener('change', event => {
+
+	if (event.target.matches('.category-level')) {
+
+		updateButtonState();
+
+	}
+
 });
 
 // -----------------------------------------------------

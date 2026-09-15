@@ -17,7 +17,8 @@ document.getElementById('publishButton').addEventListener('click', function() {
 	// 入力値取得
 	const title = document.querySelector('input[name="title"]').value;
 	const content = document.querySelector('textarea[name="content"]').value;
-	const categorySelect = document.querySelector('select[name="categorySelect"]').value;
+	const categorySelect =
+		document.querySelector('input[name="categorySelect"]').value;
 	const newCategoryName =
 		document.querySelector('input[name="newCategoryName"]')?.value || '';
 

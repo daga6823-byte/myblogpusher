@@ -13,7 +13,7 @@
 
 <body>
 	<div th:replace="~{fragments/header :: header}"></div>
-	
+
 	<div class="edit-box">
 		<h1>記事編集</h1>
 
@@ -62,10 +62,17 @@
 		window.updateDate =
 		/*[[${updateDate}]]*/ null;
 
+		window.categorySelects =
+    /*[[${categories}]]*/[];
+
+		window.categoryPath =
+    /*[[${categoryPath}]]*/ null;
+
 	</script>
 
 	<script th:src="@{/js/article_edit.js}"></script>
 	<script th:src="@{/js/article_list.js}"></script>
+	<script th:src="@{/js/category_select.js}"></script>
 	<script th:src="@{/js/navigation.js}"></script>
 	<script th:src="@{/js/frontmatter.js}"></script>
 	<script th:src="@{/js/workspace.js}"></script>

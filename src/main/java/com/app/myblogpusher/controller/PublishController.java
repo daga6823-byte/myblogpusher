@@ -20,6 +20,7 @@ import com.app.myblogpusher.dto.Publish.PublishPreviewForm;
 import com.app.myblogpusher.entity.UserMaster;
 import com.app.myblogpusher.entity.UserRepositoryEntity;
 import com.app.myblogpusher.entity.Article.ArticleCategory;
+import com.app.myblogpusher.repository.CategoryRelationRepository;
 import com.app.myblogpusher.repository.UserRepositoryRepository;
 import com.app.myblogpusher.service.Article.ArticleCategoryService;
 import com.app.myblogpusher.service.Article.ArticlePublishService;
@@ -35,6 +36,7 @@ public class PublishController {
 	private final UserRepositoryRepository userRepositoryRepository;
 	private final ArticleCategoryService articleCategoryService;
 	private final ArticlePublishService articlePublishService;
+	private final CategoryRelationRepository categoryRelationRepository;
 
 	@Autowired
 	private ArticleWorkService articleWorkService;
@@ -48,11 +50,13 @@ public class PublishController {
 	public PublishController(
 			UserRepositoryRepository userRepositoryRepository,
 			ArticleCategoryService articleCategoryService,
-			ArticlePublishService articlePublishService) {
+			ArticlePublishService articlePublishService,
+			CategoryRelationRepository categoryRelationRepository) {
 
 		this.userRepositoryRepository = userRepositoryRepository;
 		this.articleCategoryService = articleCategoryService;
 		this.articlePublishService = articlePublishService;
+		this.categoryRelationRepository = categoryRelationRepository;
 	}
 
 	@PostMapping("/publish/preview")
@@ -136,8 +140,8 @@ public class PublishController {
 		// 投稿時に選択されたカテゴリー経路をArticleWorkへ反映する。
 		// categoryIdは画面上の名称とは異なり、CategoryRelation.groupIdを指す。
 		articleWorkService.updateCategoryGroupId(
-		        workId,
-		        categoryId);
+				workId,
+				categoryId);
 
 		// 投稿処理開始
 		articleWorkService.updateStatus(workId, 1);
@@ -209,6 +213,16 @@ public class PublishController {
 							null,
 							newCategoryName));
 		}
-		return Long.parseLong(categorySelect);
+
+		if (categorySelect == null || categorySelect.isBlank()) {
+			return null;
+		}
+
+		return categoryRelationRepository
+				.findByCategoryPath(categorySelect)
+				.stream()
+				.findFirst()
+				.map(relation -> relation.getGroupId())
+				.orElseThrow();
 	}
 }
