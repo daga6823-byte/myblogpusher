@@ -96,6 +96,14 @@ document.addEventListener('click', (event) => {
 	// 現在のカテゴリー選択状態をhidden inputへ反映してから送信する。
 	updateCategoryPath();
 
+	console.log('[typo_fix] form:', form);
+	console.log('[typo_fix] categorySelect element:',
+		form.querySelector('[name="categorySelect"]'));
+	console.log('[typo_fix] categorySelect value:',
+		form.querySelector('[name="categorySelect"]')?.value);
+	console.log('[typo_fix] form data:',
+		Array.from(new FormData(form).entries()));
+
 	form.action = '/article/correct';
 	form.submit();
 });
