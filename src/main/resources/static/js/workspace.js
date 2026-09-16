@@ -11,23 +11,22 @@
 //
 // 入力のたびにリセットされる
 // -----------------------------------------------------
-
 let workspaceTimer;
 
 // -----------------------------------------------------
 // ワークスペースをサーバへ保存する
 //
-// 新規カテゴリー(__new__)はまだgroupIdが存在しないため
-// categoryGroupIdはnullを送信する
+// categoryGroupIdはCategoryRelation.groupIdを使用する。
+// categorySelectはカテゴリーPathなので、ここでは使用しない。
 // -----------------------------------------------------
-
 function saveWorkspace() {
 
-	const categorySelect = document.getElementById('categorySelect').value;
+	const categoryGroupIdElement =
+		document.getElementById('categoryGroupId');
 
 	const categoryGroupId =
-		(categorySelect && categorySelect !== '__new__')
-			? categorySelect
+		categoryGroupIdElement
+			? categoryGroupIdElement.value || null
 			: null;
 
 	const data = {
@@ -37,6 +36,8 @@ function saveWorkspace() {
 		content: document.getElementById('content').value,
 
 		categoryGroupId: categoryGroupId
+			? Number(categoryGroupId)
+			: null
 
 	};
 
@@ -53,7 +54,6 @@ function saveWorkspace() {
 		body: JSON.stringify(data)
 
 	}).catch(err => console.error(err));
-
 }
 
 // -----------------------------------------------------
@@ -62,7 +62,6 @@ function saveWorkspace() {
 // 最後の入力から5秒経過したら保存する
 // 入力が続く間はタイマーをリセットする
 // -----------------------------------------------------
-
 function scheduleWorkspaceSave() {
 
 	clearTimeout(workspaceTimer);
@@ -72,13 +71,11 @@ function scheduleWorkspaceSave() {
 		saveWorkspace();
 
 	}, 5000);
-
 }
 
 // -----------------------------------------------------
 // タイトル・本文編集時に自動保存予約
 // -----------------------------------------------------
-
 ['title', 'content'].forEach(id => {
 
 	const el = document.getElementById(id);
@@ -97,7 +94,6 @@ function scheduleWorkspaceSave() {
 // 編集中にセッション切れにならないよう
 // 10分ごとにKeepAliveを送信する
 // -----------------------------------------------------
-
 setInterval(() => {
 
 	fetch('/article/session/keepalive', {
