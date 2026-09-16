@@ -44,28 +44,18 @@ public class ImageAssetController {
 	@GetMapping("/article/images")
 	@ResponseBody
 	public List<ImageAssetView> getImages(
-	        HttpSession session) {
+			HttpSession session) {
 
-	    UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
+		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 
-	    return imageAssetService.listImages(
-	            loginUser.getUserId(),
-	            null);
+		return imageAssetService.listImages(
+				loginUser.getUserId(),
+				null);
 	}
 
 	/**
 	 * カテゴリーIDからデフォルトのフォルダ名（スラッグ）を返す
 	 */
-	@GetMapping("/article/images/default-folder")
-	@ResponseBody
-	public Map<String, String> getDefaultFolder(
-			@RequestParam Long categoryId) {
-
-		return Map.of(
-				"folderName",
-				imageAssetService.resolveDefaultFolderName(categoryId));
-	}
-
 	/**
 	 * 画像をアップロードし、
 	 * Supabase StorageとDB(image_asset)へ登録する
@@ -74,7 +64,6 @@ public class ImageAssetController {
 	@ResponseBody
 	public Map<String, Object> upload(
 			@RequestParam MultipartFile file,
-			@RequestParam(required = false) Long categoryId,
 			@RequestParam(required = false) String folderName,
 			HttpSession session) {
 
@@ -87,7 +76,6 @@ public class ImageAssetController {
 			ImageAsset asset = imageAssetService.uploadAndRegister(
 					file,
 					folderName,
-					categoryId,
 					userId);
 
 			return Map.of(

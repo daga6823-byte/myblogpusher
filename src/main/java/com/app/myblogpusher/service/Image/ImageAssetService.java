@@ -23,11 +23,8 @@ import org.springframework.web.multipart.MultipartFile;
 import com.app.myblogpusher.dto.ImageAssetView;
 import com.app.myblogpusher.dto.ImageCategoryDto;
 import com.app.myblogpusher.entity.ImageAsset;
-import com.app.myblogpusher.entity.Article.ArticleCategory;
 import com.app.myblogpusher.repository.ImageAssetRepository;
 import com.app.myblogpusher.service.SupabaseStorageService;
-import com.app.myblogpusher.service.Article.ArticleCategoryService;
-import com.app.myblogpusher.util.SlugUtil;
 
 @Service
 public class ImageAssetService {
@@ -39,35 +36,18 @@ public class ImageAssetService {
 	private SupabaseStorageService supabaseStorageService;
 
 	@Autowired
-	private ArticleCategoryService articleCategoryService;
-
-	@Autowired
-	private SlugUtil slugUtil;
-
-	@Autowired
 	private ImageConvertService imageConvertService;
 
 	@Autowired
 	private ImageAssetCache imageAssetCache;
 
 	/**
-	 * カテゴリーからデフォルトのフォルダ名（スラッグ）を求める
-	 */
-	public String resolveDefaultFolderName(Long categoryId) {
-		return articleCategoryService.findById(categoryId)
-				.map(ArticleCategory::getCategoryName)
-				.map(slugUtil::generateCategorySlug)
-				.orElse("misc");
-	}
-
-	/**
 	 * 画像をアップロードし、image_assetに記録する
-	 * folderNameが未指定ならcategoryIdから求めたデフォルトフォルダを使う
+	 * folderNameが未指定ならmiscフォルダを使う
 	 */
 	public ImageAsset uploadAndRegister(
 			MultipartFile file,
 			String folderName,
-			Long categoryId,
 			Long userId) throws IOException {
 
 		String resolvedFolderName;
@@ -76,14 +56,9 @@ public class ImageAssetService {
 
 			resolvedFolderName = folderName;
 
-		} else if (categoryId != null) {
-
-			resolvedFolderName = resolveDefaultFolderName(categoryId);
-
 		} else {
 
 			resolvedFolderName = "misc";
-
 		}
 
 		File convertedFile = imageConvertService.convert(file);
@@ -139,17 +114,17 @@ public class ImageAssetService {
 	 * DBに記録された画像一覧からURLリストを組み立てる（Supabase側の一覧APIには依存しない）
 	 * categoryIdが指定されればそのカテゴリー分だけに絞り込む
 	 */
-	public List<String> listImageUrls(Long userId, Long categoryId) {
+	public List<String> listImageUrls(Long userId, String folderName) {
 		List<ImageAsset> assets;
 
-		if (categoryId != null) {
+		if (folderName != null && !folderName.isBlank()) {
 
-			String folderName = resolveDefaultFolderName(categoryId);
-
-			assets = imageAssetRepository.findByUserIdOrderByUploadDateDesc(userId)
-					.stream()
-					.filter(asset -> folderName.equals(asset.getFolderName()))
-					.toList();
+			assets = imageAssetRepository
+					.findByUserIdAndFolderNameOrderByUploadDateDesc(
+							userId,
+							folderName,
+							org.springframework.data.domain.Pageable.unpaged())
+					.getContent();
 
 		} else {
 
