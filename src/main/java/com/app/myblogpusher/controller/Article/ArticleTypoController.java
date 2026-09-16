@@ -61,6 +61,8 @@ public class ArticleTypoController {
 			@RequestParam String content,
 			HttpSession session,
 			Model model) {
+		
+		System.out.println("=== ArticleTypoController.correct called ===");
 
 		// LanguageToolのキャッシュをクリア（本文が更新されたため）
 		session.removeAttribute("ltTypoResultsCache");
