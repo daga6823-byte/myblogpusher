@@ -55,12 +55,18 @@ public class ArticleTypoController {
 	//添削画面
 	@PostMapping("/article/correct")
 	public String correct(@RequestParam(required = false) Long workId,
-			@RequestParam String categorySelect,
+			@RequestParam(required = false) String categorySelect,
 			@RequestParam(required = false) String newCategoryName,
 			@RequestParam String title,
 			@RequestParam String content,
 			HttpSession session,
 			Model model) {
+
+		System.out.println("=== /article/correct received ===");
+		System.out.println("workId = " + workId);
+		System.out.println("categorySelect = [" + categorySelect + "]");
+		System.out.println("newCategoryName = [" + newCategoryName + "]");
+		System.out.println("title = [" + title + "]");
 
 		// LanguageToolのキャッシュをクリア（本文が更新されたため）
 		session.removeAttribute("ltTypoResultsCache");
