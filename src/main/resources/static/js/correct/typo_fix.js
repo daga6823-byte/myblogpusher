@@ -105,5 +105,15 @@ document.addEventListener('click', (event) => {
 		Array.from(new FormData(form).entries()));
 
 	form.action = '/article/correct';
-	form.submit();
+
+	console.log('[typo_fix] workId:',
+		form.querySelector('[name="workId"]')?.value);
+
+	console.log('[typo_fix] categorySelect:',
+		form.querySelector('[name="categorySelect"]')?.value);
+
+	console.log('[typo_fix] form data:',
+		Array.from(new FormData(form).entries()));
+
+	return;
 });
