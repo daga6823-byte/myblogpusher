@@ -223,23 +223,17 @@ function loadArticleLinkCategory() {
 			'articleLinkCategorySelect'
 		);
 
-	const articleCategorySelect =
-		document.getElementById(
-			'categorySelect'
-		);
-
 	if (
 		!select ||
-		!window.linkCategories ||
-		!articleCategorySelect
+		!window.linkCategories
 	) {
 		return;
 	}
 
 	// 編集中の記事が保持しているgroupIdをそのまま使用する。
-	// categoryIdへの変換は行わない。
+	// categoryPathからgroupIdへの変換は行わない。
 	const currentCategoryGroupId =
-		articleCategorySelect.value;
+		window.categoryGroupId;
 
 	select.innerHTML = '';
 
