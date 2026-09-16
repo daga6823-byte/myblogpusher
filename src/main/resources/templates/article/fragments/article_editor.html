@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!--
+ * 記事編集・添削画面で共通して使用する記事編集領域を担当するフラグメント
+ *
+ * カテゴリー、タイトル、本文、コードブロック、画像、記事リンクなど、
+ * 記事本文の編集に必要な共通入力項目・編集部品をまとめて提供する。
+ *
+ * 編集画面・添削画面それぞれのボタンや固有UIは各画面側で管理する。
+ -->
+
+<div th:fragment="editorFields">
+
+```
+<!-- 記事編集フォームの共通入力項目 -->
+<div th:replace="~{fragments/article_form :: formFields}"></div>
+
+<!-- コードブロック編集 -->
+<div th:replace="~{fragments/code_block_editor :: codeBlockEditor}"></div>
+
+<!-- 画像選択・挿入 -->
+<div th:replace="~{fragments/image_modal :: imageModal}"></div>
+
+<!-- 記事リンク選択・挿入 -->
+<div th:replace="~{fragments/article_link_modal :: articleLinkModal}"></div>
+```
+
+</div>
+
+</body>
+</html>

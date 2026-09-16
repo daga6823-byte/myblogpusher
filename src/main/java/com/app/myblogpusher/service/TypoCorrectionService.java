@@ -250,42 +250,6 @@ public class TypoCorrectionService {
 		typoCorrectionRepository.deleteAll(typos);
 	}
 
-	/**
-	 * 編集時に参照するカテゴリーIDを取得する
-	 * ルートカテゴリーは除外し、2階層目のカテゴリーIDを返す
-	 */
-	private Long resolveDictionaryCategoryId(Long categoryId) {
-
-		if (categoryId == null) {
-			return null;
-		}
-
-		ArticleCategory category = articleCategoryService.findById(categoryId).orElse(null);
-
-		if (category == null) {
-			return null;
-		}
-
-		while (category.getParentCategoryId() != null) {
-
-			ArticleCategory parent = articleCategoryService
-					.findById(category.getParentCategoryId())
-					.orElse(null);
-
-			if (parent == null) {
-				break;
-			}
-
-			if (parent.getParentCategoryId() == null) {
-				return category.getCategoryId();
-			}
-
-			category = parent;
-		}
-
-		return category.getCategoryId();
-	}
-
 	public Page<TypoDictionaryView> findDictionaryView(
 			Long userId,
 			int page,

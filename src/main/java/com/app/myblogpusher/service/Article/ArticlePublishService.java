@@ -49,10 +49,6 @@ public class ArticlePublishService {
 
 		ArticleWork work = articleWorkService.findById(workId);
 
-		String hugoPath = hugoArticleService.buildArticlePath(
-				work.getCategoryGroupId(),
-				slug);
-
 		// ArticleWork.articleIdがあれば、元になった投稿済み記事を取得する。
 		// カテゴリー変更後のhugoPathではなく、元の記事IDを基準に既存記事を判定する。
 		Article article = null;
