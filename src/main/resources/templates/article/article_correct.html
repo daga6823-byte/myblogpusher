@@ -18,10 +18,6 @@
 
 		<form th:action="@{/article/save}" method="post">
 
-			<!-- 添削後の再描画でも現在のワークIDとカテゴリーを送信する -->
-			<input type="hidden" name="workId" th:value="${work.workId}">
-			<input type="hidden" id="categorySelect" name="categorySelect" th:value="${categoryPath}">
-
 			<div th:replace="~{article/fragments/article_editor :: editorFields}"></div>
 
 			<div class="button-row">

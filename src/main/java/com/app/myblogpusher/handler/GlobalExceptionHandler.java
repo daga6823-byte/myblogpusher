@@ -1,38 +1,39 @@
 /**
- * アプリケーション全体の例外を捕捉し、
- * 発生したリクエスト情報をログへ出力する例外ハンドラー。
+ * アプリケーション全体で発生するHTTPリクエスト系例外を捕捉し、
+ * 共通エラー画面へ遷移させる例外ハンドラー。
  */
 package com.app.myblogpusher.handler;
 
-import jakarta.servlet.http.HttpServletRequest;
-
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
 	/**
-	 * JSONリクエストの読み込みに失敗した場合の処理。
+	 * 必須のリクエストパラメータが存在しない場合の処理。
 	 *
-	 * 400の発生元URIと例外内容を記録して、
-	 * どのエンドポイントでエラーになっているかを特定する。
+	 * Controllerの@RequestParam不足による400を共通エラー画面へ遷移させる。
 	 */
-	@ExceptionHandler(HttpMessageNotReadableException.class)
-	public ResponseEntity<String> handleHttpMessageNotReadable(
-			HttpMessageNotReadableException e,
-			HttpServletRequest request) {
+	@ExceptionHandler(MissingServletRequestParameterException.class)
+	public String handleMissingServletRequestParameter(
+			MissingServletRequestParameterException e,
+			HttpServletRequest request,
+			Model model) {
 
-		System.out.println("=== HttpMessageNotReadableException ===");
+		System.out.println("=== MissingServletRequestParameterException ===");
 		System.out.println("method = " + request.getMethod());
 		System.out.println("uri = " + request.getRequestURI());
-		System.out.println("query = " + request.getQueryString());
-		System.out.println("contentType = " + request.getContentType());
+		System.out.println("parameter = " + e.getParameterName());
 		System.out.println("message = " + e.getMessage());
-		System.out.println("cause = " + e.getCause());
 
-		return ResponseEntity.badRequest().body("Bad Request");
+		model.addAttribute("errorMessage",
+				"必要なパラメータが送信されていないため、処理を続行できませんでした。");
+
+		return "error";
 	}
 }

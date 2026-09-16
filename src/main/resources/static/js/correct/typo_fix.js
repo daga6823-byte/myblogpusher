@@ -91,7 +91,7 @@ document.addEventListener('click', (event) => {
 
 	alert('修正しました。');
 
-	const form = document.querySelector('form');
+	const form = document.querySelector('.edit-box form');
 
 	// 現在のカテゴリー選択状態をhidden inputへ反映してから送信する。
 	updateCategoryPath();
@@ -101,6 +101,7 @@ document.addEventListener('click', (event) => {
 		form.querySelector('[name="categorySelect"]'));
 	console.log('[typo_fix] categorySelect value:',
 		form.querySelector('[name="categorySelect"]')?.value);
+
 	console.log('[typo_fix] form data:',
 		Array.from(new FormData(form).entries()));
 
