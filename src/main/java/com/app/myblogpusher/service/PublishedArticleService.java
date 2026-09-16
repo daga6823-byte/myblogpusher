@@ -104,8 +104,6 @@ public class PublishedArticleService {
 				})
 				.toList();
 
-		System.out.println("Articles count: " + result.size());
-
 		if (session != null) {
 			session.setAttribute(
 					"publishedArticlesCache",

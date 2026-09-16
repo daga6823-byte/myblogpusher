@@ -53,10 +53,6 @@ public class ArticlePublishService {
 				work.getCategoryGroupId(),
 				slug);
 
-		System.out.println("work.userId = " + work.getUserId());
-		System.out.println("slug = " + slug);
-		System.out.println("hugoPath = " + hugoPath);
-
 		// ArticleWork.articleIdがあれば、元になった投稿済み記事を取得する。
 		// カテゴリー変更後のhugoPathではなく、元の記事IDを基準に既存記事を判定する。
 		Article article = null;
@@ -64,8 +60,6 @@ public class ArticlePublishService {
 		if (work.getArticleId() != null) {
 			article = articleService.findById(work.getArticleId());
 		}
-
-		System.out.println("find result = " + article);
 
 		// 新規投稿
 		if (article == null) {

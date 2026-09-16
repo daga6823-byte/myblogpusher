@@ -66,40 +66,28 @@ public class TwoFactorController {
 		Optional<UserMaster> userOpt = userMasterRepository.findById(userId);
 
 		if (userOpt.isEmpty()) {
-			System.out.println("2FA SETUP: user not found: " + userId);
 			session.removeAttribute("twoFactorUserId");
 			return "redirect:/login";
 		}
 
 		UserMaster user = userOpt.get();
 
-		System.out.println("2FA SETUP: user found: " + user.getUserId());
-
 		// 既存ユーザーなど、まだ2FA秘密鍵が登録されていない場合は、
 		// 初回設定用の秘密鍵を生成してDBへ保存する。
 		if (user.getTwoFactorSecret() == null
 				|| user.getTwoFactorSecret().isBlank()) {
 
-			System.out.println("2FA SETUP: twoFactorSecret is NULL/BLANK");
-			System.out.println("2FA SETUP: 秘密鍵を新規生成します");
-
 			String secret = twoFactorService.generateSecret();
 
 			user.setTwoFactorSecret(secret);
 			userMasterRepository.save(user);
-
-			System.out.println("2FA SETUP: twoFactorSecret generated and saved");
 		}
 
 		String qrCode = twoFactorService.generateQrCode(
 				user.getTwoFactorSecret(),
 				user.getLoginId());
 
-		System.out.println("2FA SETUP GET: QR生成完了");
-
 		model.addAttribute("qrCode", qrCode);
-
-		System.out.println("2FA SETUP GET: テンプレート返却");
 
 		return "Login/login_2fa_setup";
 	}

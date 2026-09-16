@@ -62,12 +62,6 @@ public class ArticleTypoController {
 			HttpSession session,
 			Model model) {
 
-		System.out.println("=== /article/correct received ===");
-		System.out.println("workId = " + workId);
-		System.out.println("categorySelect = [" + categorySelect + "]");
-		System.out.println("newCategoryName = [" + newCategoryName + "]");
-		System.out.println("title = [" + title + "]");
-
 		// LanguageToolのキャッシュをクリア（本文が更新されたため）
 		session.removeAttribute("ltTypoResultsCache");
 		session.removeAttribute("ltProofResultsCache");
@@ -76,49 +70,26 @@ public class ArticleTypoController {
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 		Long userId = loginUser.getUserId();
 
-		System.out.println("=== doSaveDraft start ===");
-
 		Long savedWorkId = articleSaveUtil.doSaveDraft(
 				workId, categorySelect, newCategoryName, title, content, userId);
-
-		System.out.println("=== doSaveDraft end ===");
-		System.out.println("savedWorkId = " + savedWorkId);
 
 		if (savedWorkId == null) {
 			return "redirect:/article/edit";
 		}
 
-		System.out.println("=== find work start ===");
-
 		ArticleWork work = articleWorkService.findById(savedWorkId);
-
-		System.out.println("=== find work end ===");
-		System.out.println("workId = " + work.getWorkId());
-		System.out.println("categoryGroupId = " + work.getCategoryGroupId());
 
 		Long categoryGroupId = work.getCategoryGroupId();
 
 		// 現在選択されているカテゴリー経路を取得する。
 		// categoryGroupIdはCategoryRelation.groupIdを指す。
-		System.out.println("=== find categoryPath start ===");
-
 		String categoryPath = categorySelectionService
 				.findCategoryPathByGroupId(categoryGroupId);
-
-		System.out.println("categoryPath = [" + categoryPath + "]");
-
-		System.out.println("=== find typoCategoryId start ===");
 
 		Long categoryId = categoryPathService
 				.findTypoCategoryIdByGroupId(categoryGroupId);
 
-		System.out.println("typo categoryId = " + categoryId);
-
-		System.out.println("=== findMatches start ===");
-
 		List<TypoCorrectionService.TypoMatch> matches = typoCorrectionService.findMatches(categoryId, content);
-
-		System.out.println("=== findMatches end ===");
 
 		model.addAttribute("categories",
 				categorySelectionService.findCategorySelects(userId));

@@ -142,10 +142,6 @@ public class PublishedArticleSyncService {
 					articleService.deleteByUserIdAndSlug(
 							userId,
 							dbArticle.getSlug());
-
-					System.out.println(
-							"削除："
-									+ dbArticle.getHugoPath());
 				}
 			}
 

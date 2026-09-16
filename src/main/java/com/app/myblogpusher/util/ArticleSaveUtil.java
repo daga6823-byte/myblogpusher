@@ -111,9 +111,6 @@ public class ArticleSaveUtil {
 			String categorySelect,
 			String newCategoryName) {
 
-		System.out.println("categorySelect = " + categorySelect);
-		System.out.println("newCategoryName = " + newCategoryName);
-
 		if ("__new__".equals(categorySelect)) {
 
 			return articleCategoryService

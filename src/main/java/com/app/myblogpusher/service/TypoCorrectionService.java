@@ -29,13 +29,11 @@ public class TypoCorrectionService {
 
 	@Autowired
 	private TypoCorrectionRepository typoCorrectionRepository;
-	
+
 	@Autowired
 	private CategoryHierarchyResolver categoryHierarchyResolver;
 
 	public List<TypoMatch> findMatches(Long categoryId, String content) {
-
-		categoryId = resolveDictionaryCategoryId(categoryId);
 
 		List<TypoCorrection> rules = typoCorrectionRepository.findByCategoryIdOrCategoryIdIsNull(categoryId);
 
