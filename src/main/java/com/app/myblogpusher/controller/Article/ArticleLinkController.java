@@ -38,7 +38,7 @@ public class ArticleLinkController {
 	 */
 	@GetMapping("/articles")
 	public List<ArticleLinkView> getLinkArticles(
-			@RequestParam Long categoryGroupId,
+			@RequestParam(required = false) Long categoryGroupId,
 			HttpSession session) {
 
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
@@ -47,10 +47,20 @@ public class ArticleLinkController {
 			return List.of();
 		}
 
-		List<Article> articles = articleRepository
-				.findByUserIdAndCategoryGroupIdOrderByUpdateDateDesc(
-						loginUser.getUserId(),
-						categoryGroupId);
+		List<Article> articles;
+
+		if (categoryGroupId == null) {
+			// カテゴリー未指定の場合は、ユーザーの投稿済み記事をすべて取得する。
+			articles = articleRepository
+					.findByUserIdOrderByUpdateDateDesc(
+							loginUser.getUserId());
+		} else {
+			// カテゴリー指定時は、そのカテゴリーの記事だけ取得する。
+			articles = articleRepository
+					.findByUserIdAndCategoryGroupIdOrderByUpdateDateDesc(
+							loginUser.getUserId(),
+							categoryGroupId);
+		}
 
 		return articles.stream()
 				.map(article -> new ArticleLinkView(

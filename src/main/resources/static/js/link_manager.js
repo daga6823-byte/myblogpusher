@@ -40,23 +40,18 @@ let filteredArticleLinks = [];
 
 async function fetchArticleLinkList(categoryGroupId) {
 
-	if (!categoryGroupId) {
-
-		loadArticleLinkList([]);
-
-		return;
-
-	}
-
 	try {
 
-		// Articleテーブルから
-		// 指定カテゴリー経路の記事を取得する。
+		// Articleテーブルから記事一覧を取得する。
+		// groupIdが未指定の場合は全記事を取得する。
+		const url = categoryGroupId
+			? '/article/link/articles?categoryGroupId='
+			+ encodeURIComponent(categoryGroupId)
+			: '/article/link/articles';
+
 		const response =
-			await fetch(
-				'/article/link/articles?categoryGroupId='
-				+ encodeURIComponent(categoryGroupId)
-			);
+
+			await fetch(url);
 
 		if (!response.ok) {
 
@@ -237,18 +232,34 @@ function loadArticleLinkCategory() {
 
 	select.innerHTML = '';
 
+	// 全カテゴリーの記事を検索するための選択肢。
+	// valueは空にして、API側では全記事取得として扱う。
+	const allOption =
+		document.createElement('option');
+
+	allOption.value = '';
+	allOption.textContent = 'すべて';
+
+	select.appendChild(allOption);
+
 	window.linkCategories.forEach(category => {
+
 		const option =
+
 			document.createElement('option');
 
 		// リンク検索APIにはgroupIdを渡す。
+
 		option.value =
+
 			category.groupId;
 
 		option.textContent =
+
 			category.categoryPath;
 
 		select.appendChild(option);
+
 	});
 
 	// 現在の記事と同じgroupIdを初期選択する。
