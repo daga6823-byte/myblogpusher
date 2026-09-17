@@ -86,11 +86,30 @@ public class GitHubPushService {
 
 		try {
 
+			System.out.println("=== GitHubPushService.pushArticle ===");
+			System.out.println("newArticle       = " + newArticle);
+			System.out.println("article.articleId = " + article.getArticleId());
+			System.out.println("article.slug      = " + article.getSlug());
+			System.out.println("article.hugoPath  = " + article.getHugoPath());
+
+			if (existingArticle != null) {
+				System.out.println("existingArticle.articleId = "
+						+ existingArticle.getArticleId());
+				System.out.println("existingArticle.hugoPath  = "
+						+ existingArticle.getHugoPath());
+			} else {
+				System.out.println("existingArticle = null");
+			}
+
 			// 既存記事のカテゴリー変更などでHugoパスが変わった場合、
 			// 既存ファイルを削除せず、新しいパスへ移動する。
 			if (existingArticle != null
 					&& existingArticle.getHugoPath() != null
 					&& !existingArticle.getHugoPath().equals(article.getHugoPath())) {
+
+				System.out.println("=== Hugoパス変更検出 ===");
+				System.out.println("旧パス: " + existingArticle.getHugoPath());
+				System.out.println("新パス: " + article.getHugoPath());
 
 				hugoArticleService.moveArticle(
 						git,

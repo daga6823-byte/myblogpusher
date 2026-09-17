@@ -126,9 +126,23 @@ public class ArticleWorkService {
 		ArticleWork work = articleWorkRepository.findById(workId)
 				.orElseThrow();
 
+		System.out.println(
+				"ArticleWork status変更: workId="
+						+ workId
+						+ ", "
+						+ work.getStatus()
+						+ " -> "
+						+ status);
+
 		work.setStatus(status);
 
 		articleWorkRepository.save(work);
+
+		System.out.println(
+				"ArticleWork status変更後: workId="
+						+ workId
+						+ ", status="
+						+ work.getStatus());
 	}
 
 	public void updateStatus(

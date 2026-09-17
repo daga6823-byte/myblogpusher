@@ -162,6 +162,12 @@ public class HugoArticleService {
 				"content",
 				newHugoPath + ".md");
 
+		System.out.println("=== HugoArticleService.moveArticle ===");
+		System.out.println("移動元: " + oldPath);
+		System.out.println("移動先: " + newPath);
+		System.out.println("移動元存在: " + Files.exists(oldPath));
+		System.out.println("移動先存在: " + Files.exists(newPath));
+
 		if (!Files.exists(oldPath)) {
 			throw new IOException(
 					"移動元の記事ファイルが存在しません: "
@@ -171,10 +177,21 @@ public class HugoArticleService {
 		// 新しいカテゴリー階層が存在しない場合は作成する。
 		Files.createDirectories(newPath.getParent());
 
+		System.out.println("=== HugoArticleService.moveArticle ===");
+		System.out.println("移動元: " + oldPath);
+		System.out.println("移動先: " + newPath);
+		System.out.println("移動元存在: " + Files.exists(oldPath));
+		System.out.println("移動先存在: " + Files.exists(newPath));
+
 		// 既存記事を削除せず、新しいHugoパスへ移動する。
+		// 移動先に既存ファイルがある場合も置き換える。
 		Files.move(
 				oldPath,
-				newPath);
+				newPath,
+				java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+
+		System.out.println("移動後の移動元存在: " + Files.exists(oldPath));
+		System.out.println("移動後の移動先存在: " + Files.exists(newPath));
 
 		// 移動をGitの変更として登録する。
 		git.add()
