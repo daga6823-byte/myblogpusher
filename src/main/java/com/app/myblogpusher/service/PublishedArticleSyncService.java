@@ -65,7 +65,7 @@ public class PublishedArticleSyncService {
 						.map(Article::getArticleId)
 						.orElse(null);
 
-				Long categoryId = null;
+				Long categoryGroupId = null;
 
 				/*
 				 * hugoPathの末尾は記事slugなので、
@@ -86,8 +86,8 @@ public class PublishedArticleSyncService {
 					 *
 					 * 同期処理ではカテゴリーを新規作成・変更しない。
 					 */
-					categoryId = categoryPathService
-							.findCategoryIdByFullPath(
+					categoryGroupId = categoryPathService
+							.findGroupIdByFullPath(
 									userId,
 									categoryPath);
 				}
@@ -97,7 +97,7 @@ public class PublishedArticleSyncService {
 					articleService.saveFromGitHub(
 							articleId,
 							userId,
-							categoryId,
+							categoryGroupId,
 							summary.getSlug(),
 							summary.getHugoPath(),
 							summary.getTitle(),
@@ -117,7 +117,7 @@ public class PublishedArticleSyncService {
 						articleService.saveFromGitHub(
 								articleId,
 								userId,
-								categoryId,
+								categoryGroupId,
 								summary.getSlug(),
 								summary.getHugoPath(),
 								summary.getTitle(),
@@ -140,7 +140,7 @@ public class PublishedArticleSyncService {
 				if (!exists) {
 
 					articleService.deleteById(
-					        dbArticle.getArticleId());
+							dbArticle.getArticleId());
 				}
 			}
 

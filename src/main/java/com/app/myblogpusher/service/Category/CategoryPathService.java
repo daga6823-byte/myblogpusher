@@ -308,6 +308,39 @@ public class CategoryPathService {
 	}
 
 	/**
+	 * フルカテゴリー経路からcategory_relationのgroupIdを取得する。
+	 *
+	 * GitHub同期など、カテゴリー経路を基準に
+	 * Article.categoryGroupIdを解決する場合に使用する。
+	 *
+	 * 例:
+	 * movie/batman/gadget
+	 *
+	 * → CategoryRelation.groupId
+	 */
+	public Long findGroupIdByFullPath(
+			Long userId,
+			String fullPath) {
+
+		if (userId == null
+				|| fullPath == null
+				|| fullPath.isBlank()) {
+			return null;
+		}
+
+		return categoryRelationRepository
+				.findByCategoryPath(fullPath)
+				.stream()
+				.filter(relation -> articleCategoryRepository
+						.findById(relation.getCategoryId())
+						.map(category -> userId.equals(category.getUserId()))
+						.orElse(false))
+				.map(CategoryRelation::getGroupId)
+				.findFirst()
+				.orElse(null);
+	}
+
+	/**
 	 * カテゴリーの表示用ラベルを取得する。
 	 *
 	 * displayNameが設定されている場合はdisplayName、
