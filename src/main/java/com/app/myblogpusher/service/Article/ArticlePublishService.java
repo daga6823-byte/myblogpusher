@@ -107,6 +107,14 @@ public class ArticlePublishService {
 
 			try {
 
+				// 投稿処理中(status=1)のWorkだけを投稿する。
+				// 非同期処理開始後にstatusが変更された場合の誤投稿を防ぐ。
+				if (work.getStatus() == null
+						|| work.getStatus() != 1) {
+
+					continue;
+				}
+
 				// GitHub APIで投稿可能か確認する
 				if (!gitHubPushService.canPublish(
 						repository,
@@ -153,19 +161,12 @@ public class ArticlePublishService {
 						existingArticle == null,
 						work.getSlug());
 
-				// GitHub投稿成功後にArticleを作成・更新する
-				ArticlePublishResult result = createOrUpdateArticle(
-						work.getWorkId(),
+				// GitHub投稿成功後にArticleを作成・更新する。
+				// Articleの重複整理、PUBLISHEDへの変更、Work削除まで
+				// DBトランザクション内でまとめて実行する。
+				articleService.completePublish(
+						work,
 						work.getSlug());
-
-				articleService.updateStatus(
-						result.getArticle().getArticleId(),
-						com.app.myblogpusher.enums.ArticleStatus.PUBLISHED);
-
-				// 投稿完了後にWorkを削除する
-				articleWorkService.delete(
-						work.getWorkId(),
-						userId);
 
 			} catch (Exception e) {
 				System.err.println(

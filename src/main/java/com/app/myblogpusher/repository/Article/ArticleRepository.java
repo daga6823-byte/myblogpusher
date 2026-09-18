@@ -19,8 +19,20 @@ public interface ArticleRepository extends JpaRepository<Article, Long> {
 
 	/**
 	 * ユーザーとslugで記事を取得
+	 *
+	 * 同一slugの記事が複数存在する場合もあるため、
+	 * 投稿処理などで重複を確認する場合はListで取得する。
 	 */
 	Optional<Article> findByUserIdAndSlug(
+			Long userId,
+			String slug);
+
+	/**
+	 * ユーザーとslugで記事を複数取得
+	 *
+	 * 同一slugの記事が複数存在する場合の重複確認用。
+	 */
+	List<Article> findAllByUserIdAndSlug(
 			Long userId,
 			String slug);
 

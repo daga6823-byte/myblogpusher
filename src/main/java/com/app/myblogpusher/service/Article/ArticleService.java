@@ -29,6 +29,89 @@ public class ArticleService {
 	@Autowired
 	private HugoArticleService hugoArticleService;
 
+	@Autowired
+	private ArticleWorkService articleWorkService;
+
+	/**
+	 * GitHub投稿成功後のArticle更新とArticleWork削除を
+	 * 1つのDBトランザクションで完了させる。
+	 *
+	 * 同一ユーザー・同一slugのArticleが複数存在する場合は、
+	 * 投稿対象カテゴリーと異なるArticleを重複データとして削除し、
+	 * 投稿対象カテゴリーのArticleを更新する。
+	 */
+	@Transactional
+	public Article completePublish(
+			ArticleWork work,
+			String slug) {
+
+		// 投稿処理中(status=1)の記事だけDB更新を許可する。
+		// status=0はまだ投稿処理に入っておらず、
+		// status=2は投稿エラー中のため、ここでは処理しない。
+		ArticleWork currentWork = articleWorkService.findById(work.getWorkId());
+
+		if (currentWork.getStatus() == null
+				|| currentWork.getStatus() != 1) {
+
+			throw new IllegalStateException(
+					"投稿中ではないArticleWorkです。workId="
+							+ currentWork.getWorkId()
+							+ ", status="
+							+ currentWork.getStatus());
+		}
+
+		List<Article> articles = articleRepository.findAllByUserIdAndSlug(
+				currentWork.getUserId(),
+				slug);
+
+		Article targetArticle = articles.stream()
+				.filter(article -> currentWork.getCategoryGroupId().equals(
+						article.getCategoryGroupId()))
+				.findFirst()
+				.orElse(null);
+
+		// Articleが複数存在する場合のみ、重複データを整理する。
+		// 通常の1件の場合は既存ArticleをそのままUPDATEする。
+		if (articles.size() > 1) {
+
+			for (Article article : articles) {
+
+				// 投稿対象カテゴリーと異なるArticleだけを
+				// 重複データとして削除する。
+				if (!currentWork.getCategoryGroupId().equals(
+						article.getCategoryGroupId())) {
+
+					articleRepository.delete(article);
+				}
+			}
+		}
+
+		// 対象カテゴリーの記事が存在しない場合は新規作成する。
+		if (targetArticle == null) {
+
+			targetArticle = createFromWork(
+					currentWork,
+					slug);
+
+		} else {
+
+			targetArticle = updateFromWork(
+					targetArticle,
+					currentWork,
+					slug);
+		}
+
+		targetArticle.setStatus(ArticleStatus.PUBLISHED);
+		targetArticle = articleRepository.save(targetArticle);
+
+		// DB上の投稿処理がすべて成功した場合のみWorkを削除する。
+		articleWorkService.delete(
+				currentWork.getWorkId(),
+				currentWork.getUserId());
+
+		return targetArticle;
+	}
+
 	public Article createFromWork(ArticleWork work, String slug) {
 
 		Article article = new Article();

@@ -6,6 +6,7 @@
 
 package com.app.myblogpusher.util;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +20,7 @@ import com.app.myblogpusher.repository.Article.ArticleRepository;
 import com.app.myblogpusher.service.Article.ArticleCategoryService;
 import com.app.myblogpusher.service.Article.ArticleFormatService;
 import com.app.myblogpusher.service.Article.ArticleWorkService;
+import com.app.myblogpusher.service.Category.CategoryPathService;
 
 @Component
 public class ArticleSaveUtil {
@@ -37,9 +39,12 @@ public class ArticleSaveUtil {
 
 	@Autowired
 	private ArticleRepository articleRepository;
-	
+
 	@Autowired
 	private CategoryRelationRepository categoryRelationRepository;
+
+	@Autowired
+	private CategoryPathService categoryPathService;
 
 	public Long doSaveDraft(
 			Long workId,
@@ -111,16 +116,35 @@ public class ArticleSaveUtil {
 			String categorySelect,
 			String newCategoryName) {
 
-		if ("__new__".equals(categorySelect)) {
+		if (newCategoryName != null && !newCategoryName.isBlank()) {
 
-			return articleCategoryService
+			// categorySelectには、現在選択されている親カテゴリーまでの
+			// フルパスが入っている。
+			Long parentCategoryId = categoryPathService.findCategoryIdByFullPath(
+					userId,
+					categorySelect);
+
+			List<Long> parentCategoryIds = parentCategoryId != null
+					? List.of(parentCategoryId)
+					: List.of();
+
+			Long categoryId = articleCategoryService
 					.findByUserIdAndName(userId, newCategoryName)
 					.map(ArticleCategory::getCategoryId)
 					.orElseGet(() -> articleCategoryService.insertCategory(
 							userId,
 							newCategoryName,
-							null,
+							parentCategoryIds,
 							newCategoryName));
+
+			// 新カテゴリーを作成した場合も、記事にはカテゴリーそのもののIDではなく
+			// CategoryRelation.groupIdを設定する。
+			return categoryRelationRepository
+					.findByCategoryId(categoryId)
+					.stream()
+					.findFirst()
+					.map(relation -> relation.getGroupId())
+					.orElseThrow();
 		}
 
 		if (categorySelect == null || categorySelect.isBlank()) {
