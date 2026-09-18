@@ -293,6 +293,18 @@ public class ArticleService {
 	}
 
 	/**
+	 * 投稿済み記事IDを指定して記事を削除する。
+	 *
+	 * GitHub同期で、GitHub上に存在しなくなった
+	 * 特定のArticleだけを削除するために使用する。
+	 */
+	@Transactional
+	public void deleteById(Long articleId) {
+
+		articleRepository.deleteById(articleId);
+	}
+
+	/**
 	 * 記事を保存する
 	 */
 	public Article save(Article article) {

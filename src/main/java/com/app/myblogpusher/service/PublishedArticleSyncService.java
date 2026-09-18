@@ -139,9 +139,8 @@ public class PublishedArticleSyncService {
 
 				if (!exists) {
 
-					articleService.deleteByUserIdAndSlug(
-							userId,
-							dbArticle.getSlug());
+					articleService.deleteById(
+					        dbArticle.getArticleId());
 				}
 			}
 
