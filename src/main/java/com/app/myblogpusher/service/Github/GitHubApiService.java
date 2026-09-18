@@ -157,4 +157,61 @@ public class GitHubApiService {
 				StandardCharsets.UTF_8);
 	}
 
+	/**
+	 * GitHub Contents APIから指定したMarkdownファイルを削除する。
+	 *
+	 * hugoPathはcontent配下からの相対パスを受け取る。
+	 * 例: reference/batman/gadget/bat-claw
+	 */
+	public void deleteMarkdown(
+			String owner,
+			String repoName,
+			String hugoPath,
+			String token,
+			String sha)
+			throws IOException {
+
+		String apiUrl = "https://api.github.com/repos/"
+				+ owner + "/"
+				+ repoName
+				+ "/contents/content/"
+				+ hugoPath
+				+ ".md";
+
+		HttpURLConnection conn = (HttpURLConnection) new URL(apiUrl).openConnection();
+
+		conn.setRequestMethod("DELETE");
+
+		conn.setRequestProperty(
+				"Authorization",
+				"token " + token);
+		conn.setRequestProperty(
+				"Accept",
+				"application/vnd.github.v3+json");
+		conn.setRequestProperty(
+				"Content-Type",
+				"application/json");
+
+		String requestBody = "{"
+				+ "\"message\":\"Delete article: "
+				+ hugoPath
+				+ "\","
+				+ "\"sha\":\""
+				+ sha
+				+ "\""
+				+ "}";
+
+		conn.setDoOutput(true);
+
+		conn.getOutputStream().write(
+				requestBody.getBytes(StandardCharsets.UTF_8));
+
+		int responseCode = conn.getResponseCode();
+
+		if (responseCode != 200) {
+			throw new IOException(
+					"GitHub上の記事削除に失敗しました。HTTP status: "
+							+ responseCode);
+		}
+	}
 }

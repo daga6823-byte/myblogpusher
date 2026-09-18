@@ -29,7 +29,7 @@
 						<a th:href="@{/article/published/edit(slug=${article.slug})}" class="btn-save"
 							style="text-decoration: none; display: inline-block; margin-right: 8px;">編集</a>
 						<form th:action="@{/article/published/delete}" method="post" style="display: inline;">
-							<input type="hidden" name="slug" th:value="${article.slug}">
+							<input type="hidden" name="hugoPath" th:value="${article.hugoPath}">
 							<button type="submit" class="btn-delete"
 								onclick="return confirm('削除してもよろしいですか？');"></button>
 						</form>

@@ -1,5 +1,6 @@
 package com.app.myblogpusher.controller.Article;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
@@ -11,10 +12,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.app.myblogpusher.entity.UserMaster;
+import com.app.myblogpusher.entity.UserRepositoryEntity;
 import com.app.myblogpusher.entity.Article.Article;
 import com.app.myblogpusher.entity.Article.ArticleWork;
+import com.app.myblogpusher.repository.UserRepositoryRepository;
 import com.app.myblogpusher.service.Article.ArticleService;
 import com.app.myblogpusher.service.Article.ArticleWorkService;
+import com.app.myblogpusher.service.Github.GitHubArticleService;
 import com.app.myblogpusher.service.Image.ImageAssetService;
 
 import jakarta.servlet.http.HttpSession;
@@ -34,7 +38,13 @@ public class ArticlePublishedController {
 
 	@Autowired
 	private ImageAssetService imageAssetService;
+
+	@Autowired
+	private GitHubArticleService gitHubArticleService;
 	
+	@Autowired
+	private UserRepositoryRepository userRepositoryRepository;
+
 	/**
 	 * 投稿済み記事一覧を表示
 	 */
@@ -52,10 +62,10 @@ public class ArticlePublishedController {
 		model.addAttribute(
 				"articles",
 				articles);
-		
+
 		model.addAttribute(
-		        "imageCategories",
-		        imageAssetService.findImageCategories(userId));
+				"imageCategories",
+				imageAssetService.findImageCategories(userId));
 
 		return "article/article_published_list";
 	}
@@ -97,12 +107,46 @@ public class ArticlePublishedController {
 		return "redirect:/article/edit?workId=" + workId;
 	}
 
-	/**
-	 * 投稿済み記事を削除
-	 */
 	@PostMapping("/article/published/delete")
-	public String delete(@RequestParam String slug, HttpSession session) {
-		// TODO: GitHub から削除処理を実装
+	public String delete(
+			@RequestParam String hugoPath,
+			HttpSession session) {
+
+		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
+
+		Long userId = loginUser.getUserId();
+
+		Article article = articleService.findByHugoPath(
+				userId,
+				hugoPath);
+
+		if (article == null) {
+			return "redirect:/article/published";
+		}
+
+		try {
+
+			UserRepositoryEntity repo = userRepositoryRepository
+					.findByUserId(userId)
+					.orElseThrow();
+
+			String cipherKey = loginUser.getCipherKey();
+
+			gitHubArticleService.deletePublishedArticle(
+					repo,
+					cipherKey,
+					hugoPath);
+
+			articleService.deleteById(
+					article.getArticleId());
+
+		} catch (IOException e) {
+
+			System.err.println(
+					"投稿済み記事の削除に失敗しました: "
+							+ e.getMessage());
+		}
+
 		return "redirect:/article/published";
 	}
 }

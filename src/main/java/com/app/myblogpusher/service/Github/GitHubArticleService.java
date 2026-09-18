@@ -22,6 +22,7 @@ import com.app.myblogpusher.dto.Publish.PublishedArticleSummaryDto;
 import com.app.myblogpusher.entity.UserRepositoryEntity;
 import com.app.myblogpusher.service.TokenCipherService;
 import com.app.myblogpusher.util.FrontMatterUtil;
+import com.fasterxml.jackson.databind.JsonNode;
 
 import jakarta.servlet.http.HttpSession;
 
@@ -197,5 +198,60 @@ public class GitHubArticleService {
 				updateDate,
 				mdContent,
 				categories);
+	}
+
+	/**
+	 * GitHub上の指定記事を削除する。
+	 *
+	 * Contents APIで対象ファイルのSHAを取得してから削除する。
+	 */
+	public void deletePublishedArticle(
+			UserRepositoryEntity repo,
+			String cipherKey,
+			String hugoPath)
+			throws IOException {
+
+		String accessToken = tokenCipherService.decrypt(
+				repo.getAccessToken(),
+				repo.getTokenIv(),
+				cipherKey);
+
+		String apiUrl = "https://api.github.com/repos/"
+				+ repo.getRepoOwner() + "/"
+				+ repo.getRepoName()
+				+ "/contents/content/"
+				+ hugoPath
+				+ ".md";
+
+		HttpURLConnection conn = (HttpURLConnection) new URL(apiUrl).openConnection();
+
+		conn.setRequestProperty(
+				"Authorization",
+				"token " + accessToken);
+
+		conn.setRequestProperty(
+				"Accept",
+				"application/vnd.github.v3+json");
+
+		if (conn.getResponseCode() != 200) {
+			throw new IOException(
+					"削除対象の記事がGitHub上に存在しません。");
+		}
+
+		String response = new String(
+				conn.getInputStream().readAllBytes(),
+				java.nio.charset.StandardCharsets.UTF_8);
+
+		JsonNode json = new com.fasterxml.jackson.databind.ObjectMapper()
+				.readTree(response);
+
+		String sha = json.get("sha").asText();
+
+		gitHubApiService.deleteMarkdown(
+				repo.getRepoOwner(),
+				repo.getRepoName(),
+				hugoPath,
+				accessToken,
+				sha);
 	}
 }
