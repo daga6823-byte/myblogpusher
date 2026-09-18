@@ -41,7 +41,7 @@ public class ArticlePublishedController {
 
 	@Autowired
 	private GitHubArticleService gitHubArticleService;
-	
+
 	@Autowired
 	private UserRepositoryRepository userRepositoryRepository;
 
@@ -72,20 +72,23 @@ public class ArticlePublishedController {
 
 	@GetMapping("/article/published/edit")
 	public String editPublished(
-			@RequestParam String slug,
+			@RequestParam String hugoPath,
 			HttpSession session) {
 
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 
 		Long userId = loginUser.getUserId();
 
-		Article article = articleService.findBySlug(userId, slug);
+		Article article = articleService.findByHugoPath(
+				userId,
+				hugoPath);
 
 		if (article == null) {
 			return "redirect:/article/published";
 		}
 
-		Optional<ArticleWork> existing = articleWorkService.findBySlug(slug);
+		Optional<ArticleWork> existing = articleWorkService.findByArticleId(
+				article.getArticleId());
 
 		Long workId;
 

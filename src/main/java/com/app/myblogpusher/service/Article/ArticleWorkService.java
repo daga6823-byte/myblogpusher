@@ -196,11 +196,11 @@ public class ArticleWorkService {
 	}
 
 	/**
-	 * slugから編集中記事を検索する
+	 * 投稿済み記事のarticleIdから編集中記事を検索する
 	 */
-	public Optional<ArticleWork> findBySlug(String slug) {
+	public Optional<ArticleWork> findByArticleId(Long articleId) {
 
-		return articleWorkRepository.findBySlug(slug);
+		return articleWorkRepository.findByArticleId(articleId);
 	}
 
 	/**

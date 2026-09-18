@@ -8,6 +8,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import com.app.myblogpusher.entity.Article.ArticleWork;
 
 public interface ArticleWorkRepository extends JpaRepository<ArticleWork, Long> {
+
+	Optional<ArticleWork> findByArticleId(Long articleId);
+
 	List<ArticleWork> findByUserIdOrderByUpdateDateDesc(Long userId);
 
 	Optional<ArticleWork> findByUserIdAndCategoryGroupIdAndTitleAndContent(
