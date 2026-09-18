@@ -66,10 +66,18 @@ function createCategorySelect(parentCategoryId) {
 			const option = document.createElement('option');
 
 			option.value = category.categoryId;
+
 			option.textContent = getCategoryDisplayName(category);
 
 			select.appendChild(option);
 		});
+
+	// 選択中のカテゴリーの下に新しいカテゴリーを作成できるようにする。
+	const newOption = document.createElement('option');
+	newOption.value = '__new__';
+	newOption.textContent = '＋新しいカテゴリーを作成';
+
+	select.appendChild(newOption);
 
 	select.addEventListener('change', handleCategoryChange);
 
@@ -92,17 +100,50 @@ function handleCategoryChange(event) {
 
 	const selectedCategoryId = select.value;
 
-	if (!selectedCategoryId) {
+	// 「新しいカテゴリーを作成」が選択された場合。
+	// 現在の選択経路を親カテゴリーとして保持し、新規カテゴリー名の入力欄を表示する。
+	if (selectedCategoryId === '__new__') {
+
+		const newCategoryInput =
+			document.getElementById('newCategoryName');
+
+		if (newCategoryInput) {
+			newCategoryInput.style.display = 'block';
+			newCategoryInput.value = '';
+			newCategoryInput.focus();
+		}
+
 		updateCategoryPath();
+
+		return;
+	}
+
+	// 通常のカテゴリーを選択した場合は、新規カテゴリー入力を非表示にする。
+	const newCategoryInput =
+		document.getElementById('newCategoryName');
+
+	if (newCategoryInput) {
+		newCategoryInput.style.display = 'none';
+		newCategoryInput.value = '';
+	}
+
+	if (!selectedCategoryId) {
+
+		updateCategoryPath();
+
 		return;
 	}
 
 	const children = findChildren(selectedCategoryId);
 
 	if (children.length > 0) {
+
 		categorySelectors.appendChild(
+
 			createCategorySelect(selectedCategoryId)
+
 		);
+
 	}
 
 	updateCategoryPath();
@@ -118,15 +159,21 @@ function updateCategoryPath() {
 	const selectedCategories = [];
 
 	categorySelectors.querySelectorAll('.category-level').forEach(select => {
-		if (!select.value) return;
+
+		if (!select.value || select.value === '__new__') return;
 
 		const category = categoryData.find(
+
 			item => String(item.categoryId) === String(select.value)
+
 		);
 
 		if (category) {
+
 			selectedCategories.push(category.categoryName);
+
 		}
+
 	});
 
 	// 保存時は既存のcategorySelectパラメータとしてカテゴリー経路を送る。
@@ -162,15 +209,34 @@ function initializeCategorySelectors() {
 			)
 		)
 		.forEach(category => {
+
 			const option = document.createElement('option');
+
 			option.value = category.categoryId;
+
 			option.textContent = getCategoryDisplayName(category);
+
 			select.appendChild(option);
 		});
+
+	// ルートカテゴリーの新規作成も可能にする。
+	const newOption = document.createElement('option');
+	newOption.value = '__new__';
+	newOption.textContent = '＋新しいカテゴリーを作成';
+
+	select.appendChild(newOption);
 
 	select.addEventListener('change', handleCategoryChange);
 
 	categorySelectors.appendChild(select);
+
+	const newCategoryInput =
+		document.getElementById('newCategoryName');
+
+	if (newCategoryInput) {
+		newCategoryInput.style.display = 'none';
+		newCategoryInput.value = '';
+	}
 }
 
 function restoreCategorySelection() {
