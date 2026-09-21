@@ -290,7 +290,6 @@ public class SupabaseStorageService {
 		deleteImage(oldPath);
 
 		return newPath;
-
 	}
 
 	/**
