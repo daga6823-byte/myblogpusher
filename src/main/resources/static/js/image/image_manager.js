@@ -313,15 +313,15 @@ document.getElementById('imageUploadButton').addEventListener('click', function(
 
 				fileInput.value = '';
 
-				// 新規フォルダ追加時に保存先フォルダへ反映する
+				// 現在選択中のカテゴリーを維持したまま、
+				// フォルダ・カテゴリー一覧と画像一覧を更新する。
+				const currentFolderName = imageFolderName;
 
 				loadImageFolders();
 
-				// 新規フォルダ・画像追加後に一覧絞り込み条件を更新する
-
 				loadImageCategories();
 
-				// 新規画像を一覧へ反映する
+				imageFolderName = currentFolderName;
 
 				loadImageList();
 
