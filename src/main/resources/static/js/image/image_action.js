@@ -1,60 +1,89 @@
 // =====================================================
+
 // image_action.js
+
 //
+
 // 登録済み画像に対する操作を担当する。
+
 // ・新規画像登録
+
 // ・画像編集
+
 // ・画像削除
+
 // ・画像インポート
+
 // =====================================================
 
 // -----------------------------------------------------
+
 // 新規画像登録画面
+
 // -----------------------------------------------------
 
 document.getElementById('newImageButton')
+
 	.addEventListener('click', function() {
 
 		location.href = '/image/new';
+
 	});
 
 // -----------------------------------------------------
+
 // 画像インポート
+
 // -----------------------------------------------------
 
 document.getElementById('importButton')
+
 	.addEventListener('click', () => {
 
 		const status =
+
 			document.getElementById('importStatus');
 
 		status.textContent = 'インポート中...';
 
 		fetch('/image/import', {
+
 			method: 'POST'
+
 		})
+
 			.then(res => res.json())
+
 			.then(data => {
 
 				status.textContent =
+
 					`${data.importedCount}件インポートしました`;
 
 				location.reload();
+
 			})
+
 			.catch(() => {
 
 				status.textContent =
+
 					'インポートに失敗しました';
+
 			});
+
 	});
 
 // -----------------------------------------------------
+
 // 編集・削除ボタンのイベント設定
+
 // -----------------------------------------------------
 
 function bindImageButtons() {
 
 	// 編集
+
 	document.querySelectorAll('.btn-update')
 
 		.forEach(btn => {
@@ -65,17 +94,15 @@ function bindImageButtons() {
 
 					btn.dataset.imageId;
 
-				const folderName =
+				document.getElementById('imageFileName').value =
 
-					btn.dataset.folderName ?? '';
+					btn.dataset.fileName ?? '';
 
 				document.getElementById('imageFolderName').value =
 
-					folderName;
+					btn.dataset.folderName ?? '';
 
-				document.getElementById('imageCategoryId').value =
-
-					folderName;
+				document.getElementById('imageFile').value = '';
 
 				document.getElementById('imageEditModal')
 
@@ -86,16 +113,21 @@ function bindImageButtons() {
 		});
 
 	// 削除
+
 	document.querySelectorAll('.btn-image-delete')
+
 		.forEach(btn => {
 
 			btn.addEventListener('click', () => {
 
 				const imageId =
+
 					btn.dataset.imageId;
 
 				if (!confirm('この画像を削除しますか？')) {
+
 					return;
+
 				}
 
 				const params = new URLSearchParams();
@@ -103,43 +135,65 @@ function bindImageButtons() {
 				params.append('imageId', imageId);
 
 				fetch('/article/images/delete', {
+
 					method: 'POST',
+
 					headers: {
+
 						'Content-Type':
+
 							'application/x-www-form-urlencoded'
+
 					},
+
 					body: params.toString()
+
 				})
+
 					.then(res => res.json())
+
 					.then(data => {
 
 						if (data.result === 'ok') {
 
 							// DB変更後、最新の全画像を取得し直す。
+
 							loadImageList();
 
 						} else {
 
 							alert(data.message);
+
 						}
+
 					});
+
 			});
+
 		});
+
 }
 
 // -----------------------------------------------------
+
 // 編集キャンセル
+
 // -----------------------------------------------------
 
 document.getElementById('cancelImageButton')
+
 	.addEventListener('click', () => {
 
 		document.getElementById('imageEditModal')
+
 			.style.display = 'none';
+
 	});
 
 // -----------------------------------------------------
+
 // 編集保存
+
 // -----------------------------------------------------
 
 document.getElementById('saveImageButton')
@@ -164,6 +218,14 @@ document.getElementById('saveImageButton')
 
 		);
 
+		formData.append(
+
+			'fileName',
+
+			document.getElementById('imageFileName').value
+
+		);
+
 		const fileInput =
 
 			document.getElementById('imageFile');
@@ -174,9 +236,7 @@ document.getElementById('saveImageButton')
 
 				'file',
 
-				fileInput.files[0]
-
-			);
+				fileInput.files[0]);
 
 		}
 

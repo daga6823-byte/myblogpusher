@@ -78,7 +78,8 @@ function updateImageList() {
             <button type="button"
                 class="btn-correct btn-update"
                 data-image-id="${image.imageId}"
-                data-folder-name="${image.folderName}">
+				data-folder-name="${image.folderName}"
+				data-file-name="${image.fileName}">
                 編集
             </button>
             <button type="button"

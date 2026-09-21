@@ -292,4 +292,62 @@ public class SupabaseStorageService {
 		return newPath;
 
 	}
+
+	/**
+	 * Storage上の画像を別のフォルダ・ファイル名へ変更する。
+	 *
+	 * uploadFileが指定されている場合は、そのファイルを新しいパスへ
+	 * アップロードしてから元画像を削除する。
+	 *
+	 * uploadFileがnullの場合は、現在の画像をStorageから取得して
+	 * 新しいパスへ移動する。
+	 *
+	 * 戻り値：新しいstoragePath
+	 */
+	public String renameImage(
+			String oldPath,
+			String newFolderName,
+			String newFileName,
+			File uploadFile) throws IOException {
+
+		String newPath = newFolderName + "/" + newFileName;
+
+		byte[] image;
+
+		if (uploadFile != null) {
+
+			image = Files.readAllBytes(uploadFile.toPath());
+
+		} else {
+
+			image = downloadImage(oldPath);
+		}
+
+		String url = supabaseUrl
+				+ "/storage/v1/object/"
+				+ bucketName
+				+ "/"
+				+ newPath;
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.set("apikey", supabaseKey);
+		headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+
+		HttpEntity<byte[]> entity = new HttpEntity<>(
+				image,
+				headers);
+
+		restTemplate.exchange(
+				url,
+				HttpMethod.POST,
+				entity,
+				String.class);
+
+		// 新しいファイルの登録に成功してから元ファイルを削除する。
+		if (!oldPath.equals(newPath)) {
+			deleteImage(oldPath);
+		}
+
+		return newPath;
+	}
 }

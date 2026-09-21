@@ -180,37 +180,117 @@ public class ImageAssetService {
 	/**
 	 * 登録済み画像情報を更新する
 	 *
-	 * ・カテゴリー変更
 	 * ・保存先フォルダ変更
+	 * ・画像名変更
+	 * ・画像ファイル差し替え
+	 *
+	 * 画像名や保存先が変更された場合は、
+	 * Supabase Storageとimage_assetの両方を更新する。
 	 */
 	public void updateImage(
 			Long imageId,
 			String folderName,
+			String fileName,
 			MultipartFile file,
 			Long userId) throws IOException {
 
 		ImageAsset asset = imageAssetRepository.findById(imageId)
 				.orElseThrow();
 
-		// 新しい画像が指定されている場合は、
-		// 現在のStorageパスを維持したまま実ファイルだけ差し替える。
+		// 他ユーザーの画像を更新できないようにする。
+		if (!asset.getUserId().equals(userId)) {
+			throw new IllegalStateException(
+					"他ユーザーの画像は更新できません");
+		}
+
+		String currentFolderName = asset.getFolderName();
+		String currentFileName = asset.getFileName();
+
+		String newFolderName = folderName;
+
+		if (newFolderName == null || newFolderName.isBlank()) {
+			throw new IllegalArgumentException(
+					"保存先フォルダを指定してください");
+		}
+
+		String newFileName = fileName;
+
+		if (newFileName == null || newFileName.isBlank()) {
+			throw new IllegalArgumentException(
+					"画像名を指定してください");
+		}
+
+		/*
+		 * 新しい画像ファイルが指定された場合は、
+		 * 入力された画像名をStorage上のファイル名として使用する。
+		 *
+		 * HEICの場合はアップロード時と同じくWebPへ変換する。
+		 */
 		if (file != null && !file.isEmpty()) {
 
 			File convertedFile = imageConvertService.convert(file);
 
-			supabaseStorageService.replaceImage(
+			String originalName = file.getOriginalFilename();
+
+			if (originalName == null) {
+				throw new IOException("ファイル名が取得できません");
+			}
+
+			if (originalName.toLowerCase().endsWith(".heic")) {
+				newFileName = newFileName.substring(
+						0,
+						newFileName.lastIndexOf('.'))
+						+ ".webp";
+			}
+
+			File uploadFile = new File(
+					convertedFile.getParent(),
+					newFileName);
+
+			Files.copy(
+					convertedFile.toPath(),
+					uploadFile.toPath(),
+					java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+
+			/*
+			 * 保存先フォルダ・画像名をまとめて変更する場合は、
+			 * 現在のStorage上のファイルを新しいパスへ移動する。
+			 */
+			if (!currentFolderName.equals(newFolderName)
+					|| !currentFileName.equals(newFileName)) {
+
+				String newStoragePath = supabaseStorageService.renameImage(
+						asset.getStoragePath(),
+						newFolderName,
+						newFileName,
+						uploadFile);
+
+				asset.setFolderName(newFolderName);
+				asset.setFileName(newFileName);
+				asset.setStoragePath(newStoragePath);
+
+			} else {
+
+				// 保存先も画像名も同じ場合は実ファイルだけ差し替える。
+				supabaseStorageService.replaceImage(
+						asset.getStoragePath(),
+						uploadFile);
+			}
+
+		} else if (!currentFolderName.equals(newFolderName)
+				|| !currentFileName.equals(newFileName)) {
+
+			/*
+			 * ファイル差し替えなしで保存先または画像名だけ変更する。
+			 */
+			String newStoragePath = supabaseStorageService.renameImage(
 					asset.getStoragePath(),
-					convertedFile);
-		}
+					newFolderName,
+					newFileName,
+					null);
 
-		// フォルダが変更された場合はStorage上の保存先も移動する。
-		if (!folderName.equals(asset.getFolderName())) {
-
-			String newStoragePath = supabaseStorageService.moveImage(
-					asset.getStoragePath(),
-					folderName);
-
-			asset.setFolderName(folderName);
+			asset.setFolderName(newFolderName);
+			asset.setFileName(newFileName);
 			asset.setStoragePath(newStoragePath);
 		}
 
@@ -219,7 +299,7 @@ public class ImageAssetService {
 
 		imageAssetRepository.save(asset);
 
-		// 画像変更により画像一覧・フォルダ一覧が変わるため、
+		// 画像変更により一覧・フォルダ情報が変わるため、
 		// 次回表示時に最新情報を取得する。
 		imageAssetCache.clear(userId);
 	}

@@ -97,17 +97,18 @@ public class ImageManageController {
 	public Map<String, Object> updateImage(
 			@RequestParam Long imageId,
 			@RequestParam String folderName,
+			@RequestParam String fileName,
 			@RequestParam(required = false) org.springframework.web.multipart.MultipartFile file,
 			HttpSession session) {
 
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
-		
 
 		try {
 
 			imageAssetService.updateImage(
 					imageId,
 					folderName,
+					fileName,
 					file,
 					loginUser.getUserId());
 
