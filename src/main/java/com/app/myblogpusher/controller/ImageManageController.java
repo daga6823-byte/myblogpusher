@@ -101,6 +101,7 @@ public class ImageManageController {
 			HttpSession session) {
 
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
+		
 
 		try {
 
