@@ -186,12 +186,24 @@ public class ImageAssetService {
 	public void updateImage(
 			Long imageId,
 			String folderName,
-			Long userId) {
+			MultipartFile file,
+			Long userId) throws IOException {
 
 		ImageAsset asset = imageAssetRepository.findById(imageId)
 				.orElseThrow();
 
-		// フォルダが変更された場合のみStorage上も移動する
+		// 新しい画像が指定されている場合は、
+		// 現在のStorageパスを維持したまま実ファイルだけ差し替える。
+		if (file != null && !file.isEmpty()) {
+
+			File convertedFile = imageConvertService.convert(file);
+
+			supabaseStorageService.replaceImage(
+					asset.getStoragePath(),
+					convertedFile);
+		}
+
+		// フォルダが変更された場合はStorage上の保存先も移動する。
 		if (!folderName.equals(asset.getFolderName())) {
 
 			String newStoragePath = supabaseStorageService.moveImage(
@@ -207,10 +219,9 @@ public class ImageAssetService {
 
 		imageAssetRepository.save(asset);
 
-		// フォルダ変更により画像一覧・フォルダ一覧が変わるため、
+		// 画像変更により画像一覧・フォルダ一覧が変わるため、
 		// 次回表示時に最新情報を取得する。
 		imageAssetCache.clear(userId);
-
 	}
 
 	/**

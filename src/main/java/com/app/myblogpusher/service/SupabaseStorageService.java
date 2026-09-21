@@ -108,6 +108,40 @@ public class SupabaseStorageService {
 		return path;
 	}
 
+	/**
+	 * 登録済み画像を同じStorageパスへ上書きする。
+	 *
+	 * 記事本文から既存画像のパスを参照している可能性があるため、
+	 * 差し替え時はファイルのパスを変更せず実ファイルだけ置き換える。
+	 */
+	public void replaceImage(
+			String storagePath,
+			File file) throws IOException {
+
+		String url = supabaseUrl
+				+ "/storage/v1/object/"
+				+ bucketName
+				+ "/"
+				+ storagePath;
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.set("apikey", supabaseKey);
+		headers.set("x-upsert", "true");
+		headers.setContentType(
+				MediaType.parseMediaType(
+						Files.probeContentType(file.toPath())));
+
+		HttpEntity<byte[]> entity = new HttpEntity<>(
+				Files.readAllBytes(file.toPath()),
+				headers);
+
+		restTemplate.exchange(
+				url,
+				HttpMethod.POST,
+				entity,
+				String.class);
+	}
+
 	public String getImageUrl(String fileName) {
 		return supabaseUrl + "/storage/v1/object/public/" + bucketName + "/" + fileName;
 	}

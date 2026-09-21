@@ -56,19 +56,33 @@ function bindImageButtons() {
 
 	// 編集
 	document.querySelectorAll('.btn-update')
+
 		.forEach(btn => {
 
 			btn.addEventListener('click', () => {
 
 				document.getElementById('imageId').value =
+
 					btn.dataset.imageId;
 
-				document.getElementById('imageFolderName').value =
+				const folderName =
+
 					btn.dataset.folderName ?? '';
 
+				document.getElementById('imageFolderName').value =
+
+					folderName;
+
+				document.getElementById('imageCategoryId').value =
+
+					folderName;
+
 				document.getElementById('imageEditModal')
+
 					.style.display = 'block';
+
 			});
+
 		});
 
 	// 削除
@@ -129,29 +143,53 @@ document.getElementById('cancelImageButton')
 // -----------------------------------------------------
 
 document.getElementById('saveImageButton')
+
 	.addEventListener('click', () => {
 
-		const params = new URLSearchParams();
+		const formData = new FormData();
 
-		params.append(
+		formData.append(
+
 			'imageId',
+
 			document.getElementById('imageId').value
+
 		);
 
-		params.append(
+		formData.append(
+
 			'folderName',
+
 			document.getElementById('imageFolderName').value
+
 		);
+
+		const fileInput =
+
+			document.getElementById('imageFile');
+
+		if (fileInput.files.length > 0) {
+
+			formData.append(
+
+				'file',
+
+				fileInput.files[0]
+
+			);
+
+		}
 
 		fetch('/image/update', {
+
 			method: 'POST',
-			headers: {
-				'Content-Type':
-					'application/x-www-form-urlencoded'
-			},
-			body: params.toString()
+
+			body: formData
+
 		})
+
 			.then(res => res.json())
+
 			.then(data => {
 
 				if (data.result === 'ok') {
@@ -161,6 +199,9 @@ document.getElementById('saveImageButton')
 				} else {
 
 					alert(data.message);
+
 				}
+
 			});
+
 	});

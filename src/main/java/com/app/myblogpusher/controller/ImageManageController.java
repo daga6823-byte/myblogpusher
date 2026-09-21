@@ -97,16 +97,27 @@ public class ImageManageController {
 	public Map<String, Object> updateImage(
 			@RequestParam Long imageId,
 			@RequestParam String folderName,
+			@RequestParam(required = false) org.springframework.web.multipart.MultipartFile file,
 			HttpSession session) {
 
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 
-		imageAssetService.updateImage(
-				imageId,
-				folderName,
-				loginUser.getUserId());
+		try {
 
-		return Map.of("result", "ok");
+			imageAssetService.updateImage(
+					imageId,
+					folderName,
+					file,
+					loginUser.getUserId());
+
+			return Map.of("result", "ok");
+
+		} catch (Exception e) {
+
+			return Map.of(
+					"result", "error",
+					"message", "画像の更新に失敗しました");
+		}
 	}
 
 	/**
