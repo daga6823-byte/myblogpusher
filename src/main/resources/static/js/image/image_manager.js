@@ -128,10 +128,32 @@ function loadImageList() {
 
 			});
 
+			const pageSelect =
+				document.getElementById('imagePageSelect');
+
+			pageSelect.innerHTML = '';
+
+			for (let i = 0; i < totalPages; i++) {
+
+				const option =
+					document.createElement('option');
+
+				option.value = i;
+				option.textContent = i + 1;
+
+				if (i === imagePage) {
+					option.selected = true;
+				}
+
+				pageSelect.appendChild(option);
+			}
+
+			pageSelect.disabled = totalPages === 0;
+
 			document.getElementById('imagePageInfo').textContent =
 				totalPages === 0
-					? '0 / 0'
-					: (imagePage + 1) + ' / ' + totalPages;
+					? '0ページ'
+					: '/ ' + totalPages + 'ページ';
 
 			document.getElementById('imagePrevButton').disabled =
 				imagePage === 0;
@@ -348,12 +370,26 @@ if (newImageButton) {
 }
 
 document.getElementById('imagePrevButton')
+
 	.addEventListener('click', function() {
 
 		if (imagePage > 0) {
+
 			imagePage--;
+
 			loadImageList();
+
 		}
+
+	});
+
+document.getElementById('imagePageSelect')
+
+	.addEventListener('change', function() {
+
+		imagePage = Number(this.value);
+
+		loadImageList();
 
 	});
 
