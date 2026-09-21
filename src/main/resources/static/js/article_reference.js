@@ -278,7 +278,7 @@ function insertFootnote(reference) {
 document.getElementById('saveReferenceButton')
 	.addEventListener('click', async () => {
 
-		const articleGroupId =
+		const categoryPath =
 			document.getElementById('categorySelect').value;
 
 		const referenceName =
@@ -289,9 +289,12 @@ document.getElementById('saveReferenceButton')
 			document.getElementById('referenceUrl')
 				.value.trim();
 
-		if (!articleGroupId || articleGroupId === '__new__') {
+		if (!categoryPath || categoryPath === '__new__') {
+
 			alert('記事のカテゴリーを選択してください');
+
 			return;
+
 		}
 
 		if (!referenceName) {
@@ -310,7 +313,7 @@ document.getElementById('saveReferenceButton')
 				},
 
 				body:
-					`groupId=${encodeURIComponent(articleGroupId)}`
+					`categoryPath=${encodeURIComponent(categoryPath)}`
 					+ `&referenceName=${encodeURIComponent(referenceName)}`
 					+ `&url=${encodeURIComponent(url)}`
 			});
@@ -325,8 +328,9 @@ document.getElementById('saveReferenceButton')
 
 		// 登録後、現在の記事カテゴリーの参考文献を再取得して表示する。
 		const listResponse =
+
 			await fetch(
-				`/category/reference/list?groupId=${encodeURIComponent(articleGroupId)}`
+				'/category/reference/list'
 			);
 
 		if (!listResponse.ok) {

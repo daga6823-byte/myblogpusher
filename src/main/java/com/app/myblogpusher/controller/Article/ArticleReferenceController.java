@@ -112,12 +112,22 @@ public class ArticleReferenceController {
 	 */
 	@PostMapping("/category/reference/save")
 	public String save(
-			@RequestParam Long groupId,
+			@RequestParam String categoryPath,
 			@RequestParam String referenceName,
 			@RequestParam(required = false) String url,
 			HttpSession session) {
 
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
+
+		Long groupId = categoryPathService.findGroupIdByFullPath(
+				loginUser.getUserId(),
+				categoryPath);
+
+		if (groupId == null) {
+			throw new IllegalArgumentException(
+					"カテゴリー経路からgroupIdを取得できません: "
+							+ categoryPath);
+		}
 
 		// 現在の記事カテゴリーのgroupIdから、
 		// 参考文献を共有するカテゴリーのcategoryIdを取得する。
@@ -131,7 +141,8 @@ public class ArticleReferenceController {
 				url);
 
 		// 管理画面へ戻す際は、表示用のgroupIdを使用する。
-		Long referenceGroupId = categoryPathService.resolveReferenceGroupId(groupId);
+		Long referenceGroupId = categoryPathService.resolveReferenceGroupId(
+				groupId);
 
 		return "redirect:/category/reference?groupId="
 				+ referenceGroupId;

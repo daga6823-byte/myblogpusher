@@ -140,14 +140,24 @@ public class ArticleSaveUtil {
 							parentCategoryIds,
 							newCategoryDisplayName));
 
-			// 新カテゴリーを作成した場合も、記事にはカテゴリーそのもののIDではなく
-			// CategoryRelation.groupIdを設定する。
-			return categoryRelationRepository
-					.findByCategoryId(categoryId)
-					.stream()
-					.findFirst()
-					.map(relation -> relation.getGroupId())
-					.orElseThrow();
+			// 新カテゴリー作成後は、現在の選択カテゴリーに
+			// 新カテゴリー名を追加した完全フルパスからgroupIdを取得する。
+			String newCategoryPath = categorySelect == null
+					|| categorySelect.isBlank()
+							? newCategoryName
+							: categorySelect + "/" + newCategoryName;
+
+			Long groupId = categoryPathService.findGroupIdByFullPath(
+					userId,
+					newCategoryPath);
+
+			if (groupId == null) {
+				throw new IllegalArgumentException(
+						"新規カテゴリーのカテゴリー経路からgroupIdを取得できません: "
+								+ newCategoryPath);
+			}
+
+			return groupId;
 		}
 
 		if (categorySelect == null || categorySelect.isBlank()) {
