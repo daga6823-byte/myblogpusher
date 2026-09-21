@@ -116,6 +116,8 @@ public class ImageManageController {
 
 		} catch (Exception e) {
 
+			e.printStackTrace();
+
 			return Map.of(
 					"result", "error",
 					"message", "画像の更新に失敗しました");
