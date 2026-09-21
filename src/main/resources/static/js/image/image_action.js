@@ -254,7 +254,12 @@ document.getElementById('saveImageButton')
 
 				if (data.result === 'ok') {
 
-					// 現在のカテゴリー・ページ位置を維持したまま一覧を再取得する。
+					// 編集モーダルを閉じる。
+					document.getElementById('imageEditModal')
+						.style.display = 'none';
+
+					// DB・Storage更新後の最新画像情報を再取得する。
+					// 現在のカテゴリーとページ位置は維持する。
 					loadImageList();
 
 				} else {
