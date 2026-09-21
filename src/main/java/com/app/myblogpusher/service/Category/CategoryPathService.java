@@ -10,11 +10,7 @@
 
 package com.app.myblogpusher.service.Category;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
@@ -233,78 +229,46 @@ public class CategoryPathService {
 			return null;
 		}
 
-		List<ArticleCategory> categories = articleCategoryRepository.findByUserId(userId);
+		/*
+		 * 2階層以上のカテゴリーはCategoryRelationのcategoryPathを
+		 * 直接検索する。
+		 *
+		 * 同じカテゴリーが複数の親を持つ場合でも、
+		 * 選択されたカテゴリー経路そのものから正しいcategoryIdを取得できる。
+		 */
+		if (fullPath.contains("/")) {
 
-		if (categories.isEmpty()) {
-			return null;
+			return categoryRelationRepository
+					.findByCategoryPath(fullPath)
+					.stream()
+					.filter(relation -> articleCategoryRepository
+							.findById(relation.getCategoryId())
+							.map(category -> userId.equals(category.getUserId()))
+							.orElse(false))
+					.map(CategoryRelation::getCategoryId)
+					.findFirst()
+					.orElse(null);
 		}
 
-		Map<Long, ArticleCategory> categoryMap = categories.stream()
-				.collect(Collectors.toMap(
-						ArticleCategory::getCategoryId,
-						c -> c));
-
-		Map<Long, List<Long>> childrenMap = new HashMap<>();
+		/*
+		 * ルートカテゴリーにはCategoryRelationが存在しないため、
+		 * categoryPathから直接取得することはできない。
+		 *
+		 * CategoryRelationの親として一度も登場していないカテゴリーを
+		 * ルートカテゴリーとして判定する。
+		 */
+		List<ArticleCategory> categories = articleCategoryRepository.findByUserId(userId);
 
 		List<CategoryRelation> relations = categoryRelationRepository.findAll();
 
-		for (CategoryRelation relation : relations) {
-
-			Long categoryId = relation.getCategoryId();
-			Long parentCategoryId = relation.getParentCategoryId();
-
-			if (!categoryMap.containsKey(categoryId)
-					|| !categoryMap.containsKey(parentCategoryId)) {
-				continue;
-			}
-
-			childrenMap
-					.computeIfAbsent(parentCategoryId, k -> new ArrayList<>())
-					.add(categoryId);
-		}
-
-		String[] pathParts = fullPath.split("/");
-
-		ArticleCategory current = null;
-
-		for (int i = 0; i < pathParts.length; i++) {
-
-			String name = pathParts[i];
-
-			if (i == 0) {
-
-				current = categories.stream()
-						.filter(c -> !relations.stream()
-								.anyMatch(relation -> relation.getCategoryId()
-										.equals(c.getCategoryId())))
-						.filter(c -> getCategoryLabel(c).equals(name))
-						.findFirst()
-						.orElse(null);
-
-			} else {
-
-				if (current == null) {
-					return null;
-				}
-
-				List<Long> childIds = childrenMap.getOrDefault(
-						current.getCategoryId(),
-						List.of());
-
-				current = childIds.stream()
-						.map(categoryMap::get)
-						.filter(c -> c != null)
-						.filter(c -> getCategoryLabel(c).equals(name))
-						.findFirst()
-						.orElse(null);
-			}
-
-			if (current == null) {
-				return null;
-			}
-		}
-
-		return current.getCategoryId();
+		return categories.stream()
+				.filter(category -> getCategoryLabel(category).equals(fullPath))
+				.filter(category -> relations.stream()
+						.noneMatch(relation -> relation.getCategoryId()
+								.equals(category.getCategoryId())))
+				.map(ArticleCategory::getCategoryId)
+				.findFirst()
+				.orElse(null);
 	}
 
 	/**
