@@ -50,6 +50,7 @@ public class ArticleSaveUtil {
 			Long workId,
 			String categorySelect,
 			String newCategoryName,
+			String newCategoryDisplayName,
 			String title,
 			String content,
 			Long userId) {
@@ -57,7 +58,8 @@ public class ArticleSaveUtil {
 		Long categoryGroupId = resolveCategoryGroupId(
 				userId,
 				categorySelect,
-				newCategoryName);
+				newCategoryName,
+				newCategoryDisplayName);
 
 		String formattedContent = articleFormatService.formatContent(content);
 
@@ -114,7 +116,8 @@ public class ArticleSaveUtil {
 	private Long resolveCategoryGroupId(
 			Long userId,
 			String categorySelect,
-			String newCategoryName) {
+			String newCategoryName,
+			String newCategoryDisplayName) {
 
 		if (newCategoryName != null && !newCategoryName.isBlank()) {
 
@@ -135,7 +138,7 @@ public class ArticleSaveUtil {
 							userId,
 							newCategoryName,
 							parentCategoryIds,
-							newCategoryName));
+							newCategoryDisplayName));
 
 			// 新カテゴリーを作成した場合も、記事にはカテゴリーそのもののIDではなく
 			// CategoryRelation.groupIdを設定する。

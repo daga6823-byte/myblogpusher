@@ -72,6 +72,7 @@ public class CategoryDictionaryViewService {
 					List<Long> parentCategoryIds = relations.stream()
 							.filter(relation -> relation.getCategoryId().equals(c.getCategoryId()))
 							.map(CategoryRelation::getParentCategoryId)
+							.distinct()
 							.toList();
 
 					String parentCategoryName = parentCategoryIds.stream()

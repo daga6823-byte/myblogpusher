@@ -251,6 +251,7 @@ public class ArticleEditController {
 	public String saveDraft(@RequestParam(required = false) Long workId,
 			@RequestParam String categorySelect,
 			@RequestParam(required = false) String newCategoryName,
+			@RequestParam(required = false) String newCategoryDisplayName,
 			@RequestParam String title,
 			@RequestParam String content,
 			@RequestParam(required = false) String redirectTo,
@@ -263,6 +264,7 @@ public class ArticleEditController {
 				workId,
 				categorySelect,
 				newCategoryName,
+				newCategoryDisplayName,
 				title,
 				content,
 				userId);

@@ -107,10 +107,25 @@ function handleCategoryChange(event) {
 		const newCategoryInput =
 			document.getElementById('newCategoryName');
 
+		const newCategoryDisplayNameInput =
+			document.getElementById('newCategoryDisplayName');
+
 		if (newCategoryInput) {
+
 			newCategoryInput.style.display = 'block';
+
 			newCategoryInput.value = '';
+
 			newCategoryInput.focus();
+
+		}
+
+		if (newCategoryDisplayNameInput) {
+
+			newCategoryDisplayNameInput.style.display = 'block';
+
+			newCategoryDisplayNameInput.value = '';
+
 		}
 
 		updateCategoryPath();
@@ -122,9 +137,23 @@ function handleCategoryChange(event) {
 	const newCategoryInput =
 		document.getElementById('newCategoryName');
 
+	const newCategoryDisplayNameInput =
+		document.getElementById('newCategoryDisplayName');
+
 	if (newCategoryInput) {
+
 		newCategoryInput.style.display = 'none';
+
 		newCategoryInput.value = '';
+
+	}
+
+	if (newCategoryDisplayNameInput) {
+
+		newCategoryDisplayNameInput.style.display = 'none';
+
+		newCategoryDisplayNameInput.value = '';
+
 	}
 
 	if (!selectedCategoryId) {
@@ -233,10 +262,25 @@ function initializeCategorySelectors() {
 	const newCategoryInput =
 		document.getElementById('newCategoryName');
 
+	const newCategoryDisplayNameInput =
+		document.getElementById('newCategoryDisplayName');
+
 	if (newCategoryInput) {
+
 		newCategoryInput.style.display = 'none';
+
 		newCategoryInput.value = '';
+
 	}
+
+	if (newCategoryDisplayNameInput) {
+
+		newCategoryDisplayNameInput.style.display = 'none';
+
+		newCategoryDisplayNameInput.value = '';
+
+	}
+
 }
 
 function restoreCategorySelection() {
