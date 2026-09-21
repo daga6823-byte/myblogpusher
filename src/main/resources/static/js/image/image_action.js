@@ -254,7 +254,8 @@ document.getElementById('saveImageButton')
 
 				if (data.result === 'ok') {
 
-					location.reload();
+					// 現在のカテゴリー・ページ位置を維持したまま一覧を再取得する。
+					loadImageList();
 
 				} else {
 

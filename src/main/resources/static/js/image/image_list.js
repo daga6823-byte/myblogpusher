@@ -26,9 +26,11 @@ function loadImageList() {
 	fetch('/article/images')
 		.then(res => res.json())
 		.then(images => {
+
 			allImages = images;
-			currentPage = 0;
+
 			updateImageList();
+
 		})
 		.catch(() => {
 			console.error('画像一覧の取得に失敗しました');
