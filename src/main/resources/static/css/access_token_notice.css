@@ -1,0 +1,33 @@
+/**
+ * アクセストークン有効期限のお知らせ用CSS
+ *
+ * ・有効期限までの残り期間に応じて表示色を変更する
+ * ・共通フラグメントから表示される通知を画面上部に配置する
+ */
+
+.access-token-notice {
+	width: 100%;
+	padding: 10px 16px;
+	box-sizing: border-box;
+	text-align: center;
+	font-size: 14px;
+	font-weight: bold;
+}
+
+/* 有効期限まで30～15日 */
+.access-token-notice.green {
+	background-color: #e8f5e9;
+	color: #2e7d32;
+}
+
+/* 有効期限まで14～8日 */
+.access-token-notice.yellow {
+	background-color: #fff8e1;
+	color: #f57f17;
+}
+
+/* 有効期限まで7日以内・期限切れ */
+.access-token-notice.red {
+	background-color: #ffebee;
+	color: #c62828;
+}

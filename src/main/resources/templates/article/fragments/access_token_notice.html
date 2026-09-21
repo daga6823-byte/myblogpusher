@@ -1,0 +1,20 @@
+<!--
+	アクセストークン有効期限のお知らせ
+	・有効期限が近づいた場合に画面上部へ警告を表示する
+	・残り期間に応じて表示色を変更する
+	・有効期限なしの場合は表示しない
+-->
+
+<th:block th:fragment="accessTokenNotice">
+	
+	<link rel="stylesheet" th:href="@{/css/access_token_notice.css}">
+
+	<div class="access-token-notice" th:if="${accessTokenNotice != null}" th:classappend="${accessTokenNotice.type}">
+
+		<span th:text="${accessTokenNotice.message}">
+			お知らせ：アクセストークンの有効期限が近づいています
+		</span>
+
+	</div>
+
+</th:block>

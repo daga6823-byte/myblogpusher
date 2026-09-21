@@ -9,32 +9,47 @@
 <th:block th:fragment="header">
 
 	<!-- 共通ヘッダー用CSS -->
+
 	<link rel="stylesheet" th:href="@{/css/header.css}">
 
 	<!-- Material Symbols -->
+
 	<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined">
 
 	<header class="common-header">
 
 		<div class="header-logo">
+
 			<span class="material-symbols-outlined header-logo-icon" aria-hidden="true">auto_stories</span>
+
 			<a th:href="@{/home}" class="header-logo-text">MBP</a>
+
 		</div>
 
 		<div class="header-user">
 
 			<span class="header-user-name" th:text="${session.loginUser.userName}">
+
 				ユーザー名
+
 			</span>
 
 			<form th:action="@{/logout}" method="post">
+
 				<button type="submit" class="header-logout">
+
 					ログアウト
+
 				</button>
+
 			</form>
 
 		</div>
 
 	</header>
+
+	<!-- アクセストークン有効期限のお知らせ -->
+
+	<div th:replace="~{fragments/access_token_notice :: accessTokenNotice}"></div>
 
 </th:block>
