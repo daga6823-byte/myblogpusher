@@ -137,7 +137,7 @@ public class SupabaseStorageService {
 
 		restTemplate.exchange(
 				url,
-				HttpMethod.POST,
+				HttpMethod.PUT,
 				entity,
 				String.class);
 	}
