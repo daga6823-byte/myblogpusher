@@ -9,14 +9,12 @@ package com.app.myblogpusher.service.Article;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import com.app.myblogpusher.dto.Article.ArticlePublishResult;
 import com.app.myblogpusher.entity.UserRepositoryEntity;
 import com.app.myblogpusher.entity.Article.Article;
 import com.app.myblogpusher.entity.Article.ArticleWork;
@@ -37,58 +35,6 @@ public class ArticlePublishService {
 
 	@Autowired
 	private HugoArticleService hugoArticleService;
-
-	/**
-	 * 下書きから投稿済み記事を作成または更新する
-	 *
-	 * slugは投稿確認画面で編集された最終値を使用する。
-	 */
-	private ArticlePublishResult createOrUpdateArticle(
-			Long workId,
-			String slug) {
-
-		ArticleWork work = articleWorkService.findById(workId);
-
-		// ArticleWork.articleIdがあれば、元になった投稿済み記事を取得する。
-		// カテゴリー変更後のhugoPathではなく、元の記事IDを基準に既存記事を判定する。
-		Article article = null;
-
-		if (work.getArticleId() != null) {
-			article = articleService.findById(work.getArticleId());
-		}
-
-		// 新規投稿
-		if (article == null) {
-
-			article = articleService.createFromWork(
-					work,
-					slug);
-
-			return new ArticlePublishResult(
-					article,
-					true);
-		}
-
-		// 更新
-		article = articleService.updateFromWork(
-				article,
-				work,
-				slug);
-
-		// 古い記事の作成日時を投稿時に正規化する
-		if (article.getCreateDate() != null) {
-
-			LocalDateTime normalizedCreateDate = article.getCreateDate().withNano(0);
-
-			article.setCreateDate(normalizedCreateDate);
-
-			article = articleService.save(article);
-		}
-
-		return new ArticlePublishResult(
-				article,
-				false);
-	}
 
 	/**
 	 * 投稿中の記事をまとめて非同期投稿する

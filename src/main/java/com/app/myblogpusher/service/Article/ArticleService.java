@@ -60,6 +60,8 @@ public class ArticleService {
 							+ currentWork.getStatus());
 		}
 
+		// 同一ユーザー・同一slugの記事を取得する。
+		// 同一slugでもカテゴリーが異なれば別記事として扱う。
 		List<Article> articles = articleRepository.findAllByUserIdAndSlug(
 				currentWork.getUserId(),
 				slug);
@@ -69,22 +71,6 @@ public class ArticleService {
 						article.getCategoryGroupId()))
 				.findFirst()
 				.orElse(null);
-
-		// Articleが複数存在する場合のみ、重複データを整理する。
-		// 通常の1件の場合は既存ArticleをそのままUPDATEする。
-		if (articles.size() > 1) {
-
-			for (Article article : articles) {
-
-				// 投稿対象カテゴリーと異なるArticleだけを
-				// 重複データとして削除する。
-				if (!currentWork.getCategoryGroupId().equals(
-						article.getCategoryGroupId())) {
-
-					articleRepository.delete(article);
-				}
-			}
-		}
 
 		// 対象カテゴリーの記事が存在しない場合は新規作成する。
 		if (targetArticle == null) {
