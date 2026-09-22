@@ -31,9 +31,8 @@
 				<tr th:each="dict : ${dictionaries}">
 					<td th:text="${dict.japanese}"></td>
 					<td th:text="${dict.english}"></td>
-					<td>
-						<a th:href="@{/english-dictionary/form(id=${dict.id})}" class="btn-save"
-							style="text-decoration: none; display: inline-block; margin-right: 8px;">編集</a>
+					<td class="list-actions">
+						<a th:href="@{/english-dictionary/form(id=${dict.id})}" class="btn-edit">編集</a>
 						<form th:action="@{/english-dictionary/delete}" method="post" style="display: inline;">
 							<input type="hidden" name="id" th:value="${dict.id}">
 							<button type="submit" class="btn-delete"
@@ -47,7 +46,7 @@
 
 	<button type="button" id="backButton" class="btn-back">戻る</button>
 
-<script th:src="@{/js/common.js}"></script>
+	<script th:src="@{/js/common.js}"></script>
 
 </body>
 

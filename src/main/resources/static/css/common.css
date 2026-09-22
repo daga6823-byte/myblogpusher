@@ -107,8 +107,16 @@ button:disabled {
 	background-color: #c0392b;
 }
 
+.btn-delete:hover {
+
+	background-color: #a93226;
+
+}
+
 .btn-delete:disabled:hover {
+
 	background-color: #ccc !important;
+
 }
 
 .btn-clear {
@@ -158,18 +166,29 @@ input.error {
 }
 
 .btn-edit {
+
 	display: inline-block;
+
 	padding: 10px 20px;
+
 	background-color: #0366d6;
+
 	color: #fff;
+
 	text-decoration: none;
+
 	border-radius: 4px;
+
 	text-align: center;
+
 }
 
 .btn-edit:hover {
+
 	background-color: #0454b0;
+
 	color: #fff;
+
 }
 
 /* ボタン風リンク共通 */
