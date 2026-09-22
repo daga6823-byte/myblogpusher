@@ -1,5 +1,11 @@
 /* 一覧表 */
 
+table {
+
+	table-layout: fixed;
+
+}
+
 th,
 
 td {
@@ -24,14 +30,40 @@ td {
 
 }
 
-/* 長いカテゴリー名などをセル内で折り返す */
+/* 長い文字列をセル内で折り返す（anywhereは使わない） */
 
 td {
 
-	overflow-wrap: anywhere;
+	overflow-wrap: break-word;
 
-	word-break: break-word;
+	word-break: normal;
 
+}
+
+/* 列幅を明示的に配分 */
+
+th:nth-child(1),
+td:nth-child(1) {
+	width: 40%;
+	/* タイトル */
+}
+
+th:nth-child(2),
+td:nth-child(2) {
+	width: 25%;
+	/* カテゴリー */
+}
+
+th:nth-child(3),
+td:nth-child(3) {
+	width: 20%;
+	/* 更新日時 */
+}
+
+th:nth-child(4),
+td:nth-child(4) {
+	width: 160px;
+	/* 操作（編集・削除ボタン） */
 }
 
 /* 一覧操作 */
@@ -111,18 +143,6 @@ a.new-button.btn-back {
 		flex: 1;
 
 		min-width: 0;
-
-	}
-
-	/* 一覧表の長い文字だけセル内で折り返す。 */
-
-	th,
-
-	td {
-
-		overflow-wrap: anywhere;
-
-		word-break: break-word;
 
 	}
 
