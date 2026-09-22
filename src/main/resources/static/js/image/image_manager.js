@@ -14,6 +14,7 @@ let imagePage = 0;
 let imageFolderName = null;
 let imageSearchKeyword = '';
 let imageSortType = 'dateDesc';
+let imageLoadRequestId = 0;
 
 // デフォルトフォルダ名を取得
 function loadDefaultFolderName() {
@@ -47,11 +48,18 @@ function loadImageList() {
 
 	const list = document.getElementById('imageList');
 
-	list.innerHTML = '';
+	const requestId = ++imageLoadRequestId;
 
 	fetch('/article/images')
 		.then(res => res.json())
 		.then(images => {
+
+			// 古いリクエストの結果は表示しない。
+			if (requestId !== imageLoadRequestId) {
+				return;
+			}
+
+			list.innerHTML = '';
 
 			// カテゴリー（フォルダ）で絞り込む
 			if (imageFolderName) {
