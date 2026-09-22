@@ -114,97 +114,15 @@ a.new-button.btn-back {
 
 	}
 
-	/* 一覧表をスマートフォンでは縦積みにする。 */
-
-	table,
-
-	thead,
-
-	tbody,
-
-	tr,
+	/* 一覧表の長い文字だけセル内で折り返す。 */
 
 	th,
 
 	td {
 
-		display: block;
-
-		width: 100%;
-
-		box-sizing: border-box;
-
-	}
-
-	/* 表の見出しはスマートフォンでは不要。 */
-
-	thead {
-
-		display: none;
-
-	}
-
-	/* 1件ごとに区切って表示する。 */
-
-	tbody tr {
-
-		padding: 12px 0;
-
-		border-bottom: 1px solid #ddd;
-
-	}
-
-	/* セルの罫線を解除する。 */
-
-	tbody td {
-
-		padding: 4px 6px;
-
-		border: none;
-
-		font-size: 13px;
-
 		overflow-wrap: anywhere;
 
 		word-break: break-word;
-
-	}
-
-	/* 操作ボタンは右側にまとめる。 */
-
-	tbody td.list-actions {
-
-		display: flex;
-
-		justify-content: flex-end;
-
-		align-items: center;
-
-		gap: 8px;
-
-		white-space: nowrap;
-
-	}
-
-	/* ボタンやリンクがセル内で見切れないようにする。 */
-
-	tbody td.list-actions a,
-
-	tbody td.list-actions button {
-
-		box-sizing: border-box;
-
-		white-space: nowrap;
-
-	}
-
-	/* 削除フォームを横並びの操作要素として扱う。 */
-
-	tbody td.list-actions form {
-
-		display: inline;
-
-		margin: 0;
 
 	}
 

@@ -25,15 +25,16 @@
 				<tr th:each="article : ${articles}">
 					<td th:text="${article.title}"></td>
 					<td th:text="${#temporals.format(article.updateDate, 'yyyy-MM-dd HH:mm')}"></td>
-					<td>
-						<a th:href="@{/article/published/edit(hugoPath=${article.hugoPath})}" class="btn-save"
-							style="text-decoration: none; display: inline-block; margin-right: 8px;">編集</a>
+
+					<td class="list-actions">
+						<a th:href="@{/article/published/edit(hugoPath=${article.hugoPath})}" class="btn-edit">編集</a>
 						<form th:action="@{/article/published/delete}" method="post" style="display: inline;">
 							<input type="hidden" name="hugoPath" th:value="${article.hugoPath}">
 							<button type="submit" class="btn-delete"
-								onclick="return confirm('削除してもよろしいですか？');"></button>
+								onclick="return confirm('削除してもよろしいですか？');">削除</button>
 						</form>
 					</td>
+
 				</tr>
 			</tbody>
 		</table>
