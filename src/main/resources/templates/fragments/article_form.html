@@ -54,66 +54,64 @@
 
 		</div>
 
-	</div>
+		<!-- 脚注入力ダイアログ（codeBlockEditorと同様の構造） -->
 
-	<!-- 脚注入力ダイアログ（codeBlockEditorと同様の構造） -->
+		<div id="articleReference" style="display:none;">
 
-	<div id="articleReference" style="display:none;">
+			<label for="footnoteInput">脚注テキスト</label>
 
-		<label for="footnoteInput">脚注テキスト</label>
+			<textarea id="footnoteInput" rows="3"></textarea>
 
-		<textarea id="footnoteInput" rows="3"></textarea>
+			<button type="button" id="insertFootnoteButton">挿入</button>
 
-		<button type="button" id="insertFootnoteButton">挿入</button>
-
-	</div>
-
-	<div th:replace="~{article/fragments/reference_selector :: referenceSelector}"></div>
-
-	<div class="editor-options">
-		<div>
-			<label for="draftSelect">公開状態</label>
-			<select id="draftSelect" name="draftSelect">
-				<option value="false">公開する</option>
-				<option value="true">下書き（非公開）</option>
-			</select>
 		</div>
 
-		<div>
-			<label for="commentsSelect">コメント</label>
-			<select id="commentsSelect" name="commentsSelect">
-				<option value="true">コメントを許可する</option>
-				<option value="false">コメントを許可しない</option>
-			</select>
-		</div>
+		<div th:replace="~{article/fragments/reference_selector :: referenceSelector}"></div>
 
-		<div class="cursor-pad">
-			<button type="button" id="cursorUpButton">↑</button>
+		<div class="editor-options">
 			<div>
-				<button type="button" id="cursorLeftButton">←</button>
-				<button type="button" id="cursorRightButton">→</button>
+				<label for="draftSelect">公開状態</label>
+				<select id="draftSelect" name="draftSelect">
+					<option value="false">公開する</option>
+					<option value="true">下書き（非公開）</option>
+				</select>
 			</div>
-			<button type="button" id="cursorDownButton">↓</button>
+
+			<div>
+				<label for="commentsSelect">コメント</label>
+				<select id="commentsSelect" name="commentsSelect">
+					<option value="true">コメントを許可する</option>
+					<option value="false">コメントを許可しない</option>
+				</select>
+			</div>
+
+			<div class="cursor-pad">
+				<button type="button" id="cursorUpButton">↑</button>
+				<div>
+					<button type="button" id="cursorLeftButton">←</button>
+					<button type="button" id="cursorRightButton">→</button>
+				</div>
+				<button type="button" id="cursorDownButton">↓</button>
+			</div>
 		</div>
-	</div>
 
-	<!-- 参考文献選択ダイアログ -->
+		<!-- 参考文献選択ダイアログ -->
 
-	<div id="referenceSelector" style="display:none;">
+		<div id="referenceSelector" style="display:none;">
 
-		<h3>参考文献を選択</h3>
+			<h3>参考文献を選択</h3>
 
-		<div id="referenceList"></div>
+			<div id="referenceList"></div>
 
-		<button type="button" id="cancelReferenceButton">
-			キャンセル
-		</button>
+			<button type="button" id="cancelReferenceButton">
+				キャンセル
+			</button>
 
-	</div>
+		</div>
 
-	<input type="hidden" id="redirectTo" name="redirectTo" value="">
+		<input type="hidden" id="redirectTo" name="redirectTo" value="">
 
-	<input type="hidden" id="workId" name="workId" th:value="${work != null ? work.workId : ''}">
+		<input type="hidden" id="workId" name="workId" th:value="${work != null ? work.workId : ''}">
 
 	</div>
 
