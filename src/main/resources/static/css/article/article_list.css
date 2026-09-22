@@ -1,10 +1,37 @@
 /* 一覧表 */
+
 th,
+
 td {
+
 	text-align: left;
+
 	padding: 10px;
+
 	border-bottom: 1px solid #ddd;
+
 	font-size: 14px;
+
+}
+
+/* 一覧操作 */
+
+.list-actions {
+
+	text-align: right;
+
+	white-space: nowrap;
+
+}
+
+/* 長いカテゴリー名などをセル内で折り返す */
+
+td {
+
+	overflow-wrap: anywhere;
+
+	word-break: break-word;
+
 }
 
 /* 一覧操作 */
@@ -50,43 +77,135 @@ a.new-button.btn-back {
 }
 
 /* -----------------------------------------------------
+
    スマートフォン対応
+
    ----------------------------------------------------- */
 
 @media (max-width: 600px) {
 
 	/* 一覧操作を縦方向に並べ、画面幅からはみ出さないようにする。 */
+
 	.list-controls {
+
 		flex-direction: column;
+
 		gap: 10px;
+
 	}
 
 	/* 操作項目が画面幅いっぱいに広がるようにする。 */
+
 	.list-control {
+
 		width: 100%;
+
 		box-sizing: border-box;
+
 	}
 
 	/* セレクトボックスをスマートフォンの幅に合わせる。 */
+
 	.list-control select {
+
 		flex: 1;
+
 		min-width: 0;
+
 	}
 
-	/* 一覧表のセル内で内容が横にはみ出さないようにする。 */
+	/* 一覧表をスマートフォンでは縦積みにする。 */
+
+	table,
+
+	thead,
+
+	tbody,
+
+	tr,
+
 	th,
+
 	td {
-		padding: 8px 6px;
+
+		display: block;
+
+		width: 100%;
+
+		box-sizing: border-box;
+
+	}
+
+	/* 表の見出しはスマートフォンでは不要。 */
+
+	thead {
+
+		display: none;
+
+	}
+
+	/* 1件ごとに区切って表示する。 */
+
+	tbody tr {
+
+		padding: 12px 0;
+
+		border-bottom: 1px solid #ddd;
+
+	}
+
+	/* セルの罫線を解除する。 */
+
+	tbody td {
+
+		padding: 4px 6px;
+
+		border: none;
+
 		font-size: 13px;
+
+		overflow-wrap: anywhere;
+
+		word-break: break-word;
+
+	}
+
+	/* 操作ボタンは右側にまとめる。 */
+
+	tbody td.list-actions {
+
+		display: flex;
+
+		justify-content: flex-end;
+
+		align-items: center;
+
+		gap: 8px;
+
+		white-space: nowrap;
+
 	}
 
 	/* ボタンやリンクがセル内で見切れないようにする。 */
-	th a,
-	td a,
-	th button,
-	td button {
-		max-width: 100%;
+
+	tbody td.list-actions a,
+
+	tbody td.list-actions button {
+
 		box-sizing: border-box;
-		white-space: normal;
+
+		white-space: nowrap;
+
 	}
+
+	/* 削除フォームを横並びの操作要素として扱う。 */
+
+	tbody td.list-actions form {
+
+		display: inline;
+
+		margin: 0;
+
+	}
+
 }

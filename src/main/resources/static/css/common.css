@@ -208,6 +208,31 @@ a.btn-edit {
 	text-align: center;
 }
 
+/* 一覧画面の操作ボタン */
+.list-actions {
+	text-align: right;
+	white-space: nowrap;
+}
+
+.list-actions .btn-edit,
+.list-actions .btn-delete {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 72px;
+	height: 42px;
+	padding: 0;
+	box-sizing: border-box;
+	margin: 0;
+	vertical-align: middle;
+}
+
+.list-actions form {
+	display: inline-block !important;
+	margin: 0;
+	vertical-align: middle;
+}
+
 /* =====================================================
    共通モーダル
    ===================================================== */
