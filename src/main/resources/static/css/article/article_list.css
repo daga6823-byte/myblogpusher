@@ -1,4 +1,8 @@
-/* 下書き一覧テーブルの列幅を抑え、長いカテゴリーパスは複数行で折り返す */
+/* 下書き一覧テーブル専用：4列を画面幅に収めるため table-layout を固定し、列幅を明示する */
+
+table {
+	table-layout: fixed;
+}
 
 table th:nth-child(1),
 table td:nth-child(1) {
@@ -16,6 +20,12 @@ table th:nth-child(3),
 table td:nth-child(3) {
 	width: 20%;
 	/* 更新日時 */
+}
+
+table th:nth-child(4),
+table td:nth-child(4) {
+	width: 15%;
+	/* 操作 */
 }
 
 table td {
@@ -44,16 +54,6 @@ table td {
 .list-control select {
 	padding: 5px 8px;
 	font-size: 14px;
-}
-
-/* 新規作成ボタン */
-a.new-button {
-	display: inline-block;
-	text-decoration: none;
-}
-
-a.new-button.btn-back {
-	color: #fff;
 }
 
 .success-message {
@@ -107,18 +107,22 @@ a.new-button.btn-back {
 
 	table th:nth-child(1),
 	table td:nth-child(1) {
-		width: 30%;
+		width: 28%;
 	}
 
 	table th:nth-child(2),
 	table td:nth-child(2) {
-		width: 35%;
+		width: 37%;
 	}
 
 	table th:nth-child(3),
 	table td:nth-child(3) {
+		width: 20%;
+	}
+
+	table th:nth-child(4),
+	table td:nth-child(4) {
 		width: 15%;
 	}
-	
 
 }

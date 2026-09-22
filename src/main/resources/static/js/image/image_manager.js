@@ -8,55 +8,41 @@
 // ・Markdownへ画像挿入
 // =====================================================
 
-// -----------------------------------------------------
 // 画像一覧表示フラグ
-// false：現在のカテゴリーのみ
-// true ：全カテゴリー
-// -----------------------------------------------------
-// 画像挿入位置
 let imageInsertPosition = null;
-
-// ページ番号
 let imagePage = 0;
-
-// 選択中カテゴリー
 let imageFolderName = null;
+let imageSearchKeyword = '';
+let imageSortType = 'dateDesc';
 
-// -----------------------------------------------------
-// カテゴリーに対応するデフォルトフォルダ名を取得する
-// -----------------------------------------------------
+// デフォルトフォルダ名を取得
 function loadDefaultFolderName() {
 
-	const categoryId = document.getElementById('categorySelect').value;
-	const folderSelect =
-		document.getElementById('imageFolderSelect');
+	const categorySelect = document.getElementById('categorySelect');
 
-	// 新規カテゴリーはフォルダ名取得不可
-	if (!categoryId || categoryId === '__new__') {
-
-		folderSelect.value = '';
-
+	if (!categorySelect || !categorySelect.value) {
 		return;
 	}
 
-	fetch('/article/images/default-folder?categoryId=' + categoryId)
+	fetch('/article/images/default-folder?categoryId=' + categorySelect.value)
 		.then(res => res.json())
 		.then(data => {
-			folderSelect.value = data.folderName || '';
-		})
-		.catch(err => console.error(err));
 
+			const folderSelect =
+				document.getElementById('imageFolderSelect');
+
+			if (folderSelect && data.folderName) {
+				folderSelect.value = data.folderName;
+			}
+		})
+		.catch(err => {
+			console.error(
+				'画像デフォルトフォルダの取得に失敗しました',
+				err);
+		});
 }
 
-// -----------------------------------------------------
-// 画像一覧を取得してモーダルへ表示する
-//
-// imageShowAll=false
-//     現在カテゴリーのみ
-//
-// imageShowAll=true
-//     全カテゴリー
-// -----------------------------------------------------
+// 画像一覧を表示する
 function loadImageList() {
 
 	const list = document.getElementById('imageList');
@@ -64,31 +50,93 @@ function loadImageList() {
 	list.innerHTML = '';
 
 	fetch('/article/images')
-
 		.then(res => res.json())
-
 		.then(images => {
 
-			// カテゴリーで絞り込む。
+			// カテゴリー（フォルダ）で絞り込む
 			if (imageFolderName) {
+
 				images = images.filter(
 					img => img.folderName === imageFolderName
 				);
 			}
 
-			// 画像追加モーダルでは1ページ12件を表示する。
+			// ファイル名で部分一致検索する
+			if (imageSearchKeyword) {
+
+				const keyword =
+					imageSearchKeyword.toLowerCase();
+
+				images = images.filter(img =>
+					img.fileName
+					&& img.fileName.toLowerCase().includes(keyword)
+				);
+			}
+
+			// 指定された条件でソートする
+			images.sort((a, b) => {
+
+				switch (imageSortType) {
+
+					case 'dateAsc': {
+
+						const dateA = a.uploadDate
+							? new Date(a.uploadDate).getTime()
+							: 0;
+
+						const dateB = b.uploadDate
+							? new Date(b.uploadDate).getTime()
+							: 0;
+
+						return dateA - dateB;
+					}
+
+					case 'nameAsc': {
+
+						return (a.fileName || '').localeCompare(
+							b.fileName || '',
+							'ja'
+						);
+					}
+
+					case 'nameDesc': {
+
+						return (b.fileName || '').localeCompare(
+							a.fileName || '',
+							'ja'
+						);
+					}
+
+					case 'dateDesc':
+					default: {
+
+						const dateA = a.uploadDate
+							? new Date(a.uploadDate).getTime()
+							: 0;
+
+						const dateB = b.uploadDate
+							? new Date(b.uploadDate).getTime()
+							: 0;
+
+						return dateB - dateA;
+					}
+				}
+			});
+
 			const imagesPerPage = 12;
 			const totalPages =
 				Math.ceil(images.length / imagesPerPage);
 
 			if (totalPages === 0) {
+
 				imagePage = 0;
+
 			} else if (imagePage >= totalPages) {
+
 				imagePage = totalPages - 1;
 			}
 
-			const start =
-				imagePage * imagesPerPage;
+			const start = imagePage * imagesPerPage;
 
 			const pageImages =
 				images.slice(start, start + imagesPerPage);
@@ -100,34 +148,23 @@ function loadImageList() {
 				div.style.cursor = 'pointer';
 				div.style.textAlign = 'center';
 
-				div.innerHTML =
-					`
+				div.innerHTML = `
 					<img src="${img.url}"
-
 						 style="width:100%;height:150px;object-fit:cover;"
-
 						 onclick="insertImage('${img.url}')">
-
 					<div style="
-
 						margin-top:5px;
-
 						font-size:13px;
-
 						word-break:break-all;
-
 					">
-
 						${img.fileName}
-
 					</div>
-
-					`;
+				`;
 
 				list.appendChild(div);
-
 			});
 
+			// ページ選択肢を作り直す
 			const pageSelect =
 				document.getElementById('imagePageSelect');
 
@@ -159,26 +196,25 @@ function loadImageList() {
 				imagePage === 0;
 
 			document.getElementById('imageNextButton').disabled =
-				totalPages === 0 ||
-				imagePage + 1 >= totalPages;
-
+				totalPages === 0
+				|| imagePage + 1 >= totalPages;
 		})
 		.catch(err => {
-			console.error('画像一覧の取得に失敗しました', err);
+
+			console.error(
+				'画像一覧の取得に失敗しました',
+				err);
 		});
 }
 
-// -----------------------------------------------------
-// 画像を本文へ挿入する
-//
-// 挿入時に指定したサイズをHTML styleへ反映する
-// -----------------------------------------------------
+// 画像をMarkdownへ挿入する
 function insertImage(url) {
 
 	const textarea =
 		document.querySelector('textarea[name="content"]');
 
-	const widthInput = document.getElementById('imageWidth');
+	const widthInput =
+		document.getElementById('imageWidth');
 
 	const width =
 		widthInput && widthInput.value
@@ -190,16 +226,15 @@ function insertImage(url) {
 	if (width) {
 
 		imageTag =
-			'\n<img src="' + url +
-			'" style="max-width:' + width +
-			'px; width:100%;">\n';
+			'\n<img src="' + url
+			+ '" style="max-width:' + width
+			+ 'px; width:100%;">\n';
 
 	} else {
 
 		imageTag =
 			'\n<img src="' + url + '">\n';
 	}
-
 
 	if (imageInsertPosition !== null) {
 
@@ -215,7 +250,6 @@ function insertImage(url) {
 	} else {
 
 		textarea.value += imageTag;
-
 	}
 
 	textarea.focus();
@@ -225,186 +259,249 @@ function insertImage(url) {
 	document.getElementById('imageModal').style.display = 'none';
 }
 
-// -----------------------------------------------------
-// 画像モーダル表示
-// -----------------------------------------------------
-document.getElementById('imageButton').addEventListener('click', function() {
+// 画像選択モーダルを開く
+document.getElementById('imageButton').addEventListener(
+	'click',
+	function() {
 
-	const textarea = document.querySelector('textarea[name="content"]');
+		const textarea =
+			document.querySelector('textarea[name="content"]');
 
-	textarea.focus();
+		textarea.focus();
 
-	imageInsertPosition = textarea.selectionStart;
+		imageInsertPosition =
+			textarea.selectionStart;
 
-	imageCategoryId = null;
-	imagePage = 0;
-
-	// 新規フォルダ追加時にフォルダ選択へ反映する
-	loadImageFolders();
-
-	// 画像一覧絞り込み用カテゴリーを更新する
-	// 保存先フォルダとは別管理
-	loadImageCategories();
-
-	// 新規画像を一覧へ反映する
-	loadImageList();
-
-	document.getElementById('imageModal').style.display = 'block';
-
-});
-
-// -----------------------------------------------------
-// 画像アップロード
-// -----------------------------------------------------
-document.getElementById('imageUploadButton').addEventListener('click', function() {
-
-	const fileInput = document.getElementById('imageFileInput');
-	let folderName = '';
-
-	const folderSelect =
-		document.getElementById('imageFolderSelect');
-
-	const newFolderInput =
-		document.getElementById('newImageFolderName');
-
-	if (newFolderInput.value.trim()) {
-
-		// 新規フォルダ名が入力されている場合はそれを優先
-		folderName = newFolderInput.value.trim();
-
-	} else {
-
-		folderName = folderSelect.value;
-
-	}
-
-	const categoryId = document.getElementById('categorySelect').value;
-	const status = document.getElementById('imageUploadStatus');
-
-	if (!fileInput.files.length) {
-		alert('画像ファイルを選択してください');
-		return;
-	}
-
-	const formData = new FormData();
-
-	formData.append('file', fileInput.files[0]);
-
-	if (categoryId && categoryId !== '__new__') {
-		formData.append('categoryId', categoryId);
-	}
-
-	if (folderName) {
-		formData.append('folderName', folderName);
-	}
-
-	status.textContent = 'アップロード中...';
-
-	fetch('/article/images/upload', {
-		method: 'POST',
-		body: formData
-	})
-		.then(res => res.json())
-		.then(data => {
-
-			if (data.result === 'ok') {
-
-				status.textContent = 'アップロードしました';
-
-				fileInput.value = '';
-
-				// 現在選択中のカテゴリーを維持したまま、
-				// フォルダ・カテゴリー一覧と画像一覧を更新する。
-				const currentFolderName = imageFolderName;
-
-				loadImageFolders();
-
-				loadImageCategories();
-
-				imageFolderName = currentFolderName;
-
-				loadImageList();
-
-			} else {
-
-				status.textContent =
-					data.message || 'アップロードに失敗しました';
-
-			}
-
-		})
-		.catch(err => {
-
-			console.error(err);
-
-			status.textContent = 'アップロードに失敗しました';
-
-		});
-
-});
-
-// カテゴリー変更時
-document.getElementById('imageCategorySelect')
-	.addEventListener('change', function() {
-
-		imageFolderName = this.value || null;
+		imageFolderName = null;
+		imageSearchKeyword = '';
+		imageSortType = 'dateDesc';
 		imagePage = 0;
 
+		const searchInput =
+			document.getElementById('imageSearchInput');
+
+		if (searchInput) {
+			searchInput.value = '';
+		}
+
+		const sortSelect =
+			document.getElementById('imageSortSelect');
+
+		if (sortSelect) {
+			sortSelect.value = 'dateDesc';
+		}
+
+		loadImageFolders();
+		loadImageCategories();
 		loadImageList();
 
-	});
+		document.getElementById('imageModal').style.display = 'block';
+	}
+);
 
+// 画像アップロード
+document.getElementById('imageUploadButton').addEventListener(
+	'click',
+	function() {
 
-// 新規画像登録
-const newImageButton = document.getElementById('newImageButton');
+		const fileInput =
+			document.getElementById('imageFileInput');
+
+		let folderName = '';
+
+		const folderSelect =
+			document.getElementById('imageFolderSelect');
+
+		const newFolderInput =
+			document.getElementById('newImageFolderName');
+
+		if (newFolderInput.value.trim()) {
+
+			folderName =
+				newFolderInput.value.trim();
+
+		} else {
+
+			folderName =
+				folderSelect.value;
+		}
+
+		const categoryId =
+			document.getElementById('categorySelect').value;
+
+		const status =
+			document.getElementById('imageUploadStatus');
+
+		if (!fileInput.files.length) {
+
+			alert('画像ファイルを選択してください');
+			return;
+		}
+
+		const formData = new FormData();
+
+		formData.append(
+			'file',
+			fileInput.files[0]);
+
+		if (categoryId && categoryId !== '__new__') {
+
+			formData.append(
+				'categoryId',
+				categoryId);
+		}
+
+		if (folderName) {
+
+			formData.append(
+				'folderName',
+				folderName);
+		}
+
+		status.textContent = 'アップロード中...';
+
+		fetch('/article/images/upload', {
+			method: 'POST',
+			body: formData
+		})
+			.then(res => res.json())
+			.then(data => {
+
+				if (data.result === 'ok') {
+
+					status.textContent =
+						'アップロードしました';
+
+					fileInput.value = '';
+
+					const currentFolderName =
+						imageFolderName;
+
+					loadImageFolders();
+					loadImageCategories();
+
+					imageFolderName =
+						currentFolderName;
+
+					loadImageList();
+
+				} else {
+
+					status.textContent =
+						data.message
+						|| 'アップロードに失敗しました';
+				}
+			})
+			.catch(err => {
+
+				console.error(err);
+
+				status.textContent =
+					'アップロードに失敗しました';
+			});
+	}
+);
+
+// カテゴリー filter change
+document.getElementById('imageCategorySelect')
+	.addEventListener(
+		'change',
+		function() {
+
+			imageFolderName =
+				this.value || null;
+
+			imagePage = 0;
+
+			loadImageList();
+		}
+	);
+
+// ファイル名検索
+document.getElementById('imageSearchInput')
+	.addEventListener(
+		'input',
+		function() {
+
+			imageSearchKeyword =
+				this.value.trim();
+
+			// 検索条件が変わったため1ページ目から表示する。
+			imagePage = 0;
+
+			loadImageList();
+		}
+	);
+
+// ソート変更
+document.getElementById('imageSortSelect')
+	.addEventListener(
+		'change',
+		function() {
+
+			imageSortType =
+				this.value;
+
+			// ソート条件が変わったため1ページ目から表示する。
+			imagePage = 0;
+
+			loadImageList();
+		}
+	);
+
+const newImageButton =
+	document.getElementById('newImageButton');
 
 if (newImageButton) {
 
-	newImageButton.addEventListener('click', function() {
+	newImageButton.addEventListener(
+		'click',
+		function() {
 
-		location.href =
-			'/article/images/new';
-
-	});
-
+			location.href =
+				'/article/images/new';
+		});
 }
 
+// 前のページ
 document.getElementById('imagePrevButton')
+	.addEventListener(
+		'click',
+		function() {
 
-	.addEventListener('click', function() {
+			if (imagePage > 0) {
 
-		if (imagePage > 0) {
+				imagePage--;
 
-			imagePage--;
+				loadImageList();
+			}
+		});
+
+// ページ選択
+document.getElementById('imagePageSelect')
+	.addEventListener(
+		'change',
+		function() {
+
+			imagePage =
+				Number(this.value);
 
 			loadImageList();
+		});
 
-		}
-
-	});
-
-document.getElementById('imagePageSelect')
-
-	.addEventListener('change', function() {
-
-		imagePage = Number(this.value);
-
-		loadImageList();
-
-	});
-
-
-const imageNextButton = document.getElementById('imageNextButton');
+const imageNextButton =
+	document.getElementById('imageNextButton');
 
 if (imageNextButton) {
 
-	imageNextButton.addEventListener('click', function() {
+	imageNextButton.addEventListener(
+		'click',
+		function() {
 
-		imagePage++;
-		loadImageList();
+			imagePage++;
 
-	});
-
+			loadImageList();
+		});
 }
 
 const imageFolderSelect =
@@ -415,31 +512,26 @@ const newImageFolderName =
 
 if (imageFolderSelect) {
 
-	imageFolderSelect.addEventListener('change', function() {
+	imageFolderSelect.addEventListener(
+		'change',
+		function() {
 
-		if (this.value === '__new__') {
+			if (this.value === '__new__') {
 
-			newImageFolderName.style.display = 'block';
+				newImageFolderName.style.display =
+					'block';
 
-		} else {
+			} else {
 
-			newImageFolderName.style.display = 'none';
+				newImageFolderName.style.display =
+					'none';
 
-			newImageFolderName.value = '';
-
-		}
-
-	});
-
+				newImageFolderName.value = '';
+			}
+		});
 }
 
-// -----------------------------------------------------
-// 画像一覧絞り込み用フォルダを再取得する
-//
-// image_assetに登録されている保存先フォルダ名を
-// 画像一覧の絞り込み条件として表示する。
-// 保存先フォルダ選択とは別管理。
-// -----------------------------------------------------
+// 画像カテゴリー一覧を取得
 function loadImageCategories() {
 
 	const select =
@@ -453,7 +545,8 @@ function loadImageCategories() {
 		.then(res => res.json())
 		.then(categories => {
 
-			const currentValue = imageFolderName;
+			const currentValue =
+				imageFolderName;
 
 			select.innerHTML = '';
 
@@ -461,7 +554,6 @@ function loadImageCategories() {
 				document.createElement('option');
 
 			all.value = '';
-
 			all.textContent = 'すべて';
 
 			select.appendChild(all);
@@ -478,24 +570,17 @@ function loadImageCategories() {
 					category.folderName;
 
 				select.appendChild(option);
-
 			});
 
-			// アップロード後も画像一覧の絞り込みカテゴリーを保持する
 			if (currentValue) {
-				select.value = currentValue;
+
+				select.value =
+					currentValue;
 			}
-
 		});
-
 }
 
-// -----------------------------------------------------
-// 保存先フォルダ一覧を再取得する
-//
-// 初回表示時、および新規フォルダ作成後に呼び出す。
-// image_assetに存在するフォルダを選択肢として表示する。
-// -----------------------------------------------------
+// 画像保存先フォルダ一覧を取得
 function loadImageFolders() {
 
 	const select =
@@ -509,7 +594,8 @@ function loadImageFolders() {
 		.then(res => res.json())
 		.then(folders => {
 
-			const currentValue = select.value;
+			const currentValue =
+				select.value;
 
 			select.innerHTML = '';
 
@@ -517,10 +603,10 @@ function loadImageFolders() {
 				document.createElement('option');
 
 			none.value = '';
-			none.textContent = '選択してください';
+			none.textContent =
+				'選択してください';
 
 			select.appendChild(none);
-
 
 			folders.forEach(folder => {
 
@@ -531,9 +617,7 @@ function loadImageFolders() {
 				option.textContent = folder;
 
 				select.appendChild(option);
-
 			});
-
 
 			const newOption =
 				document.createElement('option');
@@ -544,13 +628,11 @@ function loadImageFolders() {
 
 			select.appendChild(newOption);
 
+			if (currentValue
+				&& currentValue !== '__new__') {
 
-			if (currentValue && currentValue !== '__new__') {
-				select.value = currentValue;
+				select.value =
+					currentValue;
 			}
-
 		});
-
 }
-
-

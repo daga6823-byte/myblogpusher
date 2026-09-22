@@ -81,6 +81,51 @@
 
 			</div>
 
+			<!-- 画像カテゴリー選択 -->
+			<div style="margin-bottom: 8px;">
+
+				<label>
+					カテゴリー
+					<select id="imageCategorySelect">
+						<option value="">
+							すべて
+						</option>
+						<option th:each="category : ${imageCategories}" th:value="${category.folderName}"
+							th:text="${category.folderName}">
+						</option>
+					</select>
+				</label>
+
+			</div>
+
+			<!-- 画像検索・ソート -->
+			<div style="margin-bottom: 12px;">
+
+				<label>
+					ファイル名
+					<input type="text" id="imageSearchInput" placeholder="ファイル名で検索">
+				</label>
+
+				<label style="margin-left: 12px;">
+					並び順
+					<select id="imageSortSelect">
+						<option value="dateDesc">
+							登録日（新しい順）
+						</option>
+						<option value="dateAsc">
+							登録日（古い順）
+						</option>
+						<option value="nameAsc">
+							名前（昇順）
+						</option>
+						<option value="nameDesc">
+							名前（降順）
+						</option>
+					</select>
+				</label>
+
+			</div>
+
 
 			<!-- 挿入画像サイズ指定 -->
 			<div style="margin-bottom: 12px;">
