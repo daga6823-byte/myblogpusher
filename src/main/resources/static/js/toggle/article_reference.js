@@ -138,11 +138,10 @@ document.getElementById('footnoteButton')
 			document.getElementById('content');
 
 		if (!textarea) {
-			return;
-		}
 
-		document.getElementById('insertMenu')
-			.style.display = 'none';
+			return;
+
+		}
 
 		const selector =
 			document.getElementById('referenceSelector');
