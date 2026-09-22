@@ -92,144 +92,6 @@ textarea#content {
 
 }
 
-/* -----------------------------------------------------
-   カーソル移動ボタン（PSP風メカニカル十字キー）
-   ----------------------------------------------------- */
-
-/* 十字キー本体：金属×樹脂風のハウジング */
-.cursor-pad {
-
-	position: relative;
-
-	width: 108px;
-
-	height: 108px;
-
-	margin-left: 12px;
-
-	background:
-		radial-gradient(circle at 30% 25%, #4a4a4e 0%, #2b2b2e 45%, #17171a 100%);
-
-	border-radius: 14px;
-
-	box-shadow:
-		inset 0 1px 1px rgba(255, 255, 255, 0.15),
-		inset 0 -2px 4px rgba(0, 0, 0, 0.6),
-		0 3px 6px rgba(0, 0, 0, 0.45);
-
-}
-
-/* up/downのラッパー解除、left/rightのラッパーdivだけ横並びにする */
-.cursor-pad>div {
-
-	position: absolute;
-
-	top: 50%;
-
-	left: 4px;
-
-	right: 4px;
-
-	transform: translateY(-50%);
-
-	display: flex;
-
-	justify-content: space-between;
-
-	gap: 0;
-
-}
-
-.cursor-pad button {
-
-	width: 34px;
-
-	height: 34px;
-
-	padding: 0;
-
-	border: none;
-
-	border-radius: 6px;
-
-	font-size: 18px;
-
-	font-weight: bold;
-
-	line-height: 1;
-
-	cursor: pointer;
-
-	color: #d8d8dc;
-
-	background: linear-gradient(180deg, #3c3c40 0%, #232326 100%);
-
-	box-shadow:
-		inset 0 1px 0 rgba(255, 255, 255, 0.12),
-		inset 0 -2px 2px rgba(0, 0, 0, 0.5),
-		0 1px 2px rgba(0, 0, 0, 0.4);
-
-	transition: transform 0.05s ease, box-shadow 0.05s ease;
-
-}
-
-/* 上ボタン */
-#cursorUpButton {
-
-	position: absolute;
-
-	top: 4px;
-
-	left: 50%;
-
-	transform: translateX(-50%);
-
-}
-
-/* 下ボタン */
-#cursorDownButton {
-
-	position: absolute;
-
-	bottom: 4px;
-
-	left: 50%;
-
-	transform: translateX(-50%);
-
-}
-
-.cursor-pad button:hover {
-
-	color: #fff;
-
-	background: linear-gradient(180deg, #46464a 0%, #2a2a2d 100%);
-
-}
-
-/* 押下時：メカニカルボタンらしく凹む */
-.cursor-pad button:active {
-
-	transform: scale(0.94);
-
-	box-shadow:
-		inset 0 2px 3px rgba(0, 0, 0, 0.7),
-		inset 0 -1px 0 rgba(255, 255, 255, 0.05);
-
-}
-
-#cursorUpButton:active {
-
-	transform: translateX(-50%) scale(0.94);
-
-}
-
-#cursorDownButton:active {
-
-	transform: translateX(-50%) scale(0.94);
-
-}
-
 /* 本文挿入ボタン */
 .btn-insert {
 	width: 28px;
@@ -292,13 +154,23 @@ textarea#content {
 
 	align-items: center;
 
-	gap: 28px;
+	justify-content: space-between;
 
 	margin-bottom: 16px;
 
 }
 
-.editor-options>div:not(.cursor-pad) {
+.editor-settings {
+
+	display: flex;
+
+	align-items: center;
+
+	gap: 28px;
+
+}
+
+.editor-settings>div {
 
 	display: flex;
 
