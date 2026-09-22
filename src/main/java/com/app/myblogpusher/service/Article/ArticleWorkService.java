@@ -148,13 +148,13 @@ public class ArticleWorkService {
 	public void updateStatus(
 			Long workId,
 			Integer status,
-			String errorMessage) {
+			String errorCode) {
 
 		ArticleWork work = articleWorkRepository.findById(workId)
 				.orElseThrow();
 
 		work.setStatus(status);
-		work.setErrorMessage(errorMessage);
+		work.setErrorCode(errorCode);
 
 		articleWorkRepository.save(work);
 	}

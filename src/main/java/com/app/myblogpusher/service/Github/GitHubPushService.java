@@ -277,10 +277,31 @@ public class GitHubPushService {
 
 			e.printStackTrace();
 
-			// 投稿失敗した記事はエラー状態で残す
+			String errorCode = resolveErrorCode(e);
+
+			// 投稿失敗した記事はエラー状態で残し、
+			// エラーコードをArticleWorkへ保存する。
 			articleWorkService.updateStatus(
 					workId,
-					2);
+					2,
+					errorCode);
 		}
+	}
+
+	/**
+	 * 投稿失敗時の例外からエラーコードを判定する。
+	 */
+	private String resolveErrorCode(Exception e) {
+
+		String message = e.getMessage();
+
+		if (message != null
+				&& message.contains(
+						"git-receive-pack not permitted")) {
+
+			return "GITHUB_PERMISSION_ERROR";
+		}
+
+		return "GITHUB_PUSH_ERROR";
 	}
 }
