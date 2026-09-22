@@ -79,11 +79,81 @@ textarea#content {
    ----------------------------------------------------- */
 
 .editor-toolbar {
+
 	position: absolute;
+
 	bottom: -36px;
+
 	/* テキストエリアの下 */
+
 	left: 0;
+
+	right: 0;
+
 	z-index: 2;
+
+	display: flex;
+
+	justify-content: space-between;
+
+	align-items: flex-start;
+
+}
+
+/* -----------------------------------------------------
+   カーソル移動ボタン
+   ----------------------------------------------------- */
+
+.cursor-pad {
+
+	display: flex;
+
+	flex-direction: column;
+
+	align-items: center;
+
+	gap: 2px;
+
+	margin-right: 4px;
+
+}
+
+.cursor-pad div {
+
+	display: flex;
+
+	gap: 2px;
+
+}
+
+.cursor-pad button {
+
+	width: 28px;
+
+	height: 28px;
+
+	padding: 0;
+
+	border: 1px solid #ccc;
+
+	border-radius: 4px;
+
+	background: #fff;
+
+	font-size: 16px;
+
+	line-height: 1;
+
+	cursor: pointer;
+
+	color: #333;
+
+}
+
+.cursor-pad button:hover {
+
+	background: #f0f0f0;
+
 }
 
 /* 本文挿入ボタン */
