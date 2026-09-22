@@ -82,19 +82,13 @@ textarea#content {
 
 	position: absolute;
 
-	bottom: -68px;
+	bottom: -36px;
 
 	/* テキストエリアの下 */
 
 	left: 0;
 
 	z-index: 2;
-
-	display: flex;
-
-	align-items: flex-start;
-
-	gap: 24px;
 
 }
 
@@ -110,7 +104,7 @@ textarea#content {
 
 	align-items: center;
 
-	gap: 4px;
+	margin-left: 12px;
 
 }
 
@@ -118,25 +112,25 @@ textarea#content {
 
 	display: flex;
 
-	gap: 8px;
+	gap: 18px;
 
 }
 
 .cursor-pad button {
 
-	width: 28px;
+	width: 42px;
 
-	height: 28px;
+	height: 34px;
 
 	padding: 0;
 
-	border: 1px solid #ccc;
+	border: none;
 
-	border-radius: 4px;
+	background: transparent;
 
-	background: #fff;
+	font-size: 28px;
 
-	font-size: 16px;
+	font-weight: bold;
 
 	line-height: 1;
 
@@ -148,7 +142,7 @@ textarea#content {
 
 .cursor-pad button:hover {
 
-	background: #f0f0f0;
+	color: #000;
 
 }
 
@@ -202,4 +196,28 @@ textarea#content {
 
 .insert-menu button:hover {
 	background: #f5f5f5;
+}
+
+/* -----------------------------------------------------
+   公開状態・コメント・カーソル操作
+   ----------------------------------------------------- */
+
+.editor-options {
+
+	display: flex;
+
+	align-items: center;
+
+	gap: 28px;
+
+	margin-bottom: 16px;
+
+}
+
+.editor-options>div:not(.cursor-pad) {
+
+	display: flex;
+
+	flex-direction: column;
+
 }
