@@ -1,3 +1,28 @@
+/* 下書き一覧テーブルの列幅を抑え、長いカテゴリーパスは複数行で折り返す */
+
+table th:nth-child(1),
+table td:nth-child(1) {
+	width: 35%;
+	/* タイトル */
+}
+
+table th:nth-child(2),
+table td:nth-child(2) {
+	width: 30%;
+	/* カテゴリー（階層パスで長くなりやすい） */
+}
+
+table th:nth-child(3),
+table td:nth-child(3) {
+	width: 20%;
+	/* 更新日時 */
+}
+
+table td {
+	overflow-wrap: break-word;
+	word-break: normal;
+}
+
 /* 一覧操作 */
 .list-controls {
 	display: flex;
@@ -77,5 +102,23 @@ a.new-button.btn-back {
 		min-width: 0;
 
 	}
+
+	/* スマホ幅ではタイトルとカテゴリーの比率をさらにカテゴリー寄りにする */
+
+	table th:nth-child(1),
+	table td:nth-child(1) {
+		width: 30%;
+	}
+
+	table th:nth-child(2),
+	table td:nth-child(2) {
+		width: 35%;
+	}
+
+	table th:nth-child(3),
+	table td:nth-child(3) {
+		width: 15%;
+	}
+	
 
 }

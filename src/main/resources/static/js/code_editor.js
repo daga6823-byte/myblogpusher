@@ -103,52 +103,36 @@ document.getElementById('cancelCodeButton').addEventListener('click', function()
 
 });
 
+// ペーストする位置を、ボタンにフォーカスが移る前に保存する。
+document.getElementById('pasteButton').addEventListener('mousedown', function() {
+	const textarea = document.getElementById('content');
+	savedCursorPos = textarea.selectionStart;
+});
+
 // ペースト
-
 document.getElementById('pasteButton').addEventListener('click', async function() {
-
 	const textarea = document.getElementById('content');
 
 	try {
-
 		const text = await navigator.clipboard.readText();
-
 		if (!text) {
-
 			return;
-
 		}
 
 		const before = textarea.value.substring(0, savedCursorPos);
-
 		const after = textarea.value.substring(savedCursorPos);
 
 		textarea.value = before + text + after;
 
 		// 挿入後の位置にカーソルを移動する。
-
 		savedCursorPos += text.length;
-
 		textarea.focus();
-
-		textarea.setSelectionRange(
-
-			savedCursorPos,
-
-			savedCursorPos
-
-		);
-
-		document.getElementById('insertMenu').style.display = 'none';
+		textarea.setSelectionRange(savedCursorPos, savedCursorPos);
 
 	} catch (error) {
-
 		console.error('クリップボードの読み取りに失敗しました:', error);
-
 		alert('クリップボードの内容を取得できませんでした。');
-
 	}
-
 });
 
 // -----------------------------------------------------
