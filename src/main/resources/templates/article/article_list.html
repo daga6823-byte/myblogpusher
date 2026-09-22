@@ -25,7 +25,15 @@
 
 	<div class="box">
 
-		<h1>下書き一覧</h1>
+		<div class="list-header">
+
+			<h1>下書き一覧</h1>
+
+			<a class="new-button btn-back" th:href="@{/article/edit}">
+				新規作成
+			</a>
+
+		</div>
 
 		<!--
 			下書きの表示条件を選択する。
@@ -131,10 +139,6 @@
 			</tbody>
 
 		</table>
-
-		<a class="new-button btn-back" th:href="@{/article/edit}">
-			新規作成
-		</a>
 
 		<button type="button" id="backButton" class="btn-back">
 			戻る
