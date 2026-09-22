@@ -36,4 +36,29 @@ public class GlobalExceptionHandler {
 
 		return "error";
 	}
+
+	/**
+	 * 予期しない例外が発生した場合の処理。
+	 *
+	 * アプリケーション内部の例外内容をユーザーへ直接表示せず、
+	 * 共通エラー画面へ遷移させる。
+	 */
+	@ExceptionHandler(Exception.class)
+	public String handleException(
+			Exception e,
+			HttpServletRequest request,
+			Model model) {
+
+		System.out.println("=== Unexpected Exception ===");
+		System.out.println("method = " + request.getMethod());
+		System.out.println("uri = " + request.getRequestURI());
+		System.out.println("message = " + e.getMessage());
+		e.printStackTrace();
+
+		model.addAttribute("errorMessage",
+				"エラーが発生しました。時間をおいて再度お試しください。"
+						+ "解決しない場合は管理者にお問い合わせください。");
+
+		return "error";
+	}
 }
