@@ -7,13 +7,17 @@
 /* 十字キー本体：金属×樹脂風のハウジング */
 .cursor-pad {
 
-	position: relative;
+	position: absolute;
+
+	top: 100%;
+
+	right: 0;
 
 	width: 108px;
 
 	height: 108px;
 
-	flex-shrink: 0;
+	z-index: 2;
 
 	background:
 		radial-gradient(circle at 30% 25%, #4a4a4e 0%, #2b2b2e 45%, #17171a 100%);
