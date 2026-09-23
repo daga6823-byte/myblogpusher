@@ -161,25 +161,81 @@ function applyOrderedList() {
 let currentTextSize = 16;
 
 /**
- * 文字サイズ表示を更新する。
+ * サイズ入力欄に現在の文字サイズを反映する。
  */
-function updateTextSizeDisplay() {
-	const display =
-		document.getElementById('textSizeDisplay');
+function updateTextSizeInput() {
+	const input =
+		document.getElementById('textSizeInput');
 
-	if (display) {
-		display.textContent = `${currentTextSize}px`;
+	if (input) {
+		input.value = currentTextSize;
 	}
 }
 
 /**
  * 選択範囲に現在の文字サイズを適用する。
+ *
+ * すでにfont-sizeを指定しているspanが選択範囲を
+ * 包んでいる場合は、既存のサイズだけを置き換える。
  */
 function applyCurrentTextSize() {
-	wrapMarkdownSelection(
-		`<span style="font-size: ${currentTextSize}px;">`,
-		'</span>'
+	if (!markdownEditor) {
+		return;
+	}
+
+	const start = markdownEditor.selectionStart;
+	const end = markdownEditor.selectionEnd;
+	const selectedText =
+		markdownEditor.value.substring(start, end);
+
+	if (!selectedText) {
+		return;
+	}
+
+	const sizePattern =
+		/^<span style="font-size:\s*[^;]+;">([\s\S]*)<\/span>$/;
+
+	const match = selectedText.match(sizePattern);
+
+	const replacement = match
+		? `<span style="font-size: ${currentTextSize}px;">${match[1]}</span>`
+		: `<span style="font-size: ${currentTextSize}px;">${selectedText}</span>`;
+
+	markdownEditor.setRangeText(
+		replacement,
+		start,
+		end,
+		'select'
 	);
+
+	markdownEditor.focus();
+}
+
+/**
+ * 文字サイズ入力値を反映する。
+ */
+function applyTextSizeInput() {
+	const input =
+		document.getElementById('textSizeInput');
+
+	if (!input) {
+		return;
+	}
+
+	const size = Number.parseInt(input.value, 10);
+
+	if (Number.isNaN(size)) {
+		input.value = currentTextSize;
+		return;
+	}
+
+	currentTextSize = Math.min(
+		72,
+		Math.max(8, size)
+	);
+
+	updateTextSizeInput();
+	applyCurrentTextSize();
 }
 
 /**
@@ -270,6 +326,31 @@ document.querySelectorAll('.markdown-tool[data-markdown]')
 	});
 
 /**
+ * 文字サイズ候補を生成する。
+ */
+function initializeTextSizeOptions() {
+
+	const dataList =
+		document.getElementById('textSizeOptions');
+
+	if (!dataList) {
+		return;
+	}
+
+	dataList.innerHTML = '';
+
+	for (let size = 8; size <= 72; size += 2) {
+
+		const option =
+			document.createElement('option');
+
+		option.value = size;
+
+		dataList.appendChild(option);
+	}
+}
+
+/**
  * 文字サイズを小さくする。
  */
 const textSizeDecreaseButton =
@@ -282,30 +363,52 @@ if (textSizeDecreaseButton) {
 			currentTextSize - 2
 		);
 
-		updateTextSizeDisplay();
+		updateTextSizeInput();
 		applyCurrentTextSize();
 	});
 }
 
-/**
- * 文字サイズを大きくする。
- */
 const textSizeIncreaseButton =
 	document.getElementById('textSizeIncreaseButton');
 
 if (textSizeIncreaseButton) {
+
 	textSizeIncreaseButton.addEventListener('click', () => {
+
 		currentTextSize = Math.min(
+
 			72,
+
 			currentTextSize + 2
+
 		);
 
-		updateTextSizeDisplay();
+		updateTextSizeInput();
+
 		applyCurrentTextSize();
+
+	});
+
+}
+
+const textSizeInput =
+	document.getElementById('textSizeInput');
+
+if (textSizeInput) {
+	textSizeInput.addEventListener('change', () => {
+		applyTextSizeInput();
+	});
+
+	textSizeInput.addEventListener('keydown', event => {
+		if (event.key === 'Enter') {
+			event.preventDefault();
+			applyTextSizeInput();
+		}
 	});
 }
 
-updateTextSizeDisplay();
+initializeTextSizeOptions();
+updateTextSizeInput();
 
 /**
  * 文字色ボタンとカラーパレット。
