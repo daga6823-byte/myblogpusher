@@ -32,7 +32,7 @@ textarea {
 
 .content-wrapper {
 	position: relative;
-	margin-bottom: 12px;
+	margin-bottom: 4px;
 }
 
 /* 本文の添削箇所を背面に表示するハイライト領域 */
@@ -91,7 +91,7 @@ textarea#content {
 
 	gap: 12px;
 
-	margin-bottom: 40px;
+	margin-bottom: 16px;
 
 }
 
