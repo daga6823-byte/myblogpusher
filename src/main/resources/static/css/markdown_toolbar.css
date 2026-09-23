@@ -190,3 +190,41 @@
 	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 	z-index: 100;
 }
+
+/* -----------------------------------------------------
+   スマートフォン対応：ツールバーのボタンを縮小する
+   ----------------------------------------------------- */
+
+@media (max-width: 600px) {
+
+	.markdown-tool,
+	.btn-insert {
+
+		width: 26px;
+
+		height: 26px;
+
+		font-size: 12px;
+
+	}
+
+	.text-size-display {
+
+		min-width: 36px;
+
+		height: 26px;
+
+		font-size: 11px;
+
+	}
+
+	#textSizeDecreaseButton,
+	#textSizeIncreaseButton {
+
+		width: 26px;
+
+		height: 26px;
+
+	}
+
+}

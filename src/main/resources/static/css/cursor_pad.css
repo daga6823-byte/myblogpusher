@@ -139,3 +139,43 @@
 	transform: translateX(-50%) scale(0.94);
 
 }
+
+/* -----------------------------------------------------
+   スマートフォン対応：十字キーを縮小する
+   ----------------------------------------------------- */
+
+@media (max-width: 600px) {
+
+	.cursor-pad {
+
+		width: 76px;
+
+		height: 76px;
+
+		border-radius: 10px;
+
+	}
+
+	.cursor-pad button {
+
+		width: 24px;
+
+		height: 24px;
+
+		font-size: 14px;
+
+	}
+
+	#cursorUpButton {
+
+		top: 3px;
+
+	}
+
+	#cursorDownButton {
+
+		bottom: 3px;
+
+	}
+
+}
