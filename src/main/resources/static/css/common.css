@@ -9,6 +9,10 @@ body {
 	padding: 40px;
 }
 
+:root {
+	--safe-area-bottom: env(safe-area-inset-bottom, 0px);
+}
+
 /*
  * 白背景のコンテンツ領域
  * 画面中央配置、影、角丸
