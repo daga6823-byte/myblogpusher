@@ -107,11 +107,16 @@ textarea#content {
    本文挿入メニュー
    ----------------------------------------------------- */
 
+.insert-menu-wrapper {
+	position: relative;
+	flex-shrink: 0;
+}
+
 .insert-menu {
 	position: absolute;
-	bottom: 100%;
-	left: 0;
-	margin-bottom: 4px;
+	top: 0;
+	left: 100%;
+	margin-left: 4px;
 	background: #fff;
 	border: 1px solid #ccc;
 	border-radius: 6px;
