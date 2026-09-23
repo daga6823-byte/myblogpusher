@@ -1,37 +1,5 @@
-/* 下書き一覧テーブル専用：4列を画面幅に収めるため table-layout を固定し、列幅を明示する */
-
-table {
-	table-layout: fixed;
-}
-
-table th:nth-child(1),
-table td:nth-child(1) {
-	width: 35%;
-	/* タイトル */
-}
-
-table th:nth-child(2),
-table td:nth-child(2) {
-	width: 30%;
-	/* カテゴリー（階層パスで長くなりやすい） */
-}
-
-table th:nth-child(3),
-table td:nth-child(3) {
-	width: 20%;
-	/* 更新日時 */
-}
-
-table th:nth-child(4),
-table td:nth-child(4) {
-	width: 15%;
-	/* 操作 */
-}
-
-table td {
-	overflow-wrap: break-word;
-	word-break: normal;
-}
+/* 下書き一覧テーブル：投稿済み記事一覧と同じく、
+   common.cssのtable/th/tdのみに委ねる（table-layoutや列幅指定は行わない） */
 
 /* 一覧操作 */
 .list-controls {
@@ -101,28 +69,6 @@ table td {
 
 		min-width: 0;
 
-	}
-
-	/* スマホ幅ではタイトルとカテゴリーの比率をさらにカテゴリー寄りにする */
-
-	table th:nth-child(1),
-	table td:nth-child(1) {
-		width: 28%;
-	}
-
-	table th:nth-child(2),
-	table td:nth-child(2) {
-		width: 37%;
-	}
-
-	table th:nth-child(3),
-	table td:nth-child(3) {
-		width: 20%;
-	}
-
-	table th:nth-child(4),
-	table td:nth-child(4) {
-		width: 15%;
 	}
 
 }
