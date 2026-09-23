@@ -148,17 +148,9 @@
 
 	.cursor-pad {
 
-		/* ツールバー行から切り離し、画面右下に常時固定する */
-
-		position: fixed;
-
-		top: auto;
-
-		left: auto;
-
-		right: 16px;
-
-		bottom: 16px;
+		/* 位置（position/top/left/right/bottom）は
+		   cursor_pad_viewport.jsが常に制御するため、
+		   ここではサイズ・見た目のみ指定する */
 
 		width: 64px;
 
