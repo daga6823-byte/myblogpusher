@@ -29,7 +29,7 @@ import com.app.myblogpusher.util.ArticleSaveUtil;
 import jakarta.servlet.http.HttpSession;
 
 @Controller
-public class ArticleTypoController {
+public class ArticleCorrectController {
 
 	@Autowired
 	private ArticleCategoryService articleCategoryService;

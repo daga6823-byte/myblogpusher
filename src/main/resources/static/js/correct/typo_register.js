@@ -39,6 +39,8 @@ document.getElementById('addTypoButton')?.addEventListener('click', () => {
 				updateCategoryPath();
 
 				form.action = '/article/correct';
+				console.log('correctへ戻ります');
+				console.log(form.action);
 				form.submit();
 			} else if (data.result === 'duplicate') {
 				alert(data.message);
