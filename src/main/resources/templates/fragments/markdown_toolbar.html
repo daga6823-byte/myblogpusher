@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<body>
+
+	<!--
+		
+	 * markdown_toolbar.html
+	 * Markdown編集ツールバーを担当するフラグメント
+	 *
+	 * 太字、斜体、取り消し線、インラインコード、見出し、
+	 * リスト、引用、文字サイズ、文字色など、
+	 * 本文のMarkdown編集操作を提供する。
+	 *
+	 * ＋ボタンの挿入メニューは別フラグメント・別JavaScriptで管理する。
+	 -->
+	<div th:fragment="markdownToolbar">
+
+		<!-- 太字 -->
+		<button type="button" class="markdown-tool" data-markdown="bold" title="太字">
+			<strong>B</strong>
+		</button>
+
+		<!-- 斜体 -->
+		<button type="button" class="markdown-tool" data-markdown="italic" title="斜体">
+			<em>I</em>
+		</button>
+
+		<!-- 取り消し線 -->
+		<button type="button" class="markdown-tool" data-markdown="strike" title="取り消し線">
+			<s>S</s>
+		</button>
+
+		<!-- インラインコード -->
+		<button type="button" class="markdown-tool" data-markdown="code" title="インラインコード">
+			&lt;/&gt;
+		</button>
+
+		<!-- 見出し -->
+		<button type="button" class="markdown-tool" data-markdown="h1" title="見出し1">
+			H1
+		</button>
+
+		<button type="button" class="markdown-tool" data-markdown="h2" title="見出し2">
+			H2
+		</button>
+
+		<button type="button" class="markdown-tool" data-markdown="h3" title="見出し3">
+			H3
+		</button>
+
+		<!-- リスト -->
+		<button type="button" class="markdown-tool" data-markdown="unordered-list" title="箇条書き">
+			•
+		</button>
+
+		<button type="button" class="markdown-tool" data-markdown="ordered-list" title="番号付きリスト">
+			1.
+		</button>
+
+		<!-- 引用 -->
+		<button type="button" class="markdown-tool" data-markdown="quote" title="引用">
+			&gt;
+		</button>
+
+		<!-- 文字サイズ -->
+		<div class="text-size-wrapper">
+
+			<button type="button" id="textSizeButton" class="markdown-tool" title="文字サイズ">
+				A↕
+			</button>
+
+			<div id="textSizeMenu" class="text-size-menu" style="display:none;">
+
+				<button type="button" class="text-size-option" data-size="0.8em">
+					小
+				</button>
+
+				<button type="button" class="text-size-option" data-size="1em">
+					標準
+				</button>
+
+				<button type="button" class="text-size-option" data-size="1.25em">
+					大
+				</button>
+
+				<button type="button" class="text-size-option" data-size="1.5em">
+					特大
+				</button>
+
+				<button type="button" class="text-size-option" data-size="2em">
+					超特大
+				</button>
+
+			</div>
+
+		</div>
+
+		<!-- 文字色 -->
+		<div class="text-color-wrapper">
+
+			<button type="button" id="textColorButton" class="markdown-tool text-color-button" title="文字色">
+				<span>A</span>
+				<span class="text-color-indicator"></span>
+			</button>
+
+			<div id="textColorPalette" class="text-color-palette" style="display:none;">
+
+				<button type="button" class="text-color-option" data-color="#000000" title="黒">
+					A
+				</button>
+
+				<button type="button" class="text-color-option" data-color="#ff0000" title="赤">
+					A
+				</button>
+
+				<button type="button" class="text-color-option" data-color="#0000ff" title="青">
+					A
+				</button>
+
+				<button type="button" class="text-color-option" data-color="#008000" title="緑">
+					A
+				</button>
+
+				<button type="button" class="text-color-option" data-color="#ffa500" title="オレンジ">
+					A
+				</button>
+
+				<button type="button" class="text-color-option" data-color="#800080" title="紫">
+					A
+				</button>
+
+				<button type="button" class="text-color-option" data-color="#808080" title="グレー">
+					A
+				</button>
+
+				<button type="button" class="text-color-option" data-color="#ffffff" title="白">
+					A
+				</button>
+
+			</div>
+
+		</div>
+
+	</div>
+
+</body>
+
+</html>
