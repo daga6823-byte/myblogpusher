@@ -7,9 +7,11 @@
 /* 十字キー本体：金属×樹脂風のハウジング */
 .cursor-pad {
 
-	position: relative;
+	position: absolute;
 
-	flex-shrink: 0;
+	top: 0;
+
+	right: 0;
 
 	width: 108px;
 

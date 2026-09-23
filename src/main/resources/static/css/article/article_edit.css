@@ -83,23 +83,25 @@ textarea#content {
 
 	position: relative;
 
-	display: flex;
-
-	align-items: flex-start;
-
-	justify-content: space-between;
-
-	gap: 12px;
-
 	margin-bottom: 16px;
 
 }
 
 .editor-toolbar {
 
-	flex: 1 1 auto;
+	display: flex;
 
-	min-width: 0;
+	align-items: center;
+
+	flex-wrap: nowrap;
+
+	gap: 6px;
+
+	overflow-x: auto;
+
+	padding-right: 120px;
+
+	/* 右側に固定表示する十字キー分のスペースを確保し、ボタンが隠れないようにする */
 
 }
 
