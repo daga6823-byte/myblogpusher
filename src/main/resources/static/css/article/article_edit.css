@@ -97,8 +97,6 @@ textarea#content {
 
 	gap: 6px;
 
-	overflow-x: auto;
-
 	padding-right: 120px;
 
 	/* 右側に固定表示する十字キー分のスペースを確保し、ボタンが隠れないようにする */
