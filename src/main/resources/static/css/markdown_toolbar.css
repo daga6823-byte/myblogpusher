@@ -7,30 +7,9 @@
  * ・文字色パレット
  */
 
-/* Markdown編集ボタン */
-/* Markdownツールバー */
-.editor-toolbar {
-	display: flex;
-	align-items: center;
-	flex-wrap: nowrap;
-	gap: 3px;
-	white-space: nowrap;
-}
-
-/* markdownToolbarフラグメントの外側div：
-   ボタン群自体を一行のflexとして並べる */
-.markdown-toolbar-group {
-	display: flex;
-	align-items: center;
-	flex-wrap: nowrap;
-	gap: 3px;
-	flex: 1 1 auto;
-	min-width: 0;
-	overflow-x: auto;
-}
-
-/* Markdown編集ボタン */
-.markdown-tool {
+/* Markdown編集ボタン（＋挿入メニューボタンも同じ見た目にする） */
+.markdown-tool,
+.btn-insert {
 	flex: 0 0 auto;
 	width: 32px;
 	height: 28px;
@@ -44,8 +23,21 @@
 	padding: 0;
 }
 
-.markdown-tool:hover {
+.markdown-tool:hover,
+.btn-insert:hover {
 	background: #f0f0f0;
+}
+
+/* markdownToolbarフラグメントの外側div：
+   ボタン群自体を一行のflexとして並べる */
+.markdown-toolbar-group {
+	display: flex;
+	align-items: center;
+	flex-wrap: nowrap;
+	gap: 3px;
+	flex: 1 1 auto;
+	min-width: 0;
+	overflow-x: auto;
 }
 
 /* 文字サイズ・文字色 */
@@ -161,41 +153,4 @@
 
 .text-size-option:hover {
 	background: #f0f0f0;
-}
-
-/* 文字色パレット */
-.text-color-palette {
-	display: grid;
-	grid-template-columns: repeat(4, 32px);
-	gap: 4px;
-	padding: 6px;
-}
-
-.text-color-option {
-	width: 32px;
-	height: 32px;
-	border: 1px solid #ccc;
-	border-radius: 4px;
-	background: #fff;
-	cursor: pointer;
-	font-weight: bold;
-	font-size: 16px;
-}
-
-.text-color-option:hover {
-	border-color: #333;
-}
-
-/* 文字色ボタン */
-.text-color-button {
-	position: relative;
-}
-
-.text-color-indicator {
-	position: absolute;
-	bottom: 3px;
-	left: 7px;
-	right: 7px;
-	height: 3px;
-	background: #000;
 }

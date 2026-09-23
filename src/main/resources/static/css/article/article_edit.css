@@ -103,11 +103,6 @@ textarea#content {
 
 }
 
-/* 「＋」挿入メニューボタンをツールバーの右端に置く */
-.btn-insert {
-	margin-left: auto;
-}
-
 /* -----------------------------------------------------
    本文挿入メニュー
    ----------------------------------------------------- */
@@ -115,7 +110,7 @@ textarea#content {
 .insert-menu {
 	position: absolute;
 	bottom: 100%;
-	right: 0;
+	left: 0;
 	margin-bottom: 4px;
 	background: #fff;
 	border: 1px solid #ccc;

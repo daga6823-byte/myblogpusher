@@ -34,9 +34,6 @@
 
 			<div class="editor-toolbar">
 
-				<!-- Markdown編集ツールバー -->
-				<div th:replace="~{fragments/markdown_toolbar :: markdownToolbar}"></div>
-
 				<!-- 本文挿入メニュー -->
 				<button type="button" id="insertMenuButton" class="btn-insert">
 					＋
@@ -61,6 +58,10 @@
 					</button>
 
 				</div>
+
+				<!-- Markdown編集ツールバー -->
+				<div th:replace="~{fragments/markdown_toolbar :: markdownToolbar}"></div>
+
 			</div>
 
 			<div class="cursor-pad">
