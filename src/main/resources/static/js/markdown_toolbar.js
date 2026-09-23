@@ -330,23 +330,32 @@ document.querySelectorAll('.markdown-tool[data-markdown]')
  */
 function initializeTextSizeOptions() {
 
-	const dataList =
-		document.getElementById('textSizeOptions');
+	const textSizeInput =
+		document.getElementById('textSizeInput');
 
-	if (!dataList) {
+	if (!textSizeInput) {
 		return;
 	}
 
-	dataList.innerHTML = '';
+	const minTextSize = 8;
+	const maxTextSize = 80;
+	const textSizeStep = 2;
 
-	for (let size = 8; size <= 72; size += 2) {
+	textSizeInput.innerHTML = '';
+
+	for (
+		let size = minTextSize;
+		size <= maxTextSize;
+		size += textSizeStep
+	) {
 
 		const option =
 			document.createElement('option');
 
 		option.value = size;
+		option.textContent = `${size}px`;
 
-		dataList.appendChild(option);
+		textSizeInput.appendChild(option);
 	}
 }
 
