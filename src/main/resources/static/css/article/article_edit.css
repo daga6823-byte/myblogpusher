@@ -114,9 +114,9 @@ textarea#content {
 
 .insert-menu {
 	position: absolute;
-	top: 0;
-	left: 100%;
-	margin-left: 4px;
+	bottom: 100%;
+	left: 0;
+	margin-bottom: 4px;
 	background: #fff;
 	border: 1px solid #ccc;
 	border-radius: 6px;
