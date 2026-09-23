@@ -112,17 +112,14 @@
 	background: #000000;
 }
 
-/* 文字色選択ボタン：文字「A」自体をその色で表示する */
+/* 文字色選択ボタン：背景をその色のスウォッチにする */
 .text-color-option {
 	width: 32px;
 	height: 32px;
 	border: 1px solid #ccc;
 	border-radius: 4px;
-	background: #fff;
 	cursor: pointer;
-	font-weight: bold;
-	font-size: 16px;
-	color: attr(data-color);
+	padding: 0;
 }
 
 /* カスタム色ボタン（input[type=color]をラベルで包んでボタン風に見せる） */
@@ -141,9 +138,9 @@
 	color: #666;
 }
 
-.text-color-custom:hover {
+.text-color-option:hover {
 	border-color: #333;
-	color: #333;
+	transform: scale(1.05);
 }
 
 /* input自体は透明にして見た目はラベル側で作る */
