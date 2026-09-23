@@ -107,9 +107,10 @@ textarea#content {
 
 	.editor-toolbar {
 
-		padding-right: 84px;
+		padding-right: 0;
 
-		/* スマホでは十字キーが縮小されるため、余白もそれに合わせて詰める */
+		/* スマホでは十字キーが画面右下に固定表示になるため、
+		   ツールバー側で場所を確保する必要がなくなった */
 
 	}
 

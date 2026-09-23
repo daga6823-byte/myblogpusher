@@ -148,33 +148,47 @@
 
 	.cursor-pad {
 
-		width: 76px;
+		/* ツールバー行から切り離し、画面右下に常時固定する */
 
-		height: 76px;
+		position: fixed;
+
+		top: auto;
+
+		left: auto;
+
+		right: 16px;
+
+		bottom: 16px;
+
+		width: 64px;
+
+		height: 64px;
 
 		border-radius: 10px;
+
+		z-index: 500;
 
 	}
 
 	.cursor-pad button {
 
-		width: 24px;
+		width: 20px;
 
-		height: 24px;
+		height: 20px;
 
-		font-size: 14px;
+		font-size: 12px;
 
 	}
 
 	#cursorUpButton {
 
-		top: 3px;
+		top: 2px;
 
 	}
 
 	#cursorDownButton {
 
-		bottom: 3px;
+		bottom: 2px;
 
 	}
 
