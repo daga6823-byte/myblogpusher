@@ -153,21 +153,61 @@ function applyOrderedList() {
  *
  * @param {string} size CSSの文字サイズ
  */
-function applyTextSize(size) {
+/**
+ * 現在の文字サイズ。
+ *
+ * Wordのようにボタンで少しずつサイズを変更する。
+ */
+let currentTextSize = 16;
+
+/**
+ * 文字サイズ表示を更新する。
+ */
+function updateTextSizeDisplay() {
+	const display =
+		document.getElementById('textSizeDisplay');
+
+	if (display) {
+		display.textContent = `${currentTextSize}px`;
+	}
+}
+
+/**
+ * 選択範囲に現在の文字サイズを適用する。
+ */
+function applyCurrentTextSize() {
 	wrapMarkdownSelection(
-		`<span style="font-size: ${size};">`,
+		`<span style="font-size: ${currentTextSize}px;">`,
 		'</span>'
 	);
 }
 
 /**
- * 文字色を適用する。
+ * 現在の文字色。
  *
- * @param {string} color CSSの文字色
+ * 初期状態は黒。
  */
-function applyTextColor(color) {
+let currentTextColor = '#000000';
+
+/**
+ * 文字色表示を更新する。
+ */
+function updateTextColorDisplay() {
+	const indicator =
+		document.getElementById('textColorIndicator');
+
+	if (indicator) {
+		indicator.style.backgroundColor =
+			currentTextColor;
+	}
+}
+
+/**
+ * 選択範囲に現在の文字色を適用する。
+ */
+function applyCurrentTextColor() {
 	wrapMarkdownSelection(
-		`<span style="color: ${color};">`,
+		`<span style="color: ${currentTextColor};">`,
 		'</span>'
 	);
 }
@@ -230,51 +270,45 @@ document.querySelectorAll('.markdown-tool[data-markdown]')
 	});
 
 /**
- * 文字サイズメニューの開閉。
+ * 文字サイズを小さくする。
  */
-const textSizeButton =
-	document.getElementById('textSizeButton');
+const textSizeDecreaseButton =
+	document.getElementById('textSizeDecreaseButton');
 
-const textSizeMenu =
-	document.getElementById('textSizeMenu');
+if (textSizeDecreaseButton) {
+	textSizeDecreaseButton.addEventListener('click', () => {
+		currentTextSize = Math.max(
+			8,
+			currentTextSize - 2
+		);
 
-if (textSizeButton && textSizeMenu) {
-	textSizeButton.addEventListener('click', event => {
-		event.stopPropagation();
-
-		const isHidden =
-			textSizeMenu.style.display === 'none'
-			|| textSizeMenu.style.display === '';
-
-		textSizeMenu.style.display =
-			isHidden ? 'block' : 'none';
-
-		if (textColorPalette) {
-			textColorPalette.style.display = 'none';
-		}
+		updateTextSizeDisplay();
+		applyCurrentTextSize();
 	});
 }
 
 /**
- * 文字サイズを選択する。
+ * 文字サイズを大きくする。
  */
-document.querySelectorAll('.text-size-option')
-	.forEach(button => {
-		button.addEventListener('click', () => {
-			const size = button.dataset.size;
+const textSizeIncreaseButton =
+	document.getElementById('textSizeIncreaseButton');
 
-			if (size) {
-				applyTextSize(size);
-			}
+if (textSizeIncreaseButton) {
+	textSizeIncreaseButton.addEventListener('click', () => {
+		currentTextSize = Math.min(
+			72,
+			currentTextSize + 2
+		);
 
-			if (textSizeMenu) {
-				textSizeMenu.style.display = 'none';
-			}
-		});
+		updateTextSizeDisplay();
+		applyCurrentTextSize();
 	});
+}
+
+updateTextSizeDisplay();
 
 /**
- * 文字色メニューの開閉。
+ * 文字色ボタンとカラーパレット。
  */
 const textColorButton =
 	document.getElementById('textColorButton');
@@ -283,6 +317,11 @@ const textColorPalette =
 	document.getElementById('textColorPalette');
 
 if (textColorButton && textColorPalette) {
+
+	/*
+	 * 文字色ボタンをクリックすると
+	 * カラーパレットを開閉する。
+	 */
 	textColorButton.addEventListener('click', event => {
 		event.stopPropagation();
 
@@ -292,24 +331,28 @@ if (textColorButton && textColorPalette) {
 
 		textColorPalette.style.display =
 			isHidden ? 'grid' : 'none';
-
-		if (textSizeMenu) {
-			textSizeMenu.style.display = 'none';
-		}
 	});
 }
 
 /**
  * 文字色を選択する。
+ *
+ * 選択した色を現在色として保持し、
+ * 次回以降の文字色ボタンにも反映する。
  */
 document.querySelectorAll('.text-color-option')
 	.forEach(button => {
 		button.addEventListener('click', () => {
 			const color = button.dataset.color;
 
-			if (color) {
-				applyTextColor(color);
+			if (!color) {
+				return;
 			}
+
+			currentTextColor = color;
+
+			updateTextColorDisplay();
+			applyCurrentTextColor();
 
 			if (textColorPalette) {
 				textColorPalette.style.display = 'none';
@@ -317,17 +360,16 @@ document.querySelectorAll('.text-color-option')
 		});
 	});
 
+/*
+ * 初期色は黒。
+ */
+updateTextColorDisplay();
+
 /**
  * ツールバー外をクリックした場合に
- * 文字サイズ・文字色メニューを閉じる。
+ * カラーパレットを閉じる。
  */
 document.addEventListener('click', event => {
-	if (textSizeMenu
-		&& !textSizeMenu.contains(event.target)
-		&& event.target !== textSizeButton) {
-		textSizeMenu.style.display = 'none';
-	}
-
 	if (textColorPalette
 		&& !textColorPalette.contains(event.target)
 		&& event.target !== textColorButton) {
