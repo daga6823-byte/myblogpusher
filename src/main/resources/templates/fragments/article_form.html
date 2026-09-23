@@ -28,6 +28,9 @@
 		<div class="content-wrapper">
 			<div id="contentHighlight" class="content-highlight"></div>
 			<textarea id="content" name="content" th:text="${work != null ? work.content : ''}"></textarea>
+		</div>
+
+		<div class="editor-toolbar-row">
 
 			<div class="editor-toolbar">
 
@@ -68,6 +71,7 @@
 				</div>
 				<button type="button" id="cursorDownButton">↓</button>
 			</div>
+
 		</div>
 
 		<!-- 脚注入力ダイアログ（codeBlockEditorと同様の構造） -->
