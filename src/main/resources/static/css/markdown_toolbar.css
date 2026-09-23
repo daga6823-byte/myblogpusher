@@ -17,6 +17,18 @@
 	white-space: nowrap;
 }
 
+/* markdownToolbarフラグメントの外側div：
+   ボタン群自体を一行のflexとして並べる */
+.markdown-toolbar-group {
+	display: flex;
+	align-items: center;
+	flex-wrap: nowrap;
+	gap: 3px;
+	flex: 1 1 auto;
+	min-width: 0;
+	overflow-x: auto;
+}
+
 /* Markdown編集ボタン */
 .markdown-tool {
 	flex: 0 0 auto;
