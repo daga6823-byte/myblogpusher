@@ -478,6 +478,30 @@ document.querySelectorAll('.text-color-option')
 updateTextColorDisplay();
 
 /**
+ * カスタム色ピッカーで色を選択する。
+ *
+ * ブラウザ標準のカラーピッカーから任意の色を選び、
+ * プリセットの色選択と同じ挙動（現在色として保持・適用）にする。
+ */
+const textColorCustom =
+	document.getElementById('textColorCustom');
+
+if (textColorCustom) {
+	textColorCustom.addEventListener('input', () => {
+		currentTextColor = textColorCustom.value;
+
+		updateTextColorDisplay();
+		applyCurrentTextColor();
+	});
+
+	textColorCustom.addEventListener('change', () => {
+		if (textColorPalette) {
+			textColorPalette.style.display = 'none';
+		}
+	});
+}
+
+/**
  * ツールバー外をクリックした場合に
  * カラーパレットを閉じる。
  */
