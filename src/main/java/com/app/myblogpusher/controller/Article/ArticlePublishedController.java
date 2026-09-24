@@ -18,6 +18,7 @@ import com.app.myblogpusher.entity.Article.ArticleWork;
 import com.app.myblogpusher.repository.UserRepositoryRepository;
 import com.app.myblogpusher.service.Article.ArticleService;
 import com.app.myblogpusher.service.Article.ArticleWorkService;
+import com.app.myblogpusher.service.Category.CategoryPathService;
 import com.app.myblogpusher.service.Github.GitHubArticleService;
 import com.app.myblogpusher.service.Image.ImageAssetService;
 
@@ -45,6 +46,9 @@ public class ArticlePublishedController {
 	@Autowired
 	private UserRepositoryRepository userRepositoryRepository;
 
+	@Autowired
+	private CategoryPathService categoryPathService;
+
 	/**
 	 * 投稿済み記事一覧を表示
 	 */
@@ -58,6 +62,21 @@ public class ArticlePublishedController {
 		Long userId = loginUser.getUserId();
 
 		List<Article> articles = articleService.findPublishedByUserId(userId);
+
+		/*
+		 * 投稿済み記事のcategoryGroupIdから、
+		 * 一覧表示用のカテゴリー経路を取得する。
+		 */
+		model.addAttribute(
+				"articleCategories",
+				articles.stream()
+						.collect(
+								java.util.stream.Collectors.toMap(
+										Article::getArticleId,
+										article -> categoryPathService
+												.findCategoryPathByGroupId(
+														article.getCategoryGroupId()),
+										(existing, replacement) -> existing)));
 
 		model.addAttribute(
 				"articles",

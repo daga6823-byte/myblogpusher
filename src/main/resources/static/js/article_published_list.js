@@ -1,27 +1,23 @@
 /**
-
-* 下書き一覧のカテゴリー絞り込みと並び替え、
-* および日時表示を担当するJavaScript
-  */
+ * 投稿済み記事一覧のカテゴリー絞り込みと並び替え、
+ * および日時表示を担当するJavaScript
+ */
 
 /**
-
-* 現在のソート条件。
-*
-* 初期状態は更新日時の新しい順にする。
-  */
+ * 現在のソート条件。
+ *
+ * 初期状態は更新日時の新しい順にする。
+ */
 let currentSortKey = 'updateDate';
 let currentSortDirection = 'desc';
 
 /**
-
-* UTC日時をユーザー環境のタイムゾーンで表示する
-  */
+ * UTC日時をユーザー環境のタイムゾーンで表示する。
+ */
 function convertLocalDate() {
 
 	document.querySelectorAll('.local-date')
 		.forEach(element => {
-
 
 			const date =
 				new Date(
@@ -46,13 +42,11 @@ function convertLocalDate() {
 
 		});
 
-
 }
 
 /**
-
-* 一覧行からタイトルを取得する
-  */
+ * 一覧行からタイトルを取得する。
+ */
 function getTitle(row) {
 
 	const titleCell =
@@ -65,19 +59,17 @@ function getTitle(row) {
 }
 
 /**
-
-* 一覧行からカテゴリーを取得する
-  */
+ * 一覧行からカテゴリーを取得する。
+ */
 function getCategory(row) {
 
-	return row.dataset.categoryName || '';
+	return row.dataset.category || '';
 
 }
 
 /**
-
-* 一覧行から更新日時を取得する
-  */
+ * 一覧行から更新日時を取得する。
+ */
 function getUpdateDate(row) {
 
 	const dateElement =
@@ -99,13 +91,11 @@ function getUpdateDate(row) {
 }
 
 /**
-
-* 指定された項目で一覧を並び替える。
-  */
+ * 指定された項目で一覧を並び替える。
+ */
 function sortRows(rows) {
 
 	rows.sort((a, b) => {
-
 
 		let result = 0;
 
@@ -151,20 +141,17 @@ function sortRows(rows) {
 			? result
 			: -result;
 
-
 	});
 
 }
 
 /**
-
-* ソートボタンに現在のソート状態を表示する。
-  */
+ * ソートボタンに現在のソート状態を表示する。
+ */
 function updateSortButtons() {
 
 	document.querySelectorAll('.sort-button')
 		.forEach(button => {
-
 
 			const sortKey =
 				button.dataset.sort;
@@ -193,14 +180,12 @@ function updateSortButtons() {
 
 		});
 
-
 }
 
 /**
-
-* 下書き一覧をカテゴリーで絞り込み、
-* 現在のソート条件で並び替える。
-  */
+ * 投稿済み記事一覧をカテゴリーで絞り込み、
+ * 現在のソート条件で並び替える。
+ */
 function updateArticleList() {
 
 	const list =
@@ -226,14 +211,13 @@ function updateArticleList() {
 		categoryFilter.value;
 
 	/*
-  
-	* カテゴリーで絞り込む。
-	* 元のDOM要素を削除せず、表示・非表示だけを切り替える。
-	  */
+	 * カテゴリーで絞り込む。
+	 * 元のDOM要素を削除せず、表示・非表示だけを切り替える。
+	 */
 	rows.forEach(row => {
 
 		const category =
-			row.dataset.categoryName || '';
+			row.dataset.category || '';
 
 		row.style.display =
 			!selectedCategory ||
@@ -244,9 +228,8 @@ function updateArticleList() {
 	});
 
 	/*
-  
-	* 表示対象の行だけを並び替える。
-	  */
+	 * 表示対象の行だけを並び替える。
+	 */
 	const visibleRows =
 		rows.filter(row =>
 			row.style.display !== 'none'
@@ -256,9 +239,7 @@ function updateArticleList() {
 
 	visibleRows.forEach(row => {
 
-
 		list.appendChild(row);
-
 
 	});
 
@@ -267,14 +248,12 @@ function updateArticleList() {
 }
 
 /**
-
-* ソートボタンを初期化する。
-  */
+ * ソートボタンを初期化する。
+ */
 function initializeSortButtons() {
 
 	document.querySelectorAll('.sort-button')
 		.forEach(button => {
-
 
 			button.addEventListener(
 				'click',
@@ -305,13 +284,11 @@ function initializeSortButtons() {
 
 		});
 
-
 }
 
 /**
-
-* 下書き一覧の初期化
-  */
+ * 投稿済み記事一覧の初期化。
+ */
 function initializeArticleList() {
 
 	convertLocalDate();
@@ -321,12 +298,10 @@ function initializeArticleList() {
 
 	if (categoryFilter) {
 
-
 		categoryFilter.addEventListener(
 			'change',
 			updateArticleList
 		);
-
 
 	}
 
@@ -338,19 +313,15 @@ function initializeArticleList() {
 
 if (document.readyState === 'loading') {
 
-
 	document.addEventListener(
 		'DOMContentLoaded',
 		initializeArticleList
 	);
 
-
 } else {
-
 
 	initializeArticleList();
 
-
 }
 
-console.log("article_list.js loaded");
+console.log('article_published_list.js loaded');

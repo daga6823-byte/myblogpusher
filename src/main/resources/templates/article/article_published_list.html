@@ -2,46 +2,126 @@
 <html xmlns:th="http://www.thymeleaf.org">
 
 <head>
+
 	<meta charset="UTF-8">
+
 	<title>投稿済み記事一覧</title>
+
 	<link rel="stylesheet" th:href="@{/css/common.css}">
+
 	<link rel="stylesheet" th:href="@{/css/article/article_published_list.css}">
+
 </head>
 
 <body>
+
 	<div th:replace="~{fragments/header :: header}"></div>
+
 	<div class="box">
+
 		<h1>投稿済み記事一覧</h1>
 
+		<div class="list-controls">
+
+			<div class="list-control">
+
+				<label for="categoryFilter">
+					カテゴリー
+				</label>
+
+				<select id="categoryFilter">
+
+					<option value="">
+						すべて
+					</option>
+
+					<option th:each="category : ${#sets.toSet(articleCategories.values())}" th:value="${category}"
+						th:text="${category}">
+					</option>
+
+				</select>
+
+			</div>
+
+		</div>
+
 		<table>
+
 			<thead>
+
 				<tr>
-					<th>タイトル</th>
-					<th>更新日時</th>
+
+					<th>
+						<button type="button" class="sort-button" data-sort="title">
+							タイトル
+						</button>
+					</th>
+
+					<th>
+						<button type="button" class="sort-button" data-sort="category">
+							カテゴリー
+						</button>
+					</th>
+
+					<th>
+						<button type="button" class="sort-button" data-sort="updateDate">
+							更新日時
+						</button>
+					</th>
+
 					<th>操作</th>
+
 				</tr>
+
 			</thead>
-			<tbody>
-				<tr th:each="article : ${articles}">
-					<td th:text="${article.title}"></td>
-					<td th:text="${#temporals.format(article.updateDate, 'yyyy-MM-dd HH:mm')}"></td>
+
+			<tbody id="articleList">
+
+				<tr th:each="article : ${articles}" th:data-category="${articleCategories[article.articleId]}">
+
+					<td th:text="${article.title}">
+					</td>
+
+					<td th:text="${articleCategories[article.articleId]}">
+					</td>
+
+					<td class="local-date" th:attr="data-date=${article.updateDate}">
+					</td>
 
 					<td class="list-actions">
-						<a th:href="@{/article/published/edit(hugoPath=${article.hugoPath})}" class="btn-edit">編集</a>
+
+						<a th:href="@{/article/published/edit(hugoPath=${article.hugoPath})}" class="btn-edit">
+							編集
+						</a>
+
 						<form th:action="@{/article/published/delete}" method="post" style="display: inline;">
+
 							<input type="hidden" name="hugoPath" th:value="${article.hugoPath}">
-							<button type="submit" class="btn-delete"
-								onclick="return confirm('削除してもよろしいですか？');">削除</button>
+
+							<button type="submit" class="btn-delete" onclick="return confirm('削除してもよろしいですか？');">
+								削除
+							</button>
+
 						</form>
+
 					</td>
 
 				</tr>
+
 			</tbody>
+
 		</table>
-		<button type="button" id="backButton" class="btn-back">戻る</button>
+
+		<button type="button" id="backButton" class="btn-back">
+			戻る
+		</button>
+
 	</div>
 
+	<script th:src="@{/js/article_published_list.js}"></script>
+
 	<script th:src="@{/js/common.js}"></script>
+
 </body>
 
 </html>

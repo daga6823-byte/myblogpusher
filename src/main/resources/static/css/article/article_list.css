@@ -1,11 +1,6 @@
 /* 下書き一覧テーブル：投稿済み記事一覧と同じく、
    common.cssのtable/th/tdのみに委ねる（table-layoutや列幅指定は行わない） */
 
-/* ダブルタップ防止 */
-body {
-	touch-action: manipulation;
-}
-
 /* 一覧操作 */
 .list-controls {
 	display: flex;
@@ -75,5 +70,45 @@ body {
 		min-width: 0;
 
 	}
+
+}
+
+/* -----------------------------------------------------
+   一覧ソートボタン
+   ----------------------------------------------------- */
+
+/* テーブルヘッダーをボタンとしてクリックできるようにする。 */
+
+.sort-button {
+
+	border: none;
+
+	background: transparent;
+
+	padding: 0;
+
+	font: inherit;
+
+	color: inherit;
+
+	cursor: pointer;
+
+}
+
+/* マウス操作時にクリック可能であることを分かりやすくする。 */
+
+.sort-button:hover {
+
+	text-decoration: underline;
+
+}
+
+/* キーボード操作時のフォーカス表示 */
+
+.sort-button:focus-visible {
+
+	outline: 2px solid #666;
+
+	outline-offset: 2px;
 
 }
