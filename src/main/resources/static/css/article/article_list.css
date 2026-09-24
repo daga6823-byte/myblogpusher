@@ -1,6 +1,11 @@
 /* 下書き一覧テーブル：投稿済み記事一覧と同じく、
    common.cssのtable/th/tdのみに委ねる（table-layoutや列幅指定は行わない） */
 
+/* ダブルタップ防止 */
+body {
+	touch-action: manipulation;
+}
+
 /* 一覧操作 */
 .list-controls {
 	display: flex;

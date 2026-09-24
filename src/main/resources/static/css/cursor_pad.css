@@ -152,37 +152,45 @@
 		   bottomの変化はtransitionでなめらかにし、
 		   キーボード開閉時の「トントン」というカクつきを防ぐ */
 
-		width: 64px;
+		width: 88px;
 
-		height: 64px;
+		height: 88px;
 
-		border-radius: 10px;
+		border-radius: 12px;
 
 		z-index: 500;
 
 		transition: bottom 0.2s ease;
 
+		opacity: 0.55;
+
+	}
+
+	.cursor-pad:active {
+
+		opacity: 0.85;
+
 	}
 
 	.cursor-pad button {
 
-		width: 20px;
+		width: 28px;
 
-		height: 20px;
+		height: 28px;
 
-		font-size: 12px;
+		font-size: 16px;
 
 	}
 
 	#cursorUpButton {
 
-		top: 2px;
+		top: 4px;
 
 	}
 
 	#cursorDownButton {
 
-		bottom: 2px;
+		bottom: 4px;
 
 	}
 
