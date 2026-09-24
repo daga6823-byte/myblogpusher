@@ -22,12 +22,22 @@
 		<table>
 			<thead>
 				<tr>
-					<th>日本語</th>
-					<th>英単語</th>
+					<th>
+						<button type="button" class="sort-button" data-sort="japanese">
+							日本語
+						</button>
+					</th>
+
+					<th>
+						<button type="button" class="sort-button" data-sort="english">
+							英単語
+						</button>
+					</th>
+
 					<th>操作</th>
 				</tr>
 			</thead>
-			<tbody>
+			<tbody id="englishDictionaryList">
 				<tr th:each="dict : ${dictionaries}">
 					<td th:text="${dict.japanese}"></td>
 					<td th:text="${dict.english}"></td>
@@ -46,6 +56,7 @@
 
 	<button type="button" id="backButton" class="btn-back">戻る</button>
 
+	<script th:src="@{/js/english_dictionary_list.js}"></script>
 	<script th:src="@{/js/common.js}"></script>
 
 </body>
