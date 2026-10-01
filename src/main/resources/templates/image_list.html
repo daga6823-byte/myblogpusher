@@ -37,13 +37,19 @@
 
 			<!-- カテゴリー絞り込み -->
 			<select id="imageCategorySelect">
-
 				<option value="all">全カテゴリー</option>
-
 				<option th:each="c : ${imageCategories}" th:value="${c.folderName}" th:text="${c.folderName}"
 					th:selected="${c.folderName == selectedFolderName}">
 				</option>
+			</select>
 
+			<!-- ファイル名検索 -->
+			<input type="text" id="imageSearchInput" placeholder="ファイル名を検索">
+
+			<!-- 日時ソート -->
+			<select id="imageSortSelect">
+				<option value="dateDesc">登録日時 ↓</option>
+				<option value="dateAsc">登録日時 ↑</option>
 			</select>
 
 			<!-- 新規画像登録 -->

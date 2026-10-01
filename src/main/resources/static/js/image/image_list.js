@@ -46,6 +46,25 @@ function updateImageList() {
 	if (!list) return;
 
 	const filteredImages = getFilteredImages();
+
+	const sortSelect =
+		document.getElementById('imageSortSelect');
+
+	const sortType =
+		sortSelect ? sortSelect.value : 'dateDesc';
+
+	filteredImages.sort((a, b) => {
+
+		const dateA = new Date(a.uploadDate).getTime();
+		const dateB = new Date(b.uploadDate).getTime();
+
+		if (sortType === 'dateAsc') {
+			return dateA - dateB;
+		}
+
+		return dateB - dateA;
+	});
+
 	const totalPages =
 		Math.ceil(filteredImages.length / imagesPerPage);
 
@@ -126,6 +145,15 @@ function formatImageDate(dateValue) {
 // -----------------------------------------------------
 // 初期表示
 // -----------------------------------------------------
+
+document.getElementById('imageSortSelect')
+	.addEventListener('change', function() {
+
+		currentPage = 0;
+
+		updateImageList();
+
+	});
 
 loadImageList();
 

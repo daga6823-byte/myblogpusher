@@ -9,16 +9,39 @@
 // -----------------------------------------------------
 
 function getFilteredImages() {
+
 	const category =
 		document.getElementById('imageCategorySelect').value;
 
-	if (category === 'all') {
-		return allImages;
-	}
+	const searchInput =
+		document.getElementById('imageSearchInput');
 
-	return allImages.filter(
-		image => image.folderName === category
-	);
+	const keyword =
+		searchInput ? searchInput.value.trim().toLowerCase() : '';
+
+	return allImages.filter(image => {
+
+		// カテゴリー条件
+		if (
+			category !== 'all'
+			&& image.folderName !== category
+		) {
+			return false;
+		}
+
+		// ファイル名条件
+		if (
+			keyword
+			&& (
+				!image.fileName
+				|| !image.fileName.toLowerCase().includes(keyword)
+			)
+		) {
+			return false;
+		}
+
+		return true;
+	});
 }
 
 // -----------------------------------------------------
@@ -32,4 +55,18 @@ document.getElementById('imageCategorySelect')
 		currentPage = 0;
 
 		updateImageList();
+	});
+
+// -----------------------------------------------------
+// ファイル名検索
+// -----------------------------------------------------
+
+document.getElementById('imageSearchInput')
+	.addEventListener('input', function() {
+
+		// 検索条件変更時は先頭ページへ戻す。
+		currentPage = 0;
+
+		updateImageList();
+
 	});
