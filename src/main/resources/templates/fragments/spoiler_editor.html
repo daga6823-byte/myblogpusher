@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<body>
+
+	<!--
+     * spoiler_editor.html
+     *
+     * ネタバレ入力画面を担当するフラグメント
+     *
+     * ネタバレ内容を専用入力欄へ入力し、
+     * Hugoのspoilerショートコードとして本文へ挿入する。
+     -->
+
+	<div th:fragment="spoilerEditor">
+		<div id="spoilerEditor" style="display:none;">
+
+			<div class="spoiler-editor-box">
+				<span class="spoiler-editor-label">ネタバレ</span>
+				<textarea id="spoilerInput" class="spoiler-input" placeholder="ここにネタバレ内容を入力"></textarea>
+			</div>
+
+			<button type="button" id="insertSpoilerButton" class="btn-save">
+				挿入
+			</button>
+
+			<button type="button" id="cancelSpoilerButton" class="btn-back">
+				キャンセル
+			</button>
+
+		</div>
+	</div>
+
+</body>
+
+</html>
