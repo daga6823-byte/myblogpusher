@@ -1,3 +1,9 @@
+/**
+ * 記事カテゴリーの検索・登録・更新・削除を担当するService
+ *
+ * ArticleCategoryのCRUDと、カテゴリーの親子関係登録を管理する。
+ */
+
 package com.app.myblogpusher.service.Article;
 
 import java.time.LocalDateTime;

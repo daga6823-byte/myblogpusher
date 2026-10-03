@@ -20,6 +20,7 @@ import com.app.myblogpusher.entity.CategoryRelation;
 import com.app.myblogpusher.entity.Article.ArticleCategory;
 import com.app.myblogpusher.repository.CategoryRelationRepository;
 import com.app.myblogpusher.repository.Article.ArticleCategoryRepository;
+import com.app.myblogpusher.service.Article.ArticleWorkService;
 
 @Service
 public class CategoryRelationService {
@@ -29,6 +30,9 @@ public class CategoryRelationService {
 
 	@Autowired
 	private ArticleCategoryRepository articleCategoryRepository;
+
+	@Autowired
+	private ArticleWorkService articleWorkService;
 
 	/**
 	 * カテゴリーと親カテゴリーの関係を登録する。
@@ -92,60 +96,69 @@ public class CategoryRelationService {
 			List<Long> parentCategoryIds,
 			Long userId) {
 
-		if (parentCategoryIds == null || parentCategoryIds.isEmpty()) {
+		if (parentCategoryIds == null || parentCategoryIds.isEmpty())
 			return;
-		}
 
-		ArticleCategory category = articleCategoryRepository
-				.findById(categoryId)
-				.orElseThrow();
+		ArticleCategory category = articleCategoryRepository.findById(categoryId).orElseThrow();
 
 		for (Long parentCategoryId : parentCategoryIds) {
+			ArticleCategory parentCategory = articleCategoryRepository.findById(parentCategoryId).orElseThrow();
+			List<CategoryRelation> parentRelations = categoryRelationRepository.findByCategoryId(parentCategoryId);
 
-			ArticleCategory parentCategory = articleCategoryRepository
-					.findById(parentCategoryId)
-					.orElseThrow();
-
-			List<CategoryRelation> parentRelations = categoryRelationRepository
-					.findByCategoryId(parentCategoryId);
-
-			// 親カテゴリー自身に既存の経路がない場合は、
-			// 「親カテゴリー/子カテゴリー」の経路を作成する。
 			if (parentRelations.isEmpty()) {
 				String categoryPath = parentCategory.getCategoryName()
-						+ "/"
-						+ category.getCategoryName();
+						+ "/" + category.getCategoryName();
 
-				addRelation(
-						categoryId,
-						parentCategoryId,
-						null,
-						categoryPath,
-						userId);
-
+				addRelation(categoryId, parentCategoryId, null, categoryPath, userId);
 				continue;
 			}
 
-			// 親カテゴリーが複数の経路を持つ場合は、
-			// それぞれの経路に子カテゴリーを追加する。
 			for (CategoryRelation parentRelation : parentRelations) {
-
 				String parentPath = parentRelation.getCategoryPath();
-
-				if (parentPath == null || parentPath.isBlank()) {
+				if (parentPath == null || parentPath.isBlank())
 					continue;
-				}
 
 				String categoryPath = parentPath
-						+ "/"
-						+ category.getCategoryName();
+						+ "/" + category.getCategoryName();
 
-				addRelation(
-						categoryId,
-						parentCategoryId,
-						null,
-						categoryPath,
-						userId);
+				addRelation(categoryId, parentCategoryId, null, categoryPath, userId);
+			}
+		}
+	}
+
+	/**
+	 * 非同期で登録されたカテゴリー経路のgroupIdをArticleWorkへ反映する。
+	 *
+	 * CategoryRelationはINSERT時にgroupIdがDBで採番されるため、
+	 * ArticleWork保存時点でgroupIdが未確定の場合に後から設定する。
+	 */
+	@Async
+	public void updateArticleWorkCategoryGroupId(
+			Long workId,
+			Long categoryId) {
+
+		for (int i = 0; i < 20; i++) {
+
+			List<CategoryRelation> relations = categoryRelationRepository.findByCategoryId(categoryId);
+
+			Long groupId = relations.stream()
+					.map(CategoryRelation::getGroupId)
+					.filter(id -> id != null)
+					.findFirst()
+					.orElse(null);
+
+			if (groupId != null) {
+				articleWorkService.updateCategoryGroupId(
+						workId,
+						groupId);
+				return;
+			}
+
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				return;
 			}
 		}
 	}

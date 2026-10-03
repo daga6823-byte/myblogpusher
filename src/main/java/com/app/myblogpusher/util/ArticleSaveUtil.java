@@ -21,6 +21,7 @@ import com.app.myblogpusher.service.Article.ArticleCategoryService;
 import com.app.myblogpusher.service.Article.ArticleFormatService;
 import com.app.myblogpusher.service.Article.ArticleWorkService;
 import com.app.myblogpusher.service.Category.CategoryPathService;
+import com.app.myblogpusher.service.Category.CategoryRelationService;
 
 @Component
 public class ArticleSaveUtil {
@@ -46,6 +47,9 @@ public class ArticleSaveUtil {
 	@Autowired
 	private CategoryPathService categoryPathService;
 
+	@Autowired
+	private CategoryRelationService categoryRelationService;
+
 	public Long doSaveDraft(
 			Long workId,
 			String categorySelect,
@@ -55,11 +59,13 @@ public class ArticleSaveUtil {
 			String content,
 			Long userId) {
 
-		Long categoryGroupId = resolveCategoryGroupId(
+		CategoryResolution categoryResolution = resolveCategory(
 				userId,
 				categorySelect,
 				newCategoryName,
 				newCategoryDisplayName);
+
+		Long categoryGroupId = categoryResolution.groupId();
 
 		String formattedContent = articleFormatService.formatContent(content);
 
@@ -84,13 +90,21 @@ public class ArticleSaveUtil {
 				return existing.get().getWorkId();
 			}
 
-			return articleWorkService.insertArticleWork(
+			Long savedWorkId = articleWorkService.insertArticleWork(
 					userId,
 					null,
 					categoryGroupId,
 					title,
 					formattedContent,
 					slug);
+
+			if (categoryResolution.groupIdPending()) {
+				categoryRelationService.updateArticleWorkCategoryGroupId(
+						savedWorkId,
+						categoryResolution.categoryId());
+			}
+
+			return savedWorkId;
 
 		} else {
 
@@ -102,18 +116,23 @@ public class ArticleSaveUtil {
 					userId,
 					slug);
 
+			if (categoryResolution.groupIdPending()) {
+				categoryRelationService.updateArticleWorkCategoryGroupId(
+						workId,
+						categoryResolution.categoryId());
+			}
+
 			return workId;
 		}
 	}
 
 	/**
-	 * categorySelectを解釈してcategoryGroupIdを返す。
+	 * カテゴリー選択値を解決する。
 	 *
-	 * 既存カテゴリーの場合は、画面から渡されたcategoryPathから
-	 * CategoryRelationを検索してgroupIdを取得する。
-	 * "__new__"の場合は新規カテゴリーを作成する。
+	 * 新規カテゴリーの場合はCategoryRelationの登録が非同期になるため、
+	 * groupIdがまだ存在しない場合はArticleWorkを先に保存できるようにする。
 	 */
-	private Long resolveCategoryGroupId(
+	private CategoryResolution resolveCategory(
 			Long userId,
 			String categorySelect,
 			String newCategoryName,
@@ -151,25 +170,51 @@ public class ArticleSaveUtil {
 					userId,
 					newCategoryPath);
 
+			// CategoryRelationは非同期登録のため、
+			// まだgroupIdが採番されていない場合はArticleWorkを先に保存する。
 			if (groupId == null) {
-				throw new IllegalArgumentException(
-						"新規カテゴリーのカテゴリー経路からgroupIdを取得できません: "
-								+ newCategoryPath);
+				return new CategoryResolution(
+						null,
+						categoryId,
+						true);
 			}
 
-			return groupId;
+			return new CategoryResolution(
+					groupId,
+					categoryId,
+					false);
 		}
 
 		if (categorySelect == null || categorySelect.isBlank()) {
-			return null;
+			return new CategoryResolution(
+					null,
+					null,
+					false);
 		}
 
-		return categoryRelationRepository
+		Long groupId = categoryRelationRepository
 				.findByCategoryPath(categorySelect)
 				.stream()
 				.findFirst()
 				.map(relation -> relation.getGroupId())
 				.orElseThrow();
+
+		return new CategoryResolution(
+				groupId,
+				null,
+				false);
+	}
+
+	/**
+	 * カテゴリー解決結果を保持する。
+	 *
+	 * groupIdがまだ採番されていない場合は、
+	 * ArticleWork保存後に非同期でgroupIdを反映する。
+	 */
+	private record CategoryResolution(
+			Long groupId,
+			Long categoryId,
+			boolean groupIdPending) {
 	}
 
 	@Transactional
