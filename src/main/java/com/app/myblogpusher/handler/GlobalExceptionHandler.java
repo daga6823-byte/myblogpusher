@@ -32,7 +32,8 @@ public class GlobalExceptionHandler {
 		System.out.println("message = " + e.getMessage());
 
 		model.addAttribute("errorMessage",
-				"必要なパラメータが送信されていないため、処理を続行できませんでした。");
+				"必要なパラメータ「" + e.getParameterName()
+						+ "」が送信されていないため、処理を続行できませんでした。");
 
 		return "error";
 	}

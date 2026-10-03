@@ -1,3 +1,10 @@
+/**
+ * 誤字辞書の一覧表示・登録・更新・削除を担当するController
+ *
+ * 誤字辞書画面からの操作を受け付け、
+ * TypoCorrectionServiceへ処理を委譲する。
+ */
+
 package com.app.myblogpusher.controller;
 
 import java.util.List;

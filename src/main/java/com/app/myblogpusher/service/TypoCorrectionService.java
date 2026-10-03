@@ -1,3 +1,10 @@
+/**
+ * 誤字辞書の検索・登録・更新・削除を担当するService
+ *
+ * 添削画面で使用する誤字パターンの検出と、
+ * 誤字辞書データの登録・更新・削除を管理する。
+ */
+
 package com.app.myblogpusher.service;
 
 import java.time.LocalDateTime;

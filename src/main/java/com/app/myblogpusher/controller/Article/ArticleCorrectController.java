@@ -1,3 +1,10 @@
+/**
+ * 記事の添削画面と誤字・校正チェックを担当するController
+ *
+ * 添削画面の表示、誤字辞書への登録、
+ * LanguageToolによる校正チェックおよび誤字チェックを処理する。
+ */
+
 package com.app.myblogpusher.controller.Article;
 
 import java.util.ArrayList;
