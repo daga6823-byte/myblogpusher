@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import com.app.myblogpusher.entity.CategoryRelation;
@@ -43,11 +44,11 @@ public class CategoryRelationService {
 			Long userId) {
 
 		if (categoryRelationRepository
-		        .existsByCategoryIdAndParentCategoryIdAndCategoryPath(
-		                categoryId,
-		                parentCategoryId,
-		                categoryPath)) {
-		    return;
+				.existsByCategoryIdAndParentCategoryIdAndCategoryPath(
+						categoryId,
+						parentCategoryId,
+						categoryPath)) {
+			return;
 		}
 
 		// 同じカテゴリー・親カテゴリー・カテゴリー経路が
@@ -85,6 +86,7 @@ public class CategoryRelationService {
 	 * 親カテゴリーが持つすべてのcategory_pathを基準に、
 	 * 子カテゴリーを追加した経路を生成する。
 	 */
+	@Async
 	public void addCategoryRelations(
 			Long categoryId,
 			List<Long> parentCategoryIds,
