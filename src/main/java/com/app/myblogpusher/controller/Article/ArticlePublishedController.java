@@ -102,31 +102,90 @@ public class ArticlePublishedController {
 				userId,
 				hugoPath);
 
-		if (article == null) {
-			return "redirect:/article/published";
-		}
-
-		Optional<ArticleWork> existing = articleWorkService.findByArticleId(
-				article.getArticleId());
-
 		Long workId;
 
-		if (existing.isPresent()) {
+		if (article != null) {
 
-			workId = existing.get().getWorkId();
+			Optional<ArticleWork> existing = articleWorkService.findByArticleId(
+					article.getArticleId());
+
+			if (existing.isPresent()) {
+
+				workId = existing.get().getWorkId();
+
+			} else {
+
+				workId = articleWorkService.insertArticleWork(
+						userId,
+						article.getArticleId(),
+						article.getCategoryGroupId(),
+						article.getTitle(),
+						article.getContent(),
+						article.getSlug());
+			}
 
 		} else {
 
+			/*
+			 * Articleテーブルに存在しない記事でも、
+			 * GitHub上に存在する記事なら編集画面へ入れるようにする。
+			 *
+			 * 同期時にカテゴリー解決に失敗した記事を想定している。
+			 * この段階ではArticleを新規作成せず、
+			 * GitHubの記事内容をArticleWorkへ退避して編集を開始する。
+			 */
+			UserRepositoryEntity repo = userRepositoryRepository
+					.findByUserId(userId)
+					.orElseThrow();
+
+			String cipherKey = loginUser.getCipherKey();
+
+			com.app.myblogpusher.dto.Publish.PublishedArticleDto githubArticle;
+
+			try {
+
+				githubArticle = gitHubArticleService.getPublishedArticle(
+						repo,
+						cipherKey,
+						null,
+						hugoPath);
+
+			} catch (IOException e) {
+
+				System.err.println(
+						"GitHubから投稿済み記事の取得に失敗しました: "
+								+ e.getMessage());
+
+				return "redirect:/article/published";
+			}
+
+			if (githubArticle == null) {
+				return "redirect:/article/published";
+			}
+
 			workId = articleWorkService.insertArticleWork(
 					userId,
-					article.getArticleId(),
-					article.getCategoryGroupId(),
-					article.getTitle(),
-					article.getContent(),
-					article.getSlug());
+					null,
+					null,
+					githubArticle.getTitle(),
+					githubArticle.getContent(),
+					githubArticle.getSlug());
 		}
 
-		return "redirect:/article/edit?workId=" + workId;
+		String categoryPath = hugoPath;
+
+		int lastSlash = hugoPath.lastIndexOf("/");
+
+		if (lastSlash > 0) {
+			categoryPath = hugoPath.substring(0, lastSlash);
+		}
+
+		return "redirect:/article/edit?workId="
+				+ workId
+				+ "&categoryPath="
+				+ java.net.URLEncoder.encode(
+						categoryPath,
+						java.nio.charset.StandardCharsets.UTF_8);
 	}
 
 	@PostMapping("/article/published/delete")
