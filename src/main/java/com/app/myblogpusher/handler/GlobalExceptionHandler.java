@@ -35,6 +35,11 @@ public class GlobalExceptionHandler {
 				"必要なパラメータ「" + e.getParameterName()
 						+ "」が送信されていないため、処理を続行できませんでした。");
 
+		model.addAttribute("errorReason",
+				"不足しているパラメータ: " + e.getParameterName());
+
+		model.addAttribute("errorReason", e.getMessage());
+
 		return "error";
 	}
 
@@ -59,6 +64,8 @@ public class GlobalExceptionHandler {
 		model.addAttribute("errorMessage",
 				"エラーが発生しました。時間をおいて再度お試しください。"
 						+ "解決しない場合は管理者にお問い合わせください。");
+
+		model.addAttribute("errorReason", e.getMessage());
 
 		return "error";
 	}

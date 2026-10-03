@@ -18,6 +18,11 @@
 			解決しない場合は管理者にお問い合わせください。
 		</p>
 
+		<div th:if="${errorReason}" class="error-reason">
+			<strong>エラー原因：</strong>
+			<pre th:text="${errorReason}"></pre>
+		</div>
+
 		<div class="button-row">
 			<button type="button" class="btn-back" onclick="history.back();">
 				戻る
