@@ -25,7 +25,7 @@ function convertLocalDate() {
 
 			const date =
 				new Date(
-					element.dataset.date + 'Z'
+					element.dataset.date
 				);
 
 			if (isNaN(date.getTime())) {
@@ -89,7 +89,7 @@ function getUpdateDate(row) {
 
 	const date =
 		new Date(
-			dateElement.dataset.date + 'Z'
+			dateElement.dataset.date
 		);
 
 	return isNaN(date.getTime())
