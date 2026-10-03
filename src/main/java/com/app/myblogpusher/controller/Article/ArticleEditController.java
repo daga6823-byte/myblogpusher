@@ -76,6 +76,7 @@ public class ArticleEditController {
 	@GetMapping("/article/edit")
 	public String editForm(@RequestParam(required = false) Long workId,
 			@RequestParam(required = false) Boolean saved,
+			@RequestParam(required = false) String categoryPath,
 			HttpSession session,
 			Model model) {
 
@@ -106,10 +107,16 @@ public class ArticleEditController {
 			model.addAttribute("work", work);
 			model.addAttribute("categoryGroupId", work.getCategoryGroupId());
 
-			// 現在選択されているカテゴリー経路を取得する。
-			// categoryGroupIdはCategoryRelation.groupIdを指す。
-			String categoryPath = categorySelectionService
-					.findCategoryPathByGroupId(work.getCategoryGroupId());
+			// 保存直後は非同期でgroupIdがまだ設定されていない場合がある。
+			// その場合は保存時点で保持したカテゴリー経路をそのまま使用する。
+			if (categoryPath == null || categoryPath.isBlank()) {
+
+				if (work.getCategoryGroupId() != null) {
+
+					categoryPath = categorySelectionService
+							.findCategoryPathByGroupId(work.getCategoryGroupId());
+				}
+			}
 
 			model.addAttribute("categoryPath", categoryPath);
 
@@ -284,7 +291,22 @@ public class ArticleEditController {
 		// 下書き保存後は一時ワークスペースを削除
 		workspaceService.delete(userId);
 
-		return "redirect:/article/edit?workId=" + savedWorkId + "&saved=true";
+		String savedCategoryPath = categorySelect;
+
+		if (newCategoryName != null && !newCategoryName.isBlank()) {
+			savedCategoryPath = categorySelect == null
+					|| categorySelect.isBlank()
+							? newCategoryName
+							: categorySelect + "/" + newCategoryName;
+		}
+
+		return "redirect:/article/edit?workId="
+				+ savedWorkId
+				+ "&saved=true"
+				+ "&categoryPath="
+				+ java.net.URLEncoder.encode(
+						savedCategoryPath,
+						java.nio.charset.StandardCharsets.UTF_8);
 	}
 
 	@PostMapping("/article/workspace/save")
