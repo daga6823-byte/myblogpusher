@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 public class SentenceFormatService {
 
 	private static final String PARAGRAPH_BREAK_TRIGGER = "さて";
-	private static final String SENTENCE_END_CHARS = "。？！";
+	private static final String SENTENCE_END_CHARS = "。";
 	private static final String CLOSING_BRACKET_CHARS = "」』";
 
 	/**

@@ -111,16 +111,20 @@ export function loadImageFolders() {
 
 			select.appendChild(none);
 
-			folders.forEach(folder => {
+			folders
+				.sort((a, b) => a.localeCompare(b, 'ja'))
+				.forEach(folder => {
 
-				const option =
-					document.createElement('option');
+					const option =
+						document.createElement('option');
 
-				option.value = folder;
-				option.textContent = folder;
+					option.value = folder;
 
-				select.appendChild(option);
-			});
+					option.textContent = folder;
+
+					select.appendChild(option);
+
+				});
 
 			const newOption =
 				document.createElement('option');
