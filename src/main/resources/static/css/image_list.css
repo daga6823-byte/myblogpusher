@@ -35,15 +35,17 @@
 .image-search-icon {
 	position: absolute;
 	left: 8px;
+	top: 50%;
+	transform: translateY(-50%);
 	font-size: 13px;
+	line-height: 1;
 	pointer-events: none;
 }
 
 #imageSearchInput {
 	width: 160px;
-	height: 30px;
 	box-sizing: border-box;
-	padding: 4px 8px 4px 26px;
+	padding: 6px 8px 6px 26px;
 	font-size: 13px;
 	border: 1px solid #ccc;
 	border-radius: 4px;
