@@ -24,25 +24,22 @@
 	font-size: 13px;
 }
 
-/* ファイル名検索：虫眼鏡アイコンを入力欄内の左側に重ねる */
+/* ファイル名検索：虫眼鏡アイコン＋入力欄（画像モーダルと同じ構造） */
 .image-search-label {
-	position: relative;
 	display: inline-flex;
 	align-items: center;
+	gap: 5px;
 }
 
 .image-search-icon {
-	position: absolute;
-	left: 8px;
-	font-size: 13px;
-	pointer-events: none;
-	color: #999;
+	font-size: 16px;
 }
 
 #imageSearchInput {
 	width: 160px;
+	height: 30px;
 	box-sizing: border-box;
-	padding: 0 8px 0 26px;
+	padding: 4px 8px;
 	font-size: 13px;
 	border: 1px solid #ccc;
 	border-radius: 4px;
