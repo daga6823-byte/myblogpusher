@@ -172,39 +172,46 @@ function loadArticleLinkList(articles) {
 
 	}
 
-	filteredArticleLinks.forEach(article => {
+	filteredArticleLinks
+		.sort((a, b) =>
+			a.title.localeCompare(
+				b.title,
+				'ja'
+			)
+		)
+		.forEach(article => {
 
-		const button =
-			document.createElement('button');
+			const button =
+				document.createElement('button');
 
-		button.type = 'button';
+			button.type = 'button';
 
-		button.className =
-			'article-link-item';
+			button.className =
+				'article-link-item';
 
-		button.textContent =
-			article.title;
-
-		button.addEventListener('click', function() {
-
-			selectedArticleLink =
-				article;
-
-			document.getElementById(
-				'articleLinkText'
-			).value =
+			button.textContent =
 				article.title;
 
-			document.getElementById(
-				'articleLinkUrl'
-			).value =
-				article.hugoPath;
+			button.addEventListener('click', function() {
+
+				selectedArticleLink =
+					article;
+
+				document.getElementById(
+					'articleLinkText'
+				).value =
+					article.title;
+
+				document.getElementById(
+					'articleLinkUrl'
+				).value =
+					article.hugoPath;
+
+			});
+
+			list.appendChild(button);
 
 		});
-
-		list.appendChild(button);
-
-	});
 
 }
 
@@ -242,25 +249,27 @@ function loadArticleLinkCategory() {
 
 	select.appendChild(allOption);
 
-	window.linkCategories.forEach(category => {
+	window.linkCategories
+		.sort((a, b) =>
+			a.categoryPath.localeCompare(
+				b.categoryPath,
+				'ja'
+			)
+		)
+		.forEach(category => {
 
-		const option =
+			const option =
+				document.createElement('option');
 
-			document.createElement('option');
+			// リンク検索APIにはgroupIdを渡す。
+			option.value =
+				category.groupId;
 
-		// リンク検索APIにはgroupIdを渡す。
+			option.textContent =
+				category.categoryPath;
 
-		option.value =
-
-			category.groupId;
-
-		option.textContent =
-
-			category.categoryPath;
-
-		select.appendChild(option);
-
-	});
+			select.appendChild(option);
+		});
 
 	// 現在の記事と同じgroupIdを初期選択する。
 	// groupIdが存在しない場合は先頭を勝手に選択しない。

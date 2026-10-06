@@ -1,6 +1,56 @@
 /* 下書き一覧テーブル：投稿済み記事一覧と同じく、
    common.cssのtable/th/tdのみに委ねる（table-layoutや列幅指定は行わない） */
 
+/* -----------------------------------------------------
+   画像一覧操作
+   ----------------------------------------------------- */
+
+/* 一覧操作と画像操作を左右に分ける。 */
+.image-list-controls {
+
+	display: flex;
+
+	justify-content: space-between;
+
+	align-items: center;
+
+	gap: 15px;
+
+	margin-bottom: 15px;
+
+}
+
+/* カテゴリー・検索・ソートをまとめる。 */
+.image-list-filters {
+
+	display: flex;
+
+	align-items: center;
+
+	gap: 8px;
+
+}
+
+/* 新規登録・インポートをまとめる。 */
+.image-list-actions {
+
+	display: flex;
+
+	align-items: center;
+
+	gap: 8px;
+
+}
+
+/* 画像一覧専用のアクションボタン。 */
+.image-list-actions button {
+
+	padding: 5px 10px;
+
+	font-size: 14px;
+
+}
+
 /* 一覧操作 */
 .list-controls {
 	display: flex;
@@ -68,6 +118,29 @@
 		flex: 1;
 
 		min-width: 0;
+
+	}
+
+	/* 画像一覧操作を縦方向に並べる。 */
+	.image-list-controls {
+
+		flex-direction: column;
+
+		align-items: stretch;
+
+	}
+
+	/* フィルター項目を画面幅に合わせる。 */
+	.image-list-filters {
+
+		flex-wrap: wrap;
+
+	}
+
+	/* アクションボタンを横並びで維持する。 */
+	.image-list-actions {
+
+		flex-wrap: wrap;
 
 	}
 

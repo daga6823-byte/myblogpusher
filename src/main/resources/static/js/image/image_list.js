@@ -51,18 +51,42 @@ function updateImageList() {
 		document.getElementById('imageSortSelect');
 
 	const sortType =
-		sortSelect ? sortSelect.value : 'dateDesc';
+		sortSelect ? sortSelect.value : 'nameAsc';
 
 	filteredImages.sort((a, b) => {
 
-		const dateA = new Date(a.uploadDate).getTime();
-		const dateB = new Date(b.uploadDate).getTime();
+		if (sortType === 'nameAsc') {
+
+			return a.fileName.localeCompare(
+				b.fileName,
+				'ja'
+			);
+
+		}
+
+		if (sortType === 'nameDesc') {
+
+			return b.fileName.localeCompare(
+				a.fileName,
+				'ja'
+			);
+
+		}
+
+		const dateA =
+			new Date(a.uploadDate).getTime();
+
+		const dateB =
+			new Date(b.uploadDate).getTime();
 
 		if (sortType === 'dateAsc') {
+
 			return dateA - dateB;
+
 		}
 
 		return dateB - dateA;
+
 	});
 
 	const totalPages =

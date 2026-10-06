@@ -33,34 +33,46 @@
 
 		<h1>登録済み画像</h1>
 
-		<div>
+		<div class="image-list-controls">
 
-			<!-- カテゴリー絞り込み -->
-			<select id="imageCategorySelect">
-				<option value="all">全カテゴリー</option>
-				<option th:each="c : ${imageCategories}" th:value="${c.folderName}" th:text="${c.folderName}"
-					th:selected="${c.folderName == selectedFolderName}">
-				</option>
-			</select>
+			<!-- 一覧絞り込み・ソート -->
+			<div class="image-list-filters">
 
-			<!-- ファイル名検索 -->
-			<input type="text" id="imageSearchInput" placeholder="ファイル名を検索">
+				<!-- カテゴリー絞り込み -->
+				<select id="imageCategorySelect">
+					<option value="all">全カテゴリー</option>
+					<option th:each="c : ${imageCategories}" th:value="${c.folderName}" th:text="${c.folderName}"
+						th:selected="${c.folderName == selectedFolderName}">
+					</option>
+				</select>
 
-			<!-- 日時ソート -->
-			<select id="imageSortSelect">
-				<option value="dateDesc">登録日時 ↓</option>
-				<option value="dateAsc">登録日時 ↑</option>
-			</select>
+				<!-- ファイル名検索 -->
+				<input type="text" id="imageSearchInput" placeholder="ファイル名を検索">
 
-			<!-- 新規画像登録 -->
-			<button type="button" id="newImageButton" class="btn-save">
-				新規画像登録
-			</button>
+				<!-- 一覧ソート -->
+				<select id="imageSortSelect">
+					<option value="nameAsc">ファイル名 ↑</option>
+					<option value="nameDesc">ファイル名 ↓</option>
+					<option value="dateDesc">登録日時 ↓</option>
+					<option value="dateAsc">登録日時 ↑</option>
+				</select>
 
-			<!-- Supabase画像インポート -->
-			<button type="button" id="importButton" class="btn-back">
-				Supabaseから未登録画像をインポート
-			</button>
+			</div>
+
+			<!-- 画像操作 -->
+			<div class="image-list-actions">
+
+				<!-- 新規画像登録 -->
+				<button type="button" id="newImageButton" class="btn-save">
+					新規画像登録
+				</button>
+
+				<!-- Supabase画像インポート -->
+				<button type="button" id="importButton" class="btn-back">
+					Supabaseから未登録画像をインポート
+				</button>
+
+			</div>
 
 		</div>
 
