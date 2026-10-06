@@ -1,3 +1,61 @@
+/* -----------------------------------------------------
+   絞り込み・ソート・操作ボタンの配置
+   ----------------------------------------------------- */
+
+.image-list-controls {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	margin-bottom: 16px;
+}
+
+/* カテゴリー・ファイル名検索・ソートを横並びにする */
+.image-list-filters {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex-wrap: wrap;
+}
+
+.image-list-filters select {
+	padding: 6px 8px;
+	font-size: 13px;
+}
+
+/* ファイル名検索：虫眼鏡アイコン＋入力欄 */
+.image-search-label {
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+}
+
+.image-search-icon {
+	font-size: 14px;
+}
+
+#imageSearchInput {
+	width: 160px;
+	height: 30px;
+	box-sizing: border-box;
+	padding: 4px 8px;
+	font-size: 13px;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+}
+
+/* 新規登録・インポートボタンを小さめに抑える */
+.image-list-actions {
+	display: flex;
+	gap: 8px;
+}
+
+.image-list-actions button {
+	padding: 6px 12px;
+	font-size: 13px;
+}
+
 .image-list {
 	display: grid;
 	grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
