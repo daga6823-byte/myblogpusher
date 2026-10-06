@@ -33,15 +33,12 @@ document.getElementById('addTypoButton')?.addEventListener('click', () => {
 				document.getElementById('newWrongWord').value = '';
 				document.getElementById('newCorrectWord').value = '';
 
-				const form = document.querySelector('form');
-
 				// 現在のカテゴリー選択状態をhidden inputへ反映してから再表示する。
 				updateCategoryPath();
 
-				form.action = '/article/correct';
-				console.log('correctへ戻ります');
-				console.log(form.action);
-				form.submit();
+				// 記事編集フォームを取得し、添削画面へ再送信する。
+				// title、content、workIdなどの共通項目はフォーム自身から送信される。
+				ArticleEditor.submitTo('/article/correct');
 			} else if (data.result === 'duplicate') {
 				alert(data.message);
 			}

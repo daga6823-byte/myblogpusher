@@ -16,12 +16,67 @@ const REPEAT_START_DELAY = 400;
 // オートリピート中の移動間隔（ms）
 const REPEAT_INTERVAL = 80;
 
+// 操作終了からキーボードを復帰させるまでの待機時間（ms）
+const KEYBOARD_RESUME_DELAY = 250;
+
+let isPadActive = false;
+let keyboardResumeTimeoutId = null;
+
+/**
+ * 十字キー操作を開始する。
+ *
+ * textareaをreadOnlyにしてキーボードを閉じたままにし、
+ * 選択範囲の操作だけ行えるようにする。
+ */
+function beginPadInteraction() {
+
+	if (keyboardResumeTimeoutId !== null) {
+		clearTimeout(keyboardResumeTimeoutId);
+		keyboardResumeTimeoutId = null;
+	}
+
+	if (!isPadActive) {
+
+		isPadActive = true;
+
+		cursorPadTextarea.readOnly = true;
+
+		cursorPadTextarea.focus();
+
+	}
+
+}
+
+/**
+ * 十字キー操作を終える。
+ *
+ * 一定時間操作がなければreadOnlyを解除し、
+ * キーボードを復帰させる。
+ */
+function endPadInteraction() {
+
+	if (keyboardResumeTimeoutId !== null) {
+		clearTimeout(keyboardResumeTimeoutId);
+	}
+
+	keyboardResumeTimeoutId = setTimeout(() => {
+
+		isPadActive = false;
+
+		cursorPadTextarea.readOnly = false;
+
+		cursorPadTextarea.focus();
+
+		keyboardResumeTimeoutId = null;
+
+	}, KEYBOARD_RESUME_DELAY);
+
+}
+
 /**
  * 左へ1文字移動する。
  */
 function moveCursorLeft() {
-
-	cursorPadTextarea.focus();
 
 	const position = cursorPadTextarea.selectionStart;
 
@@ -37,8 +92,6 @@ function moveCursorLeft() {
  * 右へ1文字移動する。
  */
 function moveCursorRight() {
-
-	cursorPadTextarea.focus();
 
 	const position = cursorPadTextarea.selectionStart;
 
@@ -56,8 +109,6 @@ function moveCursorRight() {
  * @param {number} direction -1で上、1で下
  */
 function moveCursorVertically(direction) {
-
-	cursorPadTextarea.focus();
 
 	const position = cursorPadTextarea.selectionStart;
 	const text = cursorPadTextarea.value;
@@ -162,6 +213,8 @@ function setupCursorRepeatButton(button, moveAction) {
 
 		event.preventDefault();
 
+		beginPadInteraction();
+
 		// タップ・長押し共通で、押した瞬間に1回移動する。
 		moveAction();
 
@@ -178,9 +231,17 @@ function setupCursorRepeatButton(button, moveAction) {
 
 	});
 
-	button.addEventListener('pointerup', stopRepeat);
-	button.addEventListener('pointerleave', stopRepeat);
-	button.addEventListener('pointercancel', stopRepeat);
+	function handleRelease() {
+
+		stopRepeat();
+
+		endPadInteraction();
+
+	}
+
+	button.addEventListener('pointerup', handleRelease);
+	button.addEventListener('pointerleave', handleRelease);
+	button.addEventListener('pointercancel', handleRelease);
 
 }
 
