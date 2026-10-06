@@ -64,6 +64,15 @@ document.getElementById('imageCategorySelect')
 document.getElementById('imageSearchInput')
 	.addEventListener('input', function() {
 
+		// 文字が入力されている間は虫眼鏡アイコンを隠す。
+		const searchIcon =
+			document.getElementById('imageSearchIcon');
+
+		if (searchIcon) {
+			searchIcon.style.display =
+				this.value.length > 0 ? 'none' : '';
+		}
+
 		// 検索条件変更時は先頭ページへ戻す。
 		currentPage = 0;
 
