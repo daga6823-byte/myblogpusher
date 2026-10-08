@@ -67,6 +67,8 @@ function createCategorySelect(parentCategoryId) {
 
 			option.value = category.categoryId;
 
+			option.dataset.categoryName = category.categoryName;
+
 			option.textContent = getCategoryDisplayName(category);
 
 			select.appendChild(option);
@@ -242,6 +244,8 @@ function initializeCategorySelectors() {
 			const option = document.createElement('option');
 
 			option.value = category.categoryId;
+
+			option.dataset.categoryName = category.categoryName;
 
 			option.textContent = getCategoryDisplayName(category);
 

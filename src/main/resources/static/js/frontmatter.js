@@ -68,7 +68,7 @@ function getSelectedCategoryLabel() {
 		const option = select.options[select.selectedIndex];
 
 		if (option) {
-			selectedCategoryName = option.value.trim();
+			selectedCategoryName = option.dataset.categoryName;
 		}
 	});
 
