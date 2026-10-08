@@ -14,6 +14,20 @@
 
 		<div class="preview-section">
 			<h2 th:text="${form.articleTitle}"></h2>
+
+			<div class="thumbnail-section">
+				<h3>サムネイル</h3>
+
+				<img th:if="${form.thumbnailUrl != null}" id="thumbnailPreview" th:src="${form.thumbnailUrl}"
+					alt="サムネイル" style="max-width:300px; max-height:200px;">
+
+				<input type="hidden" id="thumbnailUrl" name="thumbnailUrl" th:value="${form.thumbnailUrl}">
+
+				<button type="button" id="thumbnailSelectButton">
+					サムネイルを選択
+				</button>
+			</div>
+
 			<p class="repo-info">
 				リポジトリ：<span th:text="${form.repoOwner}"></span> / <span th:text="${form.repoName}"></span>
 			</p>
@@ -32,6 +46,7 @@
 				<input type="hidden" name="content" th:value="${form.articleContent}">
 				<input type="hidden" name="categoryId" th:value="${form.categoryId}">
 				<input type="hidden" id="slugHidden" name="slug" th:value="${form.slug}">
+				<input type="hidden" id="thumbnailUrl" name="thumbnailUrl" th:value="${form.thumbnailUrl}">
 				<button id="publishButton" type="submit" class="btn-publish">
 					投稿
 				</button>
@@ -88,7 +103,10 @@
 
 	<div th:if="${error}" th:text="${error}"></div>
 
-	<script th:src="@{/js/publish_preview.js}"></script>
+	<script type="module" th:src="@{/js/publish_preview.js}"></script>
+
+	<div th:replace="~{fragments/image_modal :: imageModal}"></div>
+
 </body>
 
 </html>

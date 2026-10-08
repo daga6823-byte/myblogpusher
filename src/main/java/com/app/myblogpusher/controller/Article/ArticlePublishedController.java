@@ -19,8 +19,8 @@ import com.app.myblogpusher.repository.UserRepositoryRepository;
 import com.app.myblogpusher.service.Article.ArticleService;
 import com.app.myblogpusher.service.Article.ArticleWorkService;
 import com.app.myblogpusher.service.Category.CategoryPathService;
+import com.app.myblogpusher.service.Facade.ImageAssetFacadeService;
 import com.app.myblogpusher.service.Github.GitHubArticleService;
-import com.app.myblogpusher.service.Image.ImageAssetService;
 
 import jakarta.servlet.http.HttpSession;
 
@@ -38,7 +38,7 @@ public class ArticlePublishedController {
 	private ArticleService articleService;
 
 	@Autowired
-	private ImageAssetService imageAssetService;
+	private ImageAssetFacadeService imageAssetFacadeService;
 
 	@Autowired
 	private GitHubArticleService gitHubArticleService;
@@ -84,7 +84,7 @@ public class ArticlePublishedController {
 
 		model.addAttribute(
 				"imageCategories",
-				imageAssetService.findImageCategories(userId));
+				imageAssetFacadeService.findImageCategories(userId));
 
 		return "article/article_published_list";
 	}

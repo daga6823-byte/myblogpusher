@@ -15,7 +15,6 @@ import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
-
 @Getter
 @Setter
 @Entity
@@ -41,6 +40,9 @@ public class Article {
 
 	@Column(name = "hugo_path", nullable = false)
 	private String hugoPath;
+
+	@Column(name = "thumbnail_url")
+	private String thumbnailUrl;
 
 	@Column(name = "content", nullable = false, columnDefinition = "TEXT")
 	private String content;

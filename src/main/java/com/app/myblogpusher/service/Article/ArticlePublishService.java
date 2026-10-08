@@ -43,9 +43,11 @@ public class ArticlePublishService {
 	 */
 	@Async
 	public void publishAsync(
-			UserRepositoryEntity repository,
-			String cipherKey,
-			Long userId) {
+	        UserRepositoryEntity repo,
+	        String cipherKey,
+	        Long userId,
+	        Long workId,
+	        String thumbnailUrl) {		
 
 		List<ArticleWork> works = articleWorkService.findPublishing(userId);
 
@@ -63,7 +65,7 @@ public class ArticlePublishService {
 
 				// GitHub APIで投稿可能か確認する
 				if (!gitHubPushService.canPublish(
-						repository,
+						repo,
 						cipherKey)) {
 
 					articleWorkService.updateStatus(
@@ -96,11 +98,12 @@ public class ArticlePublishService {
 				article.setSlug(work.getSlug());
 				article.setHugoPath(hugoPath);
 				article.setContent(work.getContent());
+				article.setThumbnailUrl(thumbnailUrl);
 
 				// GitHub投稿を実行する
 				// この時点ではArticleテーブルには保存しない
 				gitHubPushService.pushArticle(
-						repository,
+						repo,
 						cipherKey,
 						article,
 						existingArticle,
@@ -111,8 +114,9 @@ public class ArticlePublishService {
 				// Articleの重複整理、PUBLISHEDへの変更、Work削除まで
 				// DBトランザクション内でまとめて実行する。
 				articleService.completePublish(
-						work,
-						work.getSlug());
+				        work,
+				        work.getSlug(),
+				        thumbnailUrl);
 
 			} catch (Exception e) {
 				System.err.println(

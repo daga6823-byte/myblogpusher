@@ -101,3 +101,50 @@ document.querySelectorAll('[id^="converted_"]')
 		input.addEventListener('input', updateSlug);
 
 	});
+
+import { imageState } from './image_state.js';
+import { loadImageFolders, loadImageCategories } from './image_folders.js';
+import { loadImageList } from './image_gallery.js';
+
+/**
+ * サムネイル選択モーダルを開く
+ *
+ * 既存の画像一覧をサムネイル選択用として使用する。
+ */
+const thumbnailSelectButton =
+	document.getElementById('thumbnailSelectButton');
+
+if (thumbnailSelectButton) {
+
+	thumbnailSelectButton.addEventListener(
+		'click',
+		function() {
+
+			imageState.thumbnailMode = true;
+			imageState.insertPosition = null;
+			imageState.folderName = null;
+			imageState.searchKeyword = '';
+			imageState.sortType = 'dateDesc';
+			imageState.page = 0;
+
+			const searchInput =
+				document.getElementById('imageSearchInput');
+
+			if (searchInput) {
+				searchInput.value = '';
+			}
+
+			const sortSelect =
+				document.getElementById('imageSortSelect');
+
+			if (sortSelect) {
+				sortSelect.value = 'dateDesc';
+			}
+
+			loadImageFolders();
+			loadImageCategories();
+			loadImageList();
+
+			document.getElementById('imageModal').style.display = 'block';
+		});
+}

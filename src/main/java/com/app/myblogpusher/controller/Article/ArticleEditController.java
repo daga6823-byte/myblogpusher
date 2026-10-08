@@ -34,7 +34,7 @@ import com.app.myblogpusher.service.Article.ArticleWorkService;
 import com.app.myblogpusher.service.Article.ArticleWorkspaceService;
 import com.app.myblogpusher.service.Category.CategoryPathService;
 import com.app.myblogpusher.service.Category.CategorySelectionService;
-import com.app.myblogpusher.service.Image.ImageAssetService;
+import com.app.myblogpusher.service.Facade.ImageAssetFacadeService;
 import com.app.myblogpusher.util.ArticleSaveUtil;
 
 import jakarta.servlet.http.HttpSession;
@@ -55,7 +55,7 @@ public class ArticleEditController {
 	private ArticleSaveUtil articleSaveUtil;
 
 	@Autowired
-	private ImageAssetService imageAssetService;
+	private ImageAssetFacadeService imageAssetFacadeService;
 
 	@Autowired
 	private ArticleRepository articleRepository;
@@ -96,7 +96,7 @@ public class ArticleEditController {
 		// 登録済み画像の保存先フォルダ一覧を取得
 		model.addAttribute(
 				"imageFolders",
-				imageAssetService.findImageCategories(userId));
+				imageAssetFacadeService.findImageCategories(userId));
 
 		ArticleWork work = null;
 

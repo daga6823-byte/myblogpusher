@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.app.myblogpusher.dto.ImageAssetView;
 import com.app.myblogpusher.entity.UserMaster;
-import com.app.myblogpusher.service.Image.ImageAssetService;
+import com.app.myblogpusher.service.Facade.ImageAssetFacadeService;
 
 import jakarta.servlet.http.HttpSession;
 
@@ -28,7 +28,7 @@ import jakarta.servlet.http.HttpSession;
 public class ImageManageController {
 
 	@Autowired
-	private ImageAssetService imageAssetService;
+	private ImageAssetFacadeService imageAssetFacadeService;
 
 	/**
 	 * 登録済み画像一覧表示
@@ -49,13 +49,13 @@ public class ImageManageController {
 
 		Pageable pageable = PageRequest.of(page, size);
 
-		Page<ImageAssetView> imagePage = imageAssetService.findImagePage(userId, folderName, pageable);
+		Page<ImageAssetView> imagePage = imageAssetFacadeService.findImagePage(userId, folderName, pageable);
 
 		model.addAttribute("images", imagePage.getContent());
 
 		model.addAttribute(
 				"imageCategories",
-				imageAssetService.findImageCategories(userId));
+				imageAssetFacadeService.findImageCategories(userId));
 
 		model.addAttribute("selectedFolderName", folderName);
 
@@ -70,7 +70,7 @@ public class ImageManageController {
 	@ResponseBody
 	public Map<String, Object> importImages(HttpSession session) {
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
-		int count = imageAssetService.importExistingImages(loginUser.getUserId());
+		int count = imageAssetFacadeService.importExistingImages(loginUser.getUserId());
 		return Map.of("result", "ok", "importedCount", count);
 	}
 
@@ -86,7 +86,7 @@ public class ImageManageController {
 
 		model.addAttribute(
 				"imageCategories",
-				imageAssetService.findImageCategories(
+				imageAssetFacadeService.findImageCategories(
 						loginUser.getUserId()));
 
 		return "image_new";
@@ -105,7 +105,7 @@ public class ImageManageController {
 
 		try {
 
-			imageAssetService.updateImage(
+			imageAssetFacadeService.updateImage(
 					imageId,
 					folderName,
 					fileName,
@@ -135,7 +135,7 @@ public class ImageManageController {
 
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 
-		return imageAssetService.findImageCategories(
+		return imageAssetFacadeService.findImageCategories(
 				loginUser.getUserId());
 	}
 
@@ -150,7 +150,7 @@ public class ImageManageController {
 
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 
-		return imageAssetService.findImageFolders(
+		return imageAssetFacadeService.findImageFolders(
 				loginUser.getUserId());
 
 	}

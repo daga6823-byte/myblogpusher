@@ -148,8 +148,31 @@ export function loadImageList() {
 
 				imageElement.addEventListener('click', function() {
 
-					insertImage(img.url);
+					if (imageState.thumbnailMode) {
 
+						const thumbnailPreview =
+							document.getElementById('thumbnailPreview');
+
+						const thumbnailUrl =
+							document.getElementById('thumbnailUrl');
+
+						if (thumbnailPreview) {
+							thumbnailPreview.src = img.url;
+							thumbnailPreview.style.display = 'block';
+						}
+
+						if (thumbnailUrl) {
+							thumbnailUrl.value = img.url;
+						}
+
+						imageState.thumbnailMode = false;
+
+						document.getElementById('imageModal').style.display = 'none';
+
+						return;
+					}
+
+					insertImage(img.url);
 				});
 
 				list.appendChild(div);
@@ -252,44 +275,50 @@ export function insertImage(url) {
 }
 
 // 画像選択モーダルを開く
-document.getElementById('imageButton').addEventListener(
-	'click',
-	function() {
+const imageButton =
+	document.getElementById('imageButton');
 
-		const textarea =
-			document.querySelector('textarea[name="content"]');
+if (imageButton) {
 
-		textarea.focus();
+	imageButton.addEventListener(
+		'click',
+		function() {
 
-		imageState.insertPosition =
-			textarea.selectionStart;
+			const textarea =
+				document.querySelector('textarea[name="content"]');
 
-		imageState.folderName = null;
-		imageState.searchKeyword = '';
-		imageState.sortType = 'dateDesc';
-		imageState.page = 0;
+			textarea.focus();
 
-		const searchInput =
-			document.getElementById('imageSearchInput');
+			imageState.insertPosition =
+				textarea.selectionStart;
 
-		if (searchInput) {
-			searchInput.value = '';
+			imageState.folderName = null;
+			imageState.searchKeyword = '';
+			imageState.sortType = 'dateDesc';
+			imageState.page = 0;
+
+			const searchInput =
+				document.getElementById('imageSearchInput');
+
+			if (searchInput) {
+				searchInput.value = '';
+			}
+
+			const sortSelect =
+				document.getElementById('imageSortSelect');
+
+			if (sortSelect) {
+				sortSelect.value = 'dateDesc';
+			}
+
+			loadImageFolders();
+			loadImageCategories();
+			loadImageList();
+
+			document.getElementById('imageModal').style.display = 'block';
 		}
-
-		const sortSelect =
-			document.getElementById('imageSortSelect');
-
-		if (sortSelect) {
-			sortSelect.value = 'dateDesc';
-		}
-
-		loadImageFolders();
-		loadImageCategories();
-		loadImageList();
-
-		document.getElementById('imageModal').style.display = 'block';
-	}
-);
+	);
+}
 
 // カテゴリー filter change
 document.getElementById('imageCategorySelect')

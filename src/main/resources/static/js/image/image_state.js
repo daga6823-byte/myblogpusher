@@ -13,6 +13,9 @@ export const imageState = {
 	// 画像挿入位置（本文テキストエリアのカーソル位置）
 	insertPosition: null,
 
+	// サムネイル選択モード
+	thumbnailMode: false,
+
 	// 画像一覧の現在ページ
 	page: 0,
 

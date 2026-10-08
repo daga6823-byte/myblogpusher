@@ -43,7 +43,8 @@ public class ArticleService {
 	@Transactional
 	public Article completePublish(
 			ArticleWork work,
-			String slug) {
+			String slug,
+			String thumbnailUrl) {
 
 		// 投稿処理中(status=1)の記事だけDB更新を許可する。
 		// status=0はまだ投稿処理に入っておらず、
@@ -74,17 +75,16 @@ public class ArticleService {
 
 		// 対象カテゴリーの記事が存在しない場合は新規作成する。
 		if (targetArticle == null) {
-
 			targetArticle = createFromWork(
 					currentWork,
-					slug);
-
+					slug,
+					thumbnailUrl);
 		} else {
-
 			targetArticle = updateFromWork(
 					targetArticle,
 					currentWork,
-					slug);
+					slug,
+					thumbnailUrl);
 		}
 
 		targetArticle.setStatus(ArticleStatus.PUBLISHED);
@@ -98,7 +98,10 @@ public class ArticleService {
 		return targetArticle;
 	}
 
-	public Article createFromWork(ArticleWork work, String slug) {
+	public Article createFromWork(
+	        ArticleWork work,
+	        String slug,
+	        String thumbnailUrl) {
 
 		Article article = new Article();
 
@@ -115,6 +118,8 @@ public class ArticleService {
 						slug));
 
 		article.setContent(work.getContent());
+		
+		article.setThumbnailUrl(thumbnailUrl);
 
 		article.setStatus(ArticleStatus.PUBLISHING);
 
@@ -134,9 +139,10 @@ public class ArticleService {
 	 * 投稿済み記事を更新
 	 */
 	public Article updateFromWork(
-			Article article,
-			ArticleWork work,
-			String slug) {
+	        Article article,
+	        ArticleWork work,
+	        String slug,
+	        String thumbnailUrl) {
 
 		article.setCategoryGroupId(work.getCategoryGroupId());
 		article.setTitle(work.getTitle());

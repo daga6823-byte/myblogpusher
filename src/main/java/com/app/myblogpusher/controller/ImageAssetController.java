@@ -25,7 +25,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.app.myblogpusher.dto.ImageAssetView;
 import com.app.myblogpusher.entity.ImageAsset;
 import com.app.myblogpusher.entity.UserMaster;
-import com.app.myblogpusher.service.Image.ImageAssetService;
+import com.app.myblogpusher.service.Facade.ImageAssetFacadeService;
 
 import jakarta.servlet.http.HttpSession;
 
@@ -33,7 +33,7 @@ import jakarta.servlet.http.HttpSession;
 public class ImageAssetController {
 
 	@Autowired
-	private ImageAssetService imageAssetService;
+	private ImageAssetFacadeService imageAssetFacadeService;
 
 	/**
 	 * DBに記録された画像一覧をJSONで返す
@@ -48,7 +48,7 @@ public class ImageAssetController {
 
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 
-		return imageAssetService.listImages(
+		return imageAssetFacadeService.listImages(
 				loginUser.getUserId(),
 				null);
 	}
@@ -73,7 +73,7 @@ public class ImageAssetController {
 
 		try {
 
-			ImageAsset asset = imageAssetService.uploadAndRegister(
+			ImageAsset asset = imageAssetFacadeService.uploadAndRegister(
 					file,
 					folderName,
 					userId);
@@ -117,7 +117,7 @@ public class ImageAssetController {
 
 		try {
 
-			imageAssetService.deleteImage(
+			imageAssetFacadeService.deleteImage(
 					imageId,
 					loginUser.getUserId());
 

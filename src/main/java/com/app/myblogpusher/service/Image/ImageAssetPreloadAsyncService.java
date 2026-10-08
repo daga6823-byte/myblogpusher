@@ -16,12 +16,13 @@ import org.springframework.stereotype.Service;
 
 import com.app.myblogpusher.dto.ImageAssetView;
 import com.app.myblogpusher.dto.ImageCategoryDto;
+import com.app.myblogpusher.service.Facade.ImageAssetFacadeService;
 
 @Service
 public class ImageAssetPreloadAsyncService {
 
 	@Autowired
-	private ImageAssetService imageAssetService;
+	private ImageAssetFacadeService imageAssetFacadeService;
 
 	@Autowired
 	private ImageAssetCache imageAssetCache;
@@ -32,11 +33,11 @@ public class ImageAssetPreloadAsyncService {
 	public void preloadAsync(Long userId) {
 		CompletableFuture.runAsync(() -> {
 			try {
-				List<ImageAssetView> images = imageAssetService.listImages(userId, null);
+				List<ImageAssetView> images = imageAssetFacadeService.listImages(userId, null);
 
-				List<ImageCategoryDto> categories = imageAssetService.findImageCategories(userId);
+				List<ImageCategoryDto> categories = imageAssetFacadeService.findImageCategories(userId);
 
-				List<String> folders = imageAssetService.findImageFolders(userId);
+				List<String> folders = imageAssetFacadeService.findImageFolders(userId);
 
 				imageAssetCache.putImages(userId, images);
 				imageAssetCache.putCategories(userId, categories);

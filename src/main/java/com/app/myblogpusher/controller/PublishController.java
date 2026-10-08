@@ -19,11 +19,14 @@ import com.app.myblogpusher.dto.SlugAnalysisDto;
 import com.app.myblogpusher.dto.Publish.PublishPreviewForm;
 import com.app.myblogpusher.entity.UserMaster;
 import com.app.myblogpusher.entity.UserRepositoryEntity;
+import com.app.myblogpusher.entity.Article.Article;
 import com.app.myblogpusher.entity.Article.ArticleCategory;
+import com.app.myblogpusher.entity.Article.ArticleWork;
 import com.app.myblogpusher.repository.CategoryRelationRepository;
 import com.app.myblogpusher.repository.UserRepositoryRepository;
 import com.app.myblogpusher.service.Article.ArticleCategoryService;
 import com.app.myblogpusher.service.Article.ArticlePublishService;
+import com.app.myblogpusher.service.Article.ArticleService;
 import com.app.myblogpusher.service.Article.ArticleWorkService;
 import com.app.myblogpusher.service.Article.ArticleWorkspaceService;
 import com.app.myblogpusher.util.SlugUtil;
@@ -47,15 +50,19 @@ public class PublishController {
 	@Autowired
 	private ArticleWorkspaceService workspaceService;
 
+	@Autowired
+	private ArticleService articleService;
+
 	public PublishController(
 			UserRepositoryRepository userRepositoryRepository,
 			ArticleCategoryService articleCategoryService,
 			ArticlePublishService articlePublishService,
+			ArticleService articleService,
 			CategoryRelationRepository categoryRelationRepository) {
-
 		this.userRepositoryRepository = userRepositoryRepository;
 		this.articleCategoryService = articleCategoryService;
 		this.articlePublishService = articlePublishService;
+		this.articleService = articleService;
 		this.categoryRelationRepository = categoryRelationRepository;
 	}
 
@@ -98,6 +105,19 @@ public class PublishController {
 		form.setArticleTitle(title);
 		form.setArticleContent(content);
 		form.setCategoryId(categoryId);
+
+		// 既存記事の場合は保存済みサムネイルを投稿確認画面へ引き継ぐ。
+		// 新規記事の場合はnullのままにする。
+		if (workId != null) {
+			ArticleWork work = articleWorkService.findById(workId);
+
+			Article article = articleService.findById(work.getArticleId());
+
+			if (article != null) {
+				form.setThumbnailUrl(article.getThumbnailUrl());
+			}
+		}
+
 		form.setRepoOwner(repo.getRepoOwner());
 		form.setRepoName(repo.getRepoName());
 
@@ -118,6 +138,7 @@ public class PublishController {
 			@RequestParam String content,
 			@RequestParam Long categoryId,
 			@RequestParam String slug,
+			@RequestParam(required = false) String thumbnailUrl,
 			HttpSession session,
 			Model model) {
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
@@ -142,7 +163,7 @@ public class PublishController {
 		articleWorkService.updateCategoryGroupId(
 				workId,
 				categoryId);
-		
+
 		// 投稿前確認画面で確定したslugをArticleWorkへ反映する。
 		articleWorkService.updateSlug(workId, slug);
 
@@ -156,7 +177,9 @@ public class PublishController {
 		articlePublishService.publishAsync(
 				repo,
 				loginUser.getCipherKey(),
-				userId);
+				userId,
+				workId,
+				thumbnailUrl);
 
 		return "redirect:/article/list?published";
 	}
@@ -188,6 +211,21 @@ public class PublishController {
 		form.setArticleTitle(title);
 		form.setArticleContent(content);
 		form.setCategoryId(categoryId);
+
+		// 既存記事の場合は保存済みサムネイルを投稿確認画面へ引き継ぐ。
+		// 新規記事の場合はnullのままにする。
+		if (workId != null) {
+			ArticleWork work = articleWorkService.findById(workId);
+
+			if (work.getArticleId() != null) {
+				Article article = articleService.findById(work.getArticleId());
+
+				if (article != null) {
+					form.setThumbnailUrl(article.getThumbnailUrl());
+				}
+			}
+		}
+
 		form.setRepoOwner(repo.getRepoOwner());
 		form.setRepoName(repo.getRepoName());
 
