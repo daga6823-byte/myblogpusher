@@ -117,15 +117,15 @@ if (thumbnailSelectButton) {
 		async function() {
 
 			const { imageState } =
-				await import('./image_state.js');
+				await import('/js/image/image_state.js');
 
 			const {
 				loadImageFolders,
 				loadImageCategories
-			} = await import('./image_folders.js');
+			} = await import('/js/image/image_folders.js');
 
 			const { loadImageList } =
-				await import('./image_gallery.js');
+				await import('/js/image/image_gallery.js');
 
 			imageState.thumbnailMode = true;
 			imageState.insertPosition = null;
