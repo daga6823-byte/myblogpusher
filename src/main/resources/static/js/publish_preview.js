@@ -102,10 +102,6 @@ document.querySelectorAll('[id^="converted_"]')
 
 	});
 
-import { imageState } from './image_state.js';
-import { loadImageFolders, loadImageCategories } from './image_folders.js';
-import { loadImageList } from './image_gallery.js';
-
 /**
  * サムネイル選択モーダルを開く
  *
@@ -118,7 +114,18 @@ if (thumbnailSelectButton) {
 
 	thumbnailSelectButton.addEventListener(
 		'click',
-		function() {
+		async function() {
+
+			const { imageState } =
+				await import('./image_state.js');
+
+			const {
+				loadImageFolders,
+				loadImageCategories
+			} = await import('./image_folders.js');
+
+			const { loadImageList } =
+				await import('./image_gallery.js');
 
 			imageState.thumbnailMode = true;
 			imageState.insertPosition = null;
@@ -145,6 +152,8 @@ if (thumbnailSelectButton) {
 			loadImageCategories();
 			loadImageList();
 
-			document.getElementById('imageModal').style.display = 'block';
+			document.getElementById('imageModal').style.display =
+				'block';
 		});
 }
+

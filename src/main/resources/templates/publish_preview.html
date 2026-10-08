@@ -103,7 +103,7 @@
 
 	<div th:if="${error}" th:text="${error}"></div>
 
-	<script type="module" th:src="@{/js/publish_preview.js}"></script>
+	<script th:src="@{/js/publish_preview.js}"></script>
 
 	<div th:replace="~{fragments/image_modal :: imageModal}"></div>
 
