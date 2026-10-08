@@ -43,11 +43,11 @@ public class ArticlePublishService {
 	 */
 	@Async
 	public void publishAsync(
-	        UserRepositoryEntity repo,
-	        String cipherKey,
-	        Long userId,
-	        Long workId,
-	        String thumbnailUrl) {		
+			UserRepositoryEntity repo,
+			String cipherKey,
+			Long userId,
+			Long workId,
+			String thumbnailUrl) {
 
 		List<ArticleWork> works = articleWorkService.findPublishing(userId);
 
@@ -97,7 +97,10 @@ public class ArticlePublishService {
 				article.setTitle(work.getTitle());
 				article.setSlug(work.getSlug());
 				article.setHugoPath(hugoPath);
-				article.setContent(work.getContent());
+				article.setContent(
+						applyThumbnailToFrontMatter(
+								work.getContent(),
+								thumbnailUrl));
 				article.setThumbnailUrl(thumbnailUrl);
 
 				// GitHub投稿を実行する
@@ -114,9 +117,9 @@ public class ArticlePublishService {
 				// Articleの重複整理、PUBLISHEDへの変更、Work削除まで
 				// DBトランザクション内でまとめて実行する。
 				articleService.completePublish(
-				        work,
-				        work.getSlug(),
-				        thumbnailUrl);
+						work,
+						work.getSlug(),
+						thumbnailUrl);
 
 			} catch (Exception e) {
 				System.err.println(
@@ -139,5 +142,68 @@ public class ArticlePublishService {
 						errorMessage);
 			}
 		}
+	}
+
+	/**
+	 * 記事のFront MatterへサムネイルURLを設定する。
+	 *
+	 * 既存のimageがあれば置き換え、
+	 * 存在しなければFront Matterへ追加する。
+	 */
+	private String applyThumbnailToFrontMatter(
+			String content,
+			String thumbnailUrl) {
+
+		if (content == null
+				|| thumbnailUrl == null
+				|| thumbnailUrl.isBlank()) {
+			return content;
+		}
+
+		final String imageLine = "image = '" + thumbnailUrl.replace("'", "''") + "'";
+
+		final String frontMatterEnd = "\n+++\n";
+		final int endIndex = content.indexOf(frontMatterEnd);
+
+		if (endIndex == -1) {
+			return content;
+		}
+
+		String frontMatter = content.substring(0, endIndex);
+
+		String[] lines = frontMatter.split("\n", -1);
+
+		StringBuilder updatedFrontMatter = new StringBuilder();
+
+		boolean replaced = false;
+
+		for (String line : lines) {
+
+			if (line.trim().startsWith("image =")) {
+
+				updatedFrontMatter
+						.append(imageLine);
+
+				replaced = true;
+
+			} else {
+
+				updatedFrontMatter
+						.append(line);
+			}
+
+			updatedFrontMatter.append('\n');
+		}
+
+		if (!replaced) {
+
+			updatedFrontMatter
+					.append(imageLine)
+					.append('\n');
+		}
+
+		return updatedFrontMatter
+				.toString()
+				+ content.substring(endIndex);
 	}
 }
