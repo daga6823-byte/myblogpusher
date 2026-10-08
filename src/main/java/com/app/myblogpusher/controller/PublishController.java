@@ -111,10 +111,13 @@ public class PublishController {
 		if (workId != null) {
 			ArticleWork work = articleWorkService.findById(workId);
 
-			Article article = articleService.findById(work.getArticleId());
+			if (work.getArticleId() != null) {
+				Article article = articleService.findById(
+						work.getArticleId());
 
-			if (article != null) {
-				form.setThumbnailUrl(article.getThumbnailUrl());
+				if (article != null) {
+					form.setThumbnailUrl(article.getThumbnailUrl());
+				}
 			}
 		}
 
