@@ -34,8 +34,12 @@ document.getElementById('imageUploadButton').addEventListener(
 				folderSelect.value;
 		}
 
+		// 編集画面のカテゴリー選択がある場合だけ取得する。
+		const categorySelect =
+			document.getElementById('categorySelect');
+
 		const categoryId =
-			document.getElementById('categorySelect').value;
+			categorySelect ? categorySelect.value : '';
 
 		const status =
 			document.getElementById('imageUploadStatus');
