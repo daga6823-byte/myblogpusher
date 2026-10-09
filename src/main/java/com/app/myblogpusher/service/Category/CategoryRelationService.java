@@ -127,6 +127,70 @@ public class CategoryRelationService {
 	}
 
 	/**
+	 * 指定カテゴリーの親子関係を同期的に補完する。
+	 *
+	 * 通常の非同期登録でcategoryPathが作成されていない場合に使用する。
+	 * 既存の関係は維持し、不足している経路だけを追加する。
+	 */
+	public void repairCategoryRelations(
+			Long categoryId,
+			List<Long> parentCategoryIds,
+			Long userId) {
+
+		if (parentCategoryIds == null || parentCategoryIds.isEmpty()) {
+			return;
+		}
+
+		ArticleCategory category = articleCategoryRepository
+				.findById(categoryId)
+				.orElseThrow();
+
+		for (Long parentCategoryId : parentCategoryIds) {
+
+			ArticleCategory parentCategory = articleCategoryRepository
+					.findById(parentCategoryId)
+					.orElseThrow();
+
+			List<CategoryRelation> parentRelations = categoryRelationRepository
+					.findByCategoryId(parentCategoryId);
+
+			if (parentRelations.isEmpty()) {
+
+				String categoryPath = parentCategory.getCategoryName()
+						+ "/" + category.getCategoryName();
+
+				addRelation(
+						categoryId,
+						parentCategoryId,
+						null,
+						categoryPath,
+						userId);
+
+				continue;
+			}
+
+			for (CategoryRelation parentRelation : parentRelations) {
+
+				String parentPath = parentRelation.getCategoryPath();
+
+				if (parentPath == null || parentPath.isBlank()) {
+					continue;
+				}
+
+				String categoryPath = parentPath
+						+ "/" + category.getCategoryName();
+
+				addRelation(
+						categoryId,
+						parentCategoryId,
+						null,
+						categoryPath,
+						userId);
+			}
+		}
+	}
+
+	/**
 	 * 非同期で登録されたカテゴリー経路のgroupIdをArticleWorkへ反映する。
 	 *
 	 * CategoryRelationはINSERT時にgroupIdがDBで採番されるため、

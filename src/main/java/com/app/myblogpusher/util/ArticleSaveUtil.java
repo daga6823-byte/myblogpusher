@@ -192,12 +192,47 @@ public class ArticleSaveUtil {
 					false);
 		}
 
-		Long groupId = categoryRelationRepository
-				.findByCategoryPath(categorySelect)
-				.stream()
-				.findFirst()
-				.map(relation -> relation.getGroupId())
-				.orElseThrow();
+		Long groupId = categoryPathService.findGroupIdByFullPath(
+				userId,
+				categorySelect);
+
+		// カテゴリー経路が未登録の場合は、親子関係を同期的に補完する。
+		if (groupId == null) {
+
+			Long categoryId = categoryPathService.findCategoryIdByFullPath(
+					userId,
+					categorySelect);
+
+			if (categoryId == null) {
+				throw new IllegalStateException(
+						"カテゴリーが見つかりません: " + categorySelect);
+			}
+
+			ArticleCategory category = articleCategoryService
+					.findById(categoryId)
+					.orElseThrow();
+
+			Long parentCategoryId = category.getParentCategoryId();
+
+			if (parentCategoryId == null) {
+				throw new IllegalStateException(
+						"カテゴリーの親が見つかりません: " + categorySelect);
+			}
+
+			categoryRelationService.repairCategoryRelations(
+					categoryId,
+					List.of(parentCategoryId),
+					userId);
+
+			groupId = categoryPathService.findGroupIdByFullPath(
+					userId,
+					categorySelect);
+		}
+
+		if (groupId == null) {
+			throw new IllegalStateException(
+					"カテゴリー経路を復旧できませんでした: " + categorySelect);
+		}
 
 		return new CategoryResolution(
 				groupId,
