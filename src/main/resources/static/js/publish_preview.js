@@ -92,13 +92,18 @@ function syncEnglish(btn) {
 /**
  * 形態素解析結果変更監視
  *
- * 変換結果を変更した場合、
- * slugを自動更新する。
+ * 変換結果を変更できる画面でのみslugを自動更新する。
  */
 document.querySelectorAll('[id^="converted_"]')
 	.forEach(input => {
 
-		input.addEventListener('input', updateSlug);
+		input.addEventListener('input', () => {
+
+			if (typeof updateSlug === 'function') {
+				updateSlug();
+			}
+
+		});
 
 	});
 
@@ -156,4 +161,6 @@ if (thumbnailSelectButton) {
 				'block';
 		});
 }
+
+
 
