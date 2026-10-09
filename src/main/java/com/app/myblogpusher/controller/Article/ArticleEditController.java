@@ -8,17 +8,12 @@ package com.app.myblogpusher.controller.Article;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.app.myblogpusher.dto.WorkspaceSaveRequest;
 import com.app.myblogpusher.dto.Category.CategorySelectView;
 import com.app.myblogpusher.entity.UserMaster;
 import com.app.myblogpusher.entity.UserRepositoryEntity;
@@ -217,52 +212,5 @@ public class ArticleEditController {
 				+ java.net.URLEncoder.encode(
 						savedCategoryPath,
 						java.nio.charset.StandardCharsets.UTF_8);
-	}
-
-	@PostMapping("/article/workspace/save")
-	@ResponseBody
-	public ResponseEntity<Void> saveWorkspace(
-			@RequestBody WorkspaceSaveRequest req,
-			HttpSession session) {
-
-		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
-
-		if (loginUser == null) {
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-		}
-
-		workspaceService.save(
-				loginUser.getUserId(),
-				req.getCategoryGroupId(),
-				req.getTitle(),
-				req.getContent());
-
-		return ResponseEntity.ok().build();
-	}
-
-	@PostMapping("/article/session/keepalive")
-	@ResponseBody
-	public ResponseEntity<Void> keepAlive(HttpSession session) {
-
-		if (session.getAttribute("loginUser") == null) {
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-		}
-
-		session.getAttribute("loginUser");
-
-		return ResponseEntity.ok().build();
-	}
-
-	@PostMapping("/article/workspace/clear")
-	@ResponseBody
-	public ResponseEntity<Void> clearWorkspace(HttpSession session) {
-
-		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
-
-		if (loginUser != null) {
-			workspaceService.delete(loginUser.getUserId());
-		}
-
-		return ResponseEntity.ok().build();
 	}
 }

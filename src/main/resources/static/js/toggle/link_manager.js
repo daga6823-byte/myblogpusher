@@ -286,9 +286,17 @@ async function loadArticleLinkCategory() {
 			select.appendChild(option);
 		});
 
-	// 現在の記事と同じgroupIdを初期選択する。
-	if (currentCategoryGroupId) {
-		select.value = currentCategoryGroupId;
+	// 「すべて」をデフォルト選択する。
+	select.value = '';
+
+	// ワークのgroupIdが選択肢に存在する場合だけ選択する。
+	if (
+		currentCategoryGroupId != null &&
+		[...select.options].some(
+			option => option.value === String(currentCategoryGroupId)
+		)
+	) {
+		select.value = String(currentCategoryGroupId);
 	}
 }
 
