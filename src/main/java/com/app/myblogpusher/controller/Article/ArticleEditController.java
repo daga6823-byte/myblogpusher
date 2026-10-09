@@ -6,7 +6,6 @@
 package com.app.myblogpusher.controller.Article;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -20,19 +19,15 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.app.myblogpusher.dto.WorkspaceSaveRequest;
-import com.app.myblogpusher.dto.Article.ArticleLinkView;
 import com.app.myblogpusher.dto.Category.CategorySelectView;
 import com.app.myblogpusher.entity.UserMaster;
 import com.app.myblogpusher.entity.UserRepositoryEntity;
 import com.app.myblogpusher.entity.Article.Article;
-import com.app.myblogpusher.entity.Article.ArticleCategory;
 import com.app.myblogpusher.entity.Article.ArticleWork;
 import com.app.myblogpusher.repository.UserRepositoryRepository;
 import com.app.myblogpusher.repository.Article.ArticleRepository;
-import com.app.myblogpusher.service.Article.ArticleCategoryService;
 import com.app.myblogpusher.service.Article.ArticleWorkService;
 import com.app.myblogpusher.service.Article.ArticleWorkspaceService;
-import com.app.myblogpusher.service.Category.CategoryPathService;
 import com.app.myblogpusher.service.Category.CategorySelectionService;
 import com.app.myblogpusher.service.Facade.ImageAssetFacadeService;
 import com.app.myblogpusher.util.ArticleSaveUtil;
@@ -41,9 +36,6 @@ import jakarta.servlet.http.HttpSession;
 
 @Controller
 public class ArticleEditController {
-
-	@Autowired
-	private ArticleCategoryService articleCategoryService;
 
 	@Autowired
 	private ArticleWorkService articleWorkService;
@@ -65,9 +57,6 @@ public class ArticleEditController {
 
 	@Autowired
 	private CategorySelectionService categorySelectionService;
-
-	@Autowired
-	private CategoryPathService categoryPathService;
 
 	/**
 	 * 記事編集画面を表示
@@ -160,85 +149,6 @@ public class ArticleEditController {
 								: null);
 			}
 		}
-
-		// -----------------------------------------------------
-		// 記事リンク挿入用
-		//
-		// 編集中記事のカテゴリーを基準に検索する。
-		// GitHub APIは使用しない。
-		// -----------------------------------------------------
-
-		List<Article> articles = List.of();
-
-		Long currentCategoryGroupId = null;
-
-		if (workId != null) {
-
-			currentCategoryGroupId = work.getCategoryGroupId();
-
-		} else {
-
-			currentCategoryGroupId = workspaceService.find(userId)
-					.map(ws -> ws.getCategoryGroupId())
-					.orElse(null);
-
-			model.addAttribute("categoryGroupId", currentCategoryGroupId);
-		}
-
-		if (currentCategoryGroupId != null) {
-
-			Long searchCategoryId = categoryPathService
-					.findLinkSearchCategoryId(
-							userId,
-							currentCategoryGroupId);
-
-			if (searchCategoryId != null) {
-
-				ArticleCategory searchCategory = articleCategoryService
-						.findById(searchCategoryId)
-						.orElse(null);
-
-				if (searchCategory != null) {
-
-					String searchPath = categoryPathService
-							.findSecondLevelPath(
-									currentCategoryGroupId);
-
-					if (searchPath != null) {
-
-						articles = articleRepository.findLinkArticles(
-								userId,
-								searchPath);
-
-					}
-
-				}
-
-			}
-
-		}
-
-		List<ArticleLinkView> linkArticles = articles.stream()
-				.map(article -> new ArticleLinkView(
-						article.getSlug(),
-						article.getHugoPath(),
-						article.getTitle(),
-						"https://" + repo.getRepoName().toLowerCase()
-								+ "/" + article.getHugoPath()
-								+ "/"))
-				.collect(Collectors.toList());
-
-		model.addAttribute(
-				"publishedArticles",
-				linkArticles);
-
-		model.addAttribute(
-				"linkCategories",
-				categorySelectionService.findSelectableCategories(userId));
-
-		model.addAttribute(
-				"linkSearchCategoryId",
-				currentCategoryGroupId);
 
 		model.addAttribute(
 				"siteUrl",

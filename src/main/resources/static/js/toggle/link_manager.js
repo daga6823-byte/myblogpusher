@@ -110,8 +110,17 @@ if (linkButton) {
 		articleLinkInsertPosition =
 			textarea.selectionStart;
 
-		// リンク検索カテゴリーを生成する。
-		loadArticleLinkCategory();
+		// リンク検索カテゴリーの取得・生成が完了するまで待つ。
+		try {
+			await loadArticleLinkCategory();
+		} catch (error) {
+			console.error(
+				'リンク検索カテゴリーの取得に失敗しました:',
+				error
+			);
+			alert('リンク検索カテゴリーを取得できませんでした。');
+			return;
+		}
 
 		const categorySelect =
 			document.getElementById(
@@ -215,32 +224,38 @@ function loadArticleLinkList(articles) {
 
 }
 
-
 // -----------------------------------------------------
 // リンク検索カテゴリー生成
 // -----------------------------------------------------
-function loadArticleLinkCategory() {
+async function loadArticleLinkCategory() {
 	const select =
 		document.getElementById(
 			'articleLinkCategorySelect'
 		);
 
-	if (
-		!select ||
-		!window.linkCategories
-	) {
+	if (!select) {
 		return;
 	}
 
 	// 編集中の記事が保持しているgroupIdをそのまま使用する。
-	// categoryPathからgroupIdへの変換は行わない。
 	const currentCategoryGroupId =
 		window.categoryGroupId;
+
+	// リンク挿入用のカテゴリー一覧を専用APIから取得する。
+	const response =
+		await fetch('/article/link/categories');
+
+	if (!response.ok) {
+		throw new Error(
+			'リンク用カテゴリー一覧の取得に失敗しました。'
+		);
+	}
+
+	const categories = await response.json();
 
 	select.innerHTML = '';
 
 	// 全カテゴリーの記事を検索するための選択肢。
-	// valueは空にして、API側では全記事取得として扱う。
 	const allOption =
 		document.createElement('option');
 
@@ -249,7 +264,7 @@ function loadArticleLinkCategory() {
 
 	select.appendChild(allOption);
 
-	window.linkCategories
+	categories
 		.sort((a, b) =>
 			a.categoryPath.localeCompare(
 				b.categoryPath,
@@ -272,7 +287,6 @@ function loadArticleLinkCategory() {
 		});
 
 	// 現在の記事と同じgroupIdを初期選択する。
-	// groupIdが存在しない場合は先頭を勝手に選択しない。
 	if (currentCategoryGroupId) {
 		select.value = currentCategoryGroupId;
 	}

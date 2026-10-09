@@ -2,11 +2,11 @@
  * 記事リンク挿入機能を担当するコントローラー
  *
  * 編集画面から別記事へのリンクを作成するため、
- * Articleテーブルから指定カテゴリー経路の記事一覧をJSONで返却する。
+ * 投稿済み記事一覧とリンク対象カテゴリー一覧をJSONで返却する。
  *
+ * データ取得処理はArticleLinkServiceに委譲し、
  * 投稿処理や記事編集処理とは責務を分離する。
  */
-
 package com.app.myblogpusher.controller.Article;
 
 import java.util.List;
@@ -18,9 +18,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.app.myblogpusher.dto.Article.ArticleLinkView;
+import com.app.myblogpusher.dto.Category.CategoryOptionView;
 import com.app.myblogpusher.entity.UserMaster;
-import com.app.myblogpusher.entity.Article.Article;
-import com.app.myblogpusher.repository.Article.ArticleRepository;
+import com.app.myblogpusher.service.Article.ArticleLinkService;
 
 import jakarta.servlet.http.HttpSession;
 
@@ -29,12 +29,13 @@ import jakarta.servlet.http.HttpSession;
 public class ArticleLinkController {
 
 	@Autowired
-	private ArticleRepository articleRepository;
+	private ArticleLinkService articleLinkService;
 
 	/**
 	 * リンク挿入用の記事一覧取得
 	 *
-	 * Articleテーブルから指定カテゴリー経路の記事を取得する。
+	 * カテゴリー未指定の場合は投稿済み記事をすべて取得する。
+	 * カテゴリー指定時は、そのカテゴリーの記事だけを取得する。
 	 */
 	@GetMapping("/articles")
 	public List<ArticleLinkView> getLinkArticles(
@@ -47,27 +48,27 @@ public class ArticleLinkController {
 			return List.of();
 		}
 
-		List<Article> articles;
+		return articleLinkService.findLinkArticles(
+				loginUser.getUserId(),
+				categoryGroupId);
+	}
 
-		if (categoryGroupId == null) {
-			// カテゴリー未指定の場合は、ユーザーの投稿済み記事をすべて取得する。
-			articles = articleRepository
-					.findByUserIdOrderByUpdateDateDesc(
-							loginUser.getUserId());
-		} else {
-			// カテゴリー指定時は、そのカテゴリーの記事だけ取得する。
-			articles = articleRepository
-					.findByUserIdAndCategoryGroupIdOrderByUpdateDateDesc(
-							loginUser.getUserId(),
-							categoryGroupId);
+	/**
+	 * リンク挿入用のカテゴリー一覧取得
+	 *
+	 * 投稿済み記事が存在するカテゴリーだけを返却する。
+	 */
+	@GetMapping("/categories")
+	public List<CategoryOptionView> getLinkCategories(
+			HttpSession session) {
+
+		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
+
+		if (loginUser == null) {
+			return List.of();
 		}
 
-		return articles.stream()
-				.map(article -> new ArticleLinkView(
-						article.getSlug(),
-						article.getHugoPath(),
-						article.getTitle(),
-						article.getHugoPath()))
-				.toList();
+		return articleLinkService.findLinkCategories(
+				loginUser.getUserId());
 	}
 }
