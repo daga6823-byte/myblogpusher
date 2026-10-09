@@ -127,66 +127,54 @@ public class CategoryRelationService {
 	}
 
 	/**
-	 * 指定カテゴリーの親子関係を同期的に補完する。
+	 * 指定されたフルパスを基準に、カテゴリー関係を同期的に補完する。
 	 *
-	 * 通常の非同期登録でcategoryPathが作成されていない場合に使用する。
-	 * 既存の関係は維持し、不足している経路だけを追加する。
+	 * 非同期登録でcategoryPathが欠落した場合に使用する。
+	 * ArticleCategoryから各階層のカテゴリーを特定し、
+	 * 不足している経路だけを登録する。
 	 */
-	public void repairCategoryRelations(
-			Long categoryId,
-			List<Long> parentCategoryIds,
-			Long userId) {
+	public void repairCategoryPath(
+			Long userId,
+			String fullPath) {
 
-		if (parentCategoryIds == null || parentCategoryIds.isEmpty()) {
+		if (userId == null || fullPath == null || fullPath.isBlank()) {
 			return;
 		}
 
-		ArticleCategory category = articleCategoryRepository
-				.findById(categoryId)
-				.orElseThrow();
+		String[] pathParts = fullPath.split("/");
 
-		for (Long parentCategoryId : parentCategoryIds) {
+		// フルパスの各階層に対応するカテゴリーを取得する。
+		List<ArticleCategory> categories = new ArrayList<>();
 
-			ArticleCategory parentCategory = articleCategoryRepository
-					.findById(parentCategoryId)
-					.orElseThrow();
+		List<ArticleCategory> userCategories = articleCategoryRepository.findByUserId(userId);
 
-			List<CategoryRelation> parentRelations = categoryRelationRepository
-					.findByCategoryId(parentCategoryId);
+		for (String categoryName : pathParts) {
 
-			if (parentRelations.isEmpty()) {
+			ArticleCategory category = userCategories.stream()
+					.filter(item -> categoryName.equals(item.getCategoryName()))
+					.findFirst()
+					.orElseThrow(() -> new IllegalStateException(
+							"カテゴリーが見つかりません: " + categoryName));
 
-				String categoryPath = parentCategory.getCategoryName()
-						+ "/" + category.getCategoryName();
+			categories.add(category);
+		}
 
-				addRelation(
-						categoryId,
-						parentCategoryId,
-						null,
-						categoryPath,
-						userId);
+		// ルートから順番に、指定されたフルパスの関係を補完する。
+		StringBuilder categoryPath = new StringBuilder(pathParts[0]);
 
-				continue;
-			}
+		for (int i = 1; i < categories.size(); i++) {
 
-			for (CategoryRelation parentRelation : parentRelations) {
+			ArticleCategory parentCategory = categories.get(i - 1);
+			ArticleCategory category = categories.get(i);
 
-				String parentPath = parentRelation.getCategoryPath();
+			categoryPath.append("/").append(pathParts[i]);
 
-				if (parentPath == null || parentPath.isBlank()) {
-					continue;
-				}
-
-				String categoryPath = parentPath
-						+ "/" + category.getCategoryName();
-
-				addRelation(
-						categoryId,
-						parentCategoryId,
-						null,
-						categoryPath,
-						userId);
-			}
+			addRelation(
+					category.getCategoryId(),
+					parentCategory.getCategoryId(),
+					null,
+					categoryPath.toString(),
+					userId);
 		}
 	}
 

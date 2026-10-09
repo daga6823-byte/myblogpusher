@@ -50,7 +50,7 @@ if (copyAllButton) {
 
 		try {
 
-			await navigator.clipboard.writeText(combinedText);
+			await navigator.clipboard.writeText(content);
 
 			const originalLabel = copyAllButton.textContent;
 

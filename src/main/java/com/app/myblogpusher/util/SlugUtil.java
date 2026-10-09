@@ -81,10 +81,11 @@ public class SlugUtil {
 		}
 
 		// 箇条書き記号は単語区切りとして扱う
-		// 「・」と「•」と「-」は無視する
+		// 「・」と「•」と「-」と「'」は無視する
 		text = text.replace("・", " ")
 				.replace("•", " ")
-				.replace("-", " ");
+				.replace("-", " ")
+				.replace("'", " ");
 
 		// 残った助詞をPARTICLE_MAPで置換
 		List<Token> tokens = tokenizer.tokenize(text);

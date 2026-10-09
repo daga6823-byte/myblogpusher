@@ -196,34 +196,14 @@ public class ArticleSaveUtil {
 				userId,
 				categorySelect);
 
-		// カテゴリー経路が未登録の場合は、親子関係を同期的に補完する。
 		if (groupId == null) {
 
-			Long categoryId = categoryPathService.findCategoryIdByFullPath(
+			// 欠落しているカテゴリー経路を同期的に補完する。
+			categoryRelationService.repairCategoryPath(
 					userId,
 					categorySelect);
 
-			if (categoryId == null) {
-				throw new IllegalStateException(
-						"カテゴリーが見つかりません: " + categorySelect);
-			}
-
-			ArticleCategory category = articleCategoryService
-					.findById(categoryId)
-					.orElseThrow();
-
-			Long parentCategoryId = category.getParentCategoryId();
-
-			if (parentCategoryId == null) {
-				throw new IllegalStateException(
-						"カテゴリーの親が見つかりません: " + categorySelect);
-			}
-
-			categoryRelationService.repairCategoryRelations(
-					categoryId,
-					List.of(parentCategoryId),
-					userId);
-
+			// 補完後にgroupIdを再取得する。
 			groupId = categoryPathService.findGroupIdByFullPath(
 					userId,
 					categorySelect);
