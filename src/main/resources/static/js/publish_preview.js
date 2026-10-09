@@ -90,24 +90,6 @@ function syncEnglish(btn) {
 }
 
 /**
- * 形態素解析結果変更監視
- *
- * 変換結果を変更できる画面でのみslugを自動更新する。
- */
-document.querySelectorAll('[id^="converted_"]')
-	.forEach(input => {
-
-		input.addEventListener('input', () => {
-
-			if (typeof updateSlug === 'function') {
-				updateSlug();
-			}
-
-		});
-
-	});
-
-/**
  * サムネイル選択モーダルを開く
  *
  * 既存の画像一覧をサムネイル選択用として使用する。
