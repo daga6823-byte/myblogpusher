@@ -14,7 +14,6 @@ import com.app.myblogpusher.dto.ImageCategoryDto;
 import com.app.myblogpusher.entity.ImageAsset;
 import com.app.myblogpusher.service.Image.ImageAssetImportService;
 import com.app.myblogpusher.service.Image.ImageAssetQueryService;
-import com.app.myblogpusher.service.Image.ImageAssetService;
 import com.app.myblogpusher.service.Image.ImageAssetWriteService;
 
 /**
@@ -31,9 +30,6 @@ import com.app.myblogpusher.service.Image.ImageAssetWriteService;
  */
 @Service
 public class ImageAssetFacadeService {
-
-	@Autowired
-	private ImageAssetService imageAssetService;
 
 	@Autowired
 	private ImageAssetQueryService imageAssetQueryService;

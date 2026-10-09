@@ -15,7 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.app.myblogpusher.entity.Article.ArticleCategory;
 import com.app.myblogpusher.entity.Article.ArticleWork;
-import com.app.myblogpusher.repository.CategoryRelationRepository;
 import com.app.myblogpusher.repository.Article.ArticleRepository;
 import com.app.myblogpusher.service.Article.ArticleCategoryService;
 import com.app.myblogpusher.service.Article.ArticleFormatService;
@@ -40,9 +39,6 @@ public class ArticleSaveUtil {
 
 	@Autowired
 	private ArticleRepository articleRepository;
-
-	@Autowired
-	private CategoryRelationRepository categoryRelationRepository;
 
 	@Autowired
 	private CategoryPathService categoryPathService;
