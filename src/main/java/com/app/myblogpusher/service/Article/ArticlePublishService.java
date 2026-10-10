@@ -19,7 +19,7 @@ import com.app.myblogpusher.entity.UserRepositoryEntity;
 import com.app.myblogpusher.entity.Article.Article;
 import com.app.myblogpusher.entity.Article.ArticleWork;
 import com.app.myblogpusher.service.HugoArticleService;
-import com.app.myblogpusher.service.Github.GitHubPushService;
+import com.app.myblogpusher.service.Facade.GitHubFacadeService;
 
 @Service
 public class ArticlePublishService {
@@ -31,7 +31,7 @@ public class ArticlePublishService {
 	private ArticleService articleService;
 
 	@Autowired
-	private GitHubPushService gitHubPushService;
+	private GitHubFacadeService gitHubFacadeService;
 
 	@Autowired
 	private HugoArticleService hugoArticleService;
@@ -64,7 +64,7 @@ public class ArticlePublishService {
 				}
 
 				// GitHub APIで投稿可能か確認する
-				if (!gitHubPushService.canPublish(
+				if (!gitHubFacadeService.canPublish(
 						repo,
 						cipherKey)) {
 
@@ -105,7 +105,7 @@ public class ArticlePublishService {
 
 				// GitHub投稿を実行する
 				// この時点ではArticleテーブルには保存しない
-				gitHubPushService.pushArticle(
+				gitHubFacadeService.pushArticle(
 						repo,
 						cipherKey,
 						article,

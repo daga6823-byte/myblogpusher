@@ -30,7 +30,8 @@
 			<div th:replace="~{fragments/article_link_modal :: articleLinkModal}"></div>
 
 			<div class="button-row">
-				<button type="submit" class="btn-save">保存してGitHubへプッシュ</button>
+				<button type="submit" class="btn-save">下書き保存</button>
+				<button type="button" class="btn-save" id="publishButton">GitHubへ反映</button>
 				<button type="button" id="pasteButton" class="btn-back">ペースト</button>
 				<button type="button" id="copyAllButton" class="btn-back">内容を一括コピー</button>
 				<button type="button" id="clearButton" class="btn-clear">クリア</button>

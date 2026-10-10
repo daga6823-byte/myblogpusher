@@ -88,50 +88,58 @@ document.addEventListener('change', event => {
 // 一覧画面へ戻る
 // 未保存の場合は保存確認を表示
 // -----------------------------------------------------
-document.getElementById('listButton').addEventListener('click', () => {
+const listButton = document.getElementById('listButton');
 
-	if (contentChanged) {
+if (listButton) {
+	listButton.addEventListener('click', () => {
 
-		const wantSave = confirm('保存していない変更があります。保存しますか？');
+		if (contentChanged) {
 
-		if (wantSave) {
-			document.getElementById('redirectTo').value = 'list';
+			const wantSave = confirm('保存していない変更があります。保存しますか？');
 
-			const form = document.querySelector('form');
-			form.action = '/article/save';
-			form.submit();
+			if (wantSave) {
+				document.getElementById('redirectTo').value = 'list';
+
+				const form = document.querySelector('form');
+				form.action = '/article/save';
+				form.submit();
+
+			} else {
+				window.location.href = '/article/list';
+			}
 
 		} else {
 			window.location.href = '/article/list';
 		}
-
-	} else {
-		window.location.href = '/article/list';
-	}
-});
+	});
+}
 
 // -----------------------------------------------------
 // ホームへ戻る
 // 未保存の場合は保存確認を表示
 // -----------------------------------------------------
-document.getElementById('backButton').addEventListener('click', () => {
+const backButton = document.getElementById('backButton');
 
-	if (contentChanged) {
+if (backButton) {
+	backButton.addEventListener('click', () => {
 
-		const wantSave = confirm('保存していない変更があります。保存しますか？');
+		if (contentChanged) {
 
-		if (wantSave) {
-			document.getElementById('redirectTo').value = 'home';
+			const wantSave = confirm('保存していない変更があります。保存しますか？');
 
-			const form = document.querySelector('form');
-			form.action = '/article/save';
-			form.submit();
+			if (wantSave) {
+				document.getElementById('redirectTo').value = 'home';
+
+				const form = document.querySelector('form');
+				form.action = '/article/save';
+				form.submit();
+
+			} else {
+				window.location.href = '/home';
+			}
 
 		} else {
 			window.location.href = '/home';
 		}
-
-	} else {
-		window.location.href = '/home';
-	}
-});
+	});
+}

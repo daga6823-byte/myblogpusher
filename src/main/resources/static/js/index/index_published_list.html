@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>公開済みインデックス一覧</title>
+</head>
+
+<body>
+	<main>
+		<h1>公開済みインデックス一覧</h1>
+
+		<p th:if="${message}" th:text="${message}"></p>
+		<p th:if="${error}" th:text="${error}"></p>
+
+		<p th:if="${#lists.isEmpty(indexes)}">
+			公開済みのインデックスはありません。
+		</p>
+
+		<table th:unless="${#lists.isEmpty(indexes)}">
+			<thead>
+				<tr>
+					<th>カテゴリー階層</th>
+					<th>タイトル</th>
+					<th>更新日時</th>
+					<th>操作</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr th:each="index : ${indexes}">
+					<td th:text="${categoryPaths.?[groupId == #vars.index.groupId].size() > 0
+                        ? categoryPaths.?[groupId == #vars.index.groupId][0].categoryPath
+                        : '（カテゴリー不明）'}"></td>
+					<td th:text="${index.title}"></td>
+					<td th:text="${index.updateDate}"></td>
+					<td>
+						<a th:href="@{/index/published/edit(groupId=${index.groupId})}">
+							編集
+						</a>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+
+		<p>
+			<a th:href="@{/index/list}">インデックス一覧へ戻る</a>
+		</p>
+
+		<p>
+			<a th:href="@{/}">トップへ戻る</a>
+		</p>
+	</main>
+</body>
+
+</html>

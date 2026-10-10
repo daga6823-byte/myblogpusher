@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8">
+	<title>インデックス投稿確認</title>
+	<link rel="stylesheet" th:href="@{/css/common.css}">
+</head>
+
+<body>
+	<div th:replace="~{fragments/header :: header}"></div>
+
+	<div class="box">
+		<h1>インデックス投稿確認</h1>
+
+		<div class="preview-section">
+			<h2 th:text="${title}"></h2>
+
+			<p class="repo-info">
+				カテゴリー経路：
+				<span th:text="${categoryPath}"></span>
+			</p>
+
+			<p class="repo-info">
+				リポジトリ：
+				<span th:text="${repoOwner}"></span>
+				/
+				<span th:text="${repoName}"></span>
+			</p>
+
+			<p class="repo-info">
+				反映先ファイル：
+				<span th:text="${categoryPath + '/_index.md'}"></span>
+			</p>
+		</div>
+
+		<div class="content-preview">
+			<h3>プレビュー</h3>
+			<pre th:text="${content}"></pre>
+		</div>
+
+		<div class="button-row">
+			<form id="publishForm" th:action="@{/index/publish/execute}" method="post" style="display: inline;"
+				onsubmit="return publishIndexSubmit();">
+
+				<input type="hidden" name="groupId" th:value="${groupId}">
+
+				<button id="publishButton" type="submit" class="btn-publish">
+					GitHubへ反映
+				</button>
+			</form>
+
+			<form th:action="@{/index/edit/load}" method="post" style="display: inline;">
+				<input type="hidden" name="groupId" th:value="${groupId}">
+				<button type="submit" class="btn-back">戻る</button>
+			</form>
+		</div>
+	</div>
+
+	<script th:src="@{/js/index/index_publish_preview.js}"></script>
+</body>
+
+</html>

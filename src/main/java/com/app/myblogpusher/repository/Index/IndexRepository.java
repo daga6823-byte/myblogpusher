@@ -4,13 +4,13 @@
  * ユーザーIDとカテゴリー経路のグループIDを基準に、
  * indexテーブルの検索を担当する。
  */
-package com.app.myblogpusher.repository;
+package com.app.myblogpusher.repository.Index;
 
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.app.myblogpusher.entity.Index;
+import com.app.myblogpusher.entity.Index.Index;
 
 public interface IndexRepository extends JpaRepository<Index, Long> {
 

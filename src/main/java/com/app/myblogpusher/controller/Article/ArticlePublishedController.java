@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import com.app.myblogpusher.dto.Publish.PublishedArticleDto;
 import com.app.myblogpusher.entity.UserMaster;
 import com.app.myblogpusher.entity.UserRepositoryEntity;
 import com.app.myblogpusher.entity.Article.Article;
@@ -140,7 +141,7 @@ public class ArticlePublishedController {
 
 			String cipherKey = loginUser.getCipherKey();
 
-			com.app.myblogpusher.dto.Publish.PublishedArticleDto githubArticle;
+			PublishedArticleDto githubArticle;
 
 			try {
 

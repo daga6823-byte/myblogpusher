@@ -35,7 +35,7 @@
 					<td th:text="${index.title}"></td>
 					<td th:text="${index.updateDate}"></td>
 					<td>
-						<form th:action="@{/index/edit/load}" method="post">
+						<form th:action="@{/index/edit}" method="get">
 							<input type="hidden" name="groupId" th:value="${index.groupId}">
 							<button type="submit">編集</button>
 						</form>
@@ -43,6 +43,48 @@
 				</tr>
 			</tbody>
 		</table>
+
+		<h2>編集中のインデックス</h2>
+
+		<p th:if="${#lists.isEmpty(indexWorks)}">
+			編集中のインデックスはありません。
+		</p>
+
+		<table th:unless="${#lists.isEmpty(indexWorks)}">
+			<thead>
+				<tr>
+					<th>カテゴリー階層</th>
+					<th>タイトル</th>
+					<th>更新日時</th>
+					<th>状態</th>
+					<th>操作</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr th:each="work : ${indexWorks}">
+					<td th:text="${categoryPaths.?[groupId == #vars.work.groupId].size() > 0
+                ? categoryPaths.?[groupId == #vars.work.groupId][0].categoryPath
+                : '（カテゴリー不明）'}"></td>
+					<td th:text="${work.title}"></td>
+					<td th:text="${work.updateDate}"></td>
+					<td>
+						<span th:if="${work.status == 0}">下書き</span>
+						<span th:if="${work.status == 1}">反映中</span>
+						<span th:if="${work.status == 2}">エラー</span>
+					</td>
+					<td>
+						<form th:action="@{/index/edit/load}" method="post">
+							<input type="hidden" name="groupId" th:value="${work.groupId}">
+							<button type="submit">編集</button>
+						</form>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+
+		<p>
+			<a th:href="@{/index/published}">公開済みインデックス一覧</a>
+		</p>
 
 		<p>
 			<a th:href="@{/}">トップへ戻る</a>

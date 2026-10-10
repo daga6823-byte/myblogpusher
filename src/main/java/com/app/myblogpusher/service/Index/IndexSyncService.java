@@ -17,11 +17,10 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import com.app.myblogpusher.dto.Category.CategoryOptionView;
-import com.app.myblogpusher.entity.Index;
 import com.app.myblogpusher.entity.UserRepositoryEntity;
-import com.app.myblogpusher.repository.IndexRepository;
-import com.app.myblogpusher.service.IndexEditService;
-import com.app.myblogpusher.service.Github.GitHubPushService;
+import com.app.myblogpusher.entity.Index.Index;
+import com.app.myblogpusher.repository.Index.IndexRepository;
+import com.app.myblogpusher.service.Facade.GitHubFacadeService;
 
 @Service
 public class IndexSyncService {
@@ -33,7 +32,7 @@ public class IndexSyncService {
 	private IndexRepository indexRepository;
 
 	@Autowired
-	private GitHubPushService gitHubPushService;
+	private GitHubFacadeService gitHubFacadeService;
 
 	/**
 	 * GitHub上のカテゴリー_index.mdを非同期で取得し、indexテーブルへ同期する。
@@ -53,7 +52,7 @@ public class IndexSyncService {
 			for (CategoryOptionView category : categoryPaths) {
 				String categoryPath = category.getCategoryPath();
 
-				String markdown = gitHubPushService.readMarkdownFile(
+				String markdown = gitHubFacadeService.readMarkdownFile(
 						repo,
 						cipherKey,
 						categoryPath + "/_index.md");
@@ -79,8 +78,6 @@ public class IndexSyncService {
 
 				// Front Matterと本文をDBへ反映する。
 				index.setTitle(extractFrontMatterValue(markdown, "title"));
-				index.setDescription(
-						extractFrontMatterValue(markdown, "description"));
 				index.setContent(markdown);
 				index.setUpdateUser(userId);
 				index.setUpdateDate(LocalDateTime.now());

@@ -5,7 +5,7 @@
  * 新規_index.mdの初期内容生成を担当する。
  * GitHubへの保存・プッシュ処理はGitHubPushServiceへ委譲する。
  */
-package com.app.myblogpusher.service;
+package com.app.myblogpusher.service.Index;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -22,7 +22,7 @@ import com.app.myblogpusher.entity.UserRepositoryEntity;
 import com.app.myblogpusher.entity.Article.ArticleCategory;
 import com.app.myblogpusher.repository.CategoryRelationRepository;
 import com.app.myblogpusher.service.Article.ArticleCategoryService;
-import com.app.myblogpusher.service.Github.GitHubPushService;
+import com.app.myblogpusher.service.Facade.GitHubFacadeService;
 
 @Service
 public class IndexEditService {
@@ -32,6 +32,9 @@ public class IndexEditService {
 
 	@Autowired
 	private CategoryRelationRepository categoryRelationRepository;
+	
+	@Autowired
+	private GitHubFacadeService gitHubFacadeService;
 
 	/**
 	 * ユーザーが管理できるカテゴリー階層を一覧取得する。
@@ -80,19 +83,12 @@ public class IndexEditService {
 	 * @return 初期状態の_index.md本文
 	 */
 	public String createDefaultContent(String title) {
-		String safeTitle = title == null ? ""
-				: title
-						.replace("\\", "\\\\")
-						.replace("\"", "\\\"");
 
 		return "---\n"
 				+ "title: \"" + title + "\"\n"
 				+ "description: \"\"\n"
 				+ "---\n\n";
 	}
-
-	@Autowired
-	private GitHubPushService gitHubPushService;
 
 	/**
 	 * 指定されたカテゴリー階層の_index.mdを読み込む。
@@ -131,7 +127,7 @@ public class IndexEditService {
 
 		String relativePath = categoryPath + "/_index.md";
 
-		String content = gitHubPushService.readMarkdownFile(
+		String content = gitHubFacadeService.readMarkdownFile(
 				repo,
 				cipherKey,
 				relativePath);

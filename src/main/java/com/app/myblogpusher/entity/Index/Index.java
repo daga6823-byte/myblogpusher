@@ -6,7 +6,7 @@
  * GitHub上の_index.mdとDBの内容を対応付ける。
  */
 
-package com.app.myblogpusher.entity;
+package com.app.myblogpusher.entity.Index;
 
 import java.time.LocalDateTime;
 
@@ -38,9 +38,6 @@ public class Index {
 
 	@Column(name = "title")
 	private String title;
-
-	@Column(name = "description")
-	private String description;
 
 	@Column(name = "content", columnDefinition = "TEXT")
 	private String content;

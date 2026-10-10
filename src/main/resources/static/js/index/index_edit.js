@@ -222,3 +222,113 @@ function updateIndexButtonState() {
 		textarea.focus();
 	});
 })();
+
+
+// =====================================================
+// 投稿前確認画面への遷移
+// =====================================================
+(() => {
+	const publishButton = document.getElementById('publishButton');
+	const contentForm = publishButton?.closest('form');
+
+	if (!publishButton || !contentForm) {
+		return;
+	}
+
+	publishButton.addEventListener('click', () => {
+		const groupId = contentForm.querySelector('input[name="groupId"]')?.value;
+		const textarea = document.getElementById('content');
+		const titleInput = document.getElementById('title');
+
+		if (!groupId || !textarea || !titleInput) {
+			return;
+		}
+
+		// タイトル欄の内容をFront Matterへ反映してから送信する。
+		updateIndexFrontMatter();
+
+		if (!titleInput.value.trim() || !textarea.value.trim()) {
+			alert('タイトルと本文を入力してください。');
+			return;
+		}
+
+		// 編集中の内容をPOSTし、サーバー側で下書き保存後に確認画面を表示する。
+		const form = document.createElement('form');
+		form.method = 'post';
+		form.action = '/index/publish/preview';
+
+		[
+			['groupId', groupId],
+			['content', textarea.value]
+		].forEach(([name, value]) => {
+			const input = document.createElement('input');
+			input.type = 'hidden';
+			input.name = name;
+			input.value = value;
+			form.appendChild(input);
+		});
+
+		document.body.appendChild(form);
+		form.submit();
+	});
+})();
+
+// =====================================================
+// ワークスペースの自動保存
+//
+// 最後の入力から5秒後にindex_workspaceへ保存する。
+// 手動保存・投稿前確認時の削除処理はサーバー側で行う。
+// =====================================================
+(() => {
+	let workspaceTimer;
+
+	function saveIndexWorkspace() {
+		const groupId = document.getElementById('groupId')
+			|| document.querySelector('input[name="groupId"]');
+		const titleInput = document.getElementById('title');
+		const textarea = document.getElementById('content');
+
+		if (!groupId?.value || !titleInput || !textarea) {
+			return;
+		}
+
+		const data = {
+			title: titleInput.value,
+			content: textarea.value,
+			categoryGroupId: Number(groupId.value)
+		};
+
+		fetch('/index/workspace/save', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify(data)
+		}).catch(error => console.error(
+			'インデックスの自動保存に失敗しました:', error
+		));
+	}
+
+	function scheduleIndexWorkspaceSave() {
+		clearTimeout(workspaceTimer);
+		workspaceTimer = setTimeout(saveIndexWorkspace, 5000);
+	}
+
+	['title', 'content'].forEach(id => {
+		const element = document.getElementById(id);
+
+		if (element) {
+			element.addEventListener('input', scheduleIndexWorkspaceSave);
+		}
+	});
+})();
+
+// 10分ごとにセッションを維持する。
+setInterval(() => {
+	fetch('/article/session/keepalive', {
+		method: 'POST'
+	}).catch(error => {
+		console.error('セッション維持に失敗しました:', error);
+	});
+}, 10 * 60 * 1000);
+
