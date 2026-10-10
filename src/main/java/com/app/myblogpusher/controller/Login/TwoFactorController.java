@@ -239,9 +239,6 @@ public class TwoFactorController {
 		String region = (String) session.getAttribute("twoFactorRegion");
 		String userAgent = (String) session.getAttribute("twoFactorUserAgent");
 
-		// ログイン前に前のセッションのワークスペースをクリアする。
-		workspaceService.delete(user.getUserId());
-
 		loginHistoryService.recordLogin(
 				user.getUserId(),
 				ipAddress,

@@ -17,7 +17,7 @@ public class LoginService {
 
 	@Autowired
 	private PasswordEncoder passwordEncoder;
-	
+
 	@Autowired
 	private IpGeolocationService ipGeolocationService;
 
@@ -25,26 +25,41 @@ public class LoginService {
 	private LoginHistoryService loginHistoryService;
 
 	public Optional<UserMaster> findAuthenticatedUser(String loginId, String password) {
+		long totalStart = System.nanoTime();
+		long stepStart = System.nanoTime();
+
 		Optional<UserMaster> userOpt = userMasterRepository.findByLoginId(loginId);
 
+		logElapsed("ユーザーDB検索", stepStart);
+
 		if (userOpt.isEmpty()) {
+			logElapsed("認証処理全体", totalStart);
 			return Optional.empty();
 		}
 
 		UserMaster user = userOpt.get();
 
 		if ("BANNED".equals(user.getUserStatus())) {
+			logElapsed("認証処理全体", totalStart);
 			return Optional.empty();
 		}
 
-		if (!passwordEncoder.matches(password, user.getPassword())) {
+		stepStart = System.nanoTime();
+		boolean passwordMatches = passwordEncoder.matches(password, user.getPassword());
+		logElapsed("パスワード照合", stepStart);
+
+		if (!passwordMatches) {
 			int failedCount = user.getLoginFailedCount() == null
 					? 0
 					: user.getLoginFailedCount();
 
 			user.setLoginFailedCount(failedCount + 1);
-			userMasterRepository.save(user);
 
+			stepStart = System.nanoTime();
+			userMasterRepository.save(user);
+			logElapsed("ログイン失敗回数の保存", stepStart);
+
+			logElapsed("認証処理全体", totalStart);
 			return Optional.empty();
 		}
 
@@ -54,10 +69,25 @@ public class LoginService {
 				|| user.getLoginFailedCount() < 3) {
 
 			user.setLoginFailedCount(0);
+
+			stepStart = System.nanoTime();
 			userMasterRepository.save(user);
+			logElapsed("ログイン成功時の失敗回数リセット", stepStart);
 		}
 
+		logElapsed("認証処理全体", totalStart);
 		return Optional.of(user);
+	}
+
+	/**
+	 * 認証処理の経過時間をミリ秒単位でログ出力する。
+	 */
+	private void logElapsed(String processName, long startNanos) {
+		long elapsedMillis = (System.nanoTime() - startNanos) / 1_000_000;
+
+		System.out.println(
+				"[LoginServiceTiming] " + processName + ": "
+						+ elapsedMillis + " ms");
 	}
 
 	/**
@@ -104,8 +134,8 @@ public class LoginService {
 	 * ・パスワードを3回連続で間違えている
 	 */
 	public boolean requiresTwoFactor(
-	        UserMaster user,
-	        String ipAddress) {
+			UserMaster user,
+			String ipAddress) {
 
 		// パスワードを3回連続で間違えている場合は2FAを要求する。
 		if (user.getLoginFailedCount() != null

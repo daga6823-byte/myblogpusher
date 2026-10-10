@@ -22,12 +22,14 @@
 			style="display:none;">
 
 		<label for="title">タイトル</label>
-		<input type="text" id="title" name="title" th:value="${work != null ? work.title : ''}">
+		<input type="text" id="title" name="title"
+			th:value="${work != null ? work.title : (workspace != null ? workspace.title : '')}">
 
 		<label for="content">本文（Markdown）</label>
 		<div class="content-wrapper">
 			<div id="contentHighlight" class="content-highlight"></div>
-			<textarea id="content" name="content" th:text="${work != null ? work.content : ''}"></textarea>
+			<textarea id="content" name="content"
+				th:text="${work != null ? work.content : (workspace != null ? workspace.content : '')}"></textarea>
 		</div>
 
 		<div class="editor-toolbar-row">

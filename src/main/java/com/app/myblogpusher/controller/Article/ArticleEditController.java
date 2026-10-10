@@ -86,6 +86,7 @@ public class ArticleEditController {
 
 		if (workId != null) {
 
+			// 既存の下書きを編集中の場合は、下書きの内容を優先する。
 			work = articleWorkService.findById(workId);
 
 			model.addAttribute("work", work);
@@ -104,6 +105,30 @@ public class ArticleEditController {
 
 			model.addAttribute("categoryPath", categoryPath);
 
+		} else {
+
+			// 新規編集画面では、保存済みワークスペースから入力内容を復元する。
+			var workspaceOptional = workspaceService.find(userId);
+
+			if (workspaceOptional.isPresent()) {
+
+				var workspace = workspaceOptional.get();
+
+				model.addAttribute("workspace", workspace);
+				model.addAttribute("categoryGroupId", workspace.getCategoryGroupId());
+
+				// URLからカテゴリー経路が指定されていない場合は、保存済みのgroupIdから取得する。
+				if (categoryPath == null || categoryPath.isBlank()) {
+
+					if (workspace.getCategoryGroupId() != null) {
+
+						categoryPath = categorySelectionService
+								.findCategoryPathByGroupId(workspace.getCategoryGroupId());
+					}
+				}
+
+				model.addAttribute("categoryPath", categoryPath);
+			}
 		}
 
 		if (work != null) {

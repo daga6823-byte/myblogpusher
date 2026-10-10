@@ -102,10 +102,6 @@ public class LoginController {
 			}
 
 			stepStart = System.nanoTime();
-			workspaceService.delete(user.getUserId());
-			logElapsed("下書きワーク削除", stepStart);
-
-			stepStart = System.nanoTime();
 			Long historyId = loginHistoryService.recordLogin(
 					user.getUserId(), ipAddress, null, userAgent);
 			logElapsed("ログイン履歴登録", stepStart);
