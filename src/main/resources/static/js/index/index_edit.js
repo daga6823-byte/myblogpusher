@@ -272,19 +272,17 @@ function updateIndexButtonState() {
 		form.submit();
 	});
 })();
-
 // =====================================================
 // ワークスペースの自動保存
 //
 // 最後の入力から5秒後にindex_workspaceへ保存する。
-// 手動保存・投稿前確認時の削除処理はサーバー側で行う。
+// 手動保存・投稿成功後の削除処理はサーバー側で行う。
 // =====================================================
 (() => {
 	let workspaceTimer;
 
 	function saveIndexWorkspace() {
-		const groupId = document.getElementById('groupId')
-			|| document.querySelector('input[name="groupId"]');
+		const groupId = document.querySelector('input[name="groupId"]');
 		const titleInput = document.getElementById('title');
 		const textarea = document.getElementById('content');
 
@@ -292,21 +290,25 @@ function updateIndexButtonState() {
 			return;
 		}
 
-		const data = {
-			title: titleInput.value,
-			content: textarea.value,
-			categoryGroupId: Number(groupId.value)
-		};
+		// コントローラーの@RequestParamに合わせてフォーム形式で送信する。
+		const params = new URLSearchParams({
+			groupId: groupId.value,
+			content: textarea.value
+		});
 
-		fetch('/index/workspace/save', {
+		fetch('/index/workspace/autosave', {
 			method: 'POST',
 			headers: {
-				'Content-Type': 'application/json'
+				'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
 			},
-			body: JSON.stringify(data)
-		}).catch(error => console.error(
-			'インデックスの自動保存に失敗しました:', error
-		));
+			body: params.toString()
+		}).then(response => {
+			if (!response.ok) {
+				throw new Error(`HTTP ${response.status}`);
+			}
+		}).catch(error => {
+			console.error('インデックスの自動保存に失敗しました:', error);
+		});
 	}
 
 	function scheduleIndexWorkspaceSave() {

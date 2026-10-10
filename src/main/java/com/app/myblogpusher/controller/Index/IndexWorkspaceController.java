@@ -1,22 +1,21 @@
-
 /**
- * インデックス編集中の一時保存を担当するコントローラー
+ * インデックス編集中の自動保存を担当するコントローラー
  *
- * 編集内容の手動保存と、自動保存データの更新を担当する。
- * GitHubへの投稿処理や投稿処理用データの管理は担当しない。
+ * 編集内容をindex_workspaceへ自動保存する。
+ * 手動保存やGitHubへの投稿処理は担当しない。
  */
 package com.app.myblogpusher.controller.Index;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.app.myblogpusher.entity.UserMaster;
 import com.app.myblogpusher.service.Index.IndexEditService;
-import com.app.myblogpusher.service.Index.IndexWorkService;
 import com.app.myblogpusher.service.Index.IndexWorkspaceService;
 
 import jakarta.servlet.http.HttpSession;
@@ -29,49 +28,6 @@ public class IndexWorkspaceController {
 
 	@Autowired
 	private IndexWorkspaceService indexWorkspaceService;
-
-	@Autowired
-	private IndexWorkService indexWorkService;
-
-	/**
-	 * 編集内容を手動で一時保存する。
-	 */
-	@PostMapping("/index/edit/save")
-	public String saveIndex(
-			@RequestParam Long groupId,
-			@RequestParam String content,
-			HttpSession session,
-			RedirectAttributes redirectAttributes) {
-
-		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
-
-		if (loginUser == null) {
-			return "redirect:/login";
-		}
-
-		try {
-			validateCategory(loginUser.getUserId(), groupId);
-
-			// 編集内容をindex_workに保存する。
-			indexWorkService.saveDraft(
-					loginUser.getUserId(),
-					groupId,
-					extractFrontMatterValue(content, "title"),
-					content);
-
-			// index_workへの保存成功後に自動保存データを削除する。
-			indexWorkspaceService.delete(loginUser.getUserId());
-
-			redirectAttributes.addFlashAttribute(
-					"message", "インデックスを一時保存しました。");
-
-		} catch (IllegalArgumentException e) {
-			redirectAttributes.addFlashAttribute(
-					"error", "インデックスの保存に失敗しました: " + e.getMessage());
-		}
-
-		return "redirect:/index/list";
-	}
 
 	/**
 	 * 編集中の内容を自動保存する。
@@ -88,12 +44,22 @@ public class IndexWorkspaceController {
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 
 		if (loginUser == null) {
-			throw new org.springframework.web.server.ResponseStatusException(
-					org.springframework.http.HttpStatus.UNAUTHORIZED);
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
 		}
 
-		validateCategory(loginUser.getUserId(), groupId);
+		// 編集対象のカテゴリー階層がユーザー所有か確認する。
+		boolean ownsCategoryPath = indexEditService
+				.findCategoryPaths(loginUser.getUserId())
+				.stream()
+				.anyMatch(category -> category.getGroupId().equals(groupId));
 
+		if (!ownsCategoryPath) {
+			throw new ResponseStatusException(
+					HttpStatus.FORBIDDEN,
+					"指定されたカテゴリー階層を編集する権限がありません。");
+		}
+
+		// フロントマターのタイトルと本文を自動保存する。
 		indexWorkspaceService.save(
 				loginUser.getUserId(),
 				groupId,
@@ -101,21 +67,6 @@ public class IndexWorkspaceController {
 				content);
 
 		return "OK";
-	}
-
-	/**
-	 * ログインユーザーが対象カテゴリーを編集できることを確認する。
-	 */
-	private void validateCategory(Long userId, Long groupId) {
-		boolean ownsCategoryPath = indexEditService
-				.findCategoryPaths(userId)
-				.stream()
-				.anyMatch(category -> category.getGroupId().equals(groupId));
-
-		if (!ownsCategoryPath) {
-			throw new IllegalArgumentException(
-					"指定されたカテゴリー階層を編集する権限がありません。");
-		}
 	}
 
 	/**
