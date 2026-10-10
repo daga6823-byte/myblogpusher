@@ -3,7 +3,7 @@
 
 <head>
 	<meta charset="UTF-8">
-	<title>記事編集</title>
+	<title>インデックス編集</title>
 	<link rel="stylesheet" th:href="@{/css/cursor_pad.css}">
 	<link rel="stylesheet" th:href="@{/css/markdown_toolbar.css}">
 	<link rel="stylesheet" th:href="@{/css/article/article_edit.css}">
@@ -18,68 +18,46 @@
 	<div th:replace="~{fragments/header :: header}"></div>
 
 	<div class="edit-box">
-		<h1>記事編集</h1>
+		<h1>インデックス編集</h1>
 
-		<div id="savedMessage" th:if="${saved}"
-			style="background-color:#d4edda; color:#155724; padding:12px 16px; border-radius:4px; margin-bottom:16px;">
-			下書きが保存されました。
-		</div>
+		<p th:if="${error}" th:text="${error}"></p>
 
-		<form th:action="@{/article/save}" method="post">
+		<form th:action="@{/index/edit/save}" method="post">
+			<input type="hidden" name="groupId" th:value="${selectedGroupId}">
 
-			<div th:replace="~{article/fragments/article_editor :: editorFields}"></div>
+			<!-- インデックス専用の編集領域 -->
+			<div th:replace="~{index/index_editor :: editorFields}"></div>
 			<div th:replace="~{fragments/article_link_modal :: articleLinkModal}"></div>
 
 			<div class="button-row">
-				<button type="submit" formaction="/article/save" class="btn-save" disabled>一時保存</button>
+				<button type="submit" class="btn-save">保存してGitHubへプッシュ</button>
 				<button type="button" id="pasteButton" class="btn-back">ペースト</button>
-				<button type="button" id="listButton" class="btn-back">下書き一覧</button>
 				<button type="button" id="copyAllButton" class="btn-back">内容を一括コピー</button>
 				<button type="button" id="clearButton" class="btn-clear">クリア</button>
-				<button type="submit" formaction="/article/correct" class="btn-publish" disabled>添削</button>
-				<button type="button" class="btn-publish" id="publishButton">投稿</button>
-				<button type="button" id="backButton" class="btn-back">戻る</button>
+				<button type="button" id="backButton" class="btn-back">一覧へ戻る</button>
 			</div>
-
 		</form>
 	</div>
 
 	<script th:inline="javascript">
-
-		window.siteUrl =
-		/*[[${siteUrl}]]*/ '';
-
-		window.createDate =
-		/*[[${createDate}]]*/ null;
-
-		window.updateDate =
-		/*[[${updateDate}]]*/ null;
-
-		window.categorySelects =
-    /*[[${categories}]]*/[];
-
-		window.categoryPath =
-    /*[[${categoryPath}]]*/ null;
-
-		window.categoryGroupId =
-		/*[[${categoryGroupId}]]*/ null;
-
+		window.siteUrl = /*[[${siteUrl}]]*/ '';
+		window.createDate = /*[[${createDate}]]*/ null;
+		window.updateDate = /*[[${updateDate}]]*/ null;
+		window.categorySelects = /*[[${categories}]]*/[];
+		window.categoryPath = /*[[${categoryPath}]]*/ null;
+		window.categoryGroupId = /*[[${selectedGroupId}]]*/ null;
+		window.indexEditMode = true;
 	</script>
 
-	<script th:src="@{/js/article/article_edit.js}"></script>
-	<script th:src="@{/js/article/article_list.js}"></script>
-	<script th:src="@{/js/category_select.js}"></script>
+	<script th:src="@{/js/index/index_edit.js}"></script>
 	<script th:src="@{/js/markdown_toolbar.js}"></script>
 	<script th:src="@{/js/navigation.js}"></script>
-	<script th:src="@{/js/frontmatter.js}"></script>
-	<script th:src="@{/js/workspace.js}"></script>
 	<script type="module" th:src="@{/js/facades/image_manager.js}"></script>
 	<script th:src="@{/js/toggle/insert_menu.js}"></script>
 	<script th:src="@{/js/toggle/link_manager.js}"></script>
 	<script th:src="@{/js/toggle/spoiler_editor.js}"></script>
 	<script th:src="@{/js/toggle/code_block_editor.js}"></script>
-	<script th:src="@{/js/publish.js}"></script>
-	<script type="module" th:src="@{/js/facades/article_reference_facade.js}"></script>
+	<script type="module" th:src="@{/js/facades/index_facade.js}"></script>
 	<script th:src="@{/js/cursor_pad_control.js}"></script>
 	<script th:src="@{/js/cursor_pad_viewport.js}"></script>
 </body>

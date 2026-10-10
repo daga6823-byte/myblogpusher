@@ -19,6 +19,7 @@ import com.app.myblogpusher.repository.UserRepositoryRepository;
 import com.app.myblogpusher.service.PublishedArticleSyncService;
 import com.app.myblogpusher.service.Article.ArticleWorkspaceService;
 import com.app.myblogpusher.service.Image.ImageAssetPreloadAsyncService;
+import com.app.myblogpusher.service.Index.IndexSyncService;
 import com.app.myblogpusher.service.Login.LoginHistoryService;
 import com.app.myblogpusher.service.Login.LoginRegionAsyncService;
 import com.app.myblogpusher.service.Login.LoginService;
@@ -46,9 +47,12 @@ public class LoginController {
 
 	@Autowired
 	private ImageAssetPreloadAsyncService imageAssetPreloadAsyncService;
-	
+
 	@Autowired
 	private PublishedArticleSyncService publishedArticleSyncService;
+
+	@Autowired
+	private IndexSyncService indexSyncService;
 
 	@GetMapping("/login")
 	public String loginForm() {
@@ -116,10 +120,17 @@ public class LoginController {
 
 			// 投稿済み記事一覧を非同期で先読みし、記事一覧画面の表示を高速化する
 			userRepositoryRepository.findByUserId(user.getUserId())
-					.ifPresent(repo -> publishedArticleSyncService.syncArticles(
-							repo,
-							user.getCipherKey(),
-							user.getUserId()));
+					.ifPresent(repo -> {
+						// 投稿済み記事を非同期同期する。
+						publishedArticleSyncService.syncArticles(
+								repo,
+								user.getCipherKey(),
+								user.getUserId());
+
+						// Hugoのカテゴリーインデックスを非同期同期する。
+						indexSyncService.syncFromGitHub(
+								user.getUserId(), repo, user.getCipherKey());
+					});
 
 			// 画像一覧の初回表示に必要な情報をバックグラウンドで先読みする。
 			imageAssetPreloadAsyncService.preloadAsync(user.getUserId());

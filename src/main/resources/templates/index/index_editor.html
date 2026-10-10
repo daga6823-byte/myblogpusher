@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<body>
+	<!--
+	 * インデックス編集画面専用の編集領域
+	 *
+	 * 記事専用のカテゴリー選択・公開設定を除外し、
+	 * Markdown本文と共通編集部品を提供する。
+	 -->
+	<div th:fragment="editorFields">
+		<label for="title">タイトル</label>
+		<input type="text" id="title" name="title" value="">
+
+		<label for="content">本文（Markdown）</label>
+		<div class="content-wrapper">
+			<div id="contentHighlight" class="content-highlight"></div>
+			<textarea id="content" name="content" th:text="${content}"></textarea>
+		</div>
+
+		<div class="editor-toolbar-row">
+			<div class="editor-toolbar">
+				<div class="insert-menu-wrapper">
+					<button type="button" id="insertMenuButton" class="btn-insert">＋</button>
+					<div id="insertMenu" class="insert-menu" style="display:none;">
+						<button type="button" id="codeBlockButton">コードブロック</button>
+						<button type="button" id="imageButton">📷 画像挿入</button>
+						<button type="button" id="linkButton">🔗 記事リンク</button>
+						<button type="button" id="footnoteButton">脚注</button>
+					</div>
+				</div>
+
+				<div th:replace="~{fragments/markdown_toolbar :: markdownToolbar}"></div>
+			</div>
+
+			<div class="cursor-pad">
+				<button type="button" id="cursorUpButton">↑</button>
+				<div>
+					<button type="button" id="cursorLeftButton">←</button>
+					<button type="button" id="cursorRightButton">→</button>
+				</div>
+				<button type="button" id="cursorDownButton">↓</button>
+			</div>
+		</div>
+
+		<!-- コードブロック編集 -->
+		<div th:replace="~{fragments/code_block_editor :: codeBlockEditor}"></div>
+
+		<!-- 画像選択・挿入 -->
+		<div th:replace="~{fragments/image_modal :: imageModal}"></div>
+
+		<!-- 脚注入力 -->
+		<div id="articleReference" style="display:none;">
+			<label for="footnoteInput">脚注テキスト</label>
+			<textarea id="footnoteInput" rows="3"></textarea>
+			<button type="button" id="insertFootnoteButton">挿入</button>
+		</div>
+
+		<div th:replace="~{article/fragments/reference_selector :: referenceSelector}"></div>
+		<div th:replace="~{fragments/spoiler_editor :: spoilerEditor}"></div>
+	</div>
+</body>
+
+</html>

@@ -190,6 +190,73 @@ public class GitHubPushService {
 	}
 
 	/**
+	 * GitHubリポジトリから既存のHugoインデックスファイルを読み込む。
+	 *
+	 * リポジトリを初期化して最新状態へ更新し、
+	 * ファイルが存在しない場合はnullを返す。
+	 *
+	 * @param repoEntity 接続先リポジトリ情報
+	 * @param cipherKey アクセストークンの復号キー
+	 * @param relativePath contentディレクトリからの相対パス
+	 * @return ファイル内容。存在しない場合はnull
+	 */
+	public String readMarkdownFile(
+			UserRepositoryEntity repoEntity,
+			String cipherKey,
+			String relativePath)
+			throws IOException, GitAPIException {
+
+		java.nio.file.Path contentDir = java.nio.file.Paths.get("content");
+		java.nio.file.Path relativeFile = java.nio.file.Paths.get(relativePath).normalize();
+
+		// _index.md以外やリポジトリ外へのアクセスを拒否する。
+		if (relativeFile.isAbsolute()
+				|| relativeFile.startsWith("..")
+				|| relativeFile.getNameCount() < 2
+				|| !"_index.md".equals(relativeFile.getFileName().toString())) {
+			throw new IllegalArgumentException(
+					"インデックスファイルのパスが不正です: " + relativePath);
+		}
+
+		java.nio.file.Path filePath = contentDir.resolve(relativeFile).normalize();
+
+		if (!filePath.startsWith(contentDir)) {
+			throw new IllegalArgumentException(
+					"リポジトリ外のファイルは読み込めません。");
+		}
+
+		String accessToken = tokenCipherService.decrypt(
+				repoEntity.getAccessToken(),
+				repoEntity.getTokenIv(),
+				cipherKey);
+
+		String repoPath = System.getProperty("java.io.tmpdir")
+				+ "/myblogpusher_" + repoEntity.getRepoId();
+
+		File repoDir = new File(repoPath);
+		if (!repoDir.exists()) {
+			repoDir.mkdirs();
+		}
+
+		Git git = initializeRepository(repoDir, repoEntity, accessToken);
+
+		try {
+			java.nio.file.Path targetPath = java.nio.file.Paths.get(repoPath).resolve(filePath);
+
+			if (!java.nio.file.Files.exists(targetPath)) {
+				return null;
+			}
+
+			return java.nio.file.Files.readString(
+					targetPath,
+					java.nio.charset.StandardCharsets.UTF_8);
+
+		} finally {
+			git.close();
+		}
+	}
+
+	/**
 	 * GitHub APIでリポジトリへの投稿権限を確認する
 	 */
 	public boolean canPublish(
@@ -285,6 +352,98 @@ public class GitHubPushService {
 					workId,
 					2,
 					errorCode);
+		}
+	}
+
+	/**
+	 * HugoのMarkdownファイルを保存し、GitHubへプッシュする。
+	 *
+	 * 記事投稿とは独立して、カテゴリーの_index.mdなどを更新する。
+	 * リポジトリの初期化・認証には既存の処理を利用する。
+	 *
+	 * @param repoEntity 接続先リポジトリ情報
+	 * @param cipherKey アクセストークンの復号キー
+	 * @param relativePath contentディレクトリからの相対パス
+	 * @param content 保存するMarkdown本文
+	 * @param commitMessage コミットメッセージ
+	 */
+	public void pushMarkdownFile(
+			UserRepositoryEntity repoEntity,
+			String cipherKey,
+			String relativePath,
+			String content,
+			String commitMessage)
+			throws IOException, GitAPIException {
+
+		// インデックスファイル以外への書き込みを防ぐ。
+		java.nio.file.Path contentDir = java.nio.file.Paths.get("content");
+		java.nio.file.Path relativeFile = java.nio.file.Paths.get(relativePath).normalize();
+
+		if (relativeFile.isAbsolute()
+				|| relativeFile.startsWith("..")
+				|| relativeFile.getNameCount() < 2
+				|| !"_index.md".equals(relativeFile.getFileName().toString())) {
+			throw new IllegalArgumentException(
+					"インデックスファイルのパスが不正です: " + relativePath);
+		}
+
+		java.nio.file.Path filePath = contentDir.resolve(relativeFile).normalize();
+
+		if (!filePath.startsWith(contentDir)) {
+			throw new IllegalArgumentException(
+					"リポジトリ外への書き込みは許可されていません。");
+		}
+
+		// 既存の認証・リポジトリ初期化処理を再利用する。
+		String accessToken = tokenCipherService.decrypt(
+				repoEntity.getAccessToken(),
+				repoEntity.getTokenIv(),
+				cipherKey);
+
+		String repoPath = System.getProperty("java.io.tmpdir")
+				+ "/myblogpusher_" + repoEntity.getRepoId();
+
+		File repoDir = new File(repoPath);
+		if (!repoDir.exists()) {
+			repoDir.mkdirs();
+		}
+
+		Git git = initializeRepository(repoDir, repoEntity, accessToken);
+
+		try {
+			java.nio.file.Path targetPath = java.nio.file.Paths
+					.get(repoPath)
+					.resolve(filePath);
+
+			// 内容が変わっていなければ不要なコミット・プッシュを行わない。
+			if (java.nio.file.Files.exists(targetPath)
+					&& java.nio.file.Files.readString(
+							targetPath,
+							java.nio.charset.StandardCharsets.UTF_8)
+							.equals(content)) {
+				return;
+			}
+
+			java.nio.file.Files.createDirectories(targetPath.getParent());
+			java.nio.file.Files.writeString(
+					targetPath,
+					content,
+					java.nio.charset.StandardCharsets.UTF_8);
+
+			git.add().addFilepattern(filePath.toString().replace('\\', '/')).call();
+
+			git.commit()
+					.setMessage(commitMessage)
+					.setAuthor("Myblogpusher", "noreply@myblogpusher.local")
+					.call();
+
+			git.push()
+					.setCredentialsProvider(
+							new UsernamePasswordCredentialsProvider("git", accessToken))
+					.call();
+
+		} finally {
+			git.close();
 		}
 	}
 

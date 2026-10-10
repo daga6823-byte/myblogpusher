@@ -17,25 +17,6 @@
 
 let referenceCache = [];
 
-// -----------------------------------------------------
-// 次の脚注番号を取得
-// -----------------------------------------------------
-
-function getNextFootnoteNumber(text) {
-
-	const matches = [...text.matchAll(/\[\^(\d+)\]/g)];
-
-	if (matches.length === 0) {
-		return 1;
-	}
-
-	const max = Math.max(
-		...matches.map(m => Number(m[1]))
-	);
-
-	return max + 1;
-}
-
 // =====================================================
 // 参考文献カテゴリーを作成
 //
@@ -218,57 +199,14 @@ document.getElementById('referenceCategorySelect')
 		displayReferences(references);
 	});
 
-// -----------------------------------------------------
-// 選択した参考文献を脚注として挿入
-// -----------------------------------------------------
-
+// =====================================================
+/**
+ * 脚注番号と脚注定義を本文へ挿入する。
+ */
+// =====================================================
 function insertFootnote(reference) {
-
-	const textarea =
-		document.getElementById('content');
-
-	const nextNo =
-		getNextFootnoteNumber(textarea.value);
-
-	const marker =
-		`[^${nextNo}]`;
-
-	const start =
-		textarea.selectionStart;
-
-	const end =
-		textarea.selectionEnd;
-
-	// 本文へ脚注番号挿入
-	textarea.value =
-		textarea.value.substring(0, start)
-		+ marker
-		+ textarea.value.substring(end);
-
-	// 末尾へ脚注定義追加
-	if (!textarea.value.endsWith('\n')) {
-		textarea.value += '\n';
-	}
-
-	textarea.value +=
-		`\n${marker}: ${reference.referenceName}`;
-
-	if (reference.url) {
-
-		textarea.value +=
-			`\n${reference.url}`;
-	}
-
-	textarea.focus();
-
-	textarea.setSelectionRange(
-		start + marker.length,
-		start + marker.length
-	);
-
-	textarea.dispatchEvent(
-		new Event('input')
-	);
+	const textarea = document.getElementById('content');
+	FootnoteManager.insert(textarea, reference);
 }
 
 // =====================================================

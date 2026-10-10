@@ -429,6 +429,10 @@ if (insertArticleLinkButton) {
 
 			}
 
+			textarea.dispatchEvent(
+				new Event('input', { bubbles: true })
+			);
+
 			textarea.focus();
 
 			// 挿入したリンクの直後へカーソルを戻す
