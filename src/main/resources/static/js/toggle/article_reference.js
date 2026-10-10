@@ -218,6 +218,8 @@ document.getElementById('saveReferenceButton')
 		const categoryPath =
 			document.getElementById('categorySelect').value;
 
+		const groupId = window.categoryGroupId;
+
 		const referenceName =
 			document.getElementById('referenceName')
 				.value.trim();
@@ -226,12 +228,9 @@ document.getElementById('saveReferenceButton')
 			document.getElementById('referenceUrl')
 				.value.trim();
 
-		if (!categoryPath || categoryPath === '__new__') {
-
+		if (!categoryPath || categoryPath === '__new__' || !groupId) {
 			alert('記事のカテゴリーを選択してください');
-
 			return;
-
 		}
 
 		if (!referenceName) {
@@ -245,15 +244,21 @@ document.getElementById('saveReferenceButton')
 				method: 'POST',
 
 				headers: {
-					'Content-Type':
-						'application/x-www-form-urlencoded'
+					'Content-Type': 'application/x-www-form-urlencoded',
+					'X-Requested-With': 'XMLHttpRequest'
 				},
 
 				body:
-					`categoryPath=${encodeURIComponent(categoryPath)}`
+					`groupId=${encodeURIComponent(groupId)}`
 					+ `&referenceName=${encodeURIComponent(referenceName)}`
 					+ `&url=${encodeURIComponent(url)}`
 			});
+
+		if (response.status === 409) {
+			const error = await response.json();
+			alert(error.message);
+			return;
+		}
 
 		if (!response.ok) {
 			alert('参考文献の登録に失敗しました');

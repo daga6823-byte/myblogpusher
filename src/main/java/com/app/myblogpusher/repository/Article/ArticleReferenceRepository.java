@@ -36,6 +36,14 @@ public interface ArticleReferenceRepository
 			Long userId);
 
 	/**
+	 * ユーザー・参考文献名・URLが一致する参考文献の存在確認
+	 */
+	boolean existsByUserIdAndReferenceNameAndUrl(
+			Long userId,
+			String referenceName,
+			String url);
+
+	/**
 	 * ユーザーが参考文献を登録しているカテゴリーID一覧を取得する
 	 */
 	@Query("""

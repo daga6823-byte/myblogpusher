@@ -14,11 +14,15 @@
 package com.app.myblogpusher.controller.Article;
 
 import java.util.List;
+import java.util.Map;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -109,43 +113,49 @@ public class ArticleReferenceController {
 
 	/**
 	 * 参考文献登録
+	 *
+	 * 管理画面からのフォーム送信は管理画面へリダイレクトし、
+	 * 記事編集画面からの非同期リクエストはJSONで結果を返す。
 	 */
 	@PostMapping("/category/reference/save")
-	public String save(
-			@RequestParam String categoryPath,
+	public Object save(
+			@RequestParam Long groupId,
 			@RequestParam String referenceName,
 			@RequestParam(required = false) String url,
+			@RequestHeader(value = "X-Requested-With", required = false) String requestedWith,
 			HttpSession session) {
 
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 
-		Long groupId = categoryPathService.findGroupIdByFullPath(
-				loginUser.getUserId(),
-				categoryPath);
+		Long referenceGroupId = categoryPathService.resolveReferenceGroupId(groupId);
 
-		if (groupId == null) {
-			throw new IllegalArgumentException(
-					"カテゴリー経路からgroupIdを取得できません: "
-							+ categoryPath);
+		boolean ajaxRequest = "XMLHttpRequest".equals(requestedWith);
+
+		try {
+			Long referenceCategoryId = categoryPathService.findReferenceCategoryIdByGroupId(groupId);
+
+			ArticleReference reference = articleReferenceService.save(
+					loginUser.getUserId(),
+					referenceCategoryId,
+					referenceName,
+					url);
+
+			if (ajaxRequest) {
+				return ResponseEntity.ok(reference);
+			}
+
+		} catch (IllegalArgumentException e) {
+			if (ajaxRequest) {
+				return ResponseEntity.status(HttpStatus.CONFLICT)
+						.body(Map.of("message", "既に登録されています"));
+			}
+
+			return "redirect:/category/reference?groupId="
+					+ referenceGroupId
+					+ "&error=duplicate";
 		}
 
-		// 現在の記事カテゴリーのgroupIdから、
-		// 参考文献を共有するカテゴリーのcategoryIdを取得する。
-		Long referenceCategoryId = categoryPathService.findReferenceCategoryIdByGroupId(
-				groupId);
-
-		articleReferenceService.save(
-				loginUser.getUserId(),
-				referenceCategoryId,
-				referenceName,
-				url);
-
-		// 管理画面へ戻す際は、表示用のgroupIdを使用する。
-		Long referenceGroupId = categoryPathService.resolveReferenceGroupId(
-				groupId);
-
-		return "redirect:/category/reference?groupId="
-				+ referenceGroupId;
+		return "redirect:/category/reference?groupId=" + referenceGroupId;
 	}
 
 	/**

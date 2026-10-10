@@ -180,6 +180,12 @@ if (saveReferenceButton) {
 				+ `&url=${encodeURIComponent(url)}`
 		});
 
+		if (response.status === 409) {
+			const error = await response.json();
+			alert(error.message);
+			return;
+		}
+
 		if (!response.ok) {
 			alert('参考文献の登録に失敗しました');
 			return;

@@ -27,6 +27,10 @@
 	<h2 th:text="'登録先カテゴリー：' + ${categoryName}">
 	</h2>
 
+	<p th:if="${param.error != null and param.error[0] == 'duplicate'}" style="color: red;">
+		既に登録されています。
+	</p>
+
 	<!-- 登録フォーム -->
 
 	<form th:action="@{/category/reference/save}" method="post">

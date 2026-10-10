@@ -55,6 +55,12 @@ public class ArticleReferenceService {
 			String referenceName,
 			String url) {
 
+		// 同じユーザー・参考文献名・URLの登録済みデータを確認する。
+		if (articleReferenceRepository.existsByUserIdAndReferenceNameAndUrl(
+				userId, referenceName, url)) {
+			throw new IllegalArgumentException("既に登録されています");
+		}
+
 		ArticleReference reference = new ArticleReference();
 		reference.setUserId(userId);
 		reference.setCategoryId(categoryId);
