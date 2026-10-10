@@ -60,86 +60,106 @@ public class LoginController {
 	}
 
 	@PostMapping("/login")
-	public String login(@RequestParam String loginId,
+	public String login(
+			@RequestParam String loginId,
 			@RequestParam String password,
 			HttpServletRequest request,
 			HttpSession session,
 			Model model) {
+
+		long loginStart = System.nanoTime();
+		long stepStart = System.nanoTime();
+
 		Optional<UserMaster> userOpt = loginService.findAuthenticatedUser(loginId, password);
 
-		// 変更後
+		logElapsed("ユーザー認証", stepStart);
+
 		if (userOpt.isPresent()) {
 			UserMaster user = userOpt.get();
 
-			// Cloudflare経由の場合は、実際のクライアントIPを取得する。
-			// ヘッダーが取得できない場合は、従来どおり接続元IPを使用する。
 			String ipAddress = request.getHeader("CF-Connecting-IP");
-
 			if (ipAddress == null || ipAddress.isBlank()) {
 				ipAddress = request.getRemoteAddr();
 			}
-
 			String userAgent = request.getHeader("User-Agent");
 
-			// 初回ログイン時はGoogle Authenticatorの設定を行う。
 			if (user.getTwoFactorAuthenticatedAt() == null) {
-
 				session.setAttribute("twoFactorUserId", user.getUserId());
 				session.setAttribute("twoFactorIpAddress", ipAddress);
 				session.setAttribute("twoFactorUserAgent", userAgent);
 
+				logElapsed("ログイン全体（2FA設定へ遷移）", loginStart);
 				return "redirect:/login/2fa/setup";
 			}
 
-			if (loginService.requiresTwoFactor(
-					user,
-					ipAddress)) {
-
+			if (loginService.requiresTwoFactor(user, ipAddress)) {
 				session.setAttribute("twoFactorUserId", user.getUserId());
 				session.setAttribute("twoFactorIpAddress", ipAddress);
 				session.setAttribute("twoFactorUserAgent", userAgent);
 
+				logElapsed("ログイン全体（2FA認証へ遷移）", loginStart);
 				return "redirect:/login/2fa";
 			}
 
-			// ログイン前に前のセッションのワークスペースをクリア
+			stepStart = System.nanoTime();
 			workspaceService.delete(user.getUserId());
+			logElapsed("下書きワーク削除", stepStart);
 
-			// regionはまだ取得できていないため、nullのまま履歴を作成する。
+			stepStart = System.nanoTime();
 			Long historyId = loginHistoryService.recordLogin(
-					user.getUserId(),
-					ipAddress,
-					null,
-					userAgent);
+					user.getUserId(), ipAddress, null, userAgent);
+			logElapsed("ログイン履歴登録", stepStart);
 
-			// 次回の画面遷移までに、ログイン元regionをバックグラウンドで取得する。
+			stepStart = System.nanoTime();
 			loginRegionAsyncService.updateRegionAsync(historyId, ipAddress);
+			logElapsed("ログイン地域更新の呼び出し", stepStart);
 
 			session.setAttribute("loginRegionVerified", false);
 			session.setAttribute("loginUser", user);
 
-			// 投稿済み記事一覧を非同期で先読みし、記事一覧画面の表示を高速化する
-			userRepositoryRepository.findByUserId(user.getUserId())
-					.ifPresent(repo -> {
-						// 投稿済み記事を非同期同期する。
-						publishedArticleSyncService.syncArticles(
-								repo,
-								user.getCipherKey(),
-								user.getUserId());
+			stepStart = System.nanoTime();
+			Optional<com.app.myblogpusher.entity.UserRepositoryEntity> repoOpt = userRepositoryRepository
+					.findByUserId(user.getUserId());
+			logElapsed("GitHubリポジトリ情報取得", stepStart);
 
-						// Hugoのカテゴリーインデックスを非同期同期する。
-						indexSyncService.syncFromGitHub(
-								user.getUserId(), repo, user.getCipherKey());
-					});
+			if (repoOpt.isPresent()) {
+				var repo = repoOpt.get();
 
-			// 画像一覧の初回表示に必要な情報をバックグラウンドで先読みする。
+				stepStart = System.nanoTime();
+				publishedArticleSyncService.syncArticles(
+						repo, user.getCipherKey(), user.getUserId());
+				logElapsed("記事同期の呼び出し", stepStart);
+
+				stepStart = System.nanoTime();
+				indexSyncService.syncFromGitHub(
+						user.getUserId(), repo, user.getCipherKey());
+				logElapsed("インデックス同期の呼び出し", stepStart);
+			}
+
+			stepStart = System.nanoTime();
 			imageAssetPreloadAsyncService.preloadAsync(user.getUserId());
+			logElapsed("画像先読みの呼び出し", stepStart);
 
+			logElapsed("ログイン全体（ホームへ遷移）", loginStart);
 			return "redirect:/home";
+
 		} else {
-			model.addAttribute("error", "ログインIDまたはパスワードが間違っています");
+			model.addAttribute(
+					"error", "ログインIDまたはパスワードが間違っています");
+
+			logElapsed("ログイン全体（認証失敗）", loginStart);
 			return "Login/login";
 		}
+	}
+
+	/**
+	 * 処理の経過時間をミリ秒単位でログ出力する。
+	 */
+	private void logElapsed(String processName, long startNanos) {
+		long elapsedMillis = (System.nanoTime() - startNanos) / 1_000_000;
+
+		System.out.println(
+				"[LoginTiming] " + processName + ": " + elapsedMillis + " ms");
 	}
 
 	// パスワードを忘れた方はこちら（本人確認フォーム表示）

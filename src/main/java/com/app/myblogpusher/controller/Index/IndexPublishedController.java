@@ -15,7 +15,6 @@ import java.util.regex.Pattern;
 
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.hibernate.SessionFactory;
-import org.hibernate.stat.Statistics;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -201,11 +200,6 @@ public class IndexPublishedController {
 
 		Long userId = loginUser.getUserId();
 
-		Statistics statistics = sessionFactory.getStatistics();
-
-		long queryCountBefore = statistics.getQueryExecutionCount();
-		long start = System.currentTimeMillis();
-
 		List<IndexEntity> indexes = indexRepository.findByUserIdOrderByUpdateDateDesc(userId);
 
 		List<Long> groupIds = indexes.stream()
@@ -219,16 +213,6 @@ public class IndexPublishedController {
 
 		model.addAttribute("indexes", indexes);
 		model.addAttribute("categoryPaths", categoryPaths);
-
-		long elapsed = System.currentTimeMillis() - start;
-		long queryCountAfter = statistics.getQueryExecutionCount();
-
-		System.out.println(
-				"公開済みインデックス一覧の処理時間: " + elapsed + "ms");
-
-		System.out.println(
-				"公開済みインデックス一覧のHibernateクエリ実行回数: "
-						+ (queryCountAfter - queryCountBefore));
 
 		return "index/index_published_list";
 	}
