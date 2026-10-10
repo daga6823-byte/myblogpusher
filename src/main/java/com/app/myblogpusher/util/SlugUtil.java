@@ -7,6 +7,7 @@
 package com.app.myblogpusher.util;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -71,6 +72,24 @@ public class SlugUtil {
 			Map.entry("ナ", ""),
 			Map.entry("ゾ", ""));
 
+	/**
+	 * 単語区切りとして扱う記号の一覧（箇条書き記号など）。
+	 * ここに含まれる記号は空白に置き換えて無視する。
+	 * 記号を増やしたいときはこのリストに追加する。
+	 */
+	private static final List<String> IGNORE_SYMBOLS;
+
+	static {
+		List<String> symbols = new ArrayList<>();
+		symbols.add("・");
+		symbols.add("•");
+		symbols.add("-");
+		symbols.add("'");
+		symbols.add("=");
+		symbols.add("＝");
+		IGNORE_SYMBOLS = Collections.unmodifiableList(symbols);
+	}
+
 	private String toRomanized(String text) {
 		List<EnglishDictionary> allEntries = englishDictionaryRepository.findAll();
 
@@ -81,11 +100,10 @@ public class SlugUtil {
 		}
 
 		// 箇条書き記号は単語区切りとして扱う
-		// 「・」と「•」と「-」と「'」は無視する
-		text = text.replace("・", " ")
-				.replace("•", " ")
-				.replace("-", " ")
-				.replace("'", " ");
+		// IGNORE_SYMBOLS に含まれる記号は無視する
+		for (String symbol : IGNORE_SYMBOLS) {
+			text = text.replace(symbol, " ");
+		}
 
 		// 残った助詞をPARTICLE_MAPで置換
 		List<Token> tokens = tokenizer.tokenize(text);
@@ -190,14 +208,12 @@ public class SlugUtil {
 		List<SlugAnalysisDto> result = new ArrayList<>();
 		List<EnglishDictionary> allEntries = englishDictionaryRepository.findAll();
 
-		// 長い単語から優先して辞書を適用する
-		allEntries.sort((a, b) -> b.getJapanese().length() - a.getJapanese().length());
-
 		// 箇条書き記号は単語区切りとして扱う
-		// 「・」と「•」は無視する
-		String replaced = title
-				.replace("・", " ")
-				.replace("•", " ");
+		// IGNORE_SYMBOLS に含まれる記号は無視する
+		String replaced = title;
+		for (String symbol : IGNORE_SYMBOLS) {
+			replaced = replaced.replace(symbol, " ");
+		}
 
 		// 英語辞典を長い日本語から優先して適用する。
 		// 辞書登録済みの日本語は英単語へ変換してからKuromojiに渡すことで、

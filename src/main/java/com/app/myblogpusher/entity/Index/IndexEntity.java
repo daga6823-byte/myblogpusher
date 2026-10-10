@@ -23,7 +23,7 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(name = "index")
-public class Index {
+public class IndexEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)

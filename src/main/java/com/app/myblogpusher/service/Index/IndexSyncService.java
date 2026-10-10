@@ -19,7 +19,7 @@ import org.springframework.stereotype.Service;
 
 import com.app.myblogpusher.dto.Category.CategoryOptionView;
 import com.app.myblogpusher.entity.UserRepositoryEntity;
-import com.app.myblogpusher.entity.Index.Index;
+import com.app.myblogpusher.entity.Index.IndexEntity;
 import com.app.myblogpusher.repository.Index.IndexRepository;
 import com.app.myblogpusher.service.Facade.GitHubFacadeService;
 import com.app.myblogpusher.service.Github.GitWorkspace;
@@ -67,12 +67,12 @@ public class IndexSyncService {
 					continue;
 				}
 
-				Optional<Index> existing = indexRepository
+				Optional<IndexEntity> existing = indexRepository
 						.findByUserIdAndGroupId(
 								userId,
 								category.getGroupId());
 
-				Index index = existing.orElseGet(Index::new);
+				IndexEntity index = existing.orElseGet(IndexEntity::new);
 
 				if (existing.isEmpty()) {
 					index.setUserId(userId);

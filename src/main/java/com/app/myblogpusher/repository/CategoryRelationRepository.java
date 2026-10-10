@@ -43,4 +43,9 @@ public interface CategoryRelationRepository
 			Long categoryId,
 			Long parentCategoryId,
 			String categoryPath);
+
+	/**
+	 * 指定した複数のグループIDに紐づく階層情報を一括取得する。
+	 */
+	List<CategoryRelation> findByGroupIdIn(List<Long> groupIds);
 }

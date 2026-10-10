@@ -11,21 +11,21 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.app.myblogpusher.entity.Index.Index;
+import com.app.myblogpusher.entity.Index.IndexEntity;
 
-public interface IndexRepository extends JpaRepository<Index, Long> {
+public interface IndexRepository extends JpaRepository<IndexEntity, Long> {
 
 	/**
 	 * ユーザーIDとカテゴリー経路のグループIDからインデックスを取得する。
 	 */
-	Optional<Index> findByUserIdAndGroupId(Long userId, Long groupId);
+	Optional<IndexEntity> findByUserIdAndGroupId(Long userId, Long groupId);
 
 	/**
 	 * 指定したユーザーのインデックス一覧を取得する。
 	 */
-	List<Index> findByUserId(Long userId);
+	List<IndexEntity> findByUserId(Long userId);
 
-	List<Index> findByUserIdOrderByUpdateDateDesc(Long userId);
+	List<IndexEntity> findByUserIdOrderByUpdateDateDesc(Long userId);
 
 	/**
 	 * 指定したカテゴリー経路のグループIDにインデックスが存在するか確認する。

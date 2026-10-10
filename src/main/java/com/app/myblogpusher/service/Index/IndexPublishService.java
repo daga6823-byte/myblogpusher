@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 
 import com.app.myblogpusher.entity.CategoryRelation;
 import com.app.myblogpusher.entity.UserRepositoryEntity;
-import com.app.myblogpusher.entity.Index.Index;
+import com.app.myblogpusher.entity.Index.IndexEntity;
 import com.app.myblogpusher.entity.Index.IndexWork;
 import com.app.myblogpusher.repository.CategoryRelationRepository;
 import com.app.myblogpusher.repository.UserRepositoryRepository;
@@ -111,10 +111,10 @@ public class IndexPublishService {
 					"Update category index: " + categoryPath);
 
 			// GitHub反映成功後に公開済みデータを登録・更新する。
-			Index index = indexRepository
+			IndexEntity index = indexRepository
 					.findByUserIdAndGroupId(userId, groupId)
 					.orElseGet(() -> {
-						Index newIndex = new Index();
+						IndexEntity newIndex = new IndexEntity();
 						newIndex.setUserId(userId);
 						newIndex.setGroupId(groupId);
 						newIndex.setCreateUser(userId);

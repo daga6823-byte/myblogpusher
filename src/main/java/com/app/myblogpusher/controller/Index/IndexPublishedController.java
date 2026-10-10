@@ -8,8 +8,14 @@
 package com.app.myblogpusher.controller.Index;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.hibernate.SessionFactory;
+import org.hibernate.stat.Statistics;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -21,6 +27,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.app.myblogpusher.entity.CategoryRelation;
 import com.app.myblogpusher.entity.UserMaster;
 import com.app.myblogpusher.entity.UserRepositoryEntity;
+import com.app.myblogpusher.entity.Index.IndexEntity;
 import com.app.myblogpusher.entity.Index.IndexWork;
 import com.app.myblogpusher.repository.CategoryRelationRepository;
 import com.app.myblogpusher.repository.UserRepositoryRepository;
@@ -51,6 +58,9 @@ public class IndexPublishedController {
 
 	@Autowired
 	private IndexRepository indexRepository;
+
+	@Autowired
+	private SessionFactory sessionFactory;
 
 	/**
 	 * 投稿前確認画面を表示する。
@@ -167,11 +177,11 @@ public class IndexPublishedController {
 			return null;
 		}
 
-		java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(
-				"(?m)^" + java.util.regex.Pattern.quote(key)
+		Pattern pattern = Pattern.compile(
+				"(?m)^" + Pattern.quote(key)
 						+ "\\s*:\\s*[\"']?(.*?)[\"']?\\s*$");
 
-		java.util.regex.Matcher matcher = pattern.matcher(markdown);
+		Matcher matcher = pattern.matcher(markdown);
 		return matcher.find() ? matcher.group(1).trim() : null;
 	}
 
@@ -183,8 +193,6 @@ public class IndexPublishedController {
 			HttpSession session,
 			Model model) {
 
-		long start = System.currentTimeMillis();
-
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 
 		if (loginUser == null) {
@@ -193,17 +201,34 @@ public class IndexPublishedController {
 
 		Long userId = loginUser.getUserId();
 
-		model.addAttribute(
-				"indexes",
-				indexRepository.findByUserIdOrderByUpdateDateDesc(userId));
+		Statistics statistics = sessionFactory.getStatistics();
 
-		model.addAttribute(
-				"categoryPaths",
-				indexEditService.findCategoryPaths(userId));
+		long queryCountBefore = statistics.getQueryExecutionCount();
+		long start = System.currentTimeMillis();
+
+		List<IndexEntity> indexes = indexRepository.findByUserIdOrderByUpdateDateDesc(userId);
+
+		List<Long> groupIds = indexes.stream()
+				.map(IndexEntity::getGroupId)
+				.distinct()
+				.toList();
+
+		List<CategoryRelation> categoryPaths = groupIds.isEmpty()
+				? Collections.emptyList()
+				: categoryRelationRepository.findByGroupIdIn(groupIds);
+
+		model.addAttribute("indexes", indexes);
+		model.addAttribute("categoryPaths", categoryPaths);
+
+		long elapsed = System.currentTimeMillis() - start;
+		long queryCountAfter = statistics.getQueryExecutionCount();
 
 		System.out.println(
-				"公開済みインデックス一覧の処理時間: "
-						+ (System.currentTimeMillis() - start) + "ms");
+				"公開済みインデックス一覧の処理時間: " + elapsed + "ms");
+
+		System.out.println(
+				"公開済みインデックス一覧のHibernateクエリ実行回数: "
+						+ (queryCountAfter - queryCountBefore));
 
 		return "index/index_published_list";
 	}
@@ -238,7 +263,7 @@ public class IndexPublishedController {
 		}
 
 		// 公開済みのマスターデータを取得する。
-		com.app.myblogpusher.entity.Index.Index index = indexRepository.findByUserIdAndGroupId(userId, groupId)
+		com.app.myblogpusher.entity.Index.IndexEntity index = indexRepository.findByUserIdAndGroupId(userId, groupId)
 				.orElse(null);
 
 		if (index == null) {
