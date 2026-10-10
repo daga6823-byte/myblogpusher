@@ -6,6 +6,7 @@
  */
 package com.app.myblogpusher.repository.Index;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -22,10 +23,13 @@ public interface IndexRepository extends JpaRepository<Index, Long> {
 	/**
 	 * 指定したユーザーのインデックス一覧を取得する。
 	 */
-	java.util.List<Index> findByUserId(Long userId);
+	List<Index> findByUserId(Long userId);
+
+	List<Index> findByUserIdOrderByUpdateDateDesc(Long userId);
 
 	/**
 	 * 指定したカテゴリー経路のグループIDにインデックスが存在するか確認する。
 	 */
 	boolean existsByUserIdAndGroupId(Long userId, Long groupId);
+
 }

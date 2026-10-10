@@ -48,7 +48,7 @@ public class IndexPublishedController {
 
 	@Autowired
 	private IndexPublishService indexPublishService;
-	
+
 	@Autowired
 	private IndexRepository indexRepository;
 
@@ -84,12 +84,11 @@ public class IndexPublishedController {
 			}
 
 			// 投稿用データを保存し、確認画面で使用する。
-			IndexWork work =
-			        indexWorkService.saveDraft(
-			                userId,
-			                groupId,
-			                extractFrontMatterValue(content, "title"),
-			                content);
+			IndexWork work = indexWorkService.saveDraft(
+					userId,
+					groupId,
+					extractFrontMatterValue(content, "title"),
+					content);
 
 			UserRepositoryEntity repository = userRepositoryRepository
 					.findByUserId(userId)
@@ -175,90 +174,87 @@ public class IndexPublishedController {
 		java.util.regex.Matcher matcher = pattern.matcher(markdown);
 		return matcher.find() ? matcher.group(1).trim() : null;
 	}
-	
+
 	/**
 	 * 公開済みインデックス一覧を表示する。
 	 */
 	@GetMapping("/index/published")
 	public String publishedList(
-	        HttpSession session,
-	        Model model) {
-		
+			HttpSession session,
+			Model model) {
+
 		long start = System.currentTimeMillis();
 
-	    UserMaster loginUser =
-	            (UserMaster) session.getAttribute("loginUser");
+		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 
-	    if (loginUser == null) {
-	        return "redirect:/login";
-	    }
+		if (loginUser == null) {
+			return "redirect:/login";
+		}
 
-	    Long userId = loginUser.getUserId();
+		Long userId = loginUser.getUserId();
 
-	    model.addAttribute(
-	            "indexes",
-	            indexRepository.findByUserId(userId));
+		model.addAttribute(
+				"indexes",
+				indexRepository.findByUserIdOrderByUpdateDateDesc(userId));
 
-	    model.addAttribute(
-	            "categoryPaths",
-	            indexEditService.findCategoryPaths(userId));
-	    
-	    System.out.println(
-	    	    "公開済みインデックス一覧の処理時間: "
-	    	        + (System.currentTimeMillis() - start) + "ms");
+		model.addAttribute(
+				"categoryPaths",
+				indexEditService.findCategoryPaths(userId));
 
-	    return "index/index_published_list";
+		System.out.println(
+				"公開済みインデックス一覧の処理時間: "
+						+ (System.currentTimeMillis() - start) + "ms");
+
+		return "index/index_published_list";
 	}
-	
+
 	/**
 	 * 公開済みインデックスを編集用データに読み込み、編集画面を開く。
 	 */
 	@GetMapping("/index/published/edit")
 	public String editPublished(
-	        @RequestParam Long groupId,
-	        HttpSession session,
-	        RedirectAttributes redirectAttributes) {
+			@RequestParam Long groupId,
+			HttpSession session,
+			RedirectAttributes redirectAttributes) {
 
-	    UserMaster loginUser =
-	            (UserMaster) session.getAttribute("loginUser");
+		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 
-	    if (loginUser == null) {
-	        return "redirect:/login";
-	    }
+		if (loginUser == null) {
+			return "redirect:/login";
+		}
 
-	    Long userId = loginUser.getUserId();
+		Long userId = loginUser.getUserId();
 
-	    // 指定されたカテゴリー階層がユーザー所有か確認する。
-	    boolean ownsCategoryPath = indexEditService
-	            .findCategoryPaths(userId)
-	            .stream()
-	            .anyMatch(category -> category.getGroupId().equals(groupId));
+		// 指定されたカテゴリー階層がユーザー所有か確認する。
+		boolean ownsCategoryPath = indexEditService
+				.findCategoryPaths(userId)
+				.stream()
+				.anyMatch(category -> category.getGroupId().equals(groupId));
 
-	    if (!ownsCategoryPath) {
-	        redirectAttributes.addFlashAttribute(
-	                "error", "指定されたカテゴリー階層が見つかりません。");
-	        return "redirect:/index/published";
-	    }
+		if (!ownsCategoryPath) {
+			redirectAttributes.addFlashAttribute(
+					"error", "指定されたカテゴリー階層が見つかりません。");
+			return "redirect:/index/published";
+		}
 
-	    // 公開済みのマスターデータを取得する。
-	    com.app.myblogpusher.entity.Index.Index index =
-	            indexRepository.findByUserIdAndGroupId(userId, groupId)
-	                    .orElse(null);
+		// 公開済みのマスターデータを取得する。
+		com.app.myblogpusher.entity.Index.Index index = indexRepository.findByUserIdAndGroupId(userId, groupId)
+				.orElse(null);
 
-	    if (index == null) {
-	        redirectAttributes.addFlashAttribute(
-	                "error", "公開済みインデックスが見つかりません。");
-	        return "redirect:/index/published";
-	    }
+		if (index == null) {
+			redirectAttributes.addFlashAttribute(
+					"error", "公開済みインデックスが見つかりません。");
+			return "redirect:/index/published";
+		}
 
-	    // 既存の編集中データがあれば再利用し、なければ公開済み内容から作成する。
-	    indexWorkService.findByUserIdAndGroupId(userId, groupId)
-	            .orElseGet(() -> indexWorkService.saveDraft(
-	                    userId,
-	                    groupId,
-	                    index.getTitle(),
-	                    index.getContent()));
+		// 既存の編集中データがあれば再利用し、なければ公開済み内容から作成する。
+		indexWorkService.findByUserIdAndGroupId(userId, groupId)
+				.orElseGet(() -> indexWorkService.saveDraft(
+						userId,
+						groupId,
+						index.getTitle(),
+						index.getContent()));
 
-	    return "redirect:/index/edit?groupId=" + groupId;
+		return "redirect:/index/edit?groupId=" + groupId;
 	}
 }

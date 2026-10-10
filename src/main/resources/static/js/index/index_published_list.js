@@ -183,6 +183,31 @@ function updateSortButtons() {
 }
 
 /**
+ * 公開済みインデックス一覧を現在のソート条件で並び替える。
+ * ソートボタン押下時のみ実行する。
+ */
+function sortIndexRows() {
+
+	const list =
+		document.getElementById('indexList');
+
+	if (!list) {
+		return;
+	}
+
+	const rows =
+		Array.from(list.querySelectorAll('tr'));
+
+	sortRows(rows);
+
+	rows.forEach(row => {
+		list.appendChild(row);
+	});
+
+	updateSortButtons();
+}
+
+/**
  * 公開済みインデックス一覧をカテゴリー階層で絞り込み、
  * 現在のソート条件で並び替える。
  */
@@ -227,22 +252,6 @@ function updateIndexList() {
 
 	});
 
-	/*
-	 * 表示対象の行だけを並び替える。
-	 */
-	const visibleRows =
-		rows.filter(row =>
-			row.style.display !== 'none'
-		);
-
-	sortRows(visibleRows);
-
-	visibleRows.forEach(row => {
-
-		list.appendChild(row);
-
-	});
-
 	updateSortButtons();
 
 }
@@ -277,7 +286,7 @@ function initializeSortButtons() {
 
 					}
 
-					updateIndexList();
+					sortIndexRows();
 
 				}
 			);
@@ -306,8 +315,7 @@ function initializeIndexList() {
 	}
 
 	initializeSortButtons();
-
-	updateIndexList();
+	updateSortButtons();
 
 }
 
