@@ -1,14 +1,26 @@
 <!DOCTYPE html>
+<!-- インデックス一覧画面（公開用インデックスと編集中インデックスの一覧を表示するテンプレート） -->
 <html xmlns:th="http://www.thymeleaf.org">
 
 <head>
+
 	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 	<title>インデックス一覧</title>
+
+	<link rel="stylesheet" th:href="@{/css/common.css}">
+
+	<link rel="stylesheet" th:href="@{/css/article/article_list.css}">
+
 </head>
 
 <body>
-	<main>
+
+	<div th:replace="~{fragments/header :: header}"></div>
+
+	<div class="box">
+
 		<h1>インデックス一覧</h1>
 
 		<p th:if="${message}" th:text="${message}"></p>
@@ -18,30 +30,89 @@
 			インデックスが登録されていません。
 		</p>
 
+		<div class="list-controls" th:unless="${#lists.isEmpty(indexes)}">
+
+			<div class="list-control">
+
+				<label for="categoryFilter">
+					カテゴリー階層
+				</label>
+
+				<select id="categoryFilter">
+
+					<option value="">
+						すべて
+					</option>
+
+					<option th:each="path : ${#sets.toSet(categoryPaths.![categoryPath])}" th:value="${path}"
+						th:text="${path}">
+					</option>
+
+				</select>
+
+			</div>
+
+		</div>
+
 		<table th:unless="${#lists.isEmpty(indexes)}">
+
 			<thead>
+
 				<tr>
-					<th>カテゴリー階層</th>
-					<th>タイトル</th>
-					<th>更新日時</th>
+
+					<th>
+						<button type="button" class="sort-button" data-sort="title">
+							タイトル
+						</button>
+					</th>
+
+					<th>
+						<button type="button" class="sort-button" data-sort="category">
+							カテゴリー階層
+						</button>
+					</th>
+
+					<th>
+						<button type="button" class="sort-button" data-sort="updateDate">
+							更新日時
+						</button>
+					</th>
+
 					<th>操作</th>
+
 				</tr>
+
 			</thead>
-			<tbody>
-				<tr th:each="index : ${indexes}">
-					<td th:text="${categoryPaths.?[groupId == #vars.index.groupId].size() > 0
+
+			<tbody id="indexList">
+
+				<tr th:each="index : ${indexes}"
+					th:with="categoryPath=${categoryPaths.?[groupId == #vars.index.groupId].size() > 0
                         ? categoryPaths.?[groupId == #vars.index.groupId][0].categoryPath
-                        : '（カテゴリー不明）'}"></td>
-					<td th:text="${index.title}"></td>
-					<td th:text="${index.updateDate}"></td>
-					<td>
-						<form th:action="@{/index/edit}" method="get">
-							<input type="hidden" name="groupId" th:value="${index.groupId}">
-							<button type="submit">編集</button>
-						</form>
+                        : '（カテゴリー不明）'}"
+					th:data-category="${categoryPath}">
+
+					<td th:text="${index.title}">
 					</td>
+
+					<td th:text="${categoryPath}">
+					</td>
+
+					<td class="local-date" th:attr="data-date=${index.updateDate}">
+					</td>
+
+					<td class="list-actions">
+
+						<a th:href="@{/index/edit(groupId=${index.groupId})}" class="btn-edit">
+							編集
+						</a>
+
+					</td>
+
 				</tr>
+
 			</tbody>
+
 		</table>
 
 		<h2>編集中のインデックス</h2>
@@ -51,45 +122,73 @@
 		</p>
 
 		<table th:unless="${#lists.isEmpty(indexWorks)}">
+
 			<thead>
+
 				<tr>
-					<th>カテゴリー階層</th>
+
 					<th>タイトル</th>
+					<th>カテゴリー階層</th>
 					<th>更新日時</th>
 					<th>状態</th>
 					<th>操作</th>
+
 				</tr>
+
 			</thead>
+
 			<tbody>
-				<tr th:each="work : ${indexWorks}">
-					<td th:text="${categoryPaths.?[groupId == #vars.work.groupId].size() > 0
-                ? categoryPaths.?[groupId == #vars.work.groupId][0].categoryPath
-                : '（カテゴリー不明）'}"></td>
-					<td th:text="${work.title}"></td>
-					<td th:text="${work.updateDate}"></td>
+
+				<tr th:each="work : ${indexWorks}"
+					th:with="categoryPath=${categoryPaths.?[groupId == #vars.work.groupId].size() > 0
+                        ? categoryPaths.?[groupId == #vars.work.groupId][0].categoryPath
+                        : '（カテゴリー不明）'}">
+
+					<td th:text="${work.title}">
+					</td>
+
+					<td th:text="${categoryPath}">
+					</td>
+
+					<td class="local-date" th:attr="data-date=${work.updateDate}">
+					</td>
+
 					<td>
 						<span th:if="${work.status == 0}">下書き</span>
 						<span th:if="${work.status == 1}">反映中</span>
 						<span th:if="${work.status == 2}">エラー</span>
 					</td>
-					<td>
-						<form th:action="@{/index/edit/load}" method="post">
+
+					<td class="list-actions">
+
+						<form th:action="@{/index/edit/load}" method="post" style="display: inline;">
+
 							<input type="hidden" name="groupId" th:value="${work.groupId}">
-							<button type="submit">編集</button>
+
+							<button type="submit" class="btn-edit">
+								編集
+							</button>
+
 						</form>
+
 					</td>
+
 				</tr>
+
 			</tbody>
+
 		</table>
 
-		<p>
-			<a th:href="@{/index/published}">公開済みインデックス一覧</a>
-		</p>
+		<button type="button" id="backButton" class="btn-back">
+			戻る
+		</button>
 
-		<p>
-			<a th:href="@{/}">トップへ戻る</a>
-		</p>
-	</main>
+	</div>
+
+	<script th:src="@{/js/index/index_list.js}"></script>
+
+	<script th:src="@{/js/common.js}"></script>
+
 </body>
 
 </html>

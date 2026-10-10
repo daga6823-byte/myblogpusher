@@ -2,10 +2,11 @@
 <html xmlns:th="http://www.thymeleaf.org">
 
 <head>
+
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title>公開済みインデックス一覧</title>
 
+	<title>公開済みインデックス一覧</title>
 
 	<link rel="stylesheet" th:href="@{/css/common.css}">
 
@@ -14,7 +15,11 @@
 </head>
 
 <body>
-	<main>
+
+	<div th:replace="~{fragments/header :: header}"></div>
+
+	<div class="box">
+
 		<h1>公開済みインデックス一覧</h1>
 
 		<p th:if="${message}" th:text="${message}"></p>
@@ -24,35 +29,98 @@
 			公開済みのインデックスはありません。
 		</p>
 
+		<div class="list-controls" th:unless="${#lists.isEmpty(indexes)}">
+
+			<div class="list-control">
+
+				<label for="categoryFilter">
+					カテゴリー階層
+				</label>
+
+				<select id="categoryFilter">
+
+					<option value="">
+						すべて
+					</option>
+
+					<option th:each="path : ${#sets.toSet(categoryPaths.![categoryPath])}" th:value="${path}"
+						th:text="${path}">
+					</option>
+
+				</select>
+
+			</div>
+
+		</div>
+
 		<table th:unless="${#lists.isEmpty(indexes)}">
+
 			<thead>
+
 				<tr>
-					<th>カテゴリー階層</th>
-					<th>タイトル</th>
-					<th>更新日時</th>
+
+					<th>
+						<button type="button" class="sort-button" data-sort="title">
+							タイトル
+						</button>
+					</th>
+
+					<th>
+						<button type="button" class="sort-button" data-sort="category">
+							カテゴリー階層
+						</button>
+					</th>
+
+					<th>
+						<button type="button" class="sort-button" data-sort="updateDate">
+							更新日時
+						</button>
+					</th>
+
 					<th>操作</th>
+
 				</tr>
+
 			</thead>
-			<tbody>
-				<tr th:each="index : ${indexes}">
-					<td th:text="${categoryPaths.?[groupId == #vars.index.groupId].size() > 0
+
+			<tbody id="indexList">
+
+				<tr th:each="index : ${indexes}"
+					th:with="categoryPath=${categoryPaths.?[groupId == #vars.index.groupId].size() > 0
                         ? categoryPaths.?[groupId == #vars.index.groupId][0].categoryPath
-                        : '（カテゴリー不明）'}"></td>
-					<td th:text="${index.title}"></td>
-					<td th:text="${index.updateDate}"></td>
-					<td>
-						<a th:href="@{/index/published/edit(groupId=${index.groupId})}">
+                        : '（カテゴリー不明）'}"
+					th:data-category="${categoryPath}">
+
+					<td th:text="${index.title}">
+					</td>
+
+					<td th:text="${categoryPath}">
+					</td>
+
+					<td class="local-date" th:attr="data-date=${index.updateDate}">
+					</td>
+
+					<td class="list-actions">
+
+						<a th:href="@{/index/published/edit(groupId=${index.groupId})}" class="btn-edit">
 							編集
 						</a>
+
 					</td>
+
 				</tr>
+
 			</tbody>
+
 		</table>
 
 		<button type="button" id="backButton" class="btn-back">
 			戻る
 		</button>
-	</main>
+
+	</div>
+
+	<script th:src="@{/js/index/index_published_list.js}"></script>
 
 	<script th:src="@{/js/common.js}"></script>
 
