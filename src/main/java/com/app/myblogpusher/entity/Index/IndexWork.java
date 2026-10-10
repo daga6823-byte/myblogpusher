@@ -43,9 +43,6 @@ public class IndexWork {
 	@Column(name = "status")
 	private Integer status;
 
-	@Column(name = "error_code")
-	private String errorCode;
-
 	@Column(name = "create_date")
 	private LocalDateTime createDate;
 

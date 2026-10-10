@@ -72,7 +72,6 @@ public class IndexWorkService {
 		work.setUpdateUser(userId);
 		work.setUpdateDate(now);
 		work.setStatus(0);
-		work.setErrorCode(null);
 
 		return indexWorkRepository.save(work);
 	}
@@ -95,7 +94,7 @@ public class IndexWorkService {
 	}
 
 	/**
-	 * GitHub反映状態とエラー内容を更新する。
+	 * GitHub反映状態を更新する。
 	 */
 	public void updateStatus(
 			Long workId,
@@ -106,7 +105,6 @@ public class IndexWorkService {
 				.orElseThrow();
 
 		work.setStatus(status);
-		work.setErrorCode(errorCode);
 		work.setUpdateDate(LocalDateTime.now());
 
 		indexWorkRepository.save(work);

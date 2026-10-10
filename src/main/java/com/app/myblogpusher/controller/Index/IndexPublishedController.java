@@ -28,7 +28,6 @@ import com.app.myblogpusher.repository.Index.IndexRepository;
 import com.app.myblogpusher.service.Index.IndexEditService;
 import com.app.myblogpusher.service.Index.IndexPublishService;
 import com.app.myblogpusher.service.Index.IndexWorkService;
-import com.app.myblogpusher.service.Index.IndexWorkspaceService;
 
 import jakarta.servlet.http.HttpSession;
 
@@ -49,9 +48,6 @@ public class IndexPublishedController {
 
 	@Autowired
 	private IndexPublishService indexPublishService;
-
-	@Autowired
-	private IndexWorkspaceService indexWorkspaceService;
 	
 	@Autowired
 	private IndexRepository indexRepository;
@@ -187,6 +183,8 @@ public class IndexPublishedController {
 	public String publishedList(
 	        HttpSession session,
 	        Model model) {
+		
+		long start = System.currentTimeMillis();
 
 	    UserMaster loginUser =
 	            (UserMaster) session.getAttribute("loginUser");
@@ -204,6 +202,10 @@ public class IndexPublishedController {
 	    model.addAttribute(
 	            "categoryPaths",
 	            indexEditService.findCategoryPaths(userId));
+	    
+	    System.out.println(
+	    	    "公開済みインデックス一覧の処理時間: "
+	    	        + (System.currentTimeMillis() - start) + "ms");
 
 	    return "index/index_published_list";
 	}
