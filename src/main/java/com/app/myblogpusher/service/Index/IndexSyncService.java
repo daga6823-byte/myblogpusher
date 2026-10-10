@@ -1,3 +1,4 @@
+
 /**
  * Hugoカテゴリーのインデックス情報をGitHubから取得し、DBへ同期するサービス
  *
@@ -21,6 +22,8 @@ import com.app.myblogpusher.entity.UserRepositoryEntity;
 import com.app.myblogpusher.entity.Index.Index;
 import com.app.myblogpusher.repository.Index.IndexRepository;
 import com.app.myblogpusher.service.Facade.GitHubFacadeService;
+import com.app.myblogpusher.service.Github.GitWorkspace;
+import com.app.myblogpusher.service.Github.GitWorkspaceService;
 
 @Service
 public class IndexSyncService {
@@ -34,17 +37,20 @@ public class IndexSyncService {
 	@Autowired
 	private GitHubFacadeService gitHubFacadeService;
 
+	@Autowired
+	private GitWorkspaceService gitWorkspaceService;
+
 	/**
 	 * GitHub上のカテゴリー_index.mdを非同期で取得し、indexテーブルへ同期する。
 	 *
-	 * CategoryRelationのカテゴリー経路を基準にGitHub上のファイルを読み込み、
-	 * indexテーブルへ新規登録または更新する。
+	 * リポジトリを一度だけ最新化し、同じ作業領域から全カテゴリーを読み込む。
 	 */
 	@Async
 	public void syncFromGitHub(
 			Long userId, UserRepositoryEntity repo, String cipherKey) {
 
-		try {
+		try (GitWorkspace workspace = gitWorkspaceService.open(repo, cipherKey)) {
+
 			List<CategoryOptionView> categoryPaths = hugoIndexService.findCategoryPaths(userId);
 
 			int syncedCount = 0;
@@ -53,8 +59,7 @@ public class IndexSyncService {
 				String categoryPath = category.getCategoryPath();
 
 				String markdown = gitHubFacadeService.readMarkdownFile(
-						repo,
-						cipherKey,
+						workspace,
 						categoryPath + "/_index.md");
 
 				// GitHub上にファイルがない階層は同期対象にしない。
@@ -98,7 +103,7 @@ public class IndexSyncService {
 	}
 
 	/**
-	 * Markdownのフロントマターから指定キーの値を取得する
+	 * Markdownのフロントマターから指定キーの値を取得する。
 	 */
 	private String extractFrontMatterValue(String markdown, String key) {
 		if (markdown == null || markdown.isBlank()) {

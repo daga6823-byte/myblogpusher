@@ -159,4 +159,27 @@ public class GitHubMarkdownFileService {
 
 		return filePath;
 	}
+
+	/**
+	 * 開いているGit作業領域から既存のHugoインデックスファイルを読み込む。
+	 *
+	 * リポジトリの初期化やpullは行わず、既存のパス検証を利用する。
+	 */
+	public String readMarkdownFile(
+			GitWorkspace workspace,
+			String relativePath) throws IOException {
+
+		Path filePath = resolveIndexPath(
+				relativePath,
+				"リポジトリ外のファイルは読み込めません。");
+
+		Path targetPath = Paths.get(workspace.getRepoPath())
+				.resolve(filePath);
+
+		if (!Files.exists(targetPath)) {
+			return null;
+		}
+
+		return Files.readString(targetPath, StandardCharsets.UTF_8);
+	}
 }

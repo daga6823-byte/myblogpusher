@@ -19,6 +19,7 @@ import com.app.myblogpusher.service.Github.ArticlePublishAsyncService;
 import com.app.myblogpusher.service.Github.GitHubMarkdownFileService;
 import com.app.myblogpusher.service.Github.GitHubPermissionService;
 import com.app.myblogpusher.service.Github.GitHubPushService;
+import com.app.myblogpusher.service.Github.GitWorkspace;
 
 @Service
 public class GitHubFacadeService {
@@ -130,5 +131,17 @@ public class GitHubFacadeService {
 		return gitHubPermissionService.canPublish(
 				repoEntity,
 				cipherKey);
+	}
+
+	/**
+	 * 開いているGit作業領域からHugoインデックスファイルを読み込む。
+	 */
+	public String readMarkdownFile(
+			GitWorkspace workspace,
+			String relativePath) throws IOException {
+
+		return gitHubMarkdownFileService.readMarkdownFile(
+				workspace,
+				relativePath);
 	}
 }
