@@ -63,6 +63,7 @@ function escapeIndexYaml(value) {
 function initIndexFrontMatter() {
 	const textarea = document.getElementById('content');
 	const titleInput = document.getElementById('title');
+	const descriptionInput = document.getElementById('description');
 
 	if (!textarea || !titleInput) {
 		return;
@@ -75,17 +76,30 @@ function initIndexFrontMatter() {
 	}
 
 	titleInput.value = getIndexFrontMatterValue(frontMatter, 'title');
+
+	// 既存のdescriptionも説明欄へ反映する。
+	if (descriptionInput) {
+		descriptionInput.value = getIndexFrontMatterValue(frontMatter, 'description');
+	}
 }
 
 // =====================================================
-// Front Matterを最新状態へ更新
+// 入力欄の内容を反映した本文を組み立てる
+//
+// textareaは書き換えず、組み立てた文字列だけを返す。
+// 自動保存のように、入力中に呼び出しても問題ない。
 // =====================================================
-function updateIndexFrontMatter() {
+function buildIndexContent() {
 	const textarea = document.getElementById('content');
 	const titleInput = document.getElementById('title');
+	const descriptionInput = document.getElementById('description');
 
-	if (!textarea || !titleInput) {
-		return;
+	if (!textarea) {
+		return '';
+	}
+
+	if (!titleInput) {
+		return textarea.value;
 	}
 
 	const currentText = textarea.value;
@@ -99,10 +113,12 @@ function updateIndexFrontMatter() {
 
 	const title = escapeIndexYaml(titleInput.value);
 
-	// 既存のdescriptionは維持し、新規作成時は空文字にする。
-	const description = frontMatter
-		? escapeIndexYaml(getIndexFrontMatterValue(frontMatter, 'description'))
-		: '';
+	// 説明欄の値を使う。説明欄が無い場合は既存のdescriptionを維持する。
+	const description = descriptionInput
+		? escapeIndexYaml(descriptionInput.value)
+		: (frontMatter
+			? escapeIndexYaml(getIndexFrontMatterValue(frontMatter, 'description'))
+			: '');
 
 	const newFrontMatter =
 		'---\n'
@@ -110,7 +126,21 @@ function updateIndexFrontMatter() {
 		+ 'description: "' + description + '"\n'
 		+ '---\n\n';
 
-	textarea.value = newFrontMatter + bodyText;
+	return newFrontMatter + bodyText;
+}
+
+// =====================================================
+// Front Matterを最新状態へ更新
+// =====================================================
+function updateIndexFrontMatter() {
+	const textarea = document.getElementById('content');
+	const titleInput = document.getElementById('title');
+
+	if (!textarea || !titleInput) {
+		return;
+	}
+
+	textarea.value = buildIndexContent();
 }
 
 // =====================================================
@@ -202,6 +232,7 @@ function updateIndexButtonState() {
 (() => {
 	const textarea = document.getElementById('content');
 	const titleInput = document.getElementById('title');
+	const descriptionInput = document.getElementById('description');
 	const clearButton = document.getElementById('clearButton');
 
 	if (!textarea || !titleInput || !clearButton) {
@@ -209,12 +240,16 @@ function updateIndexButtonState() {
 	}
 
 	clearButton.addEventListener('click', () => {
-		if (!confirm('タイトルと本文をクリアしますか？')) {
+		if (!confirm('タイトル、説明、本文をクリアしますか？')) {
 			return;
 		}
 
 		titleInput.value = '';
 		textarea.value = '';
+
+		if (descriptionInput) {
+			descriptionInput.value = '';
+		}
 
 		textarea.dispatchEvent(new Event('input', { bubbles: true }));
 		titleInput.dispatchEvent(new Event('input', { bubbles: true }));
@@ -291,9 +326,10 @@ function updateIndexButtonState() {
 		}
 
 		// コントローラーの@RequestParamに合わせてフォーム形式で送信する。
+		// タイトル欄と説明欄の内容は、textareaを書き換えずに本文へ反映して送る。
 		const params = new URLSearchParams({
 			groupId: groupId.value,
-			content: textarea.value
+			content: buildIndexContent()
 		});
 
 		fetch('/index/workspace/autosave', {
@@ -316,7 +352,7 @@ function updateIndexButtonState() {
 		workspaceTimer = setTimeout(saveIndexWorkspace, 5000);
 	}
 
-	['title', 'content'].forEach(id => {
+	['title', 'description', 'content'].forEach(id => {
 		const element = document.getElementById(id);
 
 		if (element) {

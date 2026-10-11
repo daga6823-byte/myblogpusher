@@ -3,7 +3,7 @@
 
 <head>
 	<meta charset="UTF-8">
-	<title>インデックス投稿確認</title>
+	<title>投稿確認</title>
 	<link rel="stylesheet" th:href="@{/css/common.css}">
 </head>
 
@@ -11,10 +11,22 @@
 	<div th:replace="~{fragments/header :: header}"></div>
 
 	<div class="box">
-		<h1>インデックス投稿確認</h1>
+		<h1>投稿確認</h1>
 
 		<div class="preview-section">
 			<h2 th:text="${title}"></h2>
+
+			<div class="thumbnail-section">
+				<h3>サムネイル</h3>
+
+				<img id="thumbnailPreview" alt="サムネイル" th:src="${thumbnailUrl}" th:style="${thumbnailUrl == null || thumbnailUrl.isBlank()
+         ? 'display:none; max-width:300px; max-height:200px;'
+         : 'max-width:300px; max-height:200px;'}">
+
+				<button type="button" id="thumbnailSelectButton">
+					サムネイルを選択
+				</button>
+			</div>
 
 			<p class="repo-info">
 				カテゴリー経路：
@@ -45,8 +57,10 @@
 
 				<input type="hidden" name="groupId" th:value="${groupId}">
 
+				<input type="hidden" id="thumbnailUrl" name="thumbnailUrl" th:value="${thumbnailUrl}">
+
 				<button id="publishButton" type="submit" class="btn-publish">
-					GitHubへ反映
+					投稿
 				</button>
 			</form>
 
@@ -57,7 +71,10 @@
 		</div>
 	</div>
 
+	<div th:if="${error}" th:text="${error}"></div>
+
 	<script th:src="@{/js/index/index_publish_preview.js}"></script>
+	<div th:replace="~{fragments/image_modal :: imageModal}"></div>
 </body>
 
 </html>

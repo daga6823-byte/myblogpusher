@@ -14,7 +14,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -57,9 +56,6 @@ public class IndexPublishedController {
 
 	@Autowired
 	private IndexRepository indexRepository;
-
-	@Autowired
-	private SessionFactory sessionFactory;
 
 	/**
 	 * 投稿前確認画面を表示する。
@@ -120,7 +116,16 @@ public class IndexPublishedController {
 
 			model.addAttribute("groupId", groupId);
 			model.addAttribute("title", work.getTitle());
-			model.addAttribute("content", work.getContent());
+			model.addAttribute("content", content);
+			IndexEntity publishedIndex = indexRepository
+					.findByUserIdAndGroupId(userId, groupId)
+					.orElse(null);
+
+			model.addAttribute(
+					"thumbnailUrl",
+					publishedIndex != null
+							? publishedIndex.getThumbnailUrl()
+							: null);
 			model.addAttribute("categoryPath", categoryPath);
 			model.addAttribute("repoOwner", repository.getRepoOwner());
 			model.addAttribute("repoName", repository.getRepoName());
@@ -142,6 +147,7 @@ public class IndexPublishedController {
 	@PostMapping("/index/publish/execute")
 	public String publishIndex(
 			@RequestParam Long groupId,
+			@RequestParam(required = false) String thumbnailUrl,
 			HttpSession session,
 			RedirectAttributes redirectAttributes) {
 
@@ -151,11 +157,14 @@ public class IndexPublishedController {
 			return "redirect:/login";
 		}
 
+		Long userId = loginUser.getUserId();
+
 		try {
 			indexPublishService.publish(
-					loginUser.getUserId(),
+					userId,
 					loginUser.getCipherKey(),
-					groupId);
+					groupId,
+					thumbnailUrl);
 
 			redirectAttributes.addFlashAttribute(
 					"message", "インデックスをGitHubへ反映しました。");

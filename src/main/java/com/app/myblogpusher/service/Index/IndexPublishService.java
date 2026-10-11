@@ -60,8 +60,8 @@ public class IndexPublishService {
 	public void publish(
 			Long userId,
 			String cipherKey,
-			Long groupId)
-			throws IOException, GitAPIException {
+			Long groupId,
+			String thumbnailUrl) throws IOException, GitAPIException {
 
 		IndexWork work = indexWorkService
 				.findByUserIdAndGroupId(userId, groupId)
@@ -107,7 +107,7 @@ public class IndexPublishService {
 					repository,
 					cipherKey,
 					categoryPath + "/_index.md",
-					work.getContent(),
+					applyThumbnailToFrontMatter(work.getContent(), thumbnailUrl),
 					"Update category index: " + categoryPath);
 
 			// GitHub反映成功後に公開済みデータを登録・更新する。
@@ -123,7 +123,10 @@ public class IndexPublishService {
 					});
 
 			index.setTitle(work.getTitle());
-			index.setContent(work.getContent());
+			index.setContent(applyThumbnailToFrontMatter(
+					work.getContent(),
+					thumbnailUrl));
+			index.setThumbnailUrl(thumbnailUrl);
 			index.setUpdateUser(userId);
 			index.setUpdateDate(LocalDateTime.now());
 
@@ -140,5 +143,75 @@ public class IndexPublishService {
 
 			throw e;
 		}
+	}
+
+	/**
+	 * インデックスのFront Matter(YAML形式)へサムネイルURLを設定する。
+	 *
+	 * 先頭が「---」で始まり、閉じの「---」がある本文だけを対象にする。
+	 * 既存のimageがあれば置き換え、
+	 * 存在しなければ閉じの「---」の直前へ追加する。
+	 */
+	private String applyThumbnailToFrontMatter(
+			String content,
+			String thumbnailUrl) {
+
+		if (content == null
+				|| thumbnailUrl == null
+				|| thumbnailUrl.isBlank()) {
+			return content;
+		}
+
+		final String imageLine = "image: \""
+				+ thumbnailUrl.replace("\\", "\\\\").replace("\"", "\\\"")
+				+ "\"";
+
+		String[] lines = content.split("\n", -1);
+
+		// 先頭行が「---」でなければYAML形式のFront Matterではない。
+		if (!lines[0].trim().equals("---")) {
+			return content;
+		}
+
+		// 閉じの「---」の行を探す。
+		int endLine = -1;
+
+		for (int i = 1; i < lines.length; i++) {
+			if (lines[i].trim().equals("---")) {
+				endLine = i;
+				break;
+			}
+		}
+
+		if (endLine == -1) {
+			return content;
+		}
+
+		StringBuilder updated = new StringBuilder();
+		boolean replaced = false;
+
+		for (int i = 0; i < lines.length; i++) {
+
+			// 既存のimage行は置き換える。
+			if (i > 0 && i < endLine
+					&& lines[i].trim().startsWith("image:")) {
+				updated.append(imageLine);
+				replaced = true;
+
+			} else {
+				// imageが無かった場合は、閉じの「---」の直前へ追加する。
+				if (i == endLine && !replaced) {
+					updated.append(imageLine).append('\n');
+				}
+
+				updated.append(lines[i]);
+			}
+
+			if (i < lines.length - 1) {
+				updated.append('\n');
+			}
+		}
+
+		return updated.toString();
 	}
 }

@@ -21,7 +21,6 @@ import com.app.myblogpusher.entity.UserMaster;
 import com.app.myblogpusher.repository.UserMasterRepository;
 import com.app.myblogpusher.repository.UserRepositoryRepository;
 import com.app.myblogpusher.service.PublishedArticleSyncService;
-import com.app.myblogpusher.service.Article.ArticleWorkspaceService;
 import com.app.myblogpusher.service.Image.ImageAssetPreloadAsyncService;
 import com.app.myblogpusher.service.Login.LoginHistoryService;
 import com.app.myblogpusher.service.Login.TwoFactorService;
@@ -40,12 +39,6 @@ public class TwoFactorController {
 
 	@Autowired
 	private LoginHistoryService loginHistoryService;
-
-	//	@Autowired
-	//	private SecurityMailService securityMailService;
-
-	@Autowired
-	private ArticleWorkspaceService workspaceService;
 
 	@Autowired
 	private UserRepositoryRepository userRepositoryRepository;

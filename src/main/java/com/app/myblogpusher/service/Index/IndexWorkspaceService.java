@@ -1,4 +1,8 @@
-
+/**
+ * インデックス編集用ワークスペースの保存・検索・削除を担当するサービス
+ *
+ * 編集中のインデックスのタイトルと本文を、ユーザー単位でindex_workspaceへ保持する。
+ */
 package com.app.myblogpusher.service.Index;
 
 import java.time.LocalDateTime;
@@ -17,10 +21,10 @@ public class IndexWorkspaceService {
 	private IndexWorkspaceRepository repository;
 
 	public void save(
-			Long userId,
-			Long groupId,
-			String title,
-			String content) {
+	        Long userId,
+	        Long groupId,
+	        String title,
+	        String content) {
 
 		if (userId == null) {
 			return;

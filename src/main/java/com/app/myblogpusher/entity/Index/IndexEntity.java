@@ -42,6 +42,9 @@ public class IndexEntity {
 	@Column(name = "content", columnDefinition = "TEXT")
 	private String content;
 
+	@Column(name = "thumbnail_url")
+	private String thumbnailUrl;
+
 	@Column(name = "create_user")
 	private Long createUser;
 
