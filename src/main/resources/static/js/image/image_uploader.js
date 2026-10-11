@@ -52,9 +52,9 @@ document.getElementById('imageUploadButton').addEventListener(
 
 		const formData = new FormData();
 
-		formData.append(
-			'file',
-			fileInput.files[0]);
+		for (const file of fileInput.files) {
+			formData.append('files', file);
+		}
 
 		if (categoryId && categoryId !== '__new__') {
 
@@ -79,12 +79,15 @@ document.getElementById('imageUploadButton').addEventListener(
 			.then(res => res.json())
 			.then(data => {
 
-				if (data.result === 'ok') {
+				const successCount = data.successCount ?? 0;
+				const totalCount = data.totalCount ?? 0;
+				const failureCount = totalCount - successCount;
 
-					status.textContent =
-						'アップロードしました';
+				if (successCount > 0) {
 
-					fileInput.value = '';
+					status.textContent = failureCount === 0
+						? `${successCount}枚の画像をアップロードしました`
+						: `${successCount}枚成功、${failureCount}枚失敗しました`;
 
 					const currentFolderName =
 						imageState.folderName;
@@ -100,8 +103,14 @@ document.getElementById('imageUploadButton').addEventListener(
 				} else {
 
 					status.textContent =
-						data.message
+						data.results?.map(result =>
+							`${result.fileName}: ${result.message}`
+						).join(' / ')
 						|| 'アップロードに失敗しました';
+				}
+
+				if (successCount > 0) {
+					fileInput.value = '';
 				}
 			})
 			.catch(err => {

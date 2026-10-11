@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import com.app.myblogpusher.entity.UserMaster;
 import com.app.myblogpusher.repository.UserRepositoryRepository;
 import com.app.myblogpusher.service.PublishedArticleSyncService;
-import com.app.myblogpusher.service.Article.ArticleWorkspaceService;
 import com.app.myblogpusher.service.Image.ImageAssetPreloadAsyncService;
 import com.app.myblogpusher.service.Index.IndexSyncService;
 import com.app.myblogpusher.service.Login.LoginHistoryService;
@@ -32,9 +31,6 @@ public class LoginController {
 
 	@Autowired
 	private LoginService loginService;
-
-	@Autowired
-	private ArticleWorkspaceService workspaceService;
 
 	@Autowired
 	private UserRepositoryRepository userRepositoryRepository;

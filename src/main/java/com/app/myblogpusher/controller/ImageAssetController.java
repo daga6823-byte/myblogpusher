@@ -60,45 +60,60 @@ public class ImageAssetController {
 	 * 画像をアップロードし、
 	 * Supabase StorageとDB(image_asset)へ登録する
 	 */
+
 	@PostMapping("/article/images/upload")
 	@ResponseBody
 	public Map<String, Object> upload(
-			@RequestParam MultipartFile file,
+			@RequestParam("files") List<MultipartFile> files,
 			@RequestParam(required = false) String folderName,
 			HttpSession session) {
 
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
-
 		Long userId = loginUser.getUserId();
 
-		try {
+		List<Map<String, String>> results = new java.util.ArrayList<>();
 
-			ImageAsset asset = imageAssetFacadeService.uploadAndRegister(
-					file,
-					folderName,
-					userId);
+		for (MultipartFile file : files) {
+			if (file == null || file.isEmpty()) {
+				results.add(Map.of(
+						"result", "error",
+						"fileName", file == null ? "" : file.getOriginalFilename(),
+						"message", "空のファイルです"));
+				continue;
+			}
 
-			return Map.of(
-					"result", "ok",
-					"folderName", asset.getFolderName(),
-					"fileName", asset.getFileName());
+			try {
+				ImageAsset asset = imageAssetFacadeService.uploadAndRegister(
+						file, folderName, userId);
 
-		} catch (HttpClientErrorException e) {
+				results.add(Map.of(
+						"result", "ok",
+						"folderName", asset.getFolderName(),
+						"fileName", asset.getFileName()));
 
-			return Map.of(
-					"result",
-					"error",
-					"message",
-					"アップロード中にエラーが発生しました");
+			} catch (HttpClientErrorException e) {
+				results.add(Map.of(
+						"result", "error",
+						"fileName", file.getOriginalFilename(),
+						"message", "アップロード中にエラーが発生しました"));
 
-		} catch (IOException e) {
-
-			return Map.of(
-					"result",
-					"error",
-					"message",
-					"アップロードに失敗しました");
+			} catch (IOException e) {
+				results.add(Map.of(
+						"result", "error",
+						"fileName", file.getOriginalFilename(),
+						"message", "アップロードに失敗しました"));
+			}
 		}
+
+		long successCount = results.stream()
+				.filter(result -> "ok".equals(result.get("result")))
+				.count();
+
+		return Map.of(
+				"result", successCount == files.size() ? "ok" : "partial",
+				"successCount", successCount,
+				"totalCount", files.size(),
+				"results", results);
 	}
 
 	/**
