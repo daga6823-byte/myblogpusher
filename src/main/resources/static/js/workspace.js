@@ -12,6 +12,7 @@
 // 入力のたびにリセットされる
 // -----------------------------------------------------
 let workspaceTimer;
+let workspaceSavePromise = Promise.resolve();
 
 // -----------------------------------------------------
 // ワークスペースをサーバへ保存する
@@ -41,7 +42,7 @@ function saveWorkspace() {
 
 	};
 
-	fetch('/article/workspace/save', {
+	workspaceSavePromise = fetch('/article/workspace/save', {
 
 		method: 'POST',
 
@@ -53,7 +54,13 @@ function saveWorkspace() {
 
 		body: JSON.stringify(data)
 
-	}).catch(err => console.error(err));
+	}).catch(err => {
+
+		console.error(err);
+
+	});
+
+	return workspaceSavePromise;
 }
 
 // -----------------------------------------------------
@@ -103,3 +110,42 @@ setInterval(() => {
 	}).catch(err => console.error(err));
 
 }, 10 * 60 * 1000);
+
+// -----------------------------------------------------
+// 一時保存時の自動保存競合を防止
+// -----------------------------------------------------
+const saveButton =
+	document.querySelector('button[formaction="/article/save"]');
+
+if (saveButton) {
+
+	saveButton.addEventListener('click', async function(event) {
+
+		event.preventDefault();
+
+		clearTimeout(workspaceTimer);
+
+		saveButton.disabled = true;
+
+		try {
+
+			await workspaceSavePromise;
+
+			saveButton.form.requestSubmit(saveButton);
+
+		} catch (err) {
+
+			console.error(err);
+
+			alert('ワークスペースの保存に失敗しました');
+
+		} finally {
+
+			saveButton.disabled = false;
+
+		}
+
+	});
+
+}
+
