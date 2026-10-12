@@ -23,6 +23,7 @@ import com.app.myblogpusher.repository.UserRepositoryRepository;
 import com.app.myblogpusher.repository.Article.ArticleRepository;
 import com.app.myblogpusher.service.Article.ArticleWorkService;
 import com.app.myblogpusher.service.Article.ArticleWorkspaceService;
+import com.app.myblogpusher.service.Category.CategoryPathService;
 import com.app.myblogpusher.service.Category.CategorySelectionService;
 import com.app.myblogpusher.service.Facade.ImageAssetFacadeService;
 import com.app.myblogpusher.util.ArticleSaveUtil;
@@ -53,6 +54,9 @@ public class ArticleEditController {
 	@Autowired
 	private CategorySelectionService categorySelectionService;
 
+	@Autowired
+	private CategoryPathService categoryPathService;
+
 	/**
 	 * 記事編集画面を表示
 	 * 下書きがあれば表示、無ければworkspaceから復元
@@ -70,11 +74,31 @@ public class ArticleEditController {
 		UserRepositoryEntity repo = userRepositoryRepository.findByUserId(userId)
 				.orElse(null);
 
-		// 記事編集画面のカテゴリー階層選択用データを一括取得する。
-		// 階層の表示・切り替えはJavaScript側で行う。
-		List<CategorySelectView> categories = categorySelectionService.findCategorySelects(userId);
+		// 新規カテゴリーの関連登録が完了するまで、フルパスでgroupIdを確認する。
+		Long resolvedCategoryGroupId = null;
 
+		if (categoryPath != null && !categoryPath.isBlank()) {
+		    for (int i = 0; i < 20; i++) {
+		        resolvedCategoryGroupId =
+		                categoryPathService.findGroupIdByFullPath(userId, categoryPath);
+
+		        if (resolvedCategoryGroupId != null) {
+		            break;
+		        }
+
+		        try {
+		            Thread.sleep(100);
+		        } catch (InterruptedException e) {
+		            Thread.currentThread().interrupt();
+		            break;
+		        }
+		    }
+		}
+
+		List<CategorySelectView> categories =
+		        categorySelectionService.findCategorySelects(userId);
 		model.addAttribute("categories", categories);
+		model.addAttribute("resolvedCategoryGroupId", resolvedCategoryGroupId);
 
 		// 画像モーダル用
 		// 登録済み画像の保存先フォルダ一覧を取得

@@ -113,21 +113,14 @@ function handleCategoryChange(event) {
 			document.getElementById('newCategoryDisplayName');
 
 		if (newCategoryInput) {
-
 			newCategoryInput.style.display = 'block';
-
 			newCategoryInput.value = '';
-
 			newCategoryInput.focus();
-
 		}
 
 		if (newCategoryDisplayNameInput) {
-
 			newCategoryDisplayNameInput.style.display = 'block';
-
 			newCategoryDisplayNameInput.value = '';
-
 		}
 
 		updateCategoryPath();
@@ -167,15 +160,9 @@ function handleCategoryChange(event) {
 
 	const children = findChildren(selectedCategoryId);
 
-	if (children.length > 0) {
-
-		categorySelectors.appendChild(
-
-			createCategorySelect(selectedCategoryId)
-
-		);
-
-	}
+	categorySelectors.appendChild(
+		createCategorySelect(selectedCategoryId)
+	);
 
 	updateCategoryPath();
 }
@@ -303,7 +290,9 @@ function restoreCategorySelection() {
 
 	let parentCategoryId = null;
 
-	for (const categoryName of pathParts) {
+	for (let i = 0; i < pathParts.length; i++) {
+
+		const categoryName = pathParts[i];
 
 		const category = categoryData.find(item => {
 
@@ -323,6 +312,29 @@ function restoreCategorySelection() {
 		});
 
 		if (!category) {
+
+			if (i === pathParts.length - 1) {
+
+				const newCategoryInput =
+					document.getElementById('newCategoryName');
+
+				const newCategoryDisplayNameInput =
+					document.getElementById('newCategoryDisplayName');
+
+				if (newCategoryInput) {
+					newCategoryInput.value = categoryName;
+					newCategoryInput.style.display = 'block';
+				}
+
+				if (newCategoryDisplayNameInput) {
+					newCategoryDisplayNameInput.style.display = 'block';
+				}
+
+				categoryPathInput.value = pathParts
+					.slice(0, -1)
+					.join('/');
+			}
+
 			return;
 		}
 
@@ -331,15 +343,12 @@ function restoreCategorySelection() {
 
 		const select = selects[selects.length - 1];
 
-		select.value = category.categoryId;
-
-		parentCategoryId = category.categoryId;
-
-		const children = findChildren(parentCategoryId);
-
-		if (children.length === 0) {
-			break;
+		if (!select) {
+			return;
 		}
+
+		select.value = category.categoryId;
+		parentCategoryId = category.categoryId;
 
 		categorySelectors.appendChild(
 			createCategorySelect(parentCategoryId)
