@@ -149,4 +149,13 @@ public class ImageAssetFacadeService {
 		return imageAssetQueryService.findImageFolders(
 				userId);
 	}
+
+	public void renameFolder(
+			String oldFolderName,
+			String newFolderName,
+			Long userId) {
+
+		imageAssetWriteService.renameFolder(
+				oldFolderName, newFolderName, userId);
+	}
 }

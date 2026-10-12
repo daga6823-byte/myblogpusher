@@ -12,6 +12,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -185,12 +187,11 @@ public class ImageAssetWriteService {
 			if (!currentFolderName.equals(newFolderName)
 					|| !currentFileName.equals(newFileName)) {
 
-				String newStoragePath =
-						supabaseStorageService.renameImage(
-								asset.getStoragePath(),
-								newFolderName,
-								newFileName,
-								uploadFile);
+				String newStoragePath = supabaseStorageService.renameImage(
+						asset.getStoragePath(),
+						newFolderName,
+						newFileName,
+						uploadFile);
 
 				asset.setFolderName(newFolderName);
 				asset.setFileName(newFileName);
@@ -210,12 +211,11 @@ public class ImageAssetWriteService {
 			/*
 			 * ファイル差し替えなしで保存先または画像名だけ変更する。
 			 */
-			String newStoragePath =
-					supabaseStorageService.renameImage(
-							asset.getStoragePath(),
-							newFolderName,
-							newFileName,
-							null);
+			String newStoragePath = supabaseStorageService.renameImage(
+					asset.getStoragePath(),
+					newFolderName,
+					newFileName,
+					null);
 
 			asset.setFolderName(newFolderName);
 			asset.setFileName(newFileName);
@@ -261,5 +261,77 @@ public class ImageAssetWriteService {
 		// 画像削除により一覧・カテゴリー・フォルダ情報が変わるため、
 		// 次回表示時に最新情報を取得する。
 		imageAssetCache.clear(userId);
+	}
+
+	/**
+	 * フォルダ名を変更し、Storage上の実ファイルとDB登録情報を更新する。
+	 */
+	public void renameFolder(
+			String oldFolderName,
+			String newFolderName,
+			Long userId) {
+
+		if (oldFolderName == null || oldFolderName.isBlank()
+				|| newFolderName == null || newFolderName.isBlank()) {
+			throw new IllegalArgumentException(
+					"変更前後のフォルダ名を指定してください");
+		}
+
+		if (oldFolderName.equals(newFolderName)) {
+			throw new IllegalArgumentException(
+					"変更前後のフォルダ名が同じです");
+		}
+
+		if (oldFolderName.contains("/") || newFolderName.contains("/")
+				|| oldFolderName.equals(".") || newFolderName.equals(".")
+				|| oldFolderName.equals("..") || newFolderName.equals("..")) {
+			throw new IllegalArgumentException(
+					"フォルダ名に使用できない文字が含まれています");
+		}
+
+		List<ImageAsset> assets = imageAssetRepository.findByUserIdAndFolderName(
+				userId, oldFolderName);
+
+		if (assets.isEmpty()) {
+			throw new IllegalArgumentException(
+					"変更対象の画像が見つかりません");
+		}
+
+		// Storageの実ファイルをフォルダ単位で移動する。
+		Map<String, String> movedPaths = supabaseStorageService.renameFolder(
+				oldFolderName, newFolderName);
+
+		try {
+			LocalDateTime now = LocalDateTime.now();
+
+			for (ImageAsset asset : assets) {
+				String newStoragePath = movedPaths.get(asset.getStoragePath());
+
+				if (newStoragePath == null) {
+					throw new IllegalStateException(
+							"Storage上の画像パスとDB登録情報が一致しません");
+				}
+
+				asset.setFolderName(newFolderName);
+				asset.setStoragePath(newStoragePath);
+				asset.setUpdateUser(userId);
+				asset.setUpdateDate(now);
+			}
+
+			imageAssetRepository.saveAll(assets);
+			imageAssetCache.clear(userId);
+
+		} catch (Exception e) {
+			// DB更新に失敗した場合はStorageを元のフォルダへ戻す。
+			try {
+				supabaseStorageService.renameFolder(
+						newFolderName, oldFolderName);
+			} catch (Exception rollbackException) {
+				e.addSuppressed(rollbackException);
+			}
+
+			throw new RuntimeException(
+					"フォルダ情報の更新に失敗しました", e);
+		}
 	}
 }

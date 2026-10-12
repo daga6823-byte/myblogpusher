@@ -154,4 +154,32 @@ public class ImageManageController {
 				loginUser.getUserId());
 
 	}
+
+	@PostMapping("/image/folder/rename")
+	@ResponseBody
+	public Map<String, Object> renameFolder(
+			@RequestParam String oldFolderName,
+			@RequestParam String newFolderName,
+			HttpSession session) {
+
+		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
+
+		try {
+			imageAssetFacadeService.renameFolder(
+					oldFolderName,
+					newFolderName,
+					loginUser.getUserId());
+
+			return Map.of("result", "ok");
+
+		} catch (Exception e) {
+			e.printStackTrace();
+
+			return Map.of(
+					"result", "error",
+					"message", e.getMessage() != null
+							? e.getMessage()
+							: "フォルダ名の変更に失敗しました");
+		}
+	}
 }

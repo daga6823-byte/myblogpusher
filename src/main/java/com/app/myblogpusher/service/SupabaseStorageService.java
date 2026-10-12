@@ -349,4 +349,64 @@ public class SupabaseStorageService {
 
 		return newPath;
 	}
+
+	/**
+	 * Storage上のフォルダ配下にあるファイルを別フォルダへ移動する。
+	 *
+	 * 移動途中で失敗した場合は、移動済みのファイルを元のフォルダへ戻す。
+	 * 戻り値は変更前・変更後のStorageパスの対応表。
+	 */
+	public Map<String, String> renameFolder(
+			String oldFolderName,
+			String newFolderName) {
+
+		String oldPrefix = oldFolderName + "/";
+		String newPrefix = newFolderName + "/";
+
+		List<String> allPaths = listAllFilePaths();
+		List<String> sourcePaths = allPaths.stream()
+				.filter(path -> path.startsWith(oldPrefix))
+				.toList();
+
+		if (sourcePaths.isEmpty()) {
+			throw new IllegalArgumentException(
+					"変更対象のフォルダにファイルがありません");
+		}
+
+		boolean destinationExists = allPaths.stream()
+				.anyMatch(path -> path.startsWith(newPrefix));
+
+		if (destinationExists) {
+			throw new IllegalArgumentException(
+					"変更先のフォルダ名は既に使用されています");
+		}
+
+		Map<String, String> movedPaths = new HashMap<>();
+
+		try {
+			for (String oldPath : sourcePaths) {
+				String newPath = moveImage(oldPath, newFolderName);
+				movedPaths.put(oldPath, newPath);
+			}
+
+			return movedPaths;
+
+		} catch (Exception e) {
+			// 移動済みファイルを逆順で元のフォルダへ戻す。
+			List<Map.Entry<String, String>> movedEntries = new ArrayList<>(movedPaths.entrySet());
+
+			for (int i = movedEntries.size() - 1; i >= 0; i--) {
+				Map.Entry<String, String> entry = movedEntries.get(i);
+
+				try {
+					moveImage(entry.getValue(), oldFolderName);
+				} catch (Exception rollbackException) {
+					e.addSuppressed(rollbackException);
+				}
+			}
+
+			throw new RuntimeException(
+					"フォルダ名の変更に失敗しました", e);
+		}
+	}
 }

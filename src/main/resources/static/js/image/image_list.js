@@ -182,3 +182,93 @@ document.getElementById('imageSortSelect')
 loadImageList();
 
 console.log('image_list.js loaded');
+
+// -----------------------------------------------------
+// フォルダ名変更
+// -----------------------------------------------------
+
+const imageCategorySelect =
+	document.getElementById('imageCategorySelect');
+
+const renameFolderButton =
+	document.getElementById('renameFolderButton');
+
+function updateRenameFolderButton() {
+	renameFolderButton.disabled =
+		!imageCategorySelect.value ||
+		imageCategorySelect.value === 'all';
+}
+
+imageCategorySelect.addEventListener(
+	'change',
+	updateRenameFolderButton
+);
+
+renameFolderButton.addEventListener('click', async function() {
+	const oldFolderName = imageCategorySelect.value;
+
+	if (!oldFolderName || oldFolderName === 'all') {
+		return;
+	}
+
+	const newFolderName = prompt(
+		'変更後のフォルダ名を入力してください。',
+		oldFolderName
+	);
+
+	if (newFolderName === null) {
+		return;
+	}
+
+	const trimmedFolderName = newFolderName.trim();
+
+	if (!trimmedFolderName || trimmedFolderName === oldFolderName) {
+		return;
+	}
+
+	if (trimmedFolderName.includes('/')) {
+		alert('フォルダ名に / は使用できません。');
+		return;
+	}
+
+	if (!confirm(
+		`フォルダ「${oldFolderName}」を「${trimmedFolderName}」に変更しますか？`
+	)) {
+		return;
+	}
+
+	renameFolderButton.disabled = true;
+
+	try {
+		const response = await fetch('/image/folder/rename', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/x-www-form-urlencoded'
+			},
+			body: new URLSearchParams({
+				oldFolderName: oldFolderName,
+				newFolderName: trimmedFolderName
+			})
+		});
+
+		const result = await response.json();
+
+		if (!response.ok || result.result !== 'ok') {
+			throw new Error(
+				result.message || 'フォルダ名の変更に失敗しました。'
+			);
+		}
+
+		alert('フォルダ名を変更しました。');
+		location.href =
+			'/image/list?folderName=' +
+			encodeURIComponent(trimmedFolderName);
+
+	} catch (error) {
+		alert(error.message || 'フォルダ名の変更に失敗しました。');
+	} finally {
+		updateRenameFolderButton();
+	}
+});
+
+updateRenameFolderButton();
