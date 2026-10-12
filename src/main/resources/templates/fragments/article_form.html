@@ -16,10 +16,15 @@
 				<option value="">選択してください</option>
 			</select>
 		</div>
-		<input type="hidden" id="categorySelect" name="categorySelect" value="">
-		<input type="text" id="newCategoryName" name="newCategoryName" placeholder="カテゴリー名を入力" style="display:none;">
-		<input type="text" id="newCategoryDisplayName" name="newCategoryDisplayName" placeholder="表示名を入力"
-			style="display:none;">
+		<input type="text" id="newCategoryNameInput" placeholder="カテゴリー名を入力" style="display:none;">
+
+		<input type="hidden" id="newCategoryName" name="newCategoryName"
+			th:value="${newCategoryName != null ? newCategoryName : ''}">
+
+		<input type="text" id="newCategoryDisplayNameInput" placeholder="表示名を入力" style="display:none;">
+
+		<input type="hidden" id="newCategoryDisplayName" name="newCategoryDisplayName"
+			th:value="${newCategoryDisplayName != null ? newCategoryDisplayName : ''}">
 
 		<label for="title">タイトル</label>
 		<input type="text" id="title" name="title"

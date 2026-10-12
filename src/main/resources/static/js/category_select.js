@@ -107,10 +107,10 @@ function handleCategoryChange(event) {
 	if (selectedCategoryId === '__new__') {
 
 		const newCategoryInput =
-			document.getElementById('newCategoryName');
+			document.getElementById('newCategoryNameInput');
 
 		const newCategoryDisplayNameInput =
-			document.getElementById('newCategoryDisplayName');
+			document.getElementById('newCategoryDisplayNameInput');
 
 		if (newCategoryInput) {
 			newCategoryInput.style.display = 'block';
@@ -130,25 +130,17 @@ function handleCategoryChange(event) {
 
 	// 通常のカテゴリーを選択した場合は、新規カテゴリー入力を非表示にする。
 	const newCategoryInput =
-		document.getElementById('newCategoryName');
+		document.getElementById('newCategoryNameInput');
 
 	const newCategoryDisplayNameInput =
-		document.getElementById('newCategoryDisplayName');
+		document.getElementById('newCategoryDisplayNameInput');
 
 	if (newCategoryInput) {
-
 		newCategoryInput.style.display = 'none';
-
-		newCategoryInput.value = '';
-
 	}
 
 	if (newCategoryDisplayNameInput) {
-
 		newCategoryDisplayNameInput.style.display = 'none';
-
-		newCategoryDisplayNameInput.value = '';
-
 	}
 
 	if (!selectedCategoryId) {
@@ -157,8 +149,6 @@ function handleCategoryChange(event) {
 
 		return;
 	}
-
-	const children = findChildren(selectedCategoryId);
 
 	categorySelectors.appendChild(
 		createCategorySelect(selectedCategoryId)
@@ -251,10 +241,10 @@ function initializeCategorySelectors() {
 	categorySelectors.appendChild(select);
 
 	const newCategoryInput =
-		document.getElementById('newCategoryName');
+		document.getElementById('newCategoryNameInput');
 
 	const newCategoryDisplayNameInput =
-		document.getElementById('newCategoryDisplayName');
+		document.getElementById('newCategoryDisplayNameInput');
 
 	if (newCategoryInput) {
 
@@ -272,9 +262,86 @@ function initializeCategorySelectors() {
 
 	}
 
+	document.getElementById('newCategoryName').value = '';
+	document.getElementById('newCategoryDisplayName').value = '';
+
 }
 
+
+/**
+ * 新規カテゴリーの表示用入力欄と送信用hidden項目を同期する。
+ */
+function syncNewCategoryInputs() {
+
+	const nameInput =
+		document.getElementById('newCategoryNameInput');
+	const nameHidden =
+		document.getElementById('newCategoryName');
+
+	const displayNameInput =
+		document.getElementById('newCategoryDisplayNameInput');
+	const displayNameHidden =
+		document.getElementById('newCategoryDisplayName');
+
+	if (nameInput && nameHidden) {
+
+		// 保存後に引き継いだhidden値を表示用入力欄へ復元する。
+		nameInput.value = nameHidden.value;
+
+		if (nameHidden.value) {
+			nameInput.style.display = 'block';
+		}
+
+		nameInput.addEventListener('input', () => {
+			nameHidden.value = nameInput.value;
+		});
+	}
+
+	if (displayNameInput && displayNameHidden) {
+
+		// 保存後に引き継いだhidden値を表示用入力欄へ復元する。
+		displayNameInput.value = displayNameHidden.value;
+
+		if (displayNameHidden.value) {
+			displayNameInput.style.display = 'block';
+		}
+
+		displayNameInput.addEventListener('input', () => {
+			displayNameHidden.value = displayNameInput.value;
+		});
+	}
+}
+
+
+syncNewCategoryInputs();
+initializeCategorySelectors();
+restoreCategorySelection();
+
+
+
 function restoreCategorySelection() {
+
+	const newCategoryNameInput =
+		document.getElementById('newCategoryNameInput');
+	const newCategoryNameHidden =
+		document.getElementById('newCategoryName');
+	const newCategoryDisplayNameInput =
+		document.getElementById('newCategoryDisplayNameInput');
+	const newCategoryDisplayNameHidden =
+		document.getElementById('newCategoryDisplayName');
+
+	if (newCategoryNameHidden?.value) {
+		if (newCategoryNameInput) {
+			newCategoryNameInput.value = newCategoryNameHidden.value;
+			newCategoryNameInput.style.display = 'block';
+		}
+
+		if (newCategoryDisplayNameInput && newCategoryDisplayNameHidden) {
+			newCategoryDisplayNameInput.value =
+				newCategoryDisplayNameHidden.value;
+			newCategoryDisplayNameInput.style.display = 'block';
+		}
+	}
 
 	if (!window.categoryPath) {
 		return;
@@ -311,30 +378,12 @@ function restoreCategorySelection() {
 				);
 		});
 
+		// DB未登録の新規カテゴリー名は選択経路に含めず、
+		// hidden項目から入力欄を復元した状態を維持する。
 		if (!category) {
-
-			if (i === pathParts.length - 1) {
-
-				const newCategoryInput =
-					document.getElementById('newCategoryName');
-
-				const newCategoryDisplayNameInput =
-					document.getElementById('newCategoryDisplayName');
-
-				if (newCategoryInput) {
-					newCategoryInput.value = categoryName;
-					newCategoryInput.style.display = 'block';
-				}
-
-				if (newCategoryDisplayNameInput) {
-					newCategoryDisplayNameInput.style.display = 'block';
-				}
-
-				categoryPathInput.value = pathParts
-					.slice(0, -1)
-					.join('/');
-			}
-
+			categoryPathInput.value = pathParts
+				.slice(0, i)
+				.join('/');
 			return;
 		}
 
@@ -350,14 +399,14 @@ function restoreCategorySelection() {
 		select.value = category.categoryId;
 		parentCategoryId = category.categoryId;
 
-		categorySelectors.appendChild(
-			createCategorySelect(parentCategoryId)
-		);
+		if (i < pathParts.length - 1) {
+			categorySelectors.appendChild(
+				createCategorySelect(parentCategoryId)
+			);
+		}
 	}
 
 	updateCategoryPath();
 }
 
-initializeCategorySelectors();
-restoreCategorySelection();
 

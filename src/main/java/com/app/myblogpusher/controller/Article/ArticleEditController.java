@@ -5,6 +5,8 @@
 
 package com.app.myblogpusher.controller.Article;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +25,6 @@ import com.app.myblogpusher.repository.UserRepositoryRepository;
 import com.app.myblogpusher.repository.Article.ArticleRepository;
 import com.app.myblogpusher.service.Article.ArticleWorkService;
 import com.app.myblogpusher.service.Article.ArticleWorkspaceService;
-import com.app.myblogpusher.service.Category.CategoryPathService;
 import com.app.myblogpusher.service.Category.CategorySelectionService;
 import com.app.myblogpusher.service.Facade.ImageAssetFacadeService;
 import com.app.myblogpusher.util.ArticleSaveUtil;
@@ -54,9 +55,6 @@ public class ArticleEditController {
 	@Autowired
 	private CategorySelectionService categorySelectionService;
 
-	@Autowired
-	private CategoryPathService categoryPathService;
-
 	/**
 	 * 記事編集画面を表示
 	 * 下書きがあれば表示、無ければworkspaceから復元
@@ -65,6 +63,8 @@ public class ArticleEditController {
 	public String editForm(@RequestParam(required = false) Long workId,
 			@RequestParam(required = false) Boolean saved,
 			@RequestParam(required = false) String categoryPath,
+			@RequestParam(required = false) String newCategoryName,
+			@RequestParam(required = false) String newCategoryDisplayName,
 			HttpSession session,
 			Model model) {
 
@@ -74,31 +74,13 @@ public class ArticleEditController {
 		UserRepositoryEntity repo = userRepositoryRepository.findByUserId(userId)
 				.orElse(null);
 
-		// 新規カテゴリーの関連登録が完了するまで、フルパスでgroupIdを確認する。
-		Long resolvedCategoryGroupId = null;
-
-		if (categoryPath != null && !categoryPath.isBlank()) {
-		    for (int i = 0; i < 20; i++) {
-		        resolvedCategoryGroupId =
-		                categoryPathService.findGroupIdByFullPath(userId, categoryPath);
-
-		        if (resolvedCategoryGroupId != null) {
-		            break;
-		        }
-
-		        try {
-		            Thread.sleep(100);
-		        } catch (InterruptedException e) {
-		            Thread.currentThread().interrupt();
-		            break;
-		        }
-		    }
-		}
-
-		List<CategorySelectView> categories =
-		        categorySelectionService.findCategorySelects(userId);
+		List<CategorySelectView> categories = categorySelectionService.findCategorySelects(userId);
 		model.addAttribute("categories", categories);
-		model.addAttribute("resolvedCategoryGroupId", resolvedCategoryGroupId);
+		model.addAttribute("newCategoryName", newCategoryName);
+		model.addAttribute("newCategoryDisplayName", newCategoryDisplayName);
+
+		// 画面表示ではサーバー側のカテゴリー登録完了を待たない。
+		model.addAttribute("resolvedCategoryGroupId", null);
 
 		// 画像モーダル用
 		// 登録済み画像の保存先フォルダ一覧を取得
@@ -248,18 +230,24 @@ public class ArticleEditController {
 		String savedCategoryPath = categorySelect;
 
 		if (newCategoryName != null && !newCategoryName.isBlank()) {
-			savedCategoryPath = categorySelect == null
-					|| categorySelect.isBlank()
-							? newCategoryName
-							: categorySelect + "/" + newCategoryName;
+			savedCategoryPath = categorySelect == null || categorySelect.isBlank()
+					? newCategoryName
+					: categorySelect + "/" + newCategoryName;
 		}
 
-		return "redirect:/article/edit?workId="
-				+ savedWorkId
-				+ "&saved=true"
-				+ "&categoryPath="
-				+ java.net.URLEncoder.encode(
-						savedCategoryPath,
-						java.nio.charset.StandardCharsets.UTF_8);
+		return "redirect:/article/edit?workId=" + savedWorkId
+		        + "&saved=true"
+		        + "&categoryPath="
+		        + URLEncoder.encode(
+		                savedCategoryPath == null ? "" : savedCategoryPath,
+		                StandardCharsets.UTF_8)
+		        + "&newCategoryName="
+		        + URLEncoder.encode(
+		                newCategoryName == null ? "" : newCategoryName,
+		                StandardCharsets.UTF_8)
+		        + "&newCategoryDisplayName="
+		        + URLEncoder.encode(
+		                newCategoryDisplayName == null ? "" : newCategoryDisplayName,
+		                StandardCharsets.UTF_8);
 	}
 }
