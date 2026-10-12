@@ -318,7 +318,12 @@ initializeCategorySelectors();
 restoreCategorySelection();
 
 
-
+/**
+ * 保存後のカテゴリー選択状態を復元する。
+ *
+ * 登録済みカテゴリーは通常の選択肢として復元し、
+ * DB未登録の新規カテゴリー名は一時的な選択肢として表示する。
+ */
 function restoreCategorySelection() {
 
 	const newCategoryNameInput =
@@ -329,19 +334,6 @@ function restoreCategorySelection() {
 		document.getElementById('newCategoryDisplayNameInput');
 	const newCategoryDisplayNameHidden =
 		document.getElementById('newCategoryDisplayName');
-
-	if (newCategoryNameHidden?.value) {
-		if (newCategoryNameInput) {
-			newCategoryNameInput.value = newCategoryNameHidden.value;
-			newCategoryNameInput.style.display = 'block';
-		}
-
-		if (newCategoryDisplayNameInput && newCategoryDisplayNameHidden) {
-			newCategoryDisplayNameInput.value =
-				newCategoryDisplayNameHidden.value;
-			newCategoryDisplayNameInput.style.display = 'block';
-		}
-	}
 
 	if (!window.categoryPath) {
 		return;
@@ -373,40 +365,52 @@ function restoreCategorySelection() {
 			}
 
 			return (item.parentCategoryIds || [])
-				.some(id =>
-					String(id) === String(parentCategoryId)
-				);
+				.some(id => String(id) === String(parentCategoryId));
 		});
-
-		// DB未登録の新規カテゴリー名は選択経路に含めず、
-		// hidden項目から入力欄を復元した状態を維持する。
-		if (!category) {
-			categoryPathInput.value = pathParts
-				.slice(0, i)
-				.join('/');
-			return;
-		}
 
 		const selects =
 			categorySelectors.querySelectorAll('.category-level');
-
 		const select = selects[selects.length - 1];
 
 		if (!select) {
 			return;
 		}
 
-		select.value = category.categoryId;
-		parentCategoryId = category.categoryId;
+		if (category) {
+			select.value = category.categoryId;
+			parentCategoryId = category.categoryId;
 
-		if (i < pathParts.length - 1) {
-			categorySelectors.appendChild(
-				createCategorySelect(parentCategoryId)
-			);
+			if (i < pathParts.length - 1) {
+				categorySelectors.appendChild(
+					createCategorySelect(parentCategoryId)
+				);
+			}
+
+			continue;
 		}
+
+		// DB未登録の末尾カテゴリー名を一時的な選択肢として表示する。
+		const option = document.createElement('option');
+		option.value = '__pending__';
+		option.textContent = categoryName;
+		option.selected = true;
+		select.appendChild(option);
+
+		if (newCategoryNameInput && newCategoryNameHidden) {
+			newCategoryNameInput.value = categoryName;
+			newCategoryNameHidden.value = categoryName;
+			newCategoryNameInput.style.display = 'block';
+		}
+
+		if (newCategoryDisplayNameInput && newCategoryDisplayNameHidden
+			&& newCategoryDisplayNameHidden.value) {
+			newCategoryDisplayNameInput.value =
+				newCategoryDisplayNameHidden.value;
+			newCategoryDisplayNameInput.style.display = 'block';
+		}
+
+		break;
 	}
 
 	updateCategoryPath();
 }
-
-
