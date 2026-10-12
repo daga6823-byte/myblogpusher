@@ -351,10 +351,12 @@ public class SupabaseStorageService {
 	}
 
 	/**
-	 * Storage上のフォルダ配下にあるファイルを別フォルダへ移動する。
+	 * フォルダ配下の画像を別フォルダへ移動する。
 	 *
-	 * 移動途中で失敗した場合は、移動済みのファイルを元のフォルダへ戻す。
-	 * 戻り値は変更前・変更後のStorageパスの対応表。
+	 * 変更先に同じ相対パスのファイルがある場合は、
+	 * 上書きせずに処理を中止する。
+	 *
+	 * @return 移動前・移動後のStorageパスの対応表
 	 */
 	public Map<String, String> renameFolder(
 			String oldFolderName,
@@ -364,6 +366,7 @@ public class SupabaseStorageService {
 		String newPrefix = newFolderName + "/";
 
 		List<String> allPaths = listAllFilePaths();
+
 		List<String> sourcePaths = allPaths.stream()
 				.filter(path -> path.startsWith(oldPrefix))
 				.toList();
@@ -373,40 +376,85 @@ public class SupabaseStorageService {
 					"変更対象のフォルダにファイルがありません");
 		}
 
-		boolean destinationExists = allPaths.stream()
-				.anyMatch(path -> path.startsWith(newPrefix));
+		// 同名ファイルが1つでもあれば、移動を開始する前に中止する。
+		for (String oldPath : sourcePaths) {
+			String relativePath = oldPath.substring(oldPrefix.length());
+			String newPath = newPrefix + relativePath;
 
-		if (destinationExists) {
-			throw new IllegalArgumentException(
-					"変更先のフォルダ名は既に使用されています");
+			if (allPaths.contains(newPath)) {
+				throw new IllegalArgumentException(
+						"変更先に同名ファイルが存在するため、統合できません: "
+								+ relativePath);
+			}
 		}
 
 		Map<String, String> movedPaths = new HashMap<>();
 
 		try {
 			for (String oldPath : sourcePaths) {
-				String newPath = moveImage(oldPath, newFolderName);
+				String relativePath = oldPath.substring(oldPrefix.length());
+				String newPath = newPrefix + relativePath;
+
+				moveStoragePath(oldPath, newPath);
 				movedPaths.put(oldPath, newPath);
 			}
 
 			return movedPaths;
 
 		} catch (Exception e) {
-			// 移動済みファイルを逆順で元のフォルダへ戻す。
-			List<Map.Entry<String, String>> movedEntries = new ArrayList<>(movedPaths.entrySet());
-
-			for (int i = movedEntries.size() - 1; i >= 0; i--) {
-				Map.Entry<String, String> entry = movedEntries.get(i);
-
-				try {
-					moveImage(entry.getValue(), oldFolderName);
-				} catch (Exception rollbackException) {
-					e.addSuppressed(rollbackException);
-				}
+			try {
+				restoreMovedPaths(movedPaths);
+			} catch (Exception rollbackException) {
+				e.addSuppressed(rollbackException);
 			}
 
 			throw new RuntimeException(
-					"フォルダ名の変更に失敗しました", e);
+					"フォルダの統合に失敗しました", e);
 		}
+	}
+
+	/**
+	 * フォルダ移動後にDB更新が失敗した場合、
+	 * 移動済みのファイルだけを元のパスへ戻す。
+	 */
+	public void restoreMovedPaths(Map<String, String> movedPaths) {
+		List<Map.Entry<String, String>> entries = new ArrayList<>(movedPaths.entrySet());
+
+		for (int i = entries.size() - 1; i >= 0; i--) {
+			Map.Entry<String, String> entry = entries.get(i);
+
+			moveStoragePath(entry.getValue(), entry.getKey());
+		}
+	}
+
+	/**
+	 * Storage上のファイルを指定パスへ移動する。
+	 */
+	private void moveStoragePath(
+			String oldPath,
+			String newPath) {
+
+		byte[] image = downloadImage(oldPath);
+
+		String url = supabaseUrl
+				+ "/storage/v1/object/"
+				+ bucketName
+				+ "/"
+				+ newPath;
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.set("apikey", supabaseKey);
+		headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+
+		HttpEntity<byte[]> entity = new HttpEntity<>(image, headers);
+
+		restTemplate.exchange(
+				url,
+				HttpMethod.POST,
+				entity,
+				String.class);
+
+		// 新しいパスへのアップロード成功後に元ファイルを削除する。
+		deleteImage(oldPath);
 	}
 }

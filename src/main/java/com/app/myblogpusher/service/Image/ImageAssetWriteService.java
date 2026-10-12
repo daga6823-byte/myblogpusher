@@ -324,8 +324,7 @@ public class ImageAssetWriteService {
 		} catch (Exception e) {
 			// DB更新に失敗した場合はStorageを元のフォルダへ戻す。
 			try {
-				supabaseStorageService.renameFolder(
-						newFolderName, oldFolderName);
+				supabaseStorageService.restoreMovedPaths(movedPaths);
 			} catch (Exception rollbackException) {
 				e.addSuppressed(rollbackException);
 			}
