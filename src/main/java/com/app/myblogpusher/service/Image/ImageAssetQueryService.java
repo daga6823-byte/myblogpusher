@@ -173,6 +173,7 @@ public class ImageAssetQueryService {
 				.filter(folder ->
 						folder != null && !folder.isBlank())
 				.distinct()
+				.sorted()
 				.map(ImageCategoryDto::new)
 				.toList();
 	}
@@ -196,6 +197,7 @@ public class ImageAssetQueryService {
 				.filter(folder ->
 						folder != null && !folder.isBlank())
 				.distinct()
+				.sorted()
 				.toList();
 	}
 }

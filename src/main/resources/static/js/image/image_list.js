@@ -260,9 +260,10 @@ renameFolderButton.addEventListener('click', async function() {
 		}
 
 		alert('フォルダ名を変更しました。');
-		location.href =
+		window.location.assign(
 			'/image/list?folderName=' +
-			encodeURIComponent(trimmedFolderName);
+			encodeURIComponent(trimmedFolderName)
+		);
 
 	} catch (error) {
 		alert(error.message || 'フォルダ名の変更に失敗しました。');
