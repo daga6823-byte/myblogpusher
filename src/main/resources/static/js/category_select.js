@@ -115,12 +115,14 @@ function handleCategoryChange(event) {
 		if (newCategoryInput) {
 			newCategoryInput.style.display = 'block';
 			newCategoryInput.value = '';
+			document.getElementById('newCategoryName').value = '';
 			newCategoryInput.focus();
 		}
 
 		if (newCategoryDisplayNameInput) {
 			newCategoryDisplayNameInput.style.display = 'block';
 			newCategoryDisplayNameInput.value = '';
+			document.getElementById('newCategoryDisplayName').value = '';
 		}
 
 		updateCategoryPath();
@@ -137,11 +139,16 @@ function handleCategoryChange(event) {
 
 	if (newCategoryInput) {
 		newCategoryInput.style.display = 'none';
+		newCategoryInput.value = '';
 	}
 
 	if (newCategoryDisplayNameInput) {
 		newCategoryDisplayNameInput.style.display = 'none';
+		newCategoryDisplayNameInput.value = '';
 	}
+
+	document.getElementById('newCategoryName').value = '';
+	document.getElementById('newCategoryDisplayName').value = '';
 
 	if (!selectedCategoryId) {
 

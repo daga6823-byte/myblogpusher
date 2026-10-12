@@ -160,7 +160,11 @@ public class ArticlePublishService {
 			return content;
 		}
 
-		final String imageLine = "image = '" + thumbnailUrl.replace("'", "''") + "'";
+		final String escapedThumbnailUrl = thumbnailUrl
+				.replace("\\", "\\\\")
+				.replace("\"", "\\\"");
+
+		final String imageLine = "image = \"" + escapedThumbnailUrl + "\"";
 
 		final String frontMatterEnd = "\n+++\n";
 		final int endIndex = content.indexOf(frontMatterEnd);
