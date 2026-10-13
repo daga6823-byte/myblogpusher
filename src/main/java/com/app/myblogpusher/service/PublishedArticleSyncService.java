@@ -92,6 +92,14 @@ public class PublishedArticleSyncService {
 									categoryPath);
 				}
 
+				// 新規記事でカテゴリーを特定できない場合は登録しない。
+				if (existing.isEmpty() && categoryGroupId == null) {
+					System.err.println(
+							"カテゴリーを特定できないため記事同期をスキップします: "
+									+ summary.getHugoPath());
+					continue;
+				}
+
 				if (existing.isEmpty()) {
 
 					articleService.saveFromGitHub(

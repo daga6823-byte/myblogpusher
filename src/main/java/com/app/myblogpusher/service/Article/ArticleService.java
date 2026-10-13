@@ -194,10 +194,18 @@ public class ArticleService {
 		}
 
 		if (article.getArticleId() == null) {
-			article.setUserId(userId);
-			article.setCreateDate(articleDate);
-			article.setCreateUser(userId);
-			article.setCategoryGroupId(categoryGroupId);
+		    if (categoryGroupId == null) {
+		        throw new IllegalArgumentException(
+		                "新規記事のカテゴリーグループIDを特定できません。hugoPath="
+		                        + hugoPath);
+		    }
+
+		    article.setUserId(userId);
+		    article.setCreateDate(articleDate);
+		    article.setCreateUser(userId);
+		    article.setCategoryGroupId(categoryGroupId);
+		} else if (categoryGroupId != null) {
+		    article.setCategoryGroupId(categoryGroupId);
 		}
 
 		article.setTitle(title);
