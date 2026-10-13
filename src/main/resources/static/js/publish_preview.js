@@ -162,5 +162,48 @@ if (thumbnailSelectButton) {
 		});
 }
 
+/**
+ * 編集画面へ戻る前に、確認画面で変更したslugを保存する
+ */
+const publishBackButton =
+	document.getElementById('publishBackButton');
 
+if (publishBackButton) {
+	publishBackButton.addEventListener('click', async function() {
+		const workIdInput =
+			document.querySelector(
+				'#publishForm input[name="workId"]'
+			);
+		const slugInput = document.getElementById('slugInput');
+
+		if (!workIdInput || !workIdInput.value || !slugInput) {
+			alert('記事情報を取得できません。');
+			return;
+		}
+
+		try {
+			const response = await fetch('/publish/preview/slug', {
+				method: 'POST',
+				headers: {
+					'Content-Type':
+						'application/x-www-form-urlencoded'
+				},
+				body: new URLSearchParams({
+					workId: workIdInput.value,
+					slug: slugInput.value
+				})
+			});
+
+			if (!response.ok) {
+				throw new Error('スラッグ保存に失敗しました。');
+			}
+
+			location.href = '/article/edit?workId='
+				+ encodeURIComponent(workIdInput.value);
+		} catch (error) {
+			console.error(error);
+			alert('スラッグを保存できませんでした。');
+		}
+	});
+}
 

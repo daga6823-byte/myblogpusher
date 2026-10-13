@@ -34,6 +34,9 @@ public class ArticleWork {
 
     @Column(name = "slug")
     private String slug;
+    
+    @Column(name = "thumbnail_url")
+    private String thumbnailUrl;
 
     @Column(name = "content")
     private String content;

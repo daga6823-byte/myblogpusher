@@ -106,26 +106,50 @@ public class PublishController {
 		form.setArticleContent(content);
 		form.setCategoryId(categoryId);
 
-		// 既存記事の場合は保存済みサムネイルを投稿確認画面へ引き継ぐ。
-		// 新規記事の場合はnullのままにする。
 		if (workId != null) {
 			ArticleWork work = articleWorkService.findById(workId);
+			String thumbnailUrl = work.getThumbnailUrl();
 
-			if (work.getArticleId() != null) {
+			if ((thumbnailUrl == null || thumbnailUrl.isBlank())
+					&& work.getArticleId() != null) {
+
 				Article article = articleService.findById(
 						work.getArticleId());
 
 				if (article != null) {
-					form.setThumbnailUrl(article.getThumbnailUrl());
+					thumbnailUrl = article.getThumbnailUrl();
 				}
 			}
+
+			form.setThumbnailUrl(thumbnailUrl);
 		}
 
 		form.setRepoOwner(repo.getRepoOwner());
 		form.setRepoName(repo.getRepoName());
 
 		List<SlugAnalysisDto> analysis = slugUtil.analyzeSlug(title);
-		String slug = slugUtil.generateSlugFromAnalysis(analysis);
+		String slug = null;
+
+		if (workId != null) {
+			ArticleWork work = articleWorkService.findById(workId);
+			slug = work.getSlug();
+
+			if ((slug == null || slug.isBlank())
+					&& work.getArticleId() != null) {
+
+				Article article = articleService.findById(
+						work.getArticleId());
+
+				if (article != null) {
+					slug = article.getSlug();
+				}
+			}
+		}
+
+		if (slug == null || slug.isBlank()) {
+			slug = slugUtil.generateSlugFromAnalysis(analysis);
+		}
+
 		form.setSlug(slug);
 
 		model.addAttribute("analysis", analysis);
@@ -215,25 +239,50 @@ public class PublishController {
 		form.setArticleContent(content);
 		form.setCategoryId(categoryId);
 
-		// 既存記事の場合は保存済みサムネイルを投稿確認画面へ引き継ぐ。
-		// 新規記事の場合はnullのままにする。
 		if (workId != null) {
 			ArticleWork work = articleWorkService.findById(workId);
+			String thumbnailUrl = work.getThumbnailUrl();
 
-			if (work.getArticleId() != null) {
-				Article article = articleService.findById(work.getArticleId());
+			if ((thumbnailUrl == null || thumbnailUrl.isBlank())
+					&& work.getArticleId() != null) {
+
+				Article article = articleService.findById(
+						work.getArticleId());
 
 				if (article != null) {
-					form.setThumbnailUrl(article.getThumbnailUrl());
+					thumbnailUrl = article.getThumbnailUrl();
 				}
 			}
+
+			form.setThumbnailUrl(thumbnailUrl);
 		}
 
 		form.setRepoOwner(repo.getRepoOwner());
 		form.setRepoName(repo.getRepoName());
 
 		List<SlugAnalysisDto> analysis = slugUtil.analyzeSlug(title);
-		String slug = slugUtil.generateSlugFromAnalysis(analysis);
+		String slug = null;
+
+		if (workId != null) {
+			ArticleWork work = articleWorkService.findById(workId);
+			slug = work.getSlug();
+
+			if ((slug == null || slug.isBlank())
+					&& work.getArticleId() != null) {
+
+				Article article = articleService.findById(
+						work.getArticleId());
+
+				if (article != null) {
+					slug = article.getSlug();
+				}
+			}
+		}
+
+		if (slug == null || slug.isBlank()) {
+			slug = slugUtil.generateSlugFromAnalysis(analysis);
+		}
+
 		form.setSlug(slug);
 
 		model.addAttribute("analysis", analysis);
@@ -268,5 +317,51 @@ public class PublishController {
 				.findFirst()
 				.map(relation -> relation.getGroupId())
 				.orElseThrow();
+	}
+
+	/**
+	 * 投稿確認画面で選択したサムネイルを保存する
+	 */
+	@PostMapping("/publish/preview/thumbnail")
+	@org.springframework.web.bind.annotation.ResponseBody
+	public org.springframework.http.ResponseEntity<Void> savePreviewThumbnail(
+			@RequestParam Long workId,
+			@RequestParam(required = false) String thumbnailUrl,
+			HttpSession session) {
+
+		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
+
+		if (loginUser == null) {
+			return org.springframework.http.ResponseEntity
+					.status(401).build();
+		}
+
+		articleWorkService.updateThumbnailUrl(
+				workId, loginUser.getUserId(), thumbnailUrl);
+
+		return org.springframework.http.ResponseEntity.noContent().build();
+	}
+
+	/**
+	 * 投稿確認画面で編集したslugを保存する
+	 */
+	@PostMapping("/publish/preview/slug")
+	@org.springframework.web.bind.annotation.ResponseBody
+	public org.springframework.http.ResponseEntity<Void> savePreviewSlug(
+			@RequestParam Long workId,
+			@RequestParam String slug,
+			HttpSession session) {
+
+		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
+
+		if (loginUser == null) {
+			return org.springframework.http.ResponseEntity
+					.status(401).build();
+		}
+
+		articleWorkService.updatePreviewSlug(
+				workId, loginUser.getUserId(), slug);
+
+		return org.springframework.http.ResponseEntity.noContent().build();
 	}
 }

@@ -254,4 +254,45 @@ public class ArticleWorkService {
 		articleWorkRepository.save(work);
 	}
 
+	/**
+	 * 投稿確認画面で選択したサムネイルURLを保存する
+	 */
+	public void updateThumbnailUrl(
+			Long workId, Long userId, String thumbnailUrl) {
+
+		ArticleWork work = articleWorkRepository.findById(workId)
+				.orElseThrow();
+
+		if (!work.getUserId().equals(userId)) {
+			throw new IllegalStateException(
+					"他のユーザーの記事は更新できません");
+		}
+
+		work.setThumbnailUrl(thumbnailUrl);
+		work.setUpdateUser(userId);
+		work.setUpdateDate(LocalDateTime.now());
+
+		articleWorkRepository.save(work);
+	}
+
+	/**
+	 * 投稿確認画面で編集したslugを保存する
+	 */
+	public void updatePreviewSlug(
+			Long workId, Long userId, String slug) {
+
+		ArticleWork work = articleWorkRepository.findById(workId)
+				.orElseThrow();
+
+		if (!work.getUserId().equals(userId)) {
+			throw new IllegalStateException(
+					"他のユーザーの記事は更新できません");
+		}
+
+		work.setSlug(slug);
+		work.setUpdateUser(userId);
+		work.setUpdateDate(LocalDateTime.now());
+
+		articleWorkRepository.save(work);
+	}
 }

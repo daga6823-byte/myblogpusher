@@ -146,28 +146,57 @@ export function loadImageList() {
 
 				const imageElement = div.querySelector('img');
 
-				imageElement.addEventListener('click', function() {
-
+				imageElement.addEventListener('click', async function() {
 					if (imageState.thumbnailMode) {
-
 						const thumbnailPreview =
 							document.getElementById('thumbnailPreview');
-
 						const thumbnailUrl =
 							document.getElementById('thumbnailUrl');
+						const workIdInput =
+							document.querySelector(
+								'#publishForm input[name="workId"]'
+							);
 
-						if (thumbnailPreview) {
-							thumbnailPreview.src = img.url;
-							thumbnailPreview.style.display = 'block';
+						if (!workIdInput || !workIdInput.value) {
+							alert('記事のワークIDを取得できません。');
+							return;
 						}
 
-						if (thumbnailUrl) {
-							thumbnailUrl.value = img.url;
+						try {
+							const response = await fetch(
+								'/publish/preview/thumbnail',
+								{
+									method: 'POST',
+									headers: {
+										'Content-Type':
+											'application/x-www-form-urlencoded'
+									},
+									body: new URLSearchParams({
+										workId: workIdInput.value,
+										thumbnailUrl: img.url
+									})
+								}
+							);
+
+							if (!response.ok) {
+								throw new Error('サムネイル保存に失敗しました。');
+							}
+
+							if (thumbnailPreview) {
+								thumbnailPreview.src = img.url;
+								thumbnailPreview.style.display = 'block';
+							}
+
+							if (thumbnailUrl) {
+								thumbnailUrl.value = img.url;
+							}
+
+							imageState.thumbnailMode = false;
+							document.getElementById('imageModal').style.display = 'none';
+						} catch (error) {
+							console.error(error);
+							alert('サムネイルを保存できませんでした。');
 						}
-
-						imageState.thumbnailMode = false;
-
-						document.getElementById('imageModal').style.display = 'none';
 
 						return;
 					}
