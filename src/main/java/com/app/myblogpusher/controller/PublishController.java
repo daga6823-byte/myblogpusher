@@ -265,11 +265,9 @@ public class PublishController {
 
 		if (workId != null) {
 			ArticleWork work = articleWorkService.findById(workId);
-			slug = work.getSlug();
 
-			if ((slug == null || slug.isBlank())
-					&& work.getArticleId() != null) {
-
+			if (work.getArticleId() != null) {
+				// 投稿済み記事はArticleテーブルのslugを使用する
 				Article article = articleService.findById(
 						work.getArticleId());
 
@@ -280,6 +278,7 @@ public class PublishController {
 		}
 
 		if (slug == null || slug.isBlank()) {
+			// 新規記事は従来のKuromoji・英単語辞典による生成処理を使用する
 			slug = slugUtil.generateSlugFromAnalysis(analysis);
 		}
 
