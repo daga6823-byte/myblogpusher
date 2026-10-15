@@ -87,6 +87,7 @@ public class SlugUtil {
 		symbols.add("'");
 		symbols.add("=");
 		symbols.add("＝");
+		symbols.add("of");
 		IGNORE_SYMBOLS = Collections.unmodifiableList(symbols);
 	}
 

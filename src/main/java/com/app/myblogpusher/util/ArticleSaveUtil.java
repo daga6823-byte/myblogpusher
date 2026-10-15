@@ -67,7 +67,19 @@ public class ArticleSaveUtil {
 
 		formattedContent = MarkdownFootnoteUtil.normalize(formattedContent);
 
-		String slug = slugUtil.generateSlug(title);
+		String slug = null;
+
+		if (workId != null) {
+		    ArticleWork work = articleWorkService.findById(workId);
+
+		    if (work != null) {
+		        slug = work.getSlug();
+		    }
+		}
+
+		if (slug == null || slug.isBlank()) {
+		    slug = slugUtil.generateSlug(title);
+		}
 
 		if (workId == null) {
 

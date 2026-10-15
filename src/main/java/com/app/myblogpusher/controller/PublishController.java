@@ -1,84 +1,69 @@
+
 /**
  * 記事投稿機能を担当するコントローラー
- * 投稿前確認画面の表示、スラッグ生成・編集、GitHubへの記事プッシュを管理
+ *
+ * 投稿前確認画面の表示、投稿確定、確認画面でのスラッグ・サムネイル保存を担当する。
+ * 記事の保存はArticleSaveUtil、投稿確認データの生成はPublishPreviewService、
+ * GitHubへの投稿処理はArticlePublishServiceへ委譲する。
  */
-
 package com.app.myblogpusher.controller;
 
-import java.util.List;
-import java.util.Optional;
-
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.app.myblogpusher.dto.SlugAnalysisDto;
-import com.app.myblogpusher.dto.Publish.PublishPreviewForm;
 import com.app.myblogpusher.entity.UserMaster;
-import com.app.myblogpusher.entity.UserRepositoryEntity;
-import com.app.myblogpusher.entity.Article.Article;
-import com.app.myblogpusher.entity.Article.ArticleCategory;
-import com.app.myblogpusher.entity.Article.ArticleWork;
-import com.app.myblogpusher.repository.CategoryRelationRepository;
-import com.app.myblogpusher.repository.UserRepositoryRepository;
-import com.app.myblogpusher.service.Article.ArticleCategoryService;
-import com.app.myblogpusher.service.Article.ArticlePublishService;
-import com.app.myblogpusher.service.Article.ArticleService;
+import com.app.myblogpusher.service.PublishExecutionService;
+import com.app.myblogpusher.service.PublishPreviewPreparationService;
+import com.app.myblogpusher.service.PublishPreviewService;
 import com.app.myblogpusher.service.Article.ArticleWorkService;
-import com.app.myblogpusher.service.Article.ArticleWorkspaceService;
-import com.app.myblogpusher.util.SlugUtil;
+import com.app.myblogpusher.util.ArticleSaveUtil;
 
 import jakarta.servlet.http.HttpSession;
 
 @Controller
 public class PublishController {
 
-	private final UserRepositoryRepository userRepositoryRepository;
-	private final ArticleCategoryService articleCategoryService;
-	private final ArticlePublishService articlePublishService;
-	private final CategoryRelationRepository categoryRelationRepository;
+	private final PublishPreviewPreparationService publishPreviewPreparationService;
+	private final PublishExecutionService publishExecutionService;
+	private final ArticleWorkService articleWorkService;
+	private final ArticleSaveUtil articleSaveUtil;
 
-	@Autowired
-	private ArticleWorkService articleWorkService;
-
-	@Autowired
-	private SlugUtil slugUtil;
-
-	@Autowired
-	private ArticleWorkspaceService workspaceService;
-
-	@Autowired
-	private ArticleService articleService;
-
+	/**
+	 * 投稿確認画面と投稿確定処理に必要な依存関係を設定する。
+	 */
 	public PublishController(
-			UserRepositoryRepository userRepositoryRepository,
-			ArticleCategoryService articleCategoryService,
-			ArticlePublishService articlePublishService,
-			ArticleService articleService,
-			CategoryRelationRepository categoryRelationRepository) {
-		this.userRepositoryRepository = userRepositoryRepository;
-		this.articleCategoryService = articleCategoryService;
-		this.articlePublishService = articlePublishService;
-		this.articleService = articleService;
-		this.categoryRelationRepository = categoryRelationRepository;
+	        PublishPreviewService publishPreviewService,
+	        PublishPreviewPreparationService publishPreviewPreparationService,
+	        PublishExecutionService publishExecutionService,
+	        ArticleWorkService articleWorkService,
+	        ArticleSaveUtil articleSaveUtil) {
+	    this.publishPreviewPreparationService = publishPreviewPreparationService;
+	    this.publishExecutionService = publishExecutionService;
+	    this.articleWorkService = articleWorkService;
+	    this.articleSaveUtil = articleSaveUtil;
 	}
 
+	/**
+	 * 投稿前確認画面を表示する。
+	 *
+	 * 投稿確認へ進む前に記事をワークテーブルへ保存し、
+	 * 保存済みデータをもとに確認画面のフォームを生成する。
+	 */
 	@PostMapping("/publish/preview")
-	public String showPreview(@RequestParam(required = false) Long workId,
+	public String showPreview(
+			@RequestParam(required = false) Long workId,
 			@RequestParam String title,
 			@RequestParam String content,
 			@RequestParam String categorySelect,
 			@RequestParam(required = false) String newCategoryName,
+			@RequestParam(required = false) String newCategoryDisplayName,
 			HttpSession session,
 			Model model) {
-		session.setAttribute("previewTitle", title);
-		session.setAttribute("previewContent", content);
-		session.setAttribute("previewWorkId", workId);
-		session.setAttribute("previewCategorySelect", categorySelect);
-		session.setAttribute("previewNewCategoryName", newCategoryName);
 
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 
@@ -88,76 +73,53 @@ public class PublishController {
 
 		Long userId = loginUser.getUserId();
 
-		// カテゴリーIDを解決（"__new__"なら新規ルートカテゴリーとして作成、それ以外は選択されたcategoryIdをそのまま使う）
-		Long categoryId = resolveCategoryId(userId, categorySelect, newCategoryName);
+		// 保存前のワークと投稿済み記事を取得する。
+		PublishPreviewPreparationService.ExistingArticleData existingData = publishPreviewPreparationService
+				.findExistingArticleData(workId);
 
-		// リポジトリ情報取得
-		Optional<UserRepositoryEntity> repoOpt = userRepositoryRepository.findByUserId(userId);
-		if (repoOpt.isEmpty()) {
-			model.addAttribute("error", "リポジトリが設定されていません");
+		// 記事とカテゴリー情報をワークテーブルへ保存する。
+		Long savedWorkId = articleSaveUtil.doSaveDraft(
+				workId,
+				categorySelect,
+				newCategoryName,
+				newCategoryDisplayName,
+				title,
+				content,
+				userId);
+
+		if (savedWorkId == null) {
+			model.addAttribute("error", "記事の保存に失敗しました");
 			return "error";
 		}
 
-		UserRepositoryEntity repo = repoOpt.get();
+		// 保存後のデータから投稿確認画面の表示情報を準備する。
+		PublishPreviewPreparationService.PreparationResult result = publishPreviewPreparationService.preparePreview(
+				savedWorkId,
+				title,
+				content,
+				userId,
+				existingData);
 
-		PublishPreviewForm form = new PublishPreviewForm();
-		form.setArticleId(workId);
-		form.setArticleTitle(title);
-		form.setArticleContent(content);
-		form.setCategoryId(categoryId);
-
-		if (workId != null) {
-			ArticleWork work = articleWorkService.findById(workId);
-			String thumbnailUrl = work.getThumbnailUrl();
-
-			if ((thumbnailUrl == null || thumbnailUrl.isBlank())
-					&& work.getArticleId() != null) {
-
-				Article article = articleService.findById(
-						work.getArticleId());
-
-				if (article != null) {
-					thumbnailUrl = article.getThumbnailUrl();
-				}
-			}
-
-			form.setThumbnailUrl(thumbnailUrl);
+		// 表示準備に失敗した場合はエラー画面へ遷移する。
+		if (!result.isSuccess()) {
+			model.addAttribute("error", result.getErrorMessage());
+			return "error";
 		}
 
-		form.setRepoOwner(repo.getRepoOwner());
-		form.setRepoName(repo.getRepoName());
+		// 生成されたフォームとスラッグ解析結果を画面に渡す。
+		PublishPreviewService.PublishPreviewData previewData = result.getPreviewData();
 
-		List<SlugAnalysisDto> analysis = slugUtil.analyzeSlug(title);
-		String slug = null;
-
-		if (workId != null) {
-			ArticleWork work = articleWorkService.findById(workId);
-			slug = work.getSlug();
-
-			if ((slug == null || slug.isBlank())
-					&& work.getArticleId() != null) {
-
-				Article article = articleService.findById(
-						work.getArticleId());
-
-				if (article != null) {
-					slug = article.getSlug();
-				}
-			}
-		}
-
-		if (slug == null || slug.isBlank()) {
-			slug = slugUtil.generateSlugFromAnalysis(analysis);
-		}
-
-		form.setSlug(slug);
-
-		model.addAttribute("analysis", analysis);
-		model.addAttribute("form", form);
+		model.addAttribute("analysis", previewData.getAnalysis());
+		model.addAttribute("form", previewData.getForm());
 
 		return "publish_preview";
 	}
 
+	/**
+	 * 投稿を確定し、非同期のGitHub投稿処理を開始する。
+	 *
+	 * 投稿確定後の処理はPublishExecutionServiceへ委譲する。
+	 */
 	@PostMapping("/publish/execute")
 	public String executePublish(
 			@RequestParam(required = false) Long workId,
@@ -168,6 +130,47 @@ public class PublishController {
 			@RequestParam(required = false) String thumbnailUrl,
 			HttpSession session,
 			Model model) {
+
+		// ログイン状態を確認する。
+		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
+
+		if (loginUser == null) {
+			return "redirect:/login";
+		}
+
+		// 投稿確定後の処理をサービスへ委譲する。
+		boolean started = publishExecutionService.executePublish(
+				workId,
+				categoryId,
+				slug,
+				thumbnailUrl,
+				loginUser.getUserId(),
+				loginUser.getCipherKey());
+
+		// 投稿先リポジトリが未設定の場合はエラー画面を表示する。
+		if (!started) {
+			model.addAttribute("error", "リポジトリが設定されていません");
+			return "error";
+		}
+
+		return "redirect:/article/list?published";
+	}
+
+	/**
+	 * 投稿確認画面への復帰要求を処理する。
+	 *
+	 * セッションに保持された記事情報を取得し、
+	 * 投稿確認画面の表示準備をPublishPreviewPreparationServiceへ委譲する。
+	 */
+	@GetMapping("/publish/preview/back")
+	public String backToPreview(HttpSession session, Model model) {
+
+		// 投稿確認画面へ戻す記事情報をセッションから取得する。
+		String title = (String) session.getAttribute("previewTitle");
+		String content = (String) session.getAttribute("previewContent");
+		Long workId = (Long) session.getAttribute("previewWorkId");
+
+		// ログイン状態を確認する。
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 
 		if (loginUser == null) {
@@ -176,154 +179,40 @@ public class PublishController {
 
 		Long userId = loginUser.getUserId();
 
-		// リポジトリ情報取得
-		Optional<UserRepositoryEntity> repoOpt = userRepositoryRepository.findByUserId(userId);
-		if (repoOpt.isEmpty()) {
-			model.addAttribute("error", "リポジトリが設定されていません");
-			return "error";
-		}
+		// 保存前のワークと投稿済み記事を取得する。
+		PublishPreviewPreparationService.ExistingArticleData existingData = publishPreviewPreparationService
+				.findExistingArticleData(workId);
 
-		UserRepositoryEntity repo = repoOpt.get();
-
-		// 投稿時に選択されたカテゴリー経路をArticleWorkへ反映する。
-		// categoryIdは画面上の名称とは異なり、CategoryRelation.groupIdを指す。
-		articleWorkService.updateCategoryGroupId(
+		// 保存済みワークのスラッグを優先して投稿確認画面の表示情報を準備する。
+		PublishPreviewPreparationService.PreparationResult result = publishPreviewPreparationService.preparePreview(
 				workId,
-				categoryId);
-
-		// 投稿前確認画面で確定したslugをArticleWorkへ反映する。
-		articleWorkService.updateSlug(workId, slug);
-
-		// 投稿処理開始
-		articleWorkService.updateStatus(workId, 1);
-
-		// 編集用ワークスペースは投稿開始時に削除
-		workspaceService.delete(userId);
-
-		// 投稿処理は非同期で実行する
-		articlePublishService.publishAsync(
-				repo,
-				loginUser.getCipherKey(),
+				title,
+				content,
 				userId,
-				workId,
-				thumbnailUrl);
+				existingData,
+				true);
 
-		return "redirect:/article/list?published";
-	}
-
-	@GetMapping("/publish/preview/back")
-	public String backToPreview(HttpSession session, Model model) {
-		String title = (String) session.getAttribute("previewTitle");
-		String content = (String) session.getAttribute("previewContent");
-		Long workId = (Long) session.getAttribute("previewWorkId");
-		String categorySelect = (String) session.getAttribute("previewCategorySelect");
-		String newCategoryName = (String) session.getAttribute("previewNewCategoryName");
-
-		// showPreviewと同じ処理をGETで実行
-		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
-		Long userId = loginUser.getUserId();
-
-		Long categoryId = resolveCategoryId(userId, categorySelect, newCategoryName);
-
-		Optional<UserRepositoryEntity> repoOpt = userRepositoryRepository.findByUserId(userId);
-		if (repoOpt.isEmpty()) {
-			model.addAttribute("error", "リポジトリが設定されていません");
+		// 表示準備に失敗した場合はエラー画面へ遷移する。
+		if (!result.isSuccess()) {
+			model.addAttribute("error", result.getErrorMessage());
 			return "error";
 		}
 
-		UserRepositoryEntity repo = repoOpt.get();
+		// 生成されたフォームとスラッグ解析結果を画面に渡す。
+		PublishPreviewService.PublishPreviewData previewData = result.getPreviewData();
 
-		PublishPreviewForm form = new PublishPreviewForm();
-		form.setArticleId(workId);
-		form.setArticleTitle(title);
-		form.setArticleContent(content);
-		form.setCategoryId(categoryId);
-
-		if (workId != null) {
-			ArticleWork work = articleWorkService.findById(workId);
-			String thumbnailUrl = work.getThumbnailUrl();
-
-			if ((thumbnailUrl == null || thumbnailUrl.isBlank())
-					&& work.getArticleId() != null) {
-
-				Article article = articleService.findById(
-						work.getArticleId());
-
-				if (article != null) {
-					thumbnailUrl = article.getThumbnailUrl();
-				}
-			}
-
-			form.setThumbnailUrl(thumbnailUrl);
-		}
-
-		form.setRepoOwner(repo.getRepoOwner());
-		form.setRepoName(repo.getRepoName());
-
-		List<SlugAnalysisDto> analysis = slugUtil.analyzeSlug(title);
-		String slug = null;
-
-		if (workId != null) {
-			ArticleWork work = articleWorkService.findById(workId);
-
-			if (work.getArticleId() != null) {
-				// 投稿済み記事はArticleテーブルのslugを使用する
-				Article article = articleService.findById(
-						work.getArticleId());
-
-				if (article != null) {
-					slug = article.getSlug();
-				}
-			}
-		}
-
-		if (slug == null || slug.isBlank()) {
-			// 新規記事は従来のKuromoji・英単語辞典による生成処理を使用する
-			slug = slugUtil.generateSlugFromAnalysis(analysis);
-		}
-
-		form.setSlug(slug);
-
-		model.addAttribute("analysis", analysis);
-		model.addAttribute("form", form);
+		model.addAttribute("analysis", previewData.getAnalysis());
+		model.addAttribute("form", previewData.getForm());
 
 		return "publish_preview";
 	}
 
 	/**
-	 * categorySelectを解釈してcategoryIdを返す。
-	 * "__new__"の場合は新規ルートカテゴリー（parentCategoryId=null）として作成する。
-	 * それ以外は選択プルダウンから渡されたcategoryIdの文字列をそのまま数値変換する。
-	 */
-	private Long resolveCategoryId(Long userId, String categorySelect, String newCategoryName) {
-		if ("__new__".equals(categorySelect)) {
-			return articleCategoryService.findByUserIdAndName(userId, newCategoryName)
-					.map(ArticleCategory::getCategoryId)
-					.orElseGet(() -> articleCategoryService.insertCategory(
-							userId,
-							newCategoryName,
-							null,
-							newCategoryName));
-		}
-
-		if (categorySelect == null || categorySelect.isBlank()) {
-			return null;
-		}
-
-		return categoryRelationRepository
-				.findByCategoryPath(categorySelect)
-				.stream()
-				.findFirst()
-				.map(relation -> relation.getGroupId())
-				.orElseThrow();
-	}
-
-	/**
-	 * 投稿確認画面で選択したサムネイルを保存する
+	 * 投稿確認画面で選択されたサムネイルを保存する。
 	 */
 	@PostMapping("/publish/preview/thumbnail")
-	@org.springframework.web.bind.annotation.ResponseBody
-	public org.springframework.http.ResponseEntity<Void> savePreviewThumbnail(
+	@ResponseBody
+	public ResponseEntity<Void> savePreviewThumbnail(
 			@RequestParam Long workId,
 			@RequestParam(required = false) String thumbnailUrl,
 			HttpSession session) {
@@ -331,22 +220,23 @@ public class PublishController {
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 
 		if (loginUser == null) {
-			return org.springframework.http.ResponseEntity
-					.status(401).build();
+			return ResponseEntity.status(401).build();
 		}
 
 		articleWorkService.updateThumbnailUrl(
-				workId, loginUser.getUserId(), thumbnailUrl);
+				workId,
+				loginUser.getUserId(),
+				thumbnailUrl);
 
-		return org.springframework.http.ResponseEntity.noContent().build();
+		return ResponseEntity.noContent().build();
 	}
 
 	/**
-	 * 投稿確認画面で編集したslugを保存する
+	 * 投稿確認画面で編集されたスラッグを保存する。
 	 */
 	@PostMapping("/publish/preview/slug")
-	@org.springframework.web.bind.annotation.ResponseBody
-	public org.springframework.http.ResponseEntity<Void> savePreviewSlug(
+	@ResponseBody
+	public ResponseEntity<Void> savePreviewSlug(
 			@RequestParam Long workId,
 			@RequestParam String slug,
 			HttpSession session) {
@@ -354,13 +244,14 @@ public class PublishController {
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 
 		if (loginUser == null) {
-			return org.springframework.http.ResponseEntity
-					.status(401).build();
+			return ResponseEntity.status(401).build();
 		}
 
 		articleWorkService.updatePreviewSlug(
-				workId, loginUser.getUserId(), slug);
+				workId,
+				loginUser.getUserId(),
+				slug);
 
-		return org.springframework.http.ResponseEntity.noContent().build();
+		return ResponseEntity.noContent().build();
 	}
 }
