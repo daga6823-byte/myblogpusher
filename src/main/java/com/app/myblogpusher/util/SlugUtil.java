@@ -87,8 +87,24 @@ public class SlugUtil {
 		symbols.add("'");
 		symbols.add("=");
 		symbols.add("＝");
-		symbols.add("of");
 		IGNORE_SYMBOLS = Collections.unmodifiableList(symbols);
+	}
+	
+	/**
+	 * PARTICLE_MAPの変換先と完全一致する単語かを判定する。
+	 * 単語の一部だけが一致する場合は除外しない。
+	 *
+	 * @param word 判定対象の単語
+	 * @return PARTICLE_MAPの変換先と完全一致する場合はtrue
+	 */
+	private boolean isParticleMapValue(String word) {
+	    if (word == null || word.isEmpty()) {
+	        return false;
+	    }
+
+	    return PARTICLE_MAP.values().stream()
+	            .filter(value -> !value.isEmpty())
+	            .anyMatch(value -> word.matches("(?i)" + java.util.regex.Pattern.quote(value)));
 	}
 
 	private String toRomanized(String text) {
@@ -114,23 +130,24 @@ public class SlugUtil {
 			String partOfSpeech = token.getPartOfSpeechLevel1();
 			String reading = token.getReading();
 
-			// 既に英単語に置換済みの部分はそのまま
+			// 既に英単語に置換済みの部分はそのまま。
+			// PARTICLE_MAPの変換先と完全一致する単語は除外する。
 			if (surface.matches("[a-zA-Z]+")) {
-				result.append(surface).append(" ");
-				continue;
+			    if (!isParticleMapValue(surface)) {
+			        result.append(surface).append(" ");
+			    }
+			    continue;
 			}
 
 			// 記号スキップ
 			if ("記号".equals(partOfSpeech))
-				continue;
+			    continue;
 
-			// 助詞・助動詞はPARTICLE_MAPで変換
+			// 助詞・助動詞はPARTICLE_MAPで変換する。
+			// 変換先がPARTICLE_MAPの値なので、スラッグには追加しない。
 			if ("助詞".equals(partOfSpeech) || "助動詞".equals(partOfSpeech)) {
-				String mapped = PARTICLE_MAP.getOrDefault(reading, "");
-				if (!mapped.isEmpty()) {
-					result.append(mapped).append(" ");
-				}
-				continue;
+			    PARTICLE_MAP.getOrDefault(reading, "");
+			    continue;
 			}
 
 			// 残りはローマ字
@@ -237,19 +254,20 @@ public class SlugUtil {
 			if ("記号".equals(partOfSpeech))
 				continue;
 
-			// 置換済み英単語はそのまま
+			// 置換済み英単語はそのまま。
+			// PARTICLE_MAPの変換先と完全一致する単語は解析結果に含めない。
 			if (surface.matches("[a-zA-Z]+")) {
-				result.add(new SlugAnalysisDto(surface, reading, partOfSpeech, surface, true));
-				continue;
+			    if (!isParticleMapValue(surface)) {
+			        result.add(new SlugAnalysisDto(surface, reading, partOfSpeech, surface, true));
+			    }
+			    continue;
 			}
 
-			// 助詞・助動詞はPARTICLE_MAPで変換
+			// 助詞・助動詞はPARTICLE_MAPで変換する。
+			// 変換先は除外対象なので解析結果には追加しない。
 			if ("助詞".equals(partOfSpeech) || "助動詞".equals(partOfSpeech)) {
-				String mapped = PARTICLE_MAP.getOrDefault(reading, "");
-				if (!mapped.isEmpty()) {
-					result.add(new SlugAnalysisDto(surface, reading, partOfSpeech, mapped, false));
-				}
-				continue;
+			    PARTICLE_MAP.getOrDefault(reading, "");
+			    continue;
 			}
 
 			// 残りはローマ字
