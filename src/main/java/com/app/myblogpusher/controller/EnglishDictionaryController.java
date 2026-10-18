@@ -40,7 +40,20 @@ public class EnglishDictionaryController {
 	}
 
 	@GetMapping("/english-dictionary/form")
-	public String form(@RequestParam(required = false) Long id, Model model) {
+	public String form(
+			@RequestParam(required = false) Long id,
+			@RequestParam(required = false) String returnTo,
+			@RequestParam(required = false) Long workId,
+			HttpSession session,
+			Model model) {
+
+		if ("publish_preview".equals(returnTo)) {
+			session.setAttribute("dictionaryReturnTo", returnTo);
+
+			if (workId != null) {
+				session.setAttribute("previewWorkId", workId);
+			}
+		}
 		EnglishDictionaryForm form = new EnglishDictionaryForm();
 		if (id != null) {
 			Optional<EnglishDictionary> existing = englishDictionaryRepository.findById(id);
@@ -80,9 +93,15 @@ public class EnglishDictionaryController {
 		englishDictionaryRepository.save(dictionary);
 
 		// 登録元画面に戻る
-		if ("publish_preview".equals(returnTo)) {
+		String savedReturnTo = (String) session.getAttribute("dictionaryReturnTo");
+
+		if ("publish_preview".equals(returnTo)
+				|| "publish_preview".equals(savedReturnTo)) {
+
+			session.removeAttribute("dictionaryReturnTo");
 			return "redirect:/publish/preview/back";
 		}
+
 		return "redirect:/english-dictionary/list?saved";
 	}
 

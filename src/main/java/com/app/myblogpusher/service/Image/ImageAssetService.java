@@ -1,18 +1,14 @@
-/**
- * 画像アップロードの調整役サービス
- * Supabase Storageへの実アップロードとimage_assetテーブルへの記録をあわせて行う
- * フォルダ名はカテゴリーのスラッグをデフォルトとし、アップロード時に上書き指定できる
- */
 
+/**
+ * 画像関連処理の互換性を維持する委譲サービス
+ *
+ * 既存の呼び出し元との互換性を保ち、
+ * 画像関連処理をImageAssetFacadeへ委譲する。
+ */
 package com.app.myblogpusher.service.Image;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -23,170 +19,36 @@ import org.springframework.web.multipart.MultipartFile;
 import com.app.myblogpusher.dto.ImageAssetView;
 import com.app.myblogpusher.dto.ImageCategoryDto;
 import com.app.myblogpusher.entity.ImageAsset;
-import com.app.myblogpusher.repository.ImageAssetRepository;
-import com.app.myblogpusher.service.SupabaseStorageService;
+import com.app.myblogpusher.service.Facade.ImageAssetFacade;
 
 @Service
 public class ImageAssetService {
 
 	@Autowired
-	private ImageAssetRepository imageAssetRepository;
+	private ImageAssetFacade imageAssetFacade;
 
-	@Autowired
-	private SupabaseStorageService supabaseStorageService;
-
-	@Autowired
-	private ImageConvertService imageConvertService;
-
-	@Autowired
-	private ImageAssetCache imageAssetCache;
-
-	/**
-	 * 画像をアップロードし、image_assetに記録する
-	 * folderNameが未指定ならmiscフォルダを使う
-	 */
 	public ImageAsset uploadAndRegister(
 			MultipartFile file,
 			String folderName,
 			Long userId) throws IOException {
 
-		String resolvedFolderName;
-
-		if (folderName != null && !folderName.isBlank()) {
-
-			resolvedFolderName = folderName;
-
-		} else {
-
-			resolvedFolderName = "misc";
-		}
-
-		File convertedFile = imageConvertService.convert(file);
-
-		String originalName = file.getOriginalFilename();
-
-		if (originalName == null) {
-			throw new IOException("ファイル名が取得できません");
-		}
-
-		String fileName = originalName;
-
-		if (originalName.toLowerCase().endsWith(".heic")) {
-			fileName = originalName.substring(
-					0,
-					originalName.lastIndexOf('.'))
-					+ ".webp";
-		}
-
-		File uploadFile = new File(
-				convertedFile.getParent(),
-				fileName);
-
-		Files.copy(
-				convertedFile.toPath(),
-				uploadFile.toPath(),
-				java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-
-		String storagePath = supabaseStorageService.uploadImage(
-				uploadFile,
-				resolvedFolderName);
-
-		ImageAsset asset = new ImageAsset();
-		asset.setUserId(userId);
-		asset.setFolderName(resolvedFolderName);
-		asset.setFileName(fileName);
-		asset.setStoragePath(storagePath);
-		asset.setUploadDate(LocalDateTime.now());
-		asset.setCreateUser(userId);
-		asset.setUpdateUser(userId);
-		asset.setCreateDate(LocalDateTime.now());
-		asset.setUpdateDate(LocalDateTime.now());
-
-		imageAssetRepository.save(asset);
-
-		// 画像情報が変更されたため、次回表示時に最新情報を取得する。
-		imageAssetCache.clear(userId);
-
-		return asset;
+		return imageAssetFacade.uploadAndRegister(
+				file, folderName, userId);
 	}
 
-	/**
-	 * DBに記録された画像一覧からURLリストを組み立てる（Supabase側の一覧APIには依存しない）
-	 * categoryIdが指定されればそのカテゴリー分だけに絞り込む
-	 */
-	public List<String> listImageUrls(Long userId, String folderName) {
-		List<ImageAsset> assets;
+	public List<String> listImageUrls(
+			Long userId,
+			String folderName) {
 
-		if (folderName != null && !folderName.isBlank()) {
-
-			assets = imageAssetRepository
-					.findByUserIdAndFolderNameOrderByUploadDateDesc(
-							userId,
-							folderName,
-							org.springframework.data.domain.Pageable.unpaged())
-					.getContent();
-
-		} else {
-
-			assets = imageAssetRepository.findByUserIdOrderByUploadDateDesc(userId);
-		}
-
-		return assets.stream()
-				.map(a -> supabaseStorageService.getImageUrl(a.getStoragePath()))
-				.toList();
+		return imageAssetFacade.listImageUrls(
+				userId, folderName);
 	}
 
-	/**
-	 * Supabase Storage上の実ファイルを走査し、まだimage_assetに登録されていない
-	 * 画像をDBにインポートする（過去に手動アップロードした画像の救済用）
-	 * フォルダ名がカテゴリーのスラッグと一致すればcategoryIdを推定して設定する
-	 */
 	public int importExistingImages(Long userId) {
-		List<String> allPaths = supabaseStorageService.listAllFilePaths();
 
-		Set<String> existingPaths = imageAssetRepository.findAll().stream()
-				.map(ImageAsset::getStoragePath)
-				.collect(Collectors.toSet());
-
-		int importedCount = 0;
-
-		for (String path : allPaths) {
-			if (existingPaths.contains(path)) {
-				continue;
-			}
-
-			int lastSlash = path.lastIndexOf('/');
-			String folderName = lastSlash >= 0 ? path.substring(0, lastSlash) : "";
-			String fileName = lastSlash >= 0 ? path.substring(lastSlash + 1) : path;
-
-			ImageAsset asset = new ImageAsset();
-			asset.setUserId(userId);
-			asset.setFolderName(folderName);
-			asset.setFileName(fileName);
-			asset.setStoragePath(path);
-			asset.setUploadDate(null); // 実際のアップロード日時は不明のため未設定
-			asset.setCreateUser(userId);
-			asset.setUpdateUser(userId);
-			asset.setCreateDate(LocalDateTime.now());
-			asset.setUpdateDate(LocalDateTime.now());
-
-			imageAssetRepository.save(asset);
-			importedCount++;
-		}
-
-		return importedCount;
+		return imageAssetFacade.importExistingImages(userId);
 	}
 
-	/**
-	 * 登録済み画像情報を更新する
-	 *
-	 * ・保存先フォルダ変更
-	 * ・画像名変更
-	 * ・画像ファイル差し替え
-	 *
-	 * 画像名や保存先が変更された場合は、
-	 * Supabase Storageとimage_assetの両方を更新する。
-	 */
 	public void updateImage(
 			Long imageId,
 			String folderName,
@@ -194,195 +56,22 @@ public class ImageAssetService {
 			MultipartFile file,
 			Long userId) throws IOException {
 
-		ImageAsset asset = imageAssetRepository.findById(imageId)
-				.orElseThrow();
-
-		// 他ユーザーの画像を更新できないようにする。
-		if (!asset.getUserId().equals(userId)) {
-			throw new IllegalStateException(
-					"他ユーザーの画像は更新できません");
-		}
-
-		String currentFolderName = asset.getFolderName();
-		String currentFileName = asset.getFileName();
-
-		String newFolderName = folderName;
-
-		if (newFolderName == null || newFolderName.isBlank()) {
-			throw new IllegalArgumentException(
-					"保存先フォルダを指定してください");
-		}
-
-		String newFileName = fileName;
-
-		if (newFileName == null || newFileName.isBlank()) {
-			throw new IllegalArgumentException(
-					"画像名を指定してください");
-		}
-
-		/*
-		 * 新しい画像ファイルが指定された場合は、
-		 * 入力された画像名をStorage上のファイル名として使用する。
-		 *
-		 * HEICの場合はアップロード時と同じくWebPへ変換する。
-		 */
-		if (file != null && !file.isEmpty()) {
-
-			File convertedFile = imageConvertService.convert(file);
-
-			String originalName = file.getOriginalFilename();
-
-			if (originalName == null) {
-				throw new IOException("ファイル名が取得できません");
-			}
-
-			if (originalName.toLowerCase().endsWith(".heic")) {
-				newFileName = newFileName.substring(
-						0,
-						newFileName.lastIndexOf('.'))
-						+ ".webp";
-			}
-
-			File uploadFile = new File(
-					convertedFile.getParent(),
-					newFileName);
-
-			Files.copy(
-					convertedFile.toPath(),
-					uploadFile.toPath(),
-					java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-
-			/*
-			 * 保存先フォルダ・画像名をまとめて変更する場合は、
-			 * 現在のStorage上のファイルを新しいパスへ移動する。
-			 */
-			if (!currentFolderName.equals(newFolderName)
-					|| !currentFileName.equals(newFileName)) {
-
-				String newStoragePath = supabaseStorageService.renameImage(
-						asset.getStoragePath(),
-						newFolderName,
-						newFileName,
-						uploadFile);
-
-				asset.setFolderName(newFolderName);
-				asset.setFileName(newFileName);
-				asset.setStoragePath(newStoragePath);
-
-			} else {
-
-				// 保存先も画像名も同じ場合は実ファイルだけ差し替える。
-				supabaseStorageService.replaceImage(
-						asset.getStoragePath(),
-						uploadFile);
-			}
-
-		} else if (!currentFolderName.equals(newFolderName)
-				|| !currentFileName.equals(newFileName)) {
-
-			/*
-			 * ファイル差し替えなしで保存先または画像名だけ変更する。
-			 */
-			String newStoragePath = supabaseStorageService.renameImage(
-					asset.getStoragePath(),
-					newFolderName,
-					newFileName,
-					null);
-
-			asset.setFolderName(newFolderName);
-			asset.setFileName(newFileName);
-			asset.setStoragePath(newStoragePath);
-		}
-
-		asset.setUpdateUser(userId);
-		asset.setUpdateDate(LocalDateTime.now());
-
-		imageAssetRepository.save(asset);
-
-		// 画像変更により一覧・フォルダ情報が変わるため、
-		// 次回表示時に最新情報を取得する。
-		imageAssetCache.clear(userId);
+		imageAssetFacade.updateImage(
+				imageId, folderName, fileName, file, userId);
 	}
 
-	/**
-	 * 画像削除処理
-	 *
-	 * image_assetの登録情報を削除し、
-	 * Supabase Storage上の実ファイルも削除する。
-	 *
-	 * 記事本文から参照されている可能性はあるが、
-	 * 操作者自身が管理する画像のため削除判断は画面側で行う。
-	 */
 	public void deleteImage(
 			Long imageId,
 			Long userId) {
 
-		ImageAsset asset = imageAssetRepository.findById(imageId)
-				.orElseThrow();
-
-		// 他ユーザーの画像削除防止
-		if (!asset.getUserId().equals(userId)) {
-			throw new IllegalStateException(
-					"他ユーザーの画像は削除できません");
-		}
-
-		// Storage上の実ファイル削除
-		supabaseStorageService.deleteImage(
-				asset.getStoragePath());
-
-		// DB削除
-		imageAssetRepository.delete(asset);
-
-		// 画像削除により一覧・カテゴリー・フォルダ情報が変わるため、
-		// 次回表示時に最新情報を取得する。
-		imageAssetCache.clear(userId);
+		imageAssetFacade.deleteImage(imageId, userId);
 	}
 
-	/**
-	 * 画像一覧取得
-	 *
-	 * 削除対象特定のためimageIdを含む
-	 * ImageAsset情報を返す。
-	 */
 	public List<ImageAssetView> listImages(
 			Long userId,
 			String folderName) {
 
-		// 全カテゴリーの場合は、ログイン時に先読みしたキャッシュを利用する。
-		if (folderName == null) {
-
-			List<ImageAssetView> cachedImages = imageAssetCache.getImages(userId);
-
-			if (cachedImages != null) {
-
-				return cachedImages;
-
-			}
-		}
-
-		List<ImageAsset> assets = (folderName != null)
-				? imageAssetRepository.findByUserIdAndFolderNameOrderByUploadDateDesc(
-						userId,
-						folderName,
-						org.springframework.data.domain.Pageable.unpaged())
-						.getContent()
-				: imageAssetRepository.findByUserIdOrderByUploadDateDesc(
-						userId);
-
-		return assets.stream()
-				.map(asset -> {
-
-					String categoryName = asset.getFolderName();
-
-					return new ImageAssetView(
-							asset.getImageId(),
-							asset.getFolderName(),
-							asset.getFileName(),
-							categoryName,
-							asset.getUploadDate(),
-							supabaseStorageService.getImageUrl(asset.getStoragePath()));
-				})
-				.toList();
+		return imageAssetFacade.listImages(userId, folderName);
 	}
 
 	public Page<ImageAssetView> findImagePage(
@@ -390,68 +79,17 @@ public class ImageAssetService {
 			String folderName,
 			Pageable pageable) {
 
-		Page<ImageAsset> page;
-
-		if (folderName == null) {
-			page = imageAssetRepository.findByUserIdOrderByUploadDateDesc(
-					userId,
-					pageable);
-		} else {
-			page = imageAssetRepository.findByUserIdAndFolderNameOrderByUploadDateDesc(
-					userId,
-					folderName,
-					pageable);
-		}
-
-		return page.map(a -> {
-
-			String categoryName = a.getFolderName();
-
-			return new ImageAssetView(
-					a.getImageId(),
-					a.getFolderName(),
-					a.getFileName(),
-					categoryName,
-					a.getUploadDate(),
-					supabaseStorageService.getImageUrl(a.getStoragePath()));
-		});
+		return imageAssetFacade.findImagePage(
+				userId, folderName, pageable);
 	}
 
-	/**
-	 * 画像保存先フォルダ一覧を取得する
-	 *
-	 * image_assetに登録されているfolderNameのみ返す。
-	 */
 	public List<ImageCategoryDto> findImageCategories(Long userId) {
 
-		List<ImageCategoryDto> cachedCategories = imageAssetCache.getCategories(userId);
-
-		if (cachedCategories != null) {
-			return cachedCategories;
-		}
-
-		return imageAssetRepository.findByUserIdOrderByUploadDateDesc(userId)
-				.stream()
-				.map(ImageAsset::getFolderName)
-				.filter(folder -> folder != null && !folder.isBlank())
-				.distinct()
-				.map(ImageCategoryDto::new)
-				.toList();
+		return imageAssetFacade.findImageCategories(userId);
 	}
 
 	public List<String> findImageFolders(Long userId) {
 
-		List<String> cachedFolders = imageAssetCache.getFolders(userId);
-
-		if (cachedFolders != null) {
-			return cachedFolders;
-		}
-
-		return imageAssetRepository.findByUserIdOrderByUploadDateDesc(userId)
-				.stream()
-				.map(ImageAsset::getFolderName)
-				.filter(folder -> folder != null && !folder.isBlank())
-				.distinct()
-				.toList();
+		return imageAssetFacade.findImageFolders(userId);
 	}
 }
