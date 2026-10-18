@@ -37,6 +37,22 @@ public class GlobalExceptionHandler {
 
 		model.addAttribute("errorReason", e.getMessage());
 
+		// アプリケーション内で最初に見つかった発生元を取得する。
+		StackTraceElement origin = null;
+
+		for (StackTraceElement element : e.getStackTrace()) {
+			if (element.getClassName().startsWith("com.app.myblogpusher.")) {
+				origin = element;
+				break;
+			}
+		}
+
+		if (origin != null) {
+			model.addAttribute("errorClass", origin.getClassName());
+			model.addAttribute("errorMethod", origin.getMethodName());
+			model.addAttribute("errorLine", origin.getLineNumber());
+		}
+
 		return "error";
 	}
 
@@ -63,6 +79,22 @@ public class GlobalExceptionHandler {
 						+ "解決しない場合は管理者にお問い合わせください。");
 
 		model.addAttribute("errorReason", e.getMessage());
+
+		// アプリケーション内で最初に見つかった発生元を取得する。
+		StackTraceElement origin = null;
+
+		for (StackTraceElement element : e.getStackTrace()) {
+			if (element.getClassName().startsWith("com.app.myblogpusher.")) {
+				origin = element;
+				break;
+			}
+		}
+
+		if (origin != null) {
+			model.addAttribute("errorClass", origin.getClassName());
+			model.addAttribute("errorMethod", origin.getMethodName());
+			model.addAttribute("errorLine", origin.getLineNumber());
+		}
 
 		return "error";
 	}

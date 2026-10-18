@@ -88,17 +88,22 @@ public class PublishController {
 				userId);
 
 		if (savedWorkId == null) {
-			model.addAttribute("error", "記事の保存に失敗しました");
-			return "error";
+		    model.addAttribute("error", "記事の保存に失敗しました");
+		    return "error";
 		}
+
+		// 辞典登録後に投稿確認画面へ戻るための記事情報を保持する。
+		session.setAttribute("previewTitle", title);
+		session.setAttribute("previewContent", content);
+		session.setAttribute("previewWorkId", savedWorkId);
 
 		// 保存後のデータから投稿確認画面の表示情報を準備する。
 		PublishPreviewPreparationService.PreparationResult result = publishPreviewPreparationService.preparePreview(
-				savedWorkId,
-				title,
-				content,
-				userId,
-				existingData);
+		        savedWorkId,
+		        title,
+		        content,
+		        userId,
+		        existingData);
 
 		// 表示準備に失敗した場合はエラー画面へ遷移する。
 		if (!result.isSuccess()) {
