@@ -113,7 +113,9 @@ public class SlugUtil {
 		// 長い単語から優先して置換（スペースで区切る）
 		allEntries.sort((a, b) -> b.getJapanese().length() - a.getJapanese().length());
 		for (EnglishDictionary entry : allEntries) {
-			text = text.replace(entry.getJapanese(), " " + entry.getEnglish() + " ");
+			text = text.replace(
+			        entry.getJapanese(),
+			        " " + entry.getEnglish().trim() + " ");
 		}
 
 		// 箇条書き記号は単語区切りとして扱う
