@@ -16,6 +16,7 @@
 // -----------------------------------------------------
 
 let referenceCache = [];
+let referenceCategoriesLoaded = false;
 
 // =====================================================
 // 参考文献カテゴリーを作成
@@ -28,6 +29,11 @@ async function loadReferenceCategories() {
 		document.getElementById('referenceCategorySelect');
 
 	if (!select) {
+		return;
+	}
+
+	// 取得済みの場合は再通信しない。
+	if (referenceCategoriesLoaded) {
 		return;
 	}
 
@@ -62,6 +68,9 @@ async function loadReferenceCategories() {
 
 		select.appendChild(option);
 	});
+
+	// 選択肢の作成が完了してから取得済みにする。
+	referenceCategoriesLoaded = true;
 }
 
 // =====================================================
