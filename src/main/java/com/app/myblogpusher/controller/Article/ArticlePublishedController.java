@@ -1,8 +1,12 @@
 package com.app.myblogpusher.controller.Article;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -65,18 +69,27 @@ public class ArticlePublishedController {
 		List<Article> articles = articleService.findPublishedByUserId(userId);
 
 		/*
-		 * 投稿済み記事のcategoryGroupIdから、
-		 * 一覧表示用のカテゴリー経路を取得する。
+		 * 投稿済み記事のカテゴリー経路を一括取得する。
+		 *
+		 * 記事ごとのDB検索を避け、取得したカテゴリー経路を
+		 * articleIdごとに一覧表示用のマップへ変換する。
 		 */
+		List<Long> groupIds = articles.stream()
+				.map(Article::getCategoryGroupId)
+				.filter(java.util.Objects::nonNull)
+				.distinct()
+				.toList();
+
+		Map<Long, String> categoryPaths = categoryPathService.findCategoryPathsByGroupIds(groupIds);
+
 		model.addAttribute(
 				"articleCategories",
 				articles.stream()
 						.collect(
-								java.util.stream.Collectors.toMap(
+								Collectors.toMap(
 										Article::getArticleId,
-										article -> categoryPathService
-												.findCategoryPathByGroupId(
-														article.getCategoryGroupId()),
+										article -> categoryPaths.get(
+												article.getCategoryGroupId()),
 										(existing, replacement) -> existing)));
 
 		model.addAttribute(
@@ -184,9 +197,9 @@ public class ArticlePublishedController {
 		return "redirect:/article/edit?workId="
 				+ workId
 				+ "&categoryPath="
-				+ java.net.URLEncoder.encode(
+				+ URLEncoder.encode(
 						categoryPath,
-						java.nio.charset.StandardCharsets.UTF_8);
+						StandardCharsets.UTF_8);
 	}
 
 	@PostMapping("/article/published/delete")

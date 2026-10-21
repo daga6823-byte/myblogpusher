@@ -11,6 +11,8 @@
 package com.app.myblogpusher.service.Category;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
@@ -168,6 +170,33 @@ public class CategoryPathService {
 				.filter(path -> path != null && !path.isBlank())
 				.findFirst()
 				.orElse(null);
+	}
+
+	/**
+	 * 指定されたgroupId一覧に対応するカテゴリー経路をまとめて取得する。
+	 *
+	 * 投稿済み記事一覧など、複数記事のカテゴリー経路が必要な場合に使用する。
+	 * 対象のgroupIdだけをDBから一括取得し、全件取得を避ける。
+	 *
+	 * @param groupIds カテゴリーグループID一覧
+	 * @return groupIdをキー、カテゴリー経路を値とするマップ
+	 */
+	public Map<Long, String> findCategoryPathsByGroupIds(
+			List<Long> groupIds) {
+
+		if (groupIds == null || groupIds.isEmpty()) {
+			return Map.of();
+		}
+
+		return categoryRelationRepository.findByGroupIdIn(groupIds)
+				.stream()
+				.filter(relation ->
+						relation.getCategoryPath() != null
+						&& !relation.getCategoryPath().isBlank())
+				.collect(Collectors.toMap(
+						CategoryRelation::getGroupId,
+						CategoryRelation::getCategoryPath,
+						(existing, replacement) -> existing));
 	}
 
 	/**
