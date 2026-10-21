@@ -1,12 +1,10 @@
 /**
  * 投稿済み記事の取得を担当するサービス
- * GitHub APIを使用してリポジトリから記事一覧を取得する
- * tmpディレクトリではなくGitHub API経由で取得するためRender環境に対応
  *
- * カテゴリールート(movie/note/drama/tech)配下は任意階層のフォルダ構成を許容するため、
- * 一覧取得はGit Trees API(recursive=1)で全ファイルパスを取得する
+ * 投稿済み記事一覧は article テーブルから取得し、
+ * 個別記事の取得には既存の GitHub API 処理を使用する。
+ * 投稿済み記事一覧の取得結果はセッションにキャッシュする。
  */
-
 package com.app.myblogpusher.service;
 
 import java.io.IOException;
@@ -14,9 +12,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.StreamSupport;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
@@ -25,6 +21,7 @@ import org.springframework.stereotype.Service;
 import com.app.myblogpusher.dto.Publish.PublishedArticleDto;
 import com.app.myblogpusher.dto.Publish.PublishedArticleSummaryDto;
 import com.app.myblogpusher.entity.UserRepositoryEntity;
+import com.app.myblogpusher.repository.Article.ArticleRepository;
 import com.app.myblogpusher.util.FrontMatterUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -40,9 +37,25 @@ public class PublishedArticleService {
 	@Autowired
 	private FrontMatterUtil frontMatterUtil;
 
-	public List<PublishedArticleSummaryDto> getPublishedArticles(UserRepositoryEntity repo, String cipherKey,
-			HttpSession session)
-			throws IOException {
+	@Autowired
+	private ArticleRepository articleRepository;
+
+	/**
+	 * DBから投稿済み記事一覧を取得する。
+	 *
+	 * ログインユーザーの投稿済み記事を更新日時の降順で取得する。
+	 * 取得結果はセッションにキャッシュし、一覧表示時の再検索を抑制する。
+	 *
+	 * @param repo ユーザーのリポジトリ情報
+	 * @param cipherKey 暗号化キー
+	 * @param session セッション情報
+	 * @return 投稿済み記事一覧
+	 * @throws IOException 記事取得処理でエラーが発生した場合
+	 */
+	public List<PublishedArticleSummaryDto> getPublishedArticles(
+			UserRepositoryEntity repo,
+			String cipherKey,
+			HttpSession session) throws IOException {
 
 		// キャッシュを確認
 		if (session != null) {
@@ -55,60 +68,26 @@ public class PublishedArticleService {
 			}
 		}
 
-		String accessToken = tokenCipherService.decrypt(
-				repo.getAccessToken(),
-				repo.getTokenIv(),
-				cipherKey);
+		Long userId = repo.getUserId();
 
-		String owner = repo.getRepoOwner();
-		String repoName = repo.getRepoName();
-
-		String defaultBranch = fetchDefaultBranch(owner, repoName, accessToken);
-		List<String> mdPaths = fetchAllMarkdownPaths(owner, repoName, defaultBranch, accessToken);
-
-		List<PublishedArticleSummaryDto> result = mdPaths.stream()
-				.map(path -> {
-					try {
-						String contentApiUrl = "https://api.github.com/repos/" + owner + "/" + repoName + "/contents/"
-								+ path;
-						String mdContent = fetchContentViaApi(contentApiUrl, accessToken);
-						String hugoPath = path
-								.replaceFirst("^content/", "")
-								.replaceFirst("\\.md$", "");
-
-						String slug = hugoPath.substring(
-								hugoPath.lastIndexOf("/") + 1);
-
-						String title = frontMatterUtil.extractTitle(mdContent);
-						LocalDateTime updateDate = frontMatterUtil.extractDate(mdContent);
-						List<String> categories = frontMatterUtil.extractCategories(mdContent);
-
-						return new PublishedArticleSummaryDto(
-								slug,
-								hugoPath,
-								title,
-								updateDate,
-								mdContent,
-								categories);
-					} catch (IOException e) {
-						return null;
-					}
-				})
-				.filter(a -> a != null)
-				.sorted((a, b) -> {
-					if (a.getUpdateDate() == null)
-						return 1;
-					if (b.getUpdateDate() == null)
-						return -1;
-					return b.getUpdateDate().compareTo(a.getUpdateDate());
-				})
+		List<PublishedArticleSummaryDto> result = articleRepository
+				.findByUserIdAndStatusOrderByUpdateDateDesc(
+						userId,
+						com.app.myblogpusher.enums.ArticleStatus.PUBLISHED)
+				.stream()
+				.map(article -> new PublishedArticleSummaryDto(
+						article.getSlug(),
+						article.getHugoPath(),
+						article.getTitle(),
+						article.getUpdateDate(),
+						article.getContent(),
+						List.of()))
 				.toList();
 
 		if (session != null) {
-			session.setAttribute(
-					"publishedArticlesCache",
-					result);
+			session.setAttribute("publishedArticlesCache", result);
 		}
+
 		return result;
 	}
 
@@ -164,69 +143,6 @@ public class PublishedArticleService {
 				updateDate,
 				mdContent,
 				categories);
-	}
-
-	/**
-	 * リポジトリのデフォルトブランチ名を取得する
-	 */
-	private String fetchDefaultBranch(String owner, String repoName, String token) throws IOException {
-		String apiUrl = "https://api.github.com/repos/" + owner + "/" + repoName;
-
-		HttpURLConnection conn = (HttpURLConnection) new URL(apiUrl).openConnection();
-		conn.setRequestProperty("Authorization", "token " + token);
-		conn.setRequestProperty("Accept", "application/vnd.github.v3+json");
-
-		String response = new String(conn.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
-		ObjectMapper mapper = new ObjectMapper();
-		JsonNode json = mapper.readTree(response);
-		return json.get("default_branch").asText();
-	}
-
-	/**
-	 * Git Trees APIでリポジトリ全体のファイルパスを再帰的に取得し、
-	 * カテゴリールート(movie/note/drama/tech)配下の.mdファイルのみに絞り込む
-	 */
-	private List<String> fetchAllMarkdownPaths(String owner, String repoName, String branch, String token)
-			throws IOException {
-		String apiUrl = "https://api.github.com/repos/" + owner + "/" + repoName
-				+ "/git/trees/" + branch + "?recursive=1";
-
-		HttpURLConnection conn = (HttpURLConnection) new URL(apiUrl).openConnection();
-		conn.setRequestProperty("Authorization", "token " + token);
-		conn.setRequestProperty("Accept", "application/vnd.github.v3+json");
-
-		if (conn.getResponseCode() != 200) {
-			return new ArrayList<>();
-		}
-
-		String response = new String(conn.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
-		ObjectMapper mapper = new ObjectMapper();
-		JsonNode json = mapper.readTree(response);
-		JsonNode tree = json.get("tree");
-
-		return StreamSupport.stream(tree.spliterator(), false)
-				.filter(node -> "blob".equals(node.get("type").asText()))
-				.map(node -> node.get("path").asText())
-				.filter(this::isUnderCategoryRoot)
-				.toList();
-	}
-
-	/**
-	 * パスが content/{カテゴリールート}/ 配下の.mdファイルかどうかを判定する
-	 */
-	private boolean isUnderCategoryRoot(String path) {
-
-		if (!path.startsWith("content/") || !path.endsWith(".md")) {
-			return false;
-		}
-
-		if (path.endsWith("/_index.md")) {
-			return false;
-		}
-
-		String rest = path.substring("content/".length());
-
-		return rest.contains("/");
 	}
 
 	private String fetchContentViaApi(String url, String token) throws IOException {

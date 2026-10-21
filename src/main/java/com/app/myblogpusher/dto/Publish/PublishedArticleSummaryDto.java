@@ -1,3 +1,10 @@
+/**
+ * 投稿済み記事一覧の表示データを保持するDTO
+ *
+ * 記事一覧画面で使用するスラッグ、Hugoパス、タイトル、
+ * 更新日時、本文、カテゴリー情報を保持する。
+ * 記事の取得やデータ加工などの処理は担当しない。
+ */
 package com.app.myblogpusher.dto.Publish;
 
 import java.time.LocalDateTime;

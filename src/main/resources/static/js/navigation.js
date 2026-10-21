@@ -32,13 +32,30 @@ function toggleNewCategory() {
 // -----------------------------------------------------
 let contentChanged = false;
 
-// 本文編集を監視
-const content = document.getElementById('content');
-if (content) {
-	content.addEventListener('input', () => {
+// タイトル・本文・カテゴリーの変更を監視
+[
+	'title',
+	'content',
+	'categorySelect',
+	'newCategoryName',
+	'newCategoryDisplayName',
+	'newCategoryNameInput',
+	'newCategoryDisplayNameInput'
+].forEach(id => {
+	const element = document.getElementById(id);
+
+	if (!element) {
+		return;
+	}
+
+	element.addEventListener('input', () => {
 		contentChanged = true;
 	});
-}
+
+	element.addEventListener('change', () => {
+		contentChanged = true;
+	});
+});
 
 // -----------------------------------------------------
 // 保存ボタン活性制御

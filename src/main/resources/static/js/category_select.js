@@ -1,21 +1,21 @@
-/**
- * 記事編集画面のカテゴリー階層選択を担当するJS
- *
- * サーバーから一括取得したカテゴリー情報を使用し、
- * 親カテゴリーの選択に応じて子カテゴリーの選択肢を表示する。
- */
+// =====================================================
+// 記事編集画面のカテゴリー階層選択を担当するJS
+//
+// サーバーから一括取得したカテゴリー情報を使用し、
+// 親カテゴリーの選択に応じて子カテゴリーの選択肢を表示する。
+// =====================================================
 
 const categorySelectors = document.getElementById('categorySelectors');
 const categoryPathInput = document.getElementById('categorySelect');
 
 const categoryData = window.categorySelects || [];
 
-/**
- * カテゴリー表示名を取得する。
- *
- * displayNameが設定されている場合はdisplayNameを優先し、
- * 未設定の場合はcategoryNameを使用する。
- */
+// =====================================================
+// カテゴリー表示名を取得する。
+//
+// displayNameが設定されている場合はdisplayNameを優先し、
+// 未設定の場合はcategoryNameを使用する。
+// =====================================================
 function getCategoryDisplayName(category) {
 
 	if (category.displayName
@@ -26,9 +26,9 @@ function getCategoryDisplayName(category) {
 	return category.categoryName;
 }
 
-/**
- * 指定された親カテゴリーを持つカテゴリーを取得する。
- */
+// =====================================================
+// 指定された親カテゴリーを持つカテゴリーを取得する。
+// =====================================================
 function findChildren(parentCategoryId) {
 
 	return categoryData.filter(category =>
@@ -37,9 +37,9 @@ function findChildren(parentCategoryId) {
 	);
 }
 
-/**
- * カテゴリー選択欄を作成する。
- */
+// =====================================================
+// カテゴリー選択欄を作成する。
+// =====================================================
 function createCategorySelect(parentCategoryId) {
 
 	const select = document.createElement('select');
@@ -86,12 +86,12 @@ function createCategorySelect(parentCategoryId) {
 	return select;
 }
 
-/**
- * カテゴリー選択時の処理。
- *
- * 選択されたカテゴリーに子カテゴリーが存在する場合は、
- * 次の階層の選択欄を追加する。
- */
+// =====================================================
+// カテゴリー選択時の処理。
+//
+// 選択されたカテゴリーに子カテゴリーが存在する場合は、
+// 次の階層の選択欄を追加する。
+// =====================================================
 function handleCategoryChange(event) {
 	const select = event.target;
 
@@ -164,12 +164,12 @@ function handleCategoryChange(event) {
 	updateCategoryPath();
 }
 
-/**
- * 現在選択されているカテゴリー経路をhidden inputへ設定する。
- *
- * 例：
- * reference/batman/gadget/batman
- */
+// =====================================================
+// 現在選択されているカテゴリー経路をhidden inputへ設定する。
+//
+// 例：
+// reference/batman/gadget/batman
+// =====================================================
 function updateCategoryPath() {
 	const selectedCategories = [];
 
@@ -195,12 +195,12 @@ function updateCategoryPath() {
 	categoryPathInput.value = selectedCategories.join('/');
 }
 
-/**
- * 初期カテゴリー選択欄を作成する。
- *
- * ArticleCategory.parentCategoryIdを使わず、
- * parentCategoryIdsが空のカテゴリーをルートとして扱う。
- */
+//
+// 初期カテゴリー選択欄を作成する。
+//
+// ArticleCategory.parentCategoryIdを使わず、
+// parentCategoryIdsが空のカテゴリーをルートとして扱う。
+//
 function initializeCategorySelectors() {
 	categorySelectors.innerHTML = '';
 
@@ -275,9 +275,9 @@ function initializeCategorySelectors() {
 }
 
 
-/**
- * 新規カテゴリーの表示用入力欄と送信用hidden項目を同期する。
- */
+// =====================================================
+// 新規カテゴリーの表示用入力欄と送信用hidden項目を同期する。
+// =====================================================
 function syncNewCategoryInputs() {
 
 	const nameInput =
@@ -325,12 +325,13 @@ initializeCategorySelectors();
 restoreCategorySelection();
 
 
-/**
- * 保存後のカテゴリー選択状態を復元する。
- *
- * 登録済みカテゴリーは通常の選択肢として復元し、
- * DB未登録の新規カテゴリー名は一時的な選択肢として表示する。
- */
+// =====================================================
+// 保存後のカテゴリー選択状態を復元する。
+//
+// 登録済みカテゴリーは通常の選択肢として復元し、
+// DB未登録の新規カテゴリー名は一時的な選択肢として表示する。
+// =====================================================
+
 function restoreCategorySelection() {
 
 	const newCategoryNameInput =
