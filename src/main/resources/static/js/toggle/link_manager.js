@@ -33,41 +33,50 @@ let selectedArticleLink = null;
 
 let filteredArticleLinks = [];
 
+// -----------------------------------------------------
+// 記事一覧キャッシュ
+// -----------------------------------------------------
+
+let articleLinkCache = null;
 
 // -----------------------------------------------------
-// カテゴリー指定で記事一覧を取得
+// カテゴリー一覧の取得状態
 // -----------------------------------------------------
 
-async function fetchArticleLinkList(categoryGroupId) {
+let articleLinkCategoriesLoaded = false;
+
+
+// -----------------------------------------------------
+// 記事一覧の取得とキャッシュ
+//
+// 初回だけArticleテーブル由来の記事一覧を取得する。
+// 2回目以降はキャッシュを使用する。
+// カテゴリーによる絞り込みは呼び出し元で行う。
+// -----------------------------------------------------
+
+async function fetchArticleLinkList() {
+
+	if (articleLinkCache !== null) {
+		return articleLinkCache;
+	}
 
 	try {
 
-		// Articleテーブルから記事一覧を取得する。
-		// groupIdが未指定の場合は全記事を取得する。
-		const url = categoryGroupId
-			? '/article/link/articles?categoryGroupId='
-			+ encodeURIComponent(categoryGroupId)
-			: '/article/link/articles';
-
 		const response =
-
-			await fetch(url);
+			await fetch('/article/link/articles');
 
 		if (!response.ok) {
-
 			throw new Error(
 				'記事リンク一覧の取得に失敗しました'
 			);
-
 		}
 
 		const articles =
 			await response.json();
 
-		// 取得した記事一覧を保持する。
-		filteredArticleLinks = articles;
+		articleLinkCache = articles;
 
-		loadArticleLinkList(articles);
+		return articleLinkCache;
 
 	} catch (error) {
 
@@ -76,8 +85,7 @@ async function fetchArticleLinkList(categoryGroupId) {
 			error
 		);
 
-		loadArticleLinkList([]);
-
+		throw error;
 	}
 }
 
@@ -110,7 +118,7 @@ if (linkButton) {
 		articleLinkInsertPosition =
 			textarea.selectionStart;
 
-		// リンク検索カテゴリーの取得・生成が完了するまで待つ。
+		// リンク検索カテゴリーを初回だけ取得する。
 		try {
 			await loadArticleLinkCategory();
 		} catch (error) {
@@ -130,13 +138,26 @@ if (linkButton) {
 		const categoryGroupId =
 			categorySelect
 				? categorySelect.value
-				: null;
+				: '';
 
-		// モーダルを開いた時点で
-		// 現在選択されているカテゴリーの記事を取得する。
-		await fetchArticleLinkList(
-			categoryGroupId
-		);
+		// 記事一覧は初回だけ取得し、以降はキャッシュを使う。
+		try {
+			const articles = await fetchArticleLinkList();
+
+			const filteredArticles = categoryGroupId
+				? articles.filter(
+					article =>
+						String(article.categoryGroupId)
+						=== String(categoryGroupId)
+				)
+				: [...articles];
+
+			loadArticleLinkList(filteredArticles);
+
+		} catch (error) {
+			alert('記事リンク一覧を取得できませんでした。');
+			return;
+		}
 
 		document.getElementById(
 			'articleLinkModal'
@@ -241,50 +262,55 @@ async function loadArticleLinkCategory() {
 	const currentCategoryGroupId =
 		window.categoryGroupId;
 
-	// リンク挿入用のカテゴリー一覧を専用APIから取得する。
-	const response =
-		await fetch('/article/link/categories');
+	// カテゴリー一覧はページ内でキャッシュして再利用する。
+	if (!articleLinkCategoriesLoaded) {
 
-	if (!response.ok) {
-		throw new Error(
-			'リンク用カテゴリー一覧の取得に失敗しました。'
-		);
-	}
+		const response =
+			await fetch('/article/link/categories');
 
-	const categories = await response.json();
+		if (!response.ok) {
+			throw new Error(
+				'リンク用カテゴリー一覧の取得に失敗しました。'
+			);
+		}
 
-	select.innerHTML = '';
+		const categories = await response.json();
 
-	// 全カテゴリーの記事を検索するための選択肢。
-	const allOption =
-		document.createElement('option');
+		select.innerHTML = '';
 
-	allOption.value = '';
-	allOption.textContent = 'すべて';
+		// 全カテゴリーの記事を検索するための選択肢。
+		const allOption =
+			document.createElement('option');
 
-	select.appendChild(allOption);
+		allOption.value = '';
+		allOption.textContent = 'すべて';
 
-	categories
-		.sort((a, b) =>
-			a.categoryPath.localeCompare(
-				b.categoryPath,
-				'ja'
+		select.appendChild(allOption);
+
+		categories
+			.sort((a, b) =>
+				a.categoryPath.localeCompare(
+					b.categoryPath,
+					'ja'
+				)
 			)
-		)
-		.forEach(category => {
+			.forEach(category => {
 
-			const option =
-				document.createElement('option');
+				const option =
+					document.createElement('option');
 
-			// リンク検索APIにはgroupIdを渡す。
-			option.value =
-				category.groupId;
+				// リンク検索APIにはgroupIdを渡す。
+				option.value =
+					category.groupId;
 
-			option.textContent =
-				category.categoryPath;
+				option.textContent =
+					category.categoryPath;
 
-			select.appendChild(option);
-		});
+				select.appendChild(option);
+			});
+
+		articleLinkCategoriesLoaded = true;
+	}
 
 	// 「すべて」をデフォルト選択する。
 	select.value = '';
@@ -317,13 +343,27 @@ if (articleLinkCategorySelect) {
 		'change',
 		async function() {
 
-			const categoryGroupId =
-				this.value;
+			try {
+				const articles = await fetchArticleLinkList();
 
-			await fetchArticleLinkList(
-				categoryGroupId
-			);
+				const categoryGroupId = this.value;
 
+				const filteredArticles = categoryGroupId
+					? articles.filter(
+						article =>
+							String(article.categoryGroupId)
+							=== String(categoryGroupId)
+					)
+					: [...articles];
+
+				loadArticleLinkList(filteredArticles);
+
+			} catch (error) {
+				console.error(
+					'記事リンク一覧の表示に失敗しました:',
+					error
+				);
+			}
 		}
 	);
 
