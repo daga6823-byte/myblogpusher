@@ -9,10 +9,10 @@
  *
  * HTML側はlink_manager.jsだけを読み込めばよい。
  */
-import { LinkDataService } from './link/link_data_service.js';
-import { LinkListManager } from './link/link_list_manager.js';
-import { LinkInsertService } from './link/link_insert_service.js';
-import { LinkModalManager } from './link/link_modal_manager.js';
+import { LinkDataService } from '../link/link_data_service.js';
+import { LinkListManager } from '../link/link_list_manager.js';
+import { LinkInsertService } from '../link/link_insert_service.js';
+import { LinkModalManager } from '../link/link_modal_manager.js';
 
 class LinkFacade {
 
