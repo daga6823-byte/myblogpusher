@@ -67,12 +67,7 @@ public class ArticleLinkService {
 	public List<CategoryOptionView> findLinkCategories(Long userId) {
 
 		List<Long> articleCategoryGroupIds = articleRepository
-				.findByUserIdOrderByUpdateDateDesc(userId)
-				.stream()
-				.map(Article::getCategoryGroupId)
-				.filter(groupId -> groupId != null)
-				.distinct()
-				.toList();
+				.findDistinctCategoryGroupIdsByUserId(userId);
 
 		if (articleCategoryGroupIds.isEmpty()) {
 			return List.of();

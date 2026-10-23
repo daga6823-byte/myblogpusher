@@ -18,6 +18,23 @@ public interface ArticleRepository extends JpaRepository<Article, Long> {
 	List<Article> findByUserIdOrderByUpdateDateDesc(Long userId);
 
 	/**
+	 * 記事リンク挿入用
+	 *
+	 * ユーザーの投稿済み記事が属するカテゴリーグループIDを
+	 * 重複なしで取得する。
+	 *
+	 * Articleエンティティ全体を取得せず、必要なIDだけを取得する。
+	 */
+	@Query("""
+			SELECT DISTINCT a.categoryGroupId
+			FROM Article a
+			WHERE a.userId = :userId
+			AND a.categoryGroupId IS NOT NULL
+			""")
+	List<Long> findDistinctCategoryGroupIdsByUserId(
+			@Param("userId") Long userId);
+
+	/**
 	 * ユーザーとslugで記事を取得
 	 *
 	 * 同一slugの記事が複数存在する場合もあるため、
