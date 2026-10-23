@@ -118,27 +118,34 @@ if (linkButton) {
 		articleLinkInsertPosition =
 			textarea.selectionStart;
 
-		// リンク検索カテゴリーを初回だけ取得する。
-		try {
-			await loadArticleLinkCategory();
-		} catch (error) {
+		// カテゴリー一覧はバックグラウンドで取得する。
+		// 取得失敗時も記事リンクの表示は継続する。
+		loadArticleLinkCategory().catch(error => {
 			console.error(
 				'リンク検索カテゴリーの取得に失敗しました:',
 				error
 			);
-			alert('リンク検索カテゴリーを取得できませんでした。');
-			return;
-		}
+		});
 
-		const categorySelect =
+		// 記事一覧を優先して表示する。
+		// 初回取得時は全記事を表示し、カテゴリーでは絞り込まない。
+		try {
+			const articles = await fetchArticleLinkList();
+
+			loadArticleLinkList(articles);
+
 			document.getElementById(
-				'articleLinkCategorySelect'
+				'articleLinkModal'
+			).style.display = 'block';
+
+		} catch (error) {
+			console.error(
+				'記事リンク一覧の取得に失敗しました:',
+				error
 			);
 
-		const categoryGroupId =
-			categorySelect
-				? categorySelect.value
-				: '';
+			alert('記事リンク一覧を取得できませんでした。');
+		}
 
 		// 記事一覧は初回だけ取得し、以降はキャッシュを使う。
 		try {
