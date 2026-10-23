@@ -119,7 +119,7 @@ if (linkButton) {
 			textarea.selectionStart;
 
 		// カテゴリー一覧はバックグラウンドで取得する。
-		// 取得失敗時も記事リンクの表示は継続する。
+		// 取得失敗時も記事リンクの表示を優先する。
 		loadArticleLinkCategory().catch(error => {
 			console.error(
 				'リンク検索カテゴリーの取得に失敗しました:',
@@ -127,8 +127,7 @@ if (linkButton) {
 			);
 		});
 
-		// 記事一覧を優先して表示する。
-		// 初回取得時は全記事を表示し、カテゴリーでは絞り込まない。
+		// 記事一覧はキャッシュを利用し、1回だけ表示する。
 		try {
 			const articles = await fetchArticleLinkList();
 
@@ -146,29 +145,6 @@ if (linkButton) {
 
 			alert('記事リンク一覧を取得できませんでした。');
 		}
-
-		// 記事一覧は初回だけ取得し、以降はキャッシュを使う。
-		try {
-			const articles = await fetchArticleLinkList();
-
-			const filteredArticles = categoryGroupId
-				? articles.filter(
-					article =>
-						String(article.categoryGroupId)
-						=== String(categoryGroupId)
-				)
-				: [...articles];
-
-			loadArticleLinkList(filteredArticles);
-
-		} catch (error) {
-			alert('記事リンク一覧を取得できませんでした。');
-			return;
-		}
-
-		document.getElementById(
-			'articleLinkModal'
-		).style.display = 'block';
 
 	});
 
@@ -319,6 +295,36 @@ async function loadArticleLinkCategory() {
 		articleLinkCategoriesLoaded = true;
 	}
 
+	// カテゴリー変更時に記事一覧を絞り込む。
+	// イベントの二重登録を防止する。
+	if (!select.dataset.changeListenerRegistered) {
+
+		select.addEventListener('change', async function() {
+
+			try {
+				const articles = await fetchArticleLinkList();
+				const categoryGroupId = this.value;
+
+				const filteredArticles = categoryGroupId
+					? articles.filter(
+						article =>
+							String(article.groupId) === String(categoryGroupId)
+					)
+					: [...articles];
+
+				loadArticleLinkList(filteredArticles);
+
+			} catch (error) {
+				console.error(
+					'記事リンク一覧の表示に失敗しました:',
+					error
+				);
+			}
+		});
+
+		select.dataset.changeListenerRegistered = 'true';
+	}
+
 	// 「すべて」をデフォルト選択する。
 	select.value = '';
 
@@ -334,48 +340,34 @@ async function loadArticleLinkCategory() {
 }
 
 
-// -----------------------------------------------------
-// カテゴリー変更時
-// -----------------------------------------------------
+// カテゴリー変更イベントを登録する。
+if (!select.dataset.changeListenerRegistered) {
 
-const articleLinkCategorySelect =
-	document.getElementById(
-		'articleLinkCategorySelect'
-	);
+	select.addEventListener('change', async function() {
 
+		try {
+			const articles = await fetchArticleLinkList();
+			const categoryGroupId = this.value;
 
-if (articleLinkCategorySelect) {
+			const filteredArticles = categoryGroupId
+				? articles.filter(
+					article =>
+						String(article.groupId) === String(categoryGroupId)
+				)
+				: [...articles];
 
-	articleLinkCategorySelect.addEventListener(
-		'change',
-		async function() {
+			loadArticleLinkList(filteredArticles);
 
-			try {
-				const articles = await fetchArticleLinkList();
-
-				const categoryGroupId = this.value;
-
-				const filteredArticles = categoryGroupId
-					? articles.filter(
-						article =>
-							String(article.categoryGroupId)
-							=== String(categoryGroupId)
-					)
-					: [...articles];
-
-				loadArticleLinkList(filteredArticles);
-
-			} catch (error) {
-				console.error(
-					'記事リンク一覧の表示に失敗しました:',
-					error
-				);
-			}
+		} catch (error) {
+			console.error(
+				'記事リンク一覧の表示に失敗しました:',
+				error
+			);
 		}
-	);
+	});
 
+	select.dataset.changeListenerRegistered = 'true';
 }
-
 
 // -----------------------------------------------------
 // 記事リンクキャンセル
