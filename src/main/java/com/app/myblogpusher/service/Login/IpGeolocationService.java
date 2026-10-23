@@ -73,6 +73,10 @@ public class IpGeolocationService {
 					HttpResponse.BodyHandlers.ofString());
 
 			if (response.statusCode() != 200) {
+				System.err.println(
+						"[IpGeolocationTiming] HTTPエラー: status="
+								+ response.statusCode()
+								+ ", response=" + response.body());
 				return null;
 			}
 
@@ -80,14 +84,33 @@ public class IpGeolocationService {
 
 			JsonNode countryCode = json.get("country_code");
 
-			if (countryCode == null || countryCode.isNull()) {
+			if (countryCode == null || countryCode.isNull()
+					|| countryCode.asText().isBlank()) {
+				System.err.println(
+						"[IpGeolocationTiming] country_codeが応答JSONにありません: "
+								+ response.body());
 				return null;
 			}
 
-			return countryCode.asText();
+			String result = countryCode.asText();
 
-		} catch (IOException | InterruptedException e) {
+			System.out.println(
+					"[IpGeolocationTiming] 国コード取得成功: region=" + result);
+
+			return result;
+
+		} catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
+			System.err.println(
+					"[IpGeolocationTiming] 通信が中断されました: "
+							+ e.getMessage());
+			return null;
+
+		} catch (IOException e) {
+			System.err.println(
+					"[IpGeolocationTiming] 通信またはJSON解析に失敗しました: "
+							+ e.getClass().getSimpleName()
+							+ ": " + e.getMessage());
 			return null;
 		}
 	}
