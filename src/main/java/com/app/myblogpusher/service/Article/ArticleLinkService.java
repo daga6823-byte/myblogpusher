@@ -53,7 +53,8 @@ public class ArticleLinkService {
 						article.getSlug(),
 						article.getHugoPath(),
 						article.getTitle(),
-						article.getHugoPath()))
+						article.getHugoPath(),
+						article.getCategoryGroupId()))
 				.toList();
 	}
 

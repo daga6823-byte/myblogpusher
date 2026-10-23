@@ -339,36 +339,6 @@ async function loadArticleLinkCategory() {
 	}
 }
 
-
-// カテゴリー変更イベントを登録する。
-if (!select.dataset.changeListenerRegistered) {
-
-	select.addEventListener('change', async function() {
-
-		try {
-			const articles = await fetchArticleLinkList();
-			const categoryGroupId = this.value;
-
-			const filteredArticles = categoryGroupId
-				? articles.filter(
-					article =>
-						String(article.groupId) === String(categoryGroupId)
-				)
-				: [...articles];
-
-			loadArticleLinkList(filteredArticles);
-
-		} catch (error) {
-			console.error(
-				'記事リンク一覧の表示に失敗しました:',
-				error
-			);
-		}
-	});
-
-	select.dataset.changeListenerRegistered = 'true';
-}
-
 // -----------------------------------------------------
 // 記事リンクキャンセル
 // -----------------------------------------------------
