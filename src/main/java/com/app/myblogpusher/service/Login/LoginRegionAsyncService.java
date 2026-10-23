@@ -28,10 +28,38 @@ public class LoginRegionAsyncService {
 
 		CompletableFuture.runAsync(() -> {
 
-			String region = ipGeolocationService.findCountryCode(ipAddress);
+			long start = System.nanoTime();
 
-			if (region != null && !region.isBlank()) {
-				loginHistoryService.updateRegion(historyId, region);
+			try {
+				System.out.println(
+						"[LoginRegionTiming] 国コード取得開始: historyId="
+								+ historyId + ", ipAddress=" + ipAddress);
+
+				String region = ipGeolocationService.findCountryCode(ipAddress);
+
+				long elapsedMillis = (System.nanoTime() - start) / 1_000_000;
+
+				System.out.println(
+						"[LoginRegionTiming] 国コード取得結果: region="
+								+ region + ", elapsed=" + elapsedMillis + " ms");
+
+				if (region != null && !region.isBlank()) {
+					loginHistoryService.updateRegion(historyId, region);
+
+					System.out.println(
+							"[LoginRegionTiming] DB更新呼び出し完了: historyId="
+									+ historyId + ", region=" + region);
+				} else {
+					System.err.println(
+							"[LoginRegionTiming] 国コードを取得できませんでした: historyId="
+									+ historyId);
+				}
+
+			} catch (Exception e) {
+				System.err.println(
+						"[LoginRegionTiming] 地域情報の更新に失敗しました: historyId="
+								+ historyId + ", error=" + e.getMessage());
+				e.printStackTrace();
 			}
 		});
 	}
