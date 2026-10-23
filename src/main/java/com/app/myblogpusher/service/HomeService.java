@@ -9,7 +9,7 @@ import com.app.myblogpusher.entity.MenuMaster;
 import com.app.myblogpusher.repository.MenuMasterRepository;
 
 @Service
-public class MenuMasterService {
+public class HomeService {
 
     @Autowired
     private MenuMasterRepository menuMasterRepository;
