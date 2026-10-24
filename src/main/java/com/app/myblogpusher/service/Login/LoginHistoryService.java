@@ -46,10 +46,6 @@ public class LoginHistoryService {
 		history.setLoginDate(LocalDateTime.now());
 
 		history = loginHistoryRepository.save(history);
-
-		// 古い履歴の整理はログイン処理を止めないよう非同期で実行する。
-		loginHistoryCleanupAsyncService.cleanupAsync(userId);
-
 		return history.getId();
 	}
 

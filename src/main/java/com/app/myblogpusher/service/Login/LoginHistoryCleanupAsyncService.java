@@ -8,13 +8,10 @@
  */
 package com.app.myblogpusher.service.Login;
 
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import com.app.myblogpusher.entity.LoginHistory;
 import com.app.myblogpusher.repository.LoginHistoryRepository;
 
 @Service
@@ -24,18 +21,16 @@ public class LoginHistoryCleanupAsyncService {
 	private LoginHistoryRepository loginHistoryRepository;
 
 	/**
-	 * 古いログイン履歴を非同期で削除する。
+	 * 毎日午前3時に、各ユーザーの古いログイン履歴を一括整理する。
+	 *
+	 * 各ユーザーの最新100件を保持し、それより古い履歴を削除する。
 	 */
-	public void cleanupAsync(Long userId) {
+	@Scheduled(cron = "0 0 3 * * *")
+	public void cleanupOldHistories() {
+		int deletedCount = loginHistoryRepository.deleteOlderThanLatest100PerUser();
 
-		CompletableFuture.runAsync(() -> {
-
-			List<LoginHistory> histories = loginHistoryRepository
-					.findByUserIdOrderByLoginDateDesc(userId);
-
-			for (int i = 2; i < histories.size(); i++) {
-				loginHistoryRepository.delete(histories.get(i));
-			}
-		});
+		System.out.println(
+				"[LoginHistoryCleanup] 古いログイン履歴の削除件数: "
+						+ deletedCount);
 	}
 }
