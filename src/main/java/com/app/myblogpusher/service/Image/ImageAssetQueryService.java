@@ -159,23 +159,16 @@ public class ImageAssetQueryService {
 	 */
 	public List<ImageCategoryDto> findImageCategories(Long userId) {
 
-		List<ImageCategoryDto> cachedCategories =
-				imageAssetCache.getCategories(userId);
+	    List<ImageCategoryDto> cachedCategories =
+	            imageAssetCache.getCategories(userId);
 
-		if (cachedCategories != null) {
-			return cachedCategories;
-		}
+	    if (cachedCategories != null) {
+	        return cachedCategories;
+	    }
 
-		return imageAssetRepository
-				.findByUserIdOrderByUploadDateDesc(userId)
-				.stream()
-				.map(ImageAsset::getFolderName)
-				.filter(folder ->
-						folder != null && !folder.isBlank())
-				.distinct()
-				.sorted()
-				.map(ImageCategoryDto::new)
-				.toList();
+	    cacheImageCategoriesAndFolders(userId);
+
+	    return imageAssetCache.getCategories(userId);
 	}
 
 	/**
@@ -183,21 +176,39 @@ public class ImageAssetQueryService {
 	 */
 	public List<String> findImageFolders(Long userId) {
 
-		List<String> cachedFolders =
-				imageAssetCache.getFolders(userId);
+	    List<String> cachedFolders =
+	            imageAssetCache.getFolders(userId);
 
-		if (cachedFolders != null) {
-			return cachedFolders;
-		}
+	    if (cachedFolders != null) {
+	        return cachedFolders;
+	    }
 
-		return imageAssetRepository
-				.findByUserIdOrderByUploadDateDesc(userId)
-				.stream()
-				.map(ImageAsset::getFolderName)
-				.filter(folder ->
-						folder != null && !folder.isBlank())
-				.distinct()
-				.sorted()
-				.toList();
+	    cacheImageCategoriesAndFolders(userId);
+
+	    return imageAssetCache.getFolders(userId);
+	}
+	
+	/**
+	 * 画像一覧からカテゴリーとフォルダーを抽出し、
+	 * 両方のキャッシュへ保存する。
+	 */
+	private void cacheImageCategoriesAndFolders(Long userId) {
+
+	    List<ImageAsset> assets =
+	            imageAssetRepository.findByUserIdOrderByUploadDateDesc(userId);
+
+	    List<String> folders = assets.stream()
+	            .map(ImageAsset::getFolderName)
+	            .filter(folder -> folder != null && !folder.isBlank())
+	            .distinct()
+	            .sorted()
+	            .toList();
+
+	    List<ImageCategoryDto> categories = folders.stream()
+	            .map(ImageCategoryDto::new)
+	            .toList();
+
+	    imageAssetCache.putCategories(userId, categories);
+	    imageAssetCache.putFolders(userId, folders);
 	}
 }
