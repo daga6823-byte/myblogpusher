@@ -22,9 +22,6 @@ public class LoginHistoryService {
 	@Autowired
 	private LoginHistoryRepository loginHistoryRepository;
 
-	@Autowired
-	private LoginHistoryCleanupAsyncService loginHistoryCleanupAsyncService;
-
 	/**
 	 * ログイン成功時の履歴を保存する。
 	 *

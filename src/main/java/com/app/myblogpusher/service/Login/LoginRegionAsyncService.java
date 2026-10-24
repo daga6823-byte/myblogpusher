@@ -33,7 +33,7 @@ public class LoginRegionAsyncService {
 			try {
 				System.out.println(
 						"[LoginRegionTiming] 国コード取得開始: historyId="
-								+ historyId + ", ipAddress=" + ipAddress);
+								+ historyId);
 
 				String region = ipGeolocationService.findCountryCode(ipAddress);
 

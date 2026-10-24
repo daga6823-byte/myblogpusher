@@ -65,9 +65,10 @@ public class LoginService {
 
 		// 3回以上の連続失敗があった場合は、
 		// 2FA判定が終わるまで失敗回数を保持する。
-		if (user.getLoginFailedCount() == null
-				|| user.getLoginFailedCount() < 3) {
+		// 失敗回数が1以上2以下の場合だけ、0にリセットして保存する。
+		Integer failedCount = user.getLoginFailedCount();
 
+		if (failedCount != null && failedCount > 0 && failedCount < 3) {
 			user.setLoginFailedCount(0);
 
 			stepStart = System.nanoTime();
