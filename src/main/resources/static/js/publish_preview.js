@@ -64,11 +64,7 @@ function publishSubmit() {
 	const workId = workIdInput.value;
 
 	// 投稿状況の確認用タブを先に開き、ポップアップブロックを回避する
-	console.log("publishSubmit: 開始");
-
 	const waitTab = window.open("about:blank", "_blank");
-
-	console.log("publishSubmit: window.open実行", waitTab);
 
 	if (waitTab) {
 		const params = new URLSearchParams({ workId, slug });

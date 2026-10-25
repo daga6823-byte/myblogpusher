@@ -388,11 +388,7 @@ function restoreCategorySelection() {
 			select.value = category.categoryId;
 			parentCategoryId = category.categoryId;
 
-			if (i < pathParts.length - 1) {
-				categorySelectors.appendChild(
-					createCategorySelect(parentCategoryId)
-				);
-			}
+			categorySelectors.appendChild(createCategorySelect(parentCategoryId));
 
 			continue;
 		}
@@ -403,6 +399,12 @@ function restoreCategorySelection() {
 		option.textContent = categoryName;
 		option.selected = true;
 		select.appendChild(option);
+
+		// 未登録カテゴリーを復元した場合も、
+		// そのカテゴリーを親として次の階層を選択できるようにする。
+		categorySelectors.appendChild(
+			createCategorySelect('__pending__')
+		);
 
 		if (newCategoryNameInput && newCategoryNameHidden) {
 			newCategoryNameInput.value = categoryName;
