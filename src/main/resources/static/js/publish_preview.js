@@ -211,89 +211,110 @@ if (publishBackButton) {
 /**
  * 投稿前確認画面の本文画像プレビュー
  *
- * Markdownの画像記法 ![説明](画像URL) を画像として表示する。
- * コードブロック内の記法は画像へ変換しない。
+ * Markdownの画像記法とHTMLのimgタグを画像として表示する。
+ * imgタグのsrcがMarkdownリンクで囲まれている場合もURLを取り出す。
+ * コードブロック内の記法は変換しない。
  */
 function renderArticleImagePreview() {
-	const preview = document.getElementById('articleContentPreview');
+    const preview = document.getElementById('articleContentPreview');
 
-	if (!preview) {
-		return;
-	}
+    if (!preview) {
+        return;
+    }
 
-	const content = preview.dataset.content || '';
-	const fragment = document.createDocumentFragment();
-	const lines = content.split('\n');
+    const content = preview.dataset.content || '';
+    const fragment = document.createDocumentFragment();
+    const lines = content.split('\n');
 
-	let inCodeBlock = false;
-	let paragraph = [];
+    let inCodeBlock = false;
 
-	/**
-	 * 通常テキストをテキストノードとして追加する。
-	 */
-	function appendText(text) {
-		if (text) {
-			fragment.appendChild(document.createTextNode(text));
-		}
-	}
+    /**
+     * 画像要素を生成する。
+     */
+    function appendImage(url, alt = '') {
+        const image = document.createElement('img');
+        image.src = url;
+        image.alt = alt;
+        image.style.maxWidth = '100%';
+        image.style.height = 'auto';
 
-	/**
-	 * 段落内のMarkdown画像記法を画像要素へ変換する。
-	 */
-	function appendParagraph(text) {
-		const imagePattern = /!\[([^\]]*)\]\((https?:\/\/[^)\s]+)\)/g;
-		let lastIndex = 0;
-		let match;
+        fragment.appendChild(image);
+    }
 
-		while ((match = imagePattern.exec(text)) !== null) {
-			appendText(text.slice(lastIndex, match.index));
+    /**
+     * 本文中の画像記法を画像要素へ変換する。
+     */
+    function appendLine(line) {
+        const pattern =
+            /\\?<img\b[^>]*>|!\[([^\]]*)\]\((https?:\/\/[^)\s]+)\)/gi;
 
-			const image = document.createElement('img');
-			image.src = match[2];
-			image.alt = match[1];
-			image.style.maxWidth = '100%';
-			image.style.height = 'auto';
+        let lastIndex = 0;
+        let match;
 
-			fragment.appendChild(image);
-			lastIndex = imagePattern.lastIndex;
-		}
+        while ((match = pattern.exec(line)) !== null) {
+            fragment.appendChild(
+                document.createTextNode(line.slice(lastIndex, match.index))
+            );
 
-		appendText(text.slice(lastIndex));
-	}
+            if (match[0].toLowerCase().includes('<img')) {
+                const srcMatch = match[0].match(
+                    /\bsrc\s*=\s*["']([^"']+)["']/i
+                );
 
-	function flushParagraph() {
-		if (paragraph.length === 0) {
-			return;
-		}
+                if (srcMatch) {
+                    let url = srcMatch[1];
 
-		appendParagraph(paragraph.join('\n'));
-		fragment.appendChild(document.createElement('br'));
-		paragraph = [];
-	}
+                    // src="[URL](URL)" 形式から実際のURLを取り出す
+                    const markdownLink = url.match(
+                        /^\[(https?:\/\/.+?)\]\((https?:\/\/.+?)\)$/
+                    );
 
-	for (const line of lines) {
-		if (/^\s*```/.test(line)) {
-			flushParagraph();
-			inCodeBlock = !inCodeBlock;
-			continue;
-		}
+                    if (markdownLink) {
+                        url = markdownLink[2];
+                    }
 
-		if (inCodeBlock) {
-			appendText(line + '\n');
-			continue;
-		}
+                    if (/^https?:\/\/\S+$/.test(url)) {
+                        appendImage(url);
+                    } else {
+                        fragment.appendChild(
+                            document.createTextNode(match[0])
+                        );
+                    }
+                } else {
+                    fragment.appendChild(
+                        document.createTextNode(match[0])
+                    );
+                }
+            } else {
+                appendImage(match[2], match[1]);
+            }
 
-		if (line.trim() === '') {
-			flushParagraph();
-			fragment.appendChild(document.createElement('br'));
-			continue;
-		}
+            lastIndex = pattern.lastIndex;
+        }
 
-		paragraph.push(line);
-	}
+        fragment.appendChild(
+            document.createTextNode(line.slice(lastIndex))
+        );
+    }
 
-	flushParagraph();
-	preview.replaceChildren(fragment);
+    for (const line of lines) {
+        if (/^\s*\\?```/.test(line)) {
+            inCodeBlock = !inCodeBlock;
+            fragment.appendChild(document.createTextNode(line));
+            fragment.appendChild(document.createElement('br'));
+            continue;
+        }
+
+        if (inCodeBlock) {
+            fragment.appendChild(document.createTextNode(line));
+        } else {
+            appendLine(line);
+        }
+
+        fragment.appendChild(document.createElement('br'));
+    }
+
+    preview.replaceChildren(fragment);
 }
 
 renderArticleImagePreview();
