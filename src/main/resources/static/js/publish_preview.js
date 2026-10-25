@@ -47,37 +47,41 @@ function registerWord(btn) {
  * ・画面で編集したslugをhidden項目へ反映する
  */
 function publishSubmit() {
-    if (!confirm("この記事を投稿しますか？")) {
-        return false;
-    }
+	if (!confirm("この記事を投稿しますか？")) {
+		return false;
+	}
 
-    const slugInput = document.getElementById('slugInput');
-    const slugHidden = document.getElementById('slugHidden');
+	const slugInput = document.getElementById('slugInput');
+	const slugHidden = document.getElementById('slugHidden');
 
-    if (slugInput && slugHidden) {
-        slugHidden.value = slugInput.value;
-    }
+	if (slugInput && slugHidden) {
+		slugHidden.value = slugInput.value;
+	}
 
-    const form = document.getElementById("publishForm");
-    const workIdInput = form.querySelector('input[name="workId"]');
-    const slug = slugHidden.value;
-    const workId = workIdInput.value;
+	const form = document.getElementById("publishForm");
+	const workIdInput = form.querySelector('input[name="workId"]');
+	const slug = slugHidden.value;
+	const workId = workIdInput.value;
 
-    // 投稿状況の確認用タブを先に開き、ポップアップブロックを回避する
-    const waitTab = window.open("about:blank", "_blank");
+	// 投稿状況の確認用タブを先に開き、ポップアップブロックを回避する
+	console.log("publishSubmit: 開始");
 
-    if (waitTab) {
-        const params = new URLSearchParams({ workId, slug });
-        waitTab.location.href = `/publish/wait?${params.toString()}`;
-    }
+	const waitTab = window.open("about:blank", "_blank");
 
-    const button = document.getElementById("publishButton");
-    if (button) {
-        button.disabled = true;
-        button.textContent = "投稿中...";
-    }
+	console.log("publishSubmit: window.open実行", waitTab);
 
-    return true;
+	if (waitTab) {
+		const params = new URLSearchParams({ workId, slug });
+		waitTab.location.href = `/publish/wait?${params.toString()}`;
+	}
+
+	const button = document.getElementById("publishButton");
+	if (button) {
+		button.disabled = true;
+		button.textContent = "投稿中...";
+	}
+
+	return true;
 }
 
 
