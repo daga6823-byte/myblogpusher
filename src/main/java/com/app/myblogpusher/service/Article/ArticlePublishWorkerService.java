@@ -100,10 +100,10 @@ public class ArticlePublishWorkerService {
 			// GitHub投稿成功後にArticleを作成・更新する。
 			// Articleの重複整理、PUBLISHEDへの変更、Work削除まで
 			// DBトランザクション内でまとめて実行する。
-			articleService.completePublish(
-					work,
-					work.getSlug(),
-					thumbnailUrl);
+			Article publishedArticle = articleService.completePublish(
+			        work,
+			        work.getSlug(),
+			        thumbnailUrl);
 
 		} catch (Exception e) {
 			System.err.println(

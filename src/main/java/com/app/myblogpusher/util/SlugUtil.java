@@ -84,9 +84,11 @@ public class SlugUtil {
 		symbols.add("・");
 		symbols.add("•");
 		symbols.add("-");
+		symbols.add("_");
 		symbols.add("'");
 		symbols.add("=");
 		symbols.add("＝");
+		
 		IGNORE_SYMBOLS = Collections.unmodifiableList(symbols);
 	}
 	

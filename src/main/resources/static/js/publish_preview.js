@@ -47,28 +47,37 @@ function registerWord(btn) {
  * ・画面で編集したslugをhidden項目へ反映する
  */
 function publishSubmit() {
+    if (!confirm("この記事を投稿しますか？")) {
+        return false;
+    }
 
-	if (!confirm("この記事を投稿しますか？")) {
-		return false;
-	}
+    const slugInput = document.getElementById('slugInput');
+    const slugHidden = document.getElementById('slugHidden');
 
-	// 画面上で編集されたslugを送信用hiddenへ反映
-	const slugInput = document.getElementById('slugInput');
-	const slugHidden = document.getElementById('slugHidden');
+    if (slugInput && slugHidden) {
+        slugHidden.value = slugInput.value;
+    }
 
-	if (slugInput && slugHidden) {
-		slugHidden.value = slugInput.value;
-	}
+    const form = document.getElementById("publishForm");
+    const workIdInput = form.querySelector('input[name="workId"]');
+    const slug = slugHidden.value;
+    const workId = workIdInput.value;
 
-	const button = document.getElementById("publishButton");
+    // 投稿状況の確認用タブを先に開き、ポップアップブロックを回避する
+    const waitTab = window.open("about:blank", "_blank");
 
-	if (button) {
+    if (waitTab) {
+        const params = new URLSearchParams({ workId, slug });
+        waitTab.location.href = `/publish/wait?${params.toString()}`;
+    }
 
-		button.disabled = true;
-		button.textContent = "投稿中...";
-	}
+    const button = document.getElementById("publishButton");
+    if (button) {
+        button.disabled = true;
+        button.textContent = "投稿中...";
+    }
 
-	return true;
+    return true;
 }
 
 
@@ -88,24 +97,6 @@ function syncEnglish(btn) {
 	document.getElementById('hidden_' + reading).value =
 		converted;
 }
-
-///**
-// * 形態素解析結果変更監視
-// *
-// * 変換結果を変更できる画面でのみslugを自動更新する。
-// */
-//document.querySelectorAll('[id^="converted_"]')
-//	.forEach(input => {
-//
-//		input.addEventListener('input', () => {
-//
-//			if (typeof updateSlug === 'function') {
-//				updateSlug();
-//			}
-//
-//		});
-//
-//	});
 
 /**
  * サムネイル選択モーダルを開く
@@ -216,105 +207,105 @@ if (publishBackButton) {
  * コードブロック内の記法は変換しない。
  */
 function renderArticleImagePreview() {
-    const preview = document.getElementById('articleContentPreview');
+	const preview = document.getElementById('articleContentPreview');
 
-    if (!preview) {
-        return;
-    }
+	if (!preview) {
+		return;
+	}
 
-    const content = preview.dataset.content || '';
-    const fragment = document.createDocumentFragment();
-    const lines = content.split('\n');
+	const content = preview.dataset.content || '';
+	const fragment = document.createDocumentFragment();
+	const lines = content.split('\n');
 
-    let inCodeBlock = false;
+	let inCodeBlock = false;
 
-    /**
-     * 画像要素を生成する。
-     */
-    function appendImage(url, alt = '') {
-        const image = document.createElement('img');
-        image.src = url;
-        image.alt = alt;
-        image.style.maxWidth = '100%';
-        image.style.height = 'auto';
+	/**
+	 * 画像要素を生成する。
+	 */
+	function appendImage(url, alt = '') {
+		const image = document.createElement('img');
+		image.src = url;
+		image.alt = alt;
+		image.style.maxWidth = '100%';
+		image.style.height = 'auto';
 
-        fragment.appendChild(image);
-    }
+		fragment.appendChild(image);
+	}
 
-    /**
-     * 本文中の画像記法を画像要素へ変換する。
-     */
-    function appendLine(line) {
-        const pattern =
-            /\\?<img\b[^>]*>|!\[([^\]]*)\]\((https?:\/\/[^)\s]+)\)/gi;
+	/**
+	 * 本文中の画像記法を画像要素へ変換する。
+	 */
+	function appendLine(line) {
+		const pattern =
+			/\\?<img\b[^>]*>|!\[([^\]]*)\]\((https?:\/\/[^)\s]+)\)/gi;
 
-        let lastIndex = 0;
-        let match;
+		let lastIndex = 0;
+		let match;
 
-        while ((match = pattern.exec(line)) !== null) {
-            fragment.appendChild(
-                document.createTextNode(line.slice(lastIndex, match.index))
-            );
+		while ((match = pattern.exec(line)) !== null) {
+			fragment.appendChild(
+				document.createTextNode(line.slice(lastIndex, match.index))
+			);
 
-            if (match[0].toLowerCase().includes('<img')) {
-                const srcMatch = match[0].match(
-                    /\bsrc\s*=\s*["']([^"']+)["']/i
-                );
+			if (match[0].toLowerCase().includes('<img')) {
+				const srcMatch = match[0].match(
+					/\bsrc\s*=\s*["']([^"']+)["']/i
+				);
 
-                if (srcMatch) {
-                    let url = srcMatch[1];
+				if (srcMatch) {
+					let url = srcMatch[1];
 
-                    // src="[URL](URL)" 形式から実際のURLを取り出す
-                    const markdownLink = url.match(
-                        /^\[(https?:\/\/.+?)\]\((https?:\/\/.+?)\)$/
-                    );
+					// src="[URL](URL)" 形式から実際のURLを取り出す
+					const markdownLink = url.match(
+						/^\[(https?:\/\/.+?)\]\((https?:\/\/.+?)\)$/
+					);
 
-                    if (markdownLink) {
-                        url = markdownLink[2];
-                    }
+					if (markdownLink) {
+						url = markdownLink[2];
+					}
 
-                    if (/^https?:\/\/\S+$/.test(url)) {
-                        appendImage(url);
-                    } else {
-                        fragment.appendChild(
-                            document.createTextNode(match[0])
-                        );
-                    }
-                } else {
-                    fragment.appendChild(
-                        document.createTextNode(match[0])
-                    );
-                }
-            } else {
-                appendImage(match[2], match[1]);
-            }
+					if (/^https?:\/\/\S+$/.test(url)) {
+						appendImage(url);
+					} else {
+						fragment.appendChild(
+							document.createTextNode(match[0])
+						);
+					}
+				} else {
+					fragment.appendChild(
+						document.createTextNode(match[0])
+					);
+				}
+			} else {
+				appendImage(match[2], match[1]);
+			}
 
-            lastIndex = pattern.lastIndex;
-        }
+			lastIndex = pattern.lastIndex;
+		}
 
-        fragment.appendChild(
-            document.createTextNode(line.slice(lastIndex))
-        );
-    }
+		fragment.appendChild(
+			document.createTextNode(line.slice(lastIndex))
+		);
+	}
 
-    for (const line of lines) {
-        if (/^\s*\\?```/.test(line)) {
-            inCodeBlock = !inCodeBlock;
-            fragment.appendChild(document.createTextNode(line));
-            fragment.appendChild(document.createElement('br'));
-            continue;
-        }
+	for (const line of lines) {
+		if (/^\s*\\?```/.test(line)) {
+			inCodeBlock = !inCodeBlock;
+			fragment.appendChild(document.createTextNode(line));
+			fragment.appendChild(document.createElement('br'));
+			continue;
+		}
 
-        if (inCodeBlock) {
-            fragment.appendChild(document.createTextNode(line));
-        } else {
-            appendLine(line);
-        }
+		if (inCodeBlock) {
+			fragment.appendChild(document.createTextNode(line));
+		} else {
+			appendLine(line);
+		}
 
-        fragment.appendChild(document.createElement('br'));
-    }
+		fragment.appendChild(document.createElement('br'));
+	}
 
-    preview.replaceChildren(fragment);
+	preview.replaceChildren(fragment);
 }
 
 renderArticleImagePreview();
