@@ -207,3 +207,94 @@ if (publishBackButton) {
 	});
 }
 
+
+/**
+ * 投稿前確認画面の本文画像プレビュー
+ *
+ * Markdownの画像記法 ![説明](画像URL) を画像として表示する。
+ * コードブロック内の記法は画像へ変換しない。
+ */
+function renderArticleImagePreview() {
+	const preview = document.getElementById('articleContentPreview');
+
+	if (!preview) {
+		return;
+	}
+
+	const content = preview.dataset.content || '';
+	const fragment = document.createDocumentFragment();
+	const lines = content.split('\n');
+
+	let inCodeBlock = false;
+	let paragraph = [];
+
+	/**
+	 * 通常テキストをテキストノードとして追加する。
+	 */
+	function appendText(text) {
+		if (text) {
+			fragment.appendChild(document.createTextNode(text));
+		}
+	}
+
+	/**
+	 * 段落内のMarkdown画像記法を画像要素へ変換する。
+	 */
+	function appendParagraph(text) {
+		const imagePattern = /!\[([^\]]*)\]\((https?:\/\/[^)\s]+)\)/g;
+		let lastIndex = 0;
+		let match;
+
+		while ((match = imagePattern.exec(text)) !== null) {
+			appendText(text.slice(lastIndex, match.index));
+
+			const image = document.createElement('img');
+			image.src = match[2];
+			image.alt = match[1];
+			image.style.maxWidth = '100%';
+			image.style.height = 'auto';
+
+			fragment.appendChild(image);
+			lastIndex = imagePattern.lastIndex;
+		}
+
+		appendText(text.slice(lastIndex));
+	}
+
+	function flushParagraph() {
+		if (paragraph.length === 0) {
+			return;
+		}
+
+		appendParagraph(paragraph.join('\n'));
+		fragment.appendChild(document.createElement('br'));
+		paragraph = [];
+	}
+
+	for (const line of lines) {
+		if (/^\s*```/.test(line)) {
+			flushParagraph();
+			inCodeBlock = !inCodeBlock;
+			continue;
+		}
+
+		if (inCodeBlock) {
+			appendText(line + '\n');
+			continue;
+		}
+
+		if (line.trim() === '') {
+			flushParagraph();
+			fragment.appendChild(document.createElement('br'));
+			continue;
+		}
+
+		paragraph.push(line);
+	}
+
+	flushParagraph();
+	preview.replaceChildren(fragment);
+}
+
+renderArticleImagePreview();
+
