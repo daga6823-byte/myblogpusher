@@ -70,7 +70,7 @@ public class ArticleSaveUtil {
 		String slug = null;
 
 		if (workId != null) {
-		    ArticleWork work = articleWorkService.findById(workId);
+		    ArticleWork work = articleWorkService.findById(workId, userId);
 
 		    if (work != null) {
 		        slug = work.getSlug();
@@ -107,9 +107,10 @@ public class ArticleSaveUtil {
 					slug);
 
 			if (categoryResolution.groupIdPending()) {
-				categoryRelationService.updateArticleWorkCategoryGroupId(
-						savedWorkId,
-						categoryResolution.categoryId());
+			    categoryRelationService.updateArticleWorkCategoryGroupId(
+			            savedWorkId,
+			            categoryResolution.categoryId(),
+			            userId);
 			}
 
 			return savedWorkId;
@@ -125,9 +126,10 @@ public class ArticleSaveUtil {
 					slug);
 
 			if (categoryResolution.groupIdPending()) {
-				categoryRelationService.updateArticleWorkCategoryGroupId(
-						workId,
-						categoryResolution.categoryId());
+			    categoryRelationService.updateArticleWorkCategoryGroupId(
+			            workId,
+			            categoryResolution.categoryId(),
+			            userId);
 			}
 
 			return workId;

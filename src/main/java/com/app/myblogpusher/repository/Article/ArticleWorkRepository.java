@@ -9,6 +9,8 @@ import com.app.myblogpusher.entity.Article.ArticleWork;
 
 public interface ArticleWorkRepository extends JpaRepository<ArticleWork, Long> {
 
+	Optional<ArticleWork> findByWorkIdAndUserId(Long workId, Long userId);
+
 	Optional<ArticleWork> findByArticleId(Long articleId);
 
 	List<ArticleWork> findByUserIdOrderByUpdateDateDesc(Long userId);

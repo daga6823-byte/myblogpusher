@@ -92,8 +92,8 @@ public class ArticleEditController {
 
 		if (workId != null) {
 
-			// 既存の下書きを編集中の場合は、下書きの内容を優先する。
-			work = articleWorkService.findById(workId);
+			// 既存の下書きを編集中の場合は、ログインユーザー本人の下書きの内容を優先する。
+			work = articleWorkService.findById(workId, userId);
 
 			model.addAttribute("work", work);
 			model.addAttribute("categoryGroupId", work.getCategoryGroupId());

@@ -87,16 +87,14 @@ public class ArticleWorkService {
 			Long userId,
 			String slug) {
 
-		ArticleWork work = articleWorkRepository.findById(workId)
+		ArticleWork work = articleWorkRepository
+				.findByWorkIdAndUserId(workId, userId)
 				.orElseThrow();
 
 		work.setCategoryGroupId(categoryGroupId);
 		work.setTitle(title);
 		work.setContent(content);
-
-		// 画面で変更したslugを保持
 		work.setSlug(slug);
-
 		work.setUpdateUser(userId);
 		work.setUpdateDate(LocalDateTime.now());
 
@@ -104,11 +102,12 @@ public class ArticleWorkService {
 	}
 
 	/**
-	 * workIdから編集中記事を取得する
+	 * ログインユーザーが所有する編集中記事を取得する
 	 */
-	public ArticleWork findById(Long workId) {
+	public ArticleWork findById(Long workId, Long userId) {
 
-		return articleWorkRepository.findById(workId)
+		return articleWorkRepository
+				.findByWorkIdAndUserId(workId, userId)
 				.orElseThrow();
 	}
 
@@ -121,40 +120,34 @@ public class ArticleWorkService {
 	 */
 	public void updateStatus(
 			Long workId,
-			Integer status) {
+			Integer status,
+			Long userId) {
 
-		ArticleWork work = articleWorkRepository.findById(workId)
+		ArticleWork work = articleWorkRepository
+				.findByWorkIdAndUserId(workId, userId)
 				.orElseThrow();
 
-		System.out.println(
-				"ArticleWork status変更: workId="
-						+ workId
-						+ ", "
-						+ work.getStatus()
-						+ " -> "
-						+ status);
-
 		work.setStatus(status);
+		work.setUpdateUser(userId);
+		work.setUpdateDate(LocalDateTime.now());
 
 		articleWorkRepository.save(work);
-
-		System.out.println(
-				"ArticleWork status変更後: workId="
-						+ workId
-						+ ", status="
-						+ work.getStatus());
 	}
 
 	public void updateStatus(
 			Long workId,
 			Integer status,
-			String errorCode) {
+			String errorCode,
+			Long userId) {
 
-		ArticleWork work = articleWorkRepository.findById(workId)
+		ArticleWork work = articleWorkRepository
+				.findByWorkIdAndUserId(workId, userId)
 				.orElseThrow();
 
 		work.setStatus(status);
 		work.setErrorCode(errorCode);
+		work.setUpdateUser(userId);
+		work.setUpdateDate(LocalDateTime.now());
 
 		articleWorkRepository.save(work);
 	}
@@ -177,20 +170,15 @@ public class ArticleWorkService {
 	}
 
 	/**
-	 * 投稿完了後に編集中データを削除する
+	 * ユーザーが所有する編集中データを削除する
 	 */
 	public void delete(
 			Long workId,
 			Long userId) {
 
-		ArticleWork work = articleWorkRepository.findById(workId)
+		ArticleWork work = articleWorkRepository
+				.findByWorkIdAndUserId(workId, userId)
 				.orElseThrow();
-
-		if (!work.getUserId().equals(userId)) {
-
-			throw new IllegalStateException(
-					"他のユーザーの記事は削除できません");
-		}
 
 		articleWorkRepository.delete(work);
 	}
@@ -230,43 +218,55 @@ public class ArticleWorkService {
 				0);
 	}
 
-	public void updateCategoryGroupId(Long workId, Long categoryGroupId) {
-		ArticleWork work = articleWorkRepository.findById(workId)
+	/**
+	 * ユーザーが所有する編集中記事のカテゴリーグループIDを更新する
+	 */
+	public void updateCategoryGroupId(
+			Long workId,
+			Long categoryGroupId,
+			Long userId) {
+
+		ArticleWork work = articleWorkRepository
+				.findByWorkIdAndUserId(workId, userId)
 				.orElseThrow();
 
 		work.setCategoryGroupId(categoryGroupId);
-		articleWorkRepository.save(work);
-	}
-
-	/**
-	 * 投稿前確認画面で確定したslugを更新する
-	 */
-	public void updateSlug(
-			Long workId,
-			String slug) {
-
-		ArticleWork work = articleWorkRepository.findById(workId)
-				.orElseThrow();
-
-		work.setSlug(slug);
+		work.setUpdateUser(userId);
 		work.setUpdateDate(LocalDateTime.now());
 
 		articleWorkRepository.save(work);
 	}
 
 	/**
-	 * 投稿確認画面で選択したサムネイルURLを保存する
+	 * ユーザーが所有する編集中記事のslugを更新する
 	 */
-	public void updateThumbnailUrl(
-			Long workId, Long userId, String thumbnailUrl) {
+	public void updateSlug(
+			Long workId,
+			String slug,
+			Long userId) {
 
-		ArticleWork work = articleWorkRepository.findById(workId)
+		ArticleWork work = articleWorkRepository
+				.findByWorkIdAndUserId(workId, userId)
 				.orElseThrow();
 
-		if (!work.getUserId().equals(userId)) {
-			throw new IllegalStateException(
-					"他のユーザーの記事は更新できません");
-		}
+		work.setSlug(slug);
+		work.setUpdateUser(userId);
+		work.setUpdateDate(LocalDateTime.now());
+
+		articleWorkRepository.save(work);
+	}
+
+	/**
+	 * ユーザーが所有する記事のサムネイルURLを更新する
+	 */
+	public void updateThumbnailUrl(
+			Long workId,
+			Long userId,
+			String thumbnailUrl) {
+
+		ArticleWork work = articleWorkRepository
+				.findByWorkIdAndUserId(workId, userId)
+				.orElseThrow();
 
 		work.setThumbnailUrl(thumbnailUrl);
 		work.setUpdateUser(userId);
@@ -276,18 +276,16 @@ public class ArticleWorkService {
 	}
 
 	/**
-	 * 投稿確認画面で編集したslugを保存する
+	 * ユーザーが所有する記事の投稿確認画面で編集したslugを保存する
 	 */
 	public void updatePreviewSlug(
-			Long workId, Long userId, String slug) {
+			Long workId,
+			Long userId,
+			String slug) {
 
-		ArticleWork work = articleWorkRepository.findById(workId)
+		ArticleWork work = articleWorkRepository
+				.findByWorkIdAndUserId(workId, userId)
 				.orElseThrow();
-
-		if (!work.getUserId().equals(userId)) {
-			throw new IllegalStateException(
-					"他のユーザーの記事は更新できません");
-		}
 
 		work.setSlug(slug);
 		work.setUpdateUser(userId);

@@ -92,7 +92,7 @@ public class ArticleCorrectController {
 			return "redirect:/article/edit";
 		}
 
-		ArticleWork work = articleWorkService.findById(savedWorkId);
+		ArticleWork work = articleWorkService.findById(savedWorkId, userId);
 
 		Long categoryGroupId = work.getCategoryGroupId();
 

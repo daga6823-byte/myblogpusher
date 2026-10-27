@@ -76,9 +76,10 @@ public class ArticlePublishAsyncService {
 			// 投稿失敗した記事はエラー状態で残し、
 			// エラーコードをArticleWorkへ保存する。
 			articleWorkService.updateStatus(
-					workId,
-					2,
-					errorCode);
+			        workId,
+			        2,
+			        errorCode,
+			        article.getUserId());
 		}
 	}
 

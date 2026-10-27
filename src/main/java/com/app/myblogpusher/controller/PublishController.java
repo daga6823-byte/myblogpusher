@@ -86,7 +86,7 @@ public class PublishController {
 
 		// 保存前のワークと投稿済み記事を取得する。
 		PublishPreviewPreparationService.ExistingArticleData existingData = publishPreviewPreparationService
-				.findExistingArticleData(workId);
+		        .findExistingArticleData(workId, userId);
 
 		// 記事とカテゴリー情報をワークテーブルへ保存する。
 		Long savedWorkId = articleSaveUtil.doSaveDraft(
@@ -276,9 +276,9 @@ public class PublishController {
 
 		Long userId = loginUser.getUserId();
 
-		// 保存前のワークと投稿済み記事を取得する。
+		/// 保存前のワークと投稿済み記事を取得する。
 		PublishPreviewPreparationService.ExistingArticleData existingData = publishPreviewPreparationService
-				.findExistingArticleData(workId);
+		        .findExistingArticleData(workId, userId);
 
 		// 保存済みワークのスラッグを優先して投稿確認画面の表示情報を準備する。
 		PublishPreviewPreparationService.PreparationResult result = publishPreviewPreparationService.preparePreview(

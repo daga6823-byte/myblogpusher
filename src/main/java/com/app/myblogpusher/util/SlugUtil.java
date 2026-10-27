@@ -110,7 +110,8 @@ public class SlugUtil {
 	}
 
 	private String toRomanized(String text) {
-		List<EnglishDictionary> allEntries = englishDictionaryRepository.findAll();
+		// 共通辞典の英単語変換データを取得する。
+		List<EnglishDictionary> allEntries = englishDictionaryRepository.findByUserIdIsNull();
 
 		// 長い単語から優先して置換（スペースで区切る）
 		allEntries.sort((a, b) -> b.getJapanese().length() - a.getJapanese().length());
@@ -228,7 +229,8 @@ public class SlugUtil {
 
 	public List<SlugAnalysisDto> analyzeSlug(String title) {
 		List<SlugAnalysisDto> result = new ArrayList<>();
-		List<EnglishDictionary> allEntries = englishDictionaryRepository.findAll();
+		// 共通辞典の英単語変換データを取得する。
+		List<EnglishDictionary> allEntries = englishDictionaryRepository.findByUserIdIsNull();
 
 		// 箇条書き記号は単語区切りとして扱う
 		// IGNORE_SYMBOLS に含まれる記号は無視する

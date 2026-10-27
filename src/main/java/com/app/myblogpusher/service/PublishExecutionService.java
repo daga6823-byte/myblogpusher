@@ -63,11 +63,11 @@ public class PublishExecutionService {
 		UserRepositoryEntity repo = repoOpt.get();
 
 		// 確認画面で確定したカテゴリーグループIDとスラッグを保存する。
-		articleWorkService.updateCategoryGroupId(workId, categoryId);
-		articleWorkService.updateSlug(workId, slug);
+		articleWorkService.updateCategoryGroupId(workId, categoryId, userId);
+		articleWorkService.updateSlug(workId, slug, userId);
 
 		// 投稿処理中のステータスに更新する。
-		articleWorkService.updateStatus(workId, 1);
+		articleWorkService.updateStatus(workId, 1, userId);
 
 		// 投稿開始時に編集用ワークスペースを削除する。
 		workspaceService.delete(userId);

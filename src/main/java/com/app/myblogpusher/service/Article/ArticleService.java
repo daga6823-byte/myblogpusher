@@ -49,7 +49,10 @@ public class ArticleService {
 		// 投稿処理中(status=1)の記事だけDB更新を許可する。
 		// status=0はまだ投稿処理に入っておらず、
 		// status=2は投稿エラー中のため、ここでは処理しない。
-		ArticleWork currentWork = articleWorkService.findById(work.getWorkId());
+		// ログインユーザー本人の記事に限定して取得する。
+		ArticleWork currentWork = articleWorkService.findById(
+				work.getWorkId(),
+				work.getUserId());
 
 		if (currentWork.getStatus() == null
 				|| currentWork.getStatus() != 1) {
@@ -99,9 +102,9 @@ public class ArticleService {
 	}
 
 	public Article createFromWork(
-	        ArticleWork work,
-	        String slug,
-	        String thumbnailUrl) {
+			ArticleWork work,
+			String slug,
+			String thumbnailUrl) {
 
 		Article article = new Article();
 
@@ -118,7 +121,7 @@ public class ArticleService {
 						slug));
 
 		article.setContent(work.getContent());
-		
+
 		article.setThumbnailUrl(thumbnailUrl);
 
 		article.setStatus(ArticleStatus.PUBLISHING);
@@ -139,10 +142,10 @@ public class ArticleService {
 	 * 投稿済み記事を更新
 	 */
 	public Article updateFromWork(
-	        Article article,
-	        ArticleWork work,
-	        String slug,
-	        String thumbnailUrl) {
+			Article article,
+			ArticleWork work,
+			String slug,
+			String thumbnailUrl) {
 
 		article.setCategoryGroupId(work.getCategoryGroupId());
 		article.setTitle(work.getTitle());
@@ -194,18 +197,18 @@ public class ArticleService {
 		}
 
 		if (article.getArticleId() == null) {
-		    if (categoryGroupId == null) {
-		        throw new IllegalArgumentException(
-		                "新規記事のカテゴリーグループIDを特定できません。hugoPath="
-		                        + hugoPath);
-		    }
+			if (categoryGroupId == null) {
+				throw new IllegalArgumentException(
+						"新規記事のカテゴリーグループIDを特定できません。hugoPath="
+								+ hugoPath);
+			}
 
-		    article.setUserId(userId);
-		    article.setCreateDate(articleDate);
-		    article.setCreateUser(userId);
-		    article.setCategoryGroupId(categoryGroupId);
+			article.setUserId(userId);
+			article.setCreateDate(articleDate);
+			article.setCreateUser(userId);
+			article.setCategoryGroupId(categoryGroupId);
 		} else if (categoryGroupId != null) {
-		    article.setCategoryGroupId(categoryGroupId);
+			article.setCategoryGroupId(categoryGroupId);
 		}
 
 		article.setTitle(title);

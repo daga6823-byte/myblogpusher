@@ -186,8 +186,9 @@ public class CategoryRelationService {
 	 */
 	@Async
 	public void updateArticleWorkCategoryGroupId(
-			Long workId,
-			Long categoryId) {
+	        Long workId,
+	        Long categoryId,
+	        Long userId) {
 
 		for (int i = 0; i < 20; i++) {
 
@@ -200,10 +201,11 @@ public class CategoryRelationService {
 					.orElse(null);
 
 			if (groupId != null) {
-				articleWorkService.updateCategoryGroupId(
-						workId,
-						groupId);
-				return;
+			    articleWorkService.updateCategoryGroupId(
+			            workId,
+			            groupId,
+			            userId);
+			    return;
 			}
 
 			try {

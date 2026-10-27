@@ -27,6 +27,9 @@ public class EnglishDictionary {
 	@Column(name = "english", nullable = false)
 	private String english;
 
+	@Column(name = "user_id")
+	private Long userId;
+
 	@Column(name = "create_user")
 	private Long createUser;
 

@@ -50,15 +50,17 @@ public class PublishPreviewPreparationService {
 	 * @param workId 編集対象のワークID
 	 * @return 保存前のワークと投稿済み記事
 	 */
-	public ExistingArticleData findExistingArticleData(Long workId) {
+	public ExistingArticleData findExistingArticleData(
+	        Long workId,
+	        Long userId) {
 
 		// 新規記事の場合は、引き継ぎ元のデータがない状態を返す。
 		if (workId == null) {
 			return new ExistingArticleData(null, null);
 		}
 
-		// 保存前のワークを取得する。
-		ArticleWork existingWork = articleWorkService.findById(workId);
+		// 保存前のワークをログインユーザー本人のデータに限定して取得する。
+		ArticleWork existingWork = articleWorkService.findById(workId, userId);
 
 		// ワークに投稿済み記事との関連があれば、その記事も取得する。
 		Article existingArticle = null;
@@ -119,7 +121,7 @@ public class PublishPreviewPreparationService {
 			boolean preferWorkSlug) {
 
 		// 保存後のワークを取得する。
-		ArticleWork work = articleWorkService.findById(savedWorkId);
+		ArticleWork work = articleWorkService.findById(savedWorkId, userId);
 
 		if (work == null) {
 			return PreparationResult.failure(

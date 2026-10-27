@@ -55,9 +55,10 @@ public class ArticlePublishWorkerService {
 			// GitHub APIで投稿可能か確認する。
 			if (!gitHubFacadeService.canPublish(repo, cipherKey)) {
 				articleWorkService.updateStatus(
-						work.getWorkId(),
-						2,
-						"GitHub APIで投稿権限を確認できませんでした。");
+				        work.getWorkId(),
+				        2,
+				        "GitHub APIで投稿権限を確認できませんでした。",
+				        work.getUserId());
 				return;
 			}
 
@@ -117,9 +118,10 @@ public class ArticlePublishWorkerService {
 			// 投稿失敗した記事はエラー状態で残す。
 			// スタックトレースを含む詳細をDBへ保存する。
 			articleWorkService.updateStatus(
-					work.getWorkId(),
-					2,
-					sw.toString());
+			        work.getWorkId(),
+			        2,
+			        sw.toString(),
+			        work.getUserId());
 		}
 	}
 
