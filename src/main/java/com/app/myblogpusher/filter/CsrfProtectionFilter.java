@@ -2,13 +2,15 @@
 /**
  * CSRF攻撃対策を担当する共通フィルター
  *
- * セッションごとにCSRFトークンを発行し、更新系リクエストで
- * リクエストパラメーターまたはHTTPヘッダーのトークンを検証する。
+ * セッションごとにランダムなCSRFトークンを発行し、
+ * Cookieを通じてブラウザーへ公開する。
+ * 更新系リクエストでは、HTTPヘッダーまたはフォーム項目の
+ * CSRFトークンをセッション内のトークンと照合する。
  *
- * トークンのない更新系リクエストや、トークンが一致しないリクエストは拒否する。
- * フォームとJavaScriptからトークンを送信する仕組みは別途共通化する。
+ * フィルターの登録はWebConfigで明示的に行う。
  */
 package com.app.myblogpusher.filter;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -26,35 +28,36 @@ import jakarta.servlet.http.HttpSession;
 
 public class CsrfProtectionFilter extends OncePerRequestFilter {
 
-	/** セッションに保存するCSRFトークンの属性名 */
 	public static final String CSRF_TOKEN_SESSION_ATTRIBUTE = "csrfToken";
-
-	/** リクエストから取得できるCSRFトークンの属性名 */
 	public static final String CSRF_TOKEN_REQUEST_ATTRIBUTE = "_csrf";
 
-	/** フォーム送信で使用するパラメーター名 */
+	private static final String CSRF_TOKEN_COOKIE = "XSRF-TOKEN";
 	private static final String CSRF_TOKEN_PARAMETER = "_csrf";
-
-	/** JavaScriptなどから送信するHTTPヘッダー名 */
 	private static final String CSRF_TOKEN_HEADER = "X-CSRF-TOKEN";
 
 	private static final String[] SAFE_METHODS = {
-			"GET", "HEAD", "OPTIONS", "TRACE"
+			"GET", "HEAD", "OPTIONS"
 	};
 
 	private final SecureRandom secureRandom = new SecureRandom();
 
-	/**
-	 * CSRFトークンを発行し、更新系リクエストを検証する。
-	 */
 	@Override
 	protected void doFilterInternal(
 			HttpServletRequest request,
 			HttpServletResponse response,
 			FilterChain filterChain) throws ServletException, IOException {
 
-		HttpSession session = request.getSession(
-				isSafeMethod(request.getMethod()));
+		// TRACEはCSRF対策とは別に使用を禁止する。
+		if ("TRACE".equalsIgnoreCase(request.getMethod())) {
+			response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+			return;
+		}
+
+		boolean safeMethod = isSafeMethod(request.getMethod());
+
+		// GET等では既存セッションがある場合のみ取得する。
+		// 更新系リクエストでセッションがなければ新規生成しない。
+		HttpSession session = request.getSession(safeMethod);
 
 		String expectedToken = null;
 
@@ -72,7 +75,8 @@ public class CsrfProtectionFilter extends OncePerRequestFilter {
 					CSRF_TOKEN_REQUEST_ATTRIBUTE, expectedToken);
 
 			// JavaScriptから読み取れるCSRFトークンCookieを発行する。
-			Cookie csrfCookie = new Cookie("XSRF-TOKEN", expectedToken);
+			Cookie csrfCookie = new Cookie(
+					CSRF_TOKEN_COOKIE, expectedToken);
 			csrfCookie.setHttpOnly(false);
 			csrfCookie.setSecure(request.isSecure());
 			csrfCookie.setPath("/");
@@ -80,7 +84,8 @@ public class CsrfProtectionFilter extends OncePerRequestFilter {
 			response.addCookie(csrfCookie);
 		}
 
-		if (!isSafeMethod(request.getMethod())) {
+		// 更新系リクエストはトークンの一致を必須とする。
+		if (!safeMethod) {
 			if (session == null) {
 				response.sendError(
 						HttpServletResponse.SC_FORBIDDEN,
@@ -107,7 +112,7 @@ public class CsrfProtectionFilter extends OncePerRequestFilter {
 	}
 
 	/**
-	 * 読み取り専用メソッドかどうかを判定する。
+	 * CSRFトークン検証が不要なHTTPメソッドか判定する。
 	 */
 	private boolean isSafeMethod(String method) {
 		for (String safeMethod : SAFE_METHODS) {
@@ -115,23 +120,23 @@ public class CsrfProtectionFilter extends OncePerRequestFilter {
 				return true;
 			}
 		}
-
 		return false;
 	}
 
 	/**
-	 * 暗号学的に安全な乱数からCSRFトークンを生成する。
+	 * 暗号学的に安全な乱数を使用してトークンを生成する。
 	 */
 	private String generateToken() {
 		byte[] bytes = new byte[32];
 		secureRandom.nextBytes(bytes);
+
 		return Base64.getUrlEncoder()
 				.withoutPadding()
 				.encodeToString(bytes);
 	}
 
 	/**
-	 * トークンの存在と一致を定数時間比較で検証する。
+	 * セッション内のトークンと送信されたトークンを定時間比較する。
 	 */
 	private boolean isValidToken(
 			String expectedToken,

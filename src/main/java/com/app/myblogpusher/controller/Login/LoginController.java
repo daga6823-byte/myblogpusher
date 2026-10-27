@@ -76,6 +76,9 @@ public class LoginController {
 
 		    // 認証成功時にセッションIDを変更し、セッション固定攻撃を防止する。
 		    request.changeSessionId();
+		    
+		 // セッションID変更後、認証前のCSRFトークンを破棄する。
+		    session.removeAttribute("csrfToken");
 
 		    String ipAddress = request.getHeader("CF-Connecting-IP");
 			if (ipAddress == null || ipAddress.isBlank()) {

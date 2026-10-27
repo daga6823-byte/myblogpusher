@@ -241,6 +241,9 @@ public class TwoFactorController {
 		// セッションIDを変更し、認証前のセッションIDの悪用を防止する。
 		request.changeSessionId();
 
+		// 認証前のCSRFトークンを破棄し、認証後に再発行させる。
+		session.removeAttribute("csrfToken");
+
 		// 2FA認証用の属性を削除し、ログイン済みの属性だけを残す。
 		session.removeAttribute("twoFactorUserId");
 		session.removeAttribute("twoFactorIpAddress");
