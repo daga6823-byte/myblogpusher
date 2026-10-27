@@ -16,7 +16,6 @@
 		<p class="error" th:if="${error}" th:text="${error}"></p>
 
 		<form th:action="@{/login}" method="post">
-			<input type="hidden" name="_csrf" th:value="${#request.getAttribute('_csrf')}">
 
 			<label for="loginId">ログインID</label>
 			<input type="text" id="loginId" name="loginId" required>

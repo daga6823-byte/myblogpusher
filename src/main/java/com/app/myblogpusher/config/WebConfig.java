@@ -65,7 +65,7 @@ public class WebConfig implements WebMvcConfigurer {
 	    registration.setFilter(new CsrfProtectionFilter());
 	    registration.addUrlPatterns("/*");
 	    registration.setName("csrfProtectionFilter");
-	    registration.setEnabled(true);
+	    registration.setEnabled(false);
 	    registration.setOrder(1);
 
 	    return registration;
