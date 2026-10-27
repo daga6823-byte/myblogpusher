@@ -101,6 +101,29 @@ public class CsrfProtectionFilter extends OncePerRequestFilter {
                         CSRF_TOKEN_PARAMETER);
                 tokenSource = "parameter";
             }
+            
+            Cookie[] cookies = request.getCookies();
+            String cookieToken = null;
+
+            if (cookies != null) {
+                for (Cookie cookie : cookies) {
+                    if (CSRF_TOKEN_COOKIE.equals(cookie.getName())) {
+                        cookieToken = cookie.getValue();
+                        break;
+                    }
+                }
+            }
+
+            System.out.println(
+                    "[CsrfProtectionFilter] TOKEN CHECK"
+                    + " sessionExists=" + (session != null)
+                    + " sessionTokenExists=" + (expectedToken != null)
+                    + " submittedTokenExists="
+                            + (submittedToken != null && !submittedToken.isBlank())
+                    + " cookieMatchesSession="
+                            + isValidToken(expectedToken, cookieToken)
+                    + " submittedMatchesCookie="
+                            + isValidToken(cookieToken, submittedToken));
 
             if (!isValidToken(expectedToken, submittedToken)) {
                 response.sendError(
