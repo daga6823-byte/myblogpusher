@@ -109,6 +109,12 @@ public class CsrfProtectionFilter extends OncePerRequestFilter {
 		}
 
 		filterChain.doFilter(request, response);
+
+		System.out.println(
+		        "[CsrfProtectionFilter] " + request.getMethod()
+		        + " " + request.getRequestURI()
+		        + " status=" + response.getStatus()
+		        + " location=" + response.getHeader("Location"));
 	}
 
 	/**
