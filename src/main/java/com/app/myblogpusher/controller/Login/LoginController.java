@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.app.myblogpusher.entity.UserMaster;
+import com.app.myblogpusher.entity.UserRepositoryEntity;
 import com.app.myblogpusher.repository.UserRepositoryRepository;
 import com.app.myblogpusher.service.PublishedArticleSyncService;
 import com.app.myblogpusher.service.Image.ImageAssetPreloadAsyncService;
@@ -71,9 +72,12 @@ public class LoginController {
 		logElapsed("ユーザー認証", stepStart);
 
 		if (userOpt.isPresent()) {
-			UserMaster user = userOpt.get();
+		    UserMaster user = userOpt.get();
 
-			String ipAddress = request.getHeader("CF-Connecting-IP");
+		    // 認証成功時にセッションIDを変更し、セッション固定攻撃を防止する。
+		    request.changeSessionId();
+
+		    String ipAddress = request.getHeader("CF-Connecting-IP");
 			if (ipAddress == null || ipAddress.isBlank()) {
 				ipAddress = request.getRemoteAddr();
 			}
@@ -110,7 +114,7 @@ public class LoginController {
 			session.setAttribute("loginUser", user);
 
 			stepStart = System.nanoTime();
-			Optional<com.app.myblogpusher.entity.UserRepositoryEntity> repoOpt = userRepositoryRepository
+			Optional<UserRepositoryEntity> repoOpt = userRepositoryRepository
 					.findByUserId(user.getUserId());
 			logElapsed("GitHubリポジトリ情報取得", stepStart);
 

@@ -45,7 +45,7 @@ public class TwoFactorController {
 
 	@Autowired
 	private ImageAssetPreloadAsyncService imageAssetPreloadAsyncService;
-	
+
 	@Autowired
 	private PublishedArticleSyncService publishedArticleSyncService;
 
@@ -220,8 +220,8 @@ public class TwoFactorController {
 	/**
 	 * 2FA認証成功後の通常ログイン処理を完了する。
 	 *
-	 * LoginControllerと同じログイン完了処理をここでも実行し、
-	 * 2FA経由でも通常ログインと同じ状態にする。
+	 * セッションIDを再生成し、2FA認証用の属性を引き継がずに
+	 * ログイン状態を新しいセッションへ設定する。
 	 */
 	private void completeLogin(
 			UserMaster user,
@@ -238,23 +238,24 @@ public class TwoFactorController {
 				region,
 				userAgent);
 
-		// 2FA判定に使用した古いセッションを破棄し、
-		// ログイン成功後は新しいセッションを使用する。
-		session.invalidate();
+		// セッションIDを変更し、認証前のセッションIDの悪用を防止する。
+		request.changeSessionId();
 
-		HttpSession newSession = request.getSession(true);
+		// 2FA認証用の属性を削除し、ログイン済みの属性だけを残す。
+		session.removeAttribute("twoFactorUserId");
+		session.removeAttribute("twoFactorIpAddress");
+		session.removeAttribute("twoFactorRegion");
+		session.removeAttribute("twoFactorUserAgent");
 
-		// 新しいセッションにログインユーザーを設定する。
-		newSession.setAttribute("loginUser", user);
+		session.setAttribute("loginUser", user);
+		session.setAttribute("loginRegionVerified", false);
 
-		// 2FA経由でも投稿済み記事一覧を非同期で先読みする。
+		// 2FA経由でも投稿済み記事一覧の同期を実行する。
 		userRepositoryRepository.findByUserId(user.getUserId())
 				.ifPresent(repo -> publishedArticleSyncService.syncArticles(
 						repo, user.getCipherKey(), user.getUserId()));
 
 		// 2FA経由のログインでも画像一覧の初回表示に必要な情報を先読みする。
 		imageAssetPreloadAsyncService.preloadAsync(user.getUserId());
-
-		session.removeAttribute("twoFactorUserId");
 	}
 }

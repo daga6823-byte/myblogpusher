@@ -7,6 +7,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+import com.app.myblogpusher.interceptor.ApiRateLimitInterceptor;
 import com.app.myblogpusher.interceptor.LoginCheckInterceptor;
 
 @Configuration
@@ -25,6 +26,7 @@ public class WebConfig implements WebMvcConfigurer {
 	@Override
 	public void addInterceptors(InterceptorRegistry registry) {
 
+		// ログイン状態の確認
 		registry.addInterceptor(loginCheckInterceptor())
 				.addPathPatterns("/**")
 				.excludePathPatterns(
@@ -36,5 +38,14 @@ public class WebConfig implements WebMvcConfigurer {
 						"/css/**",
 						"/js/**",
 						"/images/**");
+
+		// APIのレート制限
+		registry.addInterceptor(apiRateLimitInterceptor())
+				.addPathPatterns("/**");
+	}
+
+	@Bean
+	public ApiRateLimitInterceptor apiRateLimitInterceptor() {
+		return new ApiRateLimitInterceptor();
 	}
 }
