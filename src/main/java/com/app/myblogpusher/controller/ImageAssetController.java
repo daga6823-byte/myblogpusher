@@ -14,6 +14,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -39,6 +41,9 @@ public class ImageAssetController {
 
 	@Autowired
 	private ImageUploadRateLimitService imageUploadRateLimitService;
+	
+	private static final Logger logger =
+	        LoggerFactory.getLogger(ImageAssetController.class);
 
 	/**
 	 * DBに記録された画像一覧をJSONで返す
@@ -128,6 +133,11 @@ public class ImageAssetController {
 						"message", "アップロード中にエラーが発生しました"));
 
 			} catch (IOException e) {
+				logger.error(
+						"画像アップロードに失敗しました。fileName={}",
+						file.getOriginalFilename(),
+						e);
+
 				results.add(Map.of(
 						"result", "error",
 						"fileName", file.getOriginalFilename(),
