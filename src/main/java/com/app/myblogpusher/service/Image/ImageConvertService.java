@@ -62,14 +62,14 @@ public class ImageConvertService {
 			identifyError = Files.createTempFile("identify_error_", ".txt").toFile();
 
 			ProcessBuilder identifyBuilder = new ProcessBuilder(
-			        "magick",
-			        "-limit", "time", "10",
-			        "-limit", "memory", "128MiB",
-			        "-limit", "map", "256MiB",
-			        "-limit", "disk", "512MiB",
-			        "identify",
-			        "-format", "%m %w %h",
-			        input.getAbsolutePath());
+					"magick",
+					"identify",
+					"-limit", "time", "10",
+					"-limit", "memory", "128MiB",
+					"-limit", "map", "256MiB",
+					"-limit", "disk", "512MiB",
+					"-format", "%m %w %h",
+					input.getAbsolutePath());
 
 			identifyBuilder.redirectError(identifyError);
 			identifyBuilder.redirectOutput(identifyOutput);
@@ -83,13 +83,13 @@ public class ImageConvertService {
 			}
 
 			if (identifyProcess.exitValue() != 0) {
-			    String errorMessage = Files.readString(
-			            identifyError.toPath(),
-			            StandardCharsets.UTF_8).trim();
+				String errorMessage = Files.readString(
+						identifyError.toPath(),
+						StandardCharsets.UTF_8).trim();
 
-			    throw new IOException(
-			            "正常な画像として読み込めません。ImageMagickのエラー: "
-			                    + errorMessage);
+				throw new IOException(
+						"正常な画像として読み込めません。ImageMagickのエラー: "
+								+ errorMessage);
 			}
 
 			String[] imageInfo = Files.readString(
@@ -195,10 +195,10 @@ public class ImageConvertService {
 				output.delete();
 			}
 			if (identifyOutput != null) {
-			    identifyOutput.delete();
+				identifyOutput.delete();
 			}
 			if (identifyError != null) {
-			    identifyError.delete();
+				identifyError.delete();
 			}
 		}
 	}
