@@ -148,12 +148,14 @@ public class ApiRateLimitInterceptor implements HandlerInterceptor {
 	 * @ResponseBodyがある場合をAPIとして扱う。
 	 */
 	private boolean isApiHandler(HandlerMethod handlerMethod) {
-		Class<?> beanType = handlerMethod.getBeanType();
+	    Class<?> beanType = handlerMethod.getBeanType();
 
-		return AnnotatedElementUtils.hasAnnotation(
-				beanType, RestController.class)
-				|| AnnotatedElementUtils.hasAnnotation(
-						handlerMethod.getMethod(), ResponseBody.class);
+	    return AnnotatedElementUtils.hasAnnotation(
+	            beanType, RestController.class)
+	            || AnnotatedElementUtils.hasAnnotation(
+	                    beanType, ResponseBody.class)
+	            || AnnotatedElementUtils.hasAnnotation(
+	                    handlerMethod.getMethod(), ResponseBody.class);
 	}
 
 	/**
