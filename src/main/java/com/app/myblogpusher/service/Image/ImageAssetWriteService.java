@@ -11,6 +11,7 @@ package com.app.myblogpusher.service.Image;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -59,8 +60,6 @@ public class ImageAssetWriteService {
 			resolvedFolderName = "misc";
 		}
 
-		File convertedFile = imageConvertService.convert(file);
-
 		String originalName = file.getOriginalFilename();
 
 		if (originalName == null) {
@@ -70,25 +69,35 @@ public class ImageAssetWriteService {
 		String fileName = originalName;
 
 		if (originalName.toLowerCase().endsWith(".heic")) {
-
 			fileName = originalName.substring(
 					0,
 					originalName.lastIndexOf('.'))
 					+ ".webp";
 		}
 
-		File uploadFile = new File(
-				convertedFile.getParent(),
-				fileName);
+		File convertedFile = null;
+		File uploadFile = null;
+		String storagePath;
 
-		Files.copy(
-				convertedFile.toPath(),
-				uploadFile.toPath(),
-				java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+		try {
+			convertedFile = imageConvertService.convert(file);
 
-		String storagePath = supabaseStorageService.uploadImage(
-				uploadFile,
-				resolvedFolderName);
+			uploadFile = new File(
+					convertedFile.getParent(),
+					fileName);
+
+			Files.copy(
+					convertedFile.toPath(),
+					uploadFile.toPath(),
+					StandardCopyOption.REPLACE_EXISTING);
+
+			storagePath = supabaseStorageService.uploadImage(
+					uploadFile,
+					resolvedFolderName);
+
+		} finally {
+			deleteTemporaryFile(uploadFile, convertedFile);
+		}
 
 		ImageAsset asset = new ImageAsset();
 		asset.setUserId(userId);
@@ -153,56 +162,55 @@ public class ImageAssetWriteService {
 		 *
 		 * HEICの場合はアップロード時と同じくWebPへ変換する。
 		 */
+
 		if (file != null && !file.isEmpty()) {
-
 			File convertedFile = imageConvertService.convert(file);
+			File uploadFile = null;
 
-			String originalName = file.getOriginalFilename();
+			try {
+				String originalName = file.getOriginalFilename();
 
-			if (originalName == null) {
-				throw new IOException("ファイル名が取得できません");
-			}
+				if (originalName == null) {
+					throw new IOException("ファイル名が取得できません");
+				}
 
-			if (originalName.toLowerCase().endsWith(".heic")) {
+				if (originalName.toLowerCase().endsWith(".heic")) {
+					newFileName = newFileName.substring(
+							0,
+							newFileName.lastIndexOf('.'))
+							+ ".webp";
+				}
 
-				newFileName = newFileName.substring(
-						0,
-						newFileName.lastIndexOf('.'))
-						+ ".webp";
-			}
+				uploadFile = new File(
+						convertedFile.getParent(),
+						newFileName);
 
-			File uploadFile = new File(
-					convertedFile.getParent(),
-					newFileName);
+				Files.copy(
+						convertedFile.toPath(),
+						uploadFile.toPath(),
+						StandardCopyOption.REPLACE_EXISTING);
 
-			Files.copy(
-					convertedFile.toPath(),
-					uploadFile.toPath(),
-					java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+				if (!currentFolderName.equals(newFolderName)
+						|| !currentFileName.equals(newFileName)) {
 
-			/*
-			 * 保存先フォルダ・画像名をまとめて変更する場合は、
-			 * 現在のStorage上のファイルを新しいパスへ移動する。
-			 */
-			if (!currentFolderName.equals(newFolderName)
-					|| !currentFileName.equals(newFileName)) {
+					String newStoragePath = supabaseStorageService.renameImage(
+							asset.getStoragePath(),
+							newFolderName,
+							newFileName,
+							uploadFile);
 
-				String newStoragePath = supabaseStorageService.renameImage(
-						asset.getStoragePath(),
-						newFolderName,
-						newFileName,
-						uploadFile);
+					asset.setFolderName(newFolderName);
+					asset.setFileName(newFileName);
+					asset.setStoragePath(newStoragePath);
 
-				asset.setFolderName(newFolderName);
-				asset.setFileName(newFileName);
-				asset.setStoragePath(newStoragePath);
+				} else {
+					supabaseStorageService.replaceImage(
+							asset.getStoragePath(),
+							uploadFile);
+				}
 
-			} else {
-
-				// 保存先も画像名も同じ場合は実ファイルだけ差し替える。
-				supabaseStorageService.replaceImage(
-						asset.getStoragePath(),
-						uploadFile);
+			} finally {
+				deleteTemporaryFile(uploadFile, convertedFile);
 			}
 
 		} else if (!currentFolderName.equals(newFolderName)
@@ -331,6 +339,29 @@ public class ImageAssetWriteService {
 
 			throw new RuntimeException(
 					"フォルダ情報の更新に失敗しました", e);
+		}
+	}
+
+	/**
+	 * 一時ファイルを削除する。
+	 *
+	 * 削除に失敗した場合は、原因をログに記録する。
+	 */
+	private void deleteTemporaryFile(File... files) {
+		for (File file : files) {
+			if (file == null) {
+				continue;
+			}
+
+			try {
+				Files.deleteIfExists(file.toPath());
+			} catch (IOException e) {
+				System.err.println(
+						"一時ファイルの削除に失敗しました: "
+								+ file.getAbsolutePath()
+								+ " / "
+								+ e.getMessage());
+			}
 		}
 	}
 }

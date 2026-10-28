@@ -10,6 +10,7 @@
 package com.app.myblogpusher.controller;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -26,6 +27,7 @@ import com.app.myblogpusher.dto.ImageAssetView;
 import com.app.myblogpusher.entity.ImageAsset;
 import com.app.myblogpusher.entity.UserMaster;
 import com.app.myblogpusher.service.Facade.ImageAssetFacadeService;
+import com.app.myblogpusher.service.Image.ImageUploadRateLimitService;
 
 import jakarta.servlet.http.HttpSession;
 
@@ -34,6 +36,9 @@ public class ImageAssetController {
 
 	@Autowired
 	private ImageAssetFacadeService imageAssetFacadeService;
+
+	@Autowired
+	private ImageUploadRateLimitService imageUploadRateLimitService;
 
 	/**
 	 * DBに記録された画像一覧をJSONで返す
@@ -71,7 +76,13 @@ public class ImageAssetController {
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 		Long userId = loginUser.getUserId();
 
-		List<Map<String, String>> results = new java.util.ArrayList<>();
+		if (!imageUploadRateLimitService.isAllowed(userId)) {
+			return Map.of(
+					"result", "error",
+					"message", "アップロード回数の上限に達しました。しばらく待ってから再試行してください");
+		}
+
+		List<Map<String, String>> results = new ArrayList<>();
 
 		for (MultipartFile file : files) {
 			if (file == null || file.isEmpty()) {
@@ -79,6 +90,14 @@ public class ImageAssetController {
 						"result", "error",
 						"fileName", file == null ? "" : file.getOriginalFilename(),
 						"message", "空のファイルです"));
+				continue;
+			}
+
+			if (file.getSize() > 5L * 1024 * 1024) {
+				results.add(Map.of(
+						"result", "error",
+						"fileName", file.getOriginalFilename(),
+						"message", "ファイルサイズは5MB以下にしてください"));
 				continue;
 			}
 

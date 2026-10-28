@@ -92,8 +92,15 @@ public class ApiRateLimitInterceptor implements HandlerInterceptor {
 			return true;
 		}
 
-		// 制限判定に使用する接続元アドレスを記録する。
-		String clientIp = request.getRemoteAddr();
+		// Cloudflare経由の場合は、Cloudflareが付与した接続元IPを使用する。
+		String clientIp = request.getHeader("CF-Connecting-IP");
+
+		if (clientIp == null
+		        || clientIp.isBlank()
+		        || clientIp.length() > 45
+		        || !clientIp.matches("[0-9a-fA-F:.]+")) {
+		    clientIp = request.getRemoteAddr();
+		}
 
 		System.out.println(
 				"[ApiRateLimit] CHECK"
