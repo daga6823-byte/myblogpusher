@@ -21,7 +21,15 @@ import com.app.myblogpusher.dto.ImageCategoryDto;
 @Component
 public class ImageAssetCache {
 
+	/**
+	 * モーダル用の画像一覧キャッシュ
+	 */
 	private final ConcurrentMap<Long, List<ImageAssetView>> imageCache = new ConcurrentHashMap<>();
+
+	/**
+	 * 画像一覧画面用の全画像キャッシュ
+	 */
+	private final ConcurrentMap<Long, List<ImageAssetView>> allImagesCache = new ConcurrentHashMap<>();
 
 	/**
 	 * ユーザー・フォルダーごとの画像一覧キャッシュ
@@ -36,6 +44,23 @@ public class ImageAssetCache {
 		imageCache.put(userId, images);
 	}
 
+	/**
+	 * 一覧画面用の全画像をキャッシュする。
+	 */
+	public void putAllImages(Long userId, List<ImageAssetView> images) {
+		allImagesCache.put(userId, images);
+	}
+
+	/**
+	 * 一覧画面用の全画像をキャッシュから取得する。
+	 */
+	public List<ImageAssetView> getAllImages(Long userId) {
+		return allImagesCache.get(userId);
+	}
+
+	/**
+	 * モーダル用の画像一覧をキャッシュから取得する。
+	 */
 	public List<ImageAssetView> getImages(Long userId) {
 		return imageCache.get(userId);
 	}

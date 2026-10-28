@@ -23,17 +23,14 @@ const imagesPerPage = 27;
 // -----------------------------------------------------
 
 function loadImageList() {
-	fetch('/article/images')
-		.then(res => res.json())
+	fetch('/article/images/all')
+		.then(response => response.json())
 		.then(images => {
-
 			allImages = images;
-
 			updateImageList();
-
 		})
-		.catch(() => {
-			console.error('画像一覧の取得に失敗しました');
+		.catch(error => {
+			console.error('画像一覧の取得に失敗しました:', error);
 		});
 }
 

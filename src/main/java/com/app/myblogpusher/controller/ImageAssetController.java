@@ -49,14 +49,24 @@ public class ImageAssetController {
 	@GetMapping("/article/images")
 	@ResponseBody
 	public List<ImageAssetView> getImages(
-	        @RequestParam(required = false) String folderName,
-	        HttpSession session) {
+			@RequestParam(required = false) String folderName,
+			HttpSession session) {
 
-	    UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
+		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 
-	    return imageAssetFacadeService.listImages(
-	            loginUser.getUserId(),
-	            folderName);
+		return imageAssetFacadeService.listImages(
+				loginUser.getUserId(),
+				folderName);
+	}
+
+	/**
+	 * 画像一覧画面用に、ログインユーザーの全画像を取得する。
+	 */
+	@GetMapping("/article/images/all")
+	@ResponseBody
+	public List<ImageAssetView> getAllImages(HttpSession session) {
+		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
+		return imageAssetFacadeService.listAllImages(loginUser.getUserId());
 	}
 
 	/**

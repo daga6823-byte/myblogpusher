@@ -120,6 +120,36 @@ public class ImageAssetQueryService {
 	}
 
 	/**
+	 * 画像一覧画面用に、ユーザーの全画像を取得する。
+	 *
+	 * 全件キャッシュがあれば再利用し、なければDBから取得してキャッシュする。
+	 * DB検索はユーザーIDで絞り込み、他ユーザーの画像を混在させない。
+	 */
+	public List<ImageAssetView> listAllImages(Long userId) {
+		List<ImageAssetView> cachedImages = imageAssetCache.getAllImages(userId);
+
+		if (cachedImages != null) {
+			return cachedImages;
+		}
+
+		List<ImageAsset> assets = imageAssetRepository.findByUserIdOrderByUploadDateDesc(userId);
+
+		List<ImageAssetView> images = assets.stream()
+				.map(asset -> new ImageAssetView(
+						asset.getImageId(),
+						asset.getFolderName(),
+						asset.getFileName(),
+						asset.getFolderName(),
+						asset.getUploadDate(),
+						supabaseStorageService.getImageUrl(asset.getStoragePath())))
+				.toList();
+
+		imageAssetCache.putAllImages(userId, images);
+
+		return images;
+	}
+
+	/**
 	 * 画像一覧をページングして取得する。
 	 */
 	public Page<ImageAssetView> findImagePage(

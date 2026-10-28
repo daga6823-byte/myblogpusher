@@ -115,6 +115,15 @@ public class ImageAssetFacadeService {
 				userId,
 				folderName);
 	}
+	
+	/**
+	 * 画像一覧画面用に、ユーザーの全画像を取得する。
+	 *
+	 * 全件取得とキャッシュ管理はImageAssetQueryServiceに委譲する。
+	 */
+	public List<ImageAssetView> listAllImages(Long userId) {
+	    return imageAssetQueryService.listAllImages(userId);
+	}
 
 	/**
 	 * 画像一覧をページングして取得する。
