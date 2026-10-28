@@ -61,22 +61,47 @@ public class ApiRateLimitInterceptor implements HandlerInterceptor {
 			Object handler) throws IOException {
 
 		if (!(handler instanceof HandlerMethod handlerMethod)) {
-			return true;
-		}
-
-		if (!isApiHandler(handlerMethod)) {
+			System.out.println(
+					"[ApiRateLimit] SKIP non-HandlerMethod"
+							+ " method=" + request.getMethod()
+							+ " uri=" + request.getRequestURI());
 			return true;
 		}
 
 		String path = getRequestPath(request);
 
-		if (EXCLUDED_PATHS.contains(path)
-				|| "OPTIONS".equalsIgnoreCase(request.getMethod())) {
+		if (!isApiHandler(handlerMethod)) {
+			System.out.println(
+					"[ApiRateLimit] SKIP non-API"
+							+ " method=" + request.getMethod()
+							+ " path=" + path
+							+ " handler=" + handlerMethod.getBeanType().getSimpleName()
+							+ "#" + handlerMethod.getMethod().getName());
 			return true;
 		}
 
-		// プロキシ由来のヘッダーを無条件に信用せず、接続元アドレスを使用する。
+		if (EXCLUDED_PATHS.contains(path)) {
+			System.out.println(
+					"[ApiRateLimit] SKIP excluded path=" + path);
+			return true;
+		}
+
+		if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+			System.out.println(
+					"[ApiRateLimit] SKIP OPTIONS path=" + path);
+			return true;
+		}
+
+		// 制限判定に使用する接続元アドレスを記録する。
 		String clientIp = request.getRemoteAddr();
+
+		System.out.println(
+				"[ApiRateLimit] CHECK"
+						+ " method=" + request.getMethod()
+						+ " path=" + path
+						+ " clientIp=" + clientIp
+						+ " handler=" + handlerMethod.getBeanType().getSimpleName()
+						+ "#" + handlerMethod.getMethod().getName());
 
 		if (clientIp == null || clientIp.isBlank()) {
 			response.sendError(
@@ -94,6 +119,14 @@ public class ApiRateLimitInterceptor implements HandlerInterceptor {
 			history.removeExpiredRequests(now);
 
 			if (history.isRateLimitExceeded(now)) {
+				System.out.println(
+						"[ApiRateLimit] REJECTED"
+								+ " status=429"
+								+ " method=" + request.getMethod()
+								+ " path=" + path
+								+ " clientIp=" + clientIp
+								+ " requestsInLastMinute=" + history.requestTimes.size());
+
 				response.setStatus(429);
 				response.setContentType("application/json");
 				response.setCharacterEncoding("UTF-8");

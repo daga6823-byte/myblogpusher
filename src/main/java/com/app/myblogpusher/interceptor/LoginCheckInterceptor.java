@@ -39,13 +39,25 @@ public class LoginCheckInterceptor implements HandlerInterceptor {
 			Object handler) throws Exception {
 
 		String requestUri = request.getRequestURI();
+		String contextPath = request.getContextPath();
+		String path = requestUri.substring(contextPath.length());
 
-		// 2FA認証・初期設定中は、まだloginUserがセッションに存在しないため、
+		// ログイン前に利用する画面、共通エラー画面、静的リソースは
 		// ログインチェックの対象外とする。
-		if (requestUri.equals("/login/2fa/setup")
-				|| requestUri.equals("/login/2fa")) {
+		if (path.equals("/login")
+		        || path.equals("/login/forgot")
+		        || path.equals("/login/reset")
+		        || path.equals("/register")
+		        || path.equals("/error")
+		        || path.equals("/login/2fa/setup")
+		        || path.equals("/login/2fa")
+		        || path.equals("/health")
+		        || path.startsWith("/css/")
+		        || path.startsWith("/js/")
+		        || path.startsWith("/images/")
+		        || path.equals("/favicon.ico")) {
 
-			return true;
+		    return true;
 		}
 
 		HttpSession session = request.getSession(false);
@@ -55,10 +67,9 @@ public class LoginCheckInterceptor implements HandlerInterceptor {
 				: null;
 
 		if (loginUser == null) {
-
-			response.sendRedirect("/login");
-
-			return false; // ここでコントローラーへの到達をブロック
+		    response.sendRedirect(
+		            request.getContextPath() + "/login");
+		    return false;
 		}
 
 		UserMaster user = (UserMaster) loginUser;
