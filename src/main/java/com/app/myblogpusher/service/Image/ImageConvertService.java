@@ -51,6 +51,7 @@ public class ImageConvertService {
 		File input = null;
 		File output = null;
 		File identifyOutput = null;
+		File identifyError = null;
 		boolean converted = false;
 
 		try {
@@ -58,18 +59,19 @@ public class ImageConvertService {
 			file.transferTo(input);
 
 			identifyOutput = Files.createTempFile("identify_", ".txt").toFile();
+			identifyError = Files.createTempFile("identify_error_", ".txt").toFile();
 
 			ProcessBuilder identifyBuilder = new ProcessBuilder(
-					"magick",
-					"-limit", "time", "10",
-					"-limit", "memory", "128MiB",
-					"-limit", "map", "256MiB",
-					"-limit", "disk", "512MiB",
-					"identify",
-					"-format", "%m %w %h",
-					input.getAbsolutePath());
+			        "magick",
+			        "-limit", "time", "10",
+			        "-limit", "memory", "128MiB",
+			        "-limit", "map", "256MiB",
+			        "-limit", "disk", "512MiB",
+			        "identify",
+			        "-format", "%m %w %h",
+			        input.getAbsolutePath());
 
-			identifyBuilder.redirectError(ProcessBuilder.Redirect.DISCARD);
+			identifyBuilder.redirectError(identifyError);
 			identifyBuilder.redirectOutput(identifyOutput);
 
 			Process identifyProcess = identifyBuilder.start();
@@ -81,7 +83,13 @@ public class ImageConvertService {
 			}
 
 			if (identifyProcess.exitValue() != 0) {
-				throw new IOException("正常な画像として読み込めません");
+			    String errorMessage = Files.readString(
+			            identifyError.toPath(),
+			            StandardCharsets.UTF_8).trim();
+
+			    throw new IOException(
+			            "正常な画像として読み込めません。ImageMagickのエラー: "
+			                    + errorMessage);
 			}
 
 			String[] imageInfo = Files.readString(
@@ -187,7 +195,10 @@ public class ImageConvertService {
 				output.delete();
 			}
 			if (identifyOutput != null) {
-				identifyOutput.delete();
+			    identifyOutput.delete();
+			}
+			if (identifyError != null) {
+			    identifyError.delete();
 			}
 		}
 	}
