@@ -15,7 +15,11 @@ export function loadImageList() {
 
 	const requestId = ++imageState.loadRequestId;
 
-	fetch('/article/images')
+	const query = imageState.folderName
+		? '?folderName=' + encodeURIComponent(imageState.folderName)
+		: '';
+
+	fetch('/article/images' + query)
 		.then(res => res.json())
 		.then(images => {
 

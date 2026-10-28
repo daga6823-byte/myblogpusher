@@ -86,9 +86,12 @@ public class ApiRateLimitInterceptor implements HandlerInterceptor {
 			return true;
 		}
 
-		if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+		if ("GET".equalsIgnoreCase(request.getMethod())
+				|| "HEAD".equalsIgnoreCase(request.getMethod())
+				|| "OPTIONS".equalsIgnoreCase(request.getMethod())) {
 			System.out.println(
-					"[ApiRateLimit] SKIP OPTIONS path=" + path);
+					"[ApiRateLimit] SKIP read-only method=" + request.getMethod()
+							+ " path=" + path);
 			return true;
 		}
 
@@ -96,10 +99,10 @@ public class ApiRateLimitInterceptor implements HandlerInterceptor {
 		String clientIp = request.getHeader("CF-Connecting-IP");
 
 		if (clientIp == null
-		        || clientIp.isBlank()
-		        || clientIp.length() > 45
-		        || !clientIp.matches("[0-9a-fA-F:.]+")) {
-		    clientIp = request.getRemoteAddr();
+				|| clientIp.isBlank()
+				|| clientIp.length() > 45
+				|| !clientIp.matches("[0-9a-fA-F:.]+")) {
+			clientIp = request.getRemoteAddr();
 		}
 
 		System.out.println(
@@ -155,14 +158,14 @@ public class ApiRateLimitInterceptor implements HandlerInterceptor {
 	 * @ResponseBodyがある場合をAPIとして扱う。
 	 */
 	private boolean isApiHandler(HandlerMethod handlerMethod) {
-	    Class<?> beanType = handlerMethod.getBeanType();
+		Class<?> beanType = handlerMethod.getBeanType();
 
-	    return AnnotatedElementUtils.hasAnnotation(
-	            beanType, RestController.class)
-	            || AnnotatedElementUtils.hasAnnotation(
-	                    beanType, ResponseBody.class)
-	            || AnnotatedElementUtils.hasAnnotation(
-	                    handlerMethod.getMethod(), ResponseBody.class);
+		return AnnotatedElementUtils.hasAnnotation(
+				beanType, RestController.class)
+				|| AnnotatedElementUtils.hasAnnotation(
+						beanType, ResponseBody.class)
+				|| AnnotatedElementUtils.hasAnnotation(
+						handlerMethod.getMethod(), ResponseBody.class);
 	}
 
 	/**

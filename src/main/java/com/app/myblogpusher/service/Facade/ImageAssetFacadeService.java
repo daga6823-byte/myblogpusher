@@ -1,3 +1,15 @@
+/**
+ * 画像管理処理のファサード
+ *
+ * Controllerから画像管理に関する処理を呼び出す際の窓口となる。
+ *
+ * 画像の登録・更新・削除・取得・インポートなどの実処理は
+ * 各専門Serviceへ委譲し、Controllerから複数のServiceを
+ * 直接参照しない構成にする。
+ *
+ * サービス分割の移行期間中は既存のImageAssetServiceも利用し、
+ * 処理単位ごとの分離完了後に不要な委譲処理を削除する。
+ */
 package com.app.myblogpusher.service.Facade;
 
 import java.io.IOException;
@@ -16,18 +28,6 @@ import com.app.myblogpusher.service.Image.ImageAssetImportService;
 import com.app.myblogpusher.service.Image.ImageAssetQueryService;
 import com.app.myblogpusher.service.Image.ImageAssetWriteService;
 
-/**
- * 画像管理処理のファサード
- *
- * Controllerから画像管理に関する処理を呼び出す際の窓口となる。
- *
- * 画像の登録・更新・削除・取得・インポートなどの実処理は
- * 各専門Serviceへ委譲し、Controllerから複数のServiceを
- * 直接参照しない構成にする。
- *
- * サービス分割の移行期間中は既存のImageAssetServiceも利用し、
- * 処理単位ごとの分離完了後に不要な委譲処理を削除する。
- */
 @Service
 public class ImageAssetFacadeService {
 

@@ -1,5 +1,5 @@
 /**
- * image_manager.js
+ * image_facade.js
  *
  * 画像管理機能のエントリーポイント（ファサード）。
  *

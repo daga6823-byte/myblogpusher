@@ -12,6 +12,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -49,7 +50,7 @@ public class ImageAssetQueryService {
 					.findByUserIdAndFolderNameOrderByUploadDateDesc(
 							userId,
 							folderName,
-							org.springframework.data.domain.Pageable.unpaged())
+							Pageable.unpaged())
 					.getContent();
 
 		} else {
@@ -70,45 +71,52 @@ public class ImageAssetQueryService {
 	 * 全カテゴリーの場合はログイン時に先読みした
 	 * キャッシュを利用する。
 	 */
-	public List<ImageAssetView> listImages(
-			Long userId,
-			String folderName) {
+	public List<ImageAssetView> listImages(Long userId, String folderName) {
+		List<ImageAssetView> cachedImages;
 
-		if (folderName == null) {
-
-			List<ImageAssetView> cachedImages =
-					imageAssetCache.getImages(userId);
-
+		if (folderName == null || folderName.isBlank()) {
+			cachedImages = imageAssetCache.getImages(userId);
+			if (cachedImages != null) {
+				return cachedImages;
+			}
+		} else {
+			cachedImages = imageAssetCache.getFolderImages(userId, folderName);
 			if (cachedImages != null) {
 				return cachedImages;
 			}
 		}
 
-		List<ImageAsset> assets = (folderName != null)
-				? imageAssetRepository
-						.findByUserIdAndFolderNameOrderByUploadDateDesc(
-								userId,
-								folderName,
-								org.springframework.data.domain.Pageable.unpaged())
-						.getContent()
-				: imageAssetRepository
-						.findByUserIdOrderByUploadDateDesc(userId);
+		Pageable pageable = PageRequest.of(0, folderName == null || folderName.isBlank() ? 12 : 100);
 
-		return assets.stream()
-				.map(asset -> {
+		List<ImageAsset> assets;
+		if (folderName == null || folderName.isBlank()) {
+			assets = imageAssetRepository
+					.findByUserIdOrderByUploadDateDesc(userId, pageable)
+					.getContent();
+		} else {
+			assets = imageAssetRepository
+					.findByUserIdAndFolderNameOrderByUploadDateDesc(
+							userId, folderName, pageable)
+					.getContent();
+		}
 
-					String categoryName = asset.getFolderName();
-
-					return new ImageAssetView(
-							asset.getImageId(),
-							asset.getFolderName(),
-							asset.getFileName(),
-							categoryName,
-							asset.getUploadDate(),
-							supabaseStorageService.getImageUrl(
-									asset.getStoragePath()));
-				})
+		List<ImageAssetView> images = assets.stream()
+				.map(asset -> new ImageAssetView(
+						asset.getImageId(),
+						asset.getFolderName(),
+						asset.getFileName(),
+						asset.getFolderName(),
+						asset.getUploadDate(),
+						supabaseStorageService.getImageUrl(asset.getStoragePath())))
 				.toList();
+
+		if (folderName == null || folderName.isBlank()) {
+			imageAssetCache.putImages(userId, images);
+		} else {
+			imageAssetCache.putFolderImages(userId, folderName, images);
+		}
+
+		return images;
 	}
 
 	/**
@@ -159,16 +167,15 @@ public class ImageAssetQueryService {
 	 */
 	public List<ImageCategoryDto> findImageCategories(Long userId) {
 
-	    List<ImageCategoryDto> cachedCategories =
-	            imageAssetCache.getCategories(userId);
+		List<ImageCategoryDto> cachedCategories = imageAssetCache.getCategories(userId);
 
-	    if (cachedCategories != null) {
-	        return cachedCategories;
-	    }
+		if (cachedCategories != null) {
+			return cachedCategories;
+		}
 
-	    cacheImageCategoriesAndFolders(userId);
+		cacheImageCategoriesAndFolders(userId);
 
-	    return imageAssetCache.getCategories(userId);
+		return imageAssetCache.getCategories(userId);
 	}
 
 	/**
@@ -176,39 +183,30 @@ public class ImageAssetQueryService {
 	 */
 	public List<String> findImageFolders(Long userId) {
 
-	    List<String> cachedFolders =
-	            imageAssetCache.getFolders(userId);
+		List<String> cachedFolders = imageAssetCache.getFolders(userId);
 
-	    if (cachedFolders != null) {
-	        return cachedFolders;
-	    }
+		if (cachedFolders != null) {
+			return cachedFolders;
+		}
 
-	    cacheImageCategoriesAndFolders(userId);
+		cacheImageCategoriesAndFolders(userId);
 
-	    return imageAssetCache.getFolders(userId);
+		return imageAssetCache.getFolders(userId);
 	}
-	
+
 	/**
-	 * 画像一覧からカテゴリーとフォルダーを抽出し、
-	 * 両方のキャッシュへ保存する。
+	 * DBから取得したフォルダー名をカテゴリーとフォルダーの
+	 * キャッシュへ保存する。
 	 */
 	private void cacheImageCategoriesAndFolders(Long userId) {
 
-	    List<ImageAsset> assets =
-	            imageAssetRepository.findByUserIdOrderByUploadDateDesc(userId);
+		List<String> folders = imageAssetRepository.findDistinctFolderNamesByUserId(userId);
 
-	    List<String> folders = assets.stream()
-	            .map(ImageAsset::getFolderName)
-	            .filter(folder -> folder != null && !folder.isBlank())
-	            .distinct()
-	            .sorted()
-	            .toList();
+		List<ImageCategoryDto> categories = folders.stream()
+				.map(ImageCategoryDto::new)
+				.toList();
 
-	    List<ImageCategoryDto> categories = folders.stream()
-	            .map(ImageCategoryDto::new)
-	            .toList();
-
-	    imageAssetCache.putCategories(userId, categories);
-	    imageAssetCache.putFolders(userId, folders);
+		imageAssetCache.putCategories(userId, categories);
+		imageAssetCache.putFolders(userId, folders);
 	}
 }

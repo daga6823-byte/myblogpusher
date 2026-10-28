@@ -21,21 +21,47 @@ import com.app.myblogpusher.dto.ImageCategoryDto;
 @Component
 public class ImageAssetCache {
 
-	private final ConcurrentMap<Long, List<ImageAssetView>> imageCache =
-	        new ConcurrentHashMap<>();
+	private final ConcurrentMap<Long, List<ImageAssetView>> imageCache = new ConcurrentHashMap<>();
+
+	/**
+	 * ユーザー・フォルダーごとの画像一覧キャッシュ
+	 */
+	private final ConcurrentMap<String, List<ImageAssetView>> folderImageCache = new ConcurrentHashMap<>();
 
 	private final ConcurrentMap<Long, List<ImageCategoryDto>> categoryCache = new ConcurrentHashMap<>();
 
 	private final ConcurrentMap<Long, List<String>> folderCache = new ConcurrentHashMap<>();
 
 	public void putImages(Long userId, List<ImageAssetView> images) {
-	    imageCache.put(userId, images);
+		imageCache.put(userId, images);
 	}
 
 	public List<ImageAssetView> getImages(Long userId) {
-	    return imageCache.get(userId);
+		return imageCache.get(userId);
 	}
-	
+
+	/**
+	 * フォルダー別の画像一覧をキャッシュする。
+	 */
+	public void putFolderImages(
+			Long userId,
+			String folderName,
+			List<ImageAssetView> images) {
+
+		folderImageCache.put(userId + ":" + folderName, images);
+	}
+
+	/**
+	 * フォルダー別の画像一覧をキャッシュから取得する。
+	 * キャッシュが存在しない場合はnullを返す。
+	 */
+	public List<ImageAssetView> getFolderImages(
+			Long userId,
+			String folderName) {
+
+		return folderImageCache.get(userId + ":" + folderName);
+	}
+
 	public void putCategories(
 			Long userId,
 			List<ImageCategoryDto> categories) {
@@ -62,6 +88,8 @@ public class ImageAssetCache {
 	 */
 	public void clear(Long userId) {
 		imageCache.remove(userId);
+		folderImageCache.keySet().removeIf(
+				key -> key.startsWith(userId + ":"));
 		categoryCache.remove(userId);
 		folderCache.remove(userId);
 	}
