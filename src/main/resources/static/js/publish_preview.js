@@ -71,6 +71,20 @@ function publishSubmit() {
 		waitTab.location.href = `/publish/wait?${params.toString()}`;
 	}
 
+	// 投稿処理のリダイレクト先を非表示iframeにする。
+	// MBPの確認画面は遷移させず、待機タブで投稿状況を確認する。
+	let publishFrame = document.getElementById("publishSubmitFrame");
+
+	if (!publishFrame) {
+		publishFrame = document.createElement("iframe");
+		publishFrame.id = "publishSubmitFrame";
+		publishFrame.name = "publishSubmitFrame";
+		publishFrame.style.display = "none";
+		document.body.appendChild(publishFrame);
+	}
+
+	form.target = "publishSubmitFrame";
+
 	const button = document.getElementById("publishButton");
 	if (button) {
 		button.disabled = true;
