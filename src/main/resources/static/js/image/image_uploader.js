@@ -89,15 +89,10 @@ document.getElementById('imageUploadButton').addEventListener(
 						? `${successCount}枚の画像をアップロードしました`
 						: `${successCount}枚成功、${failureCount}枚失敗しました`;
 
-					const currentFolderName =
-						imageState.folderName;
-
+					imageState.folderName = folderName || null;
+					imageState.page = 0;
 					loadImageFolders();
 					loadImageCategories();
-
-					imageState.folderName =
-						currentFolderName;
-
 					loadImageList();
 
 				} else {
