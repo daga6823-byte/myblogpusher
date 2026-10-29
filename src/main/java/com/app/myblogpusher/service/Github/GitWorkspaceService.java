@@ -51,8 +51,14 @@ public class GitWorkspaceService {
 
 		File repoDir = new File(repoPath);
 
-		if (!repoDir.exists()) {
-			repoDir.mkdirs();
+		if (!repoDir.exists() && !repoDir.mkdirs()) {
+			throw new IOException(
+					"Git作業ディレクトリを作成できません: " + repoPath);
+		}
+
+		if (!repoDir.isDirectory() || !repoDir.canWrite()) {
+			throw new IOException(
+					"Git作業ディレクトリに書き込めません: " + repoPath);
 		}
 
 		Git git = initializeRepository(
@@ -72,22 +78,34 @@ public class GitWorkspaceService {
 		File gitDir = new File(repoDir, ".git");
 
 		if (gitDir.exists()) {
+			if (!gitDir.isDirectory()) {
+				throw new IOException(
+						"Git管理ディレクトリがディレクトリではありません: "
+								+ gitDir.getAbsolutePath());
+			}
 
-			Repository repository = new FileRepositoryBuilder()
-					.setGitDir(gitDir)
-					.build();
+			try {
+				Repository repository = new FileRepositoryBuilder()
+						.setGitDir(gitDir)
+						.build();
 
-			Git git = new Git(repository);
+				Git git = new Git(repository);
 
-			git.pull()
-					.setCredentialsProvider(
-							new UsernamePasswordCredentialsProvider(
-									"git",
-									accessToken))
-					.call();
+				git.pull()
+						.setCredentialsProvider(
+								new UsernamePasswordCredentialsProvider(
+										"git",
+										accessToken))
+						.call();
 
-			return git;
+				return git;
 
+			} catch (IOException | GitAPIException e) {
+				throw new IOException(
+						"既存のGit作業領域を開くか最新化できませんでした: "
+								+ gitDir.getAbsolutePath(),
+						e);
+			}
 		}
 
 		String remoteUrl = String.format(
