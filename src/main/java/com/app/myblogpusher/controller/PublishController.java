@@ -169,8 +169,7 @@ public class PublishController {
 			return "error";
 		}
 
-		return "redirect:/publish/wait?workId=" + workId
-		        + "&slug=" + slug;
+		return "redirect:/home";
 	}
 
 	/**

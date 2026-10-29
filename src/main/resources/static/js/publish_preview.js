@@ -91,6 +91,11 @@ function publishSubmit() {
 		button.textContent = "投稿中...";
 	}
 
+	// 投稿前確認画面を離れ、MBPのトップページへ戻る
+	setTimeout(() => {
+		window.location.href = '/home';
+	}, 0);
+
 	return true;
 }
 
