@@ -55,10 +55,10 @@ public class ArticlePublishWorkerService {
 			// GitHub APIで投稿可能か確認する。
 			if (!gitHubFacadeService.canPublish(repo, cipherKey)) {
 				articleWorkService.updateStatus(
-				        work.getWorkId(),
-				        2,
-				        "GitHub APIで投稿権限を確認できませんでした。",
-				        work.getUserId());
+						work.getWorkId(),
+						2,
+						"GitHub APIで投稿権限を確認できませんでした。",
+						work.getUserId());
 				return;
 			}
 
@@ -102,9 +102,9 @@ public class ArticlePublishWorkerService {
 			// Articleの重複整理、PUBLISHEDへの変更、Work削除まで
 			// DBトランザクション内でまとめて実行する。
 			Article publishedArticle = articleService.completePublish(
-			        work,
-			        work.getSlug(),
-			        thumbnailUrl);
+					work,
+					work.getSlug(),
+					thumbnailUrl);
 
 		} catch (Exception e) {
 			System.err.println(
@@ -116,12 +116,19 @@ public class ArticlePublishWorkerService {
 			e.printStackTrace(pw);
 
 			// 投稿失敗した記事はエラー状態で残す。
-			// スタックトレースを含む詳細をDBへ保存する。
+			// 詳細なスタックトレースはサーバーログに出力し、DBには100文字以内のエラー情報を保存する。
+			String errorMessage = e.getClass().getSimpleName()
+					+ ": " + e.getMessage();
+
+			if (errorMessage.length() > 100) {
+				errorMessage = errorMessage.substring(0, 100);
+			}
+
 			articleWorkService.updateStatus(
-			        work.getWorkId(),
-			        2,
-			        sw.toString(),
-			        work.getUserId());
+					work.getWorkId(),
+					2,
+					errorMessage,
+					work.getUserId());
 		}
 	}
 
