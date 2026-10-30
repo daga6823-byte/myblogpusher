@@ -7,8 +7,8 @@
  */
 package com.app.myblogpusher.controller;
 
-import java.time.LocalDateTime;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -21,6 +21,7 @@ import com.app.myblogpusher.dto.EnglishDictionaryForm;
 import com.app.myblogpusher.entity.EnglishDictionary;
 import com.app.myblogpusher.entity.UserMaster;
 import com.app.myblogpusher.repository.EnglishDictionaryRepository;
+import com.app.myblogpusher.service.EnglishDictionaryService;
 
 import jakarta.servlet.http.HttpSession;
 
@@ -28,9 +29,13 @@ import jakarta.servlet.http.HttpSession;
 public class EnglishDictionaryController {
 
 	private final EnglishDictionaryRepository englishDictionaryRepository;
+	private final EnglishDictionaryService englishDictionaryService;
 
-	public EnglishDictionaryController(EnglishDictionaryRepository englishDictionaryRepository) {
+	public EnglishDictionaryController(
+			EnglishDictionaryRepository englishDictionaryRepository,
+			EnglishDictionaryService englishDictionaryService) {
 		this.englishDictionaryRepository = englishDictionaryRepository;
+		this.englishDictionaryService = englishDictionaryService;
 	}
 
 	/**
@@ -67,7 +72,7 @@ public class EnglishDictionaryController {
 		// ログインユーザーの管理者権限を確認する。
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 		if (loginUser == null || loginUser.getRole() == null
-        || loginUser.getRole() < 1) {
+				|| loginUser.getRole() < 1) {
 			return "redirect:/english-dictionary/list";
 		}
 
@@ -107,59 +112,33 @@ public class EnglishDictionaryController {
 	 * @return 登録元画面または辞典一覧画面へのリダイレクト
 	 */
 	@PostMapping("/english-dictionary/save")
-	public String save(
-	        @ModelAttribute("form") EnglishDictionaryForm form,
-	        @RequestParam(required = false) String returnTo,
-	        HttpSession session) {
+	public CompletableFuture<String> save(
+			@ModelAttribute("form") EnglishDictionaryForm form,
+			@RequestParam(required = false) String returnTo,
+			HttpSession session) {
 
-	    // ログインユーザーの管理者権限を確認する。
-	    UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
-	    if (loginUser == null || loginUser.getRole() == null
-        || loginUser.getRole() < 1) {
-	        return "redirect:/english-dictionary/list";
-	    }
+		// ログインユーザーの管理者権限を確認する。
+		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
+		if (loginUser == null || loginUser.getRole() == null
+				|| loginUser.getRole() < 1) {
+			return CompletableFuture.completedFuture(
+					"redirect:/english-dictionary/list");
+		}
 
-	    Long userId = loginUser.getUserId();
-	    LocalDateTime now = LocalDateTime.now();
+		Long userId = loginUser.getUserId();
 
-	    // 共通辞典の更新、または新規登録を行う。
-	    EnglishDictionary dictionary;
+		return englishDictionaryService.saveAsync(form, userId)
+				.thenApply(result -> {
+					String savedReturnTo = (String) session.getAttribute("dictionaryReturnTo");
 
-	    if (form.getId() != null) {
-	        // 更新対象が共通辞典であることを確認する。
-	        dictionary = englishDictionaryRepository
-	                .findByIdAndUserIdIsNull(form.getId())
-	                .orElseThrow();
+					if ("publish_preview".equals(returnTo)
+							|| "publish_preview".equals(savedReturnTo)) {
+						session.removeAttribute("dictionaryReturnTo");
+						return "redirect:/publish/preview/back";
+					}
 
-	        dictionary.setJapanese(form.getJapanese());
-	        dictionary.setEnglish(form.getEnglish());
-	        dictionary.setUpdateDate(now);
-	        dictionary.setUpdateUser(userId);
-	    } else {
-	        // 新規データを共通辞典として登録する。
-	        dictionary = new EnglishDictionary();
-	        dictionary.setUserId(null);
-	        dictionary.setJapanese(form.getJapanese());
-	        dictionary.setEnglish(form.getEnglish());
-	        dictionary.setCreateDate(now);
-	        dictionary.setCreateUser(userId);
-	        dictionary.setUpdateDate(now);
-	        dictionary.setUpdateUser(userId);
-	    }
-
-	    englishDictionaryRepository.save(dictionary);
-
-	    // 登録元画面の情報を確認する。
-	    String savedReturnTo = (String) session.getAttribute("dictionaryReturnTo");
-
-	    if ("publish_preview".equals(returnTo)
-	            || "publish_preview".equals(savedReturnTo)) {
-
-	        session.removeAttribute("dictionaryReturnTo");
-	        return "redirect:/publish/preview/back";
-	    }
-
-	    return "redirect:/english-dictionary/list?saved";
+					return "redirect:/english-dictionary/list?saved";
+				});
 	}
 
 	/**
@@ -171,22 +150,22 @@ public class EnglishDictionaryController {
 	 */
 	@PostMapping("/english-dictionary/delete")
 	public String delete(
-	        @RequestParam Long id,
-	        HttpSession session) {
+			@RequestParam Long id,
+			HttpSession session) {
 
-	    // ログインユーザーの管理者権限を確認する。
-	    UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
-	    if (loginUser == null || loginUser.getRole() == null
-        || loginUser.getRole() < 1) {
-	        return "redirect:/english-dictionary/list";
-	    }
+		// ログインユーザーの管理者権限を確認する。
+		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
+		if (loginUser == null || loginUser.getRole() == null
+				|| loginUser.getRole() < 1) {
+			return "redirect:/english-dictionary/list";
+		}
 
-	    // 共通辞典であることを確認してから削除する。
-	    EnglishDictionary dictionary = englishDictionaryRepository
-	            .findByIdAndUserIdIsNull(id)
-	            .orElseThrow();
+		// 共通辞典であることを確認してから削除する。
+		EnglishDictionary dictionary = englishDictionaryRepository
+				.findByIdAndUserIdIsNull(id)
+				.orElseThrow();
 
-	    englishDictionaryRepository.delete(dictionary);
-	    return "redirect:/english-dictionary/list";
+		englishDictionaryRepository.delete(dictionary);
+		return "redirect:/english-dictionary/list";
 	}
 }

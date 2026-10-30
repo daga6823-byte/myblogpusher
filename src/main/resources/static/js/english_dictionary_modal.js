@@ -27,6 +27,7 @@ document.querySelectorAll('.btn-update').forEach(btn => {
 		englishInput.value = btn.dataset.english;
 
 		modal.style.display = 'block';
+		japaneseInput.focus();
 	});
 });
 
@@ -45,6 +46,7 @@ if (addDictionaryButton) {
 		englishInput.value = '';
 
 		modal.style.display = 'block';
+		japaneseInput.focus();
 	});
 }
 
@@ -103,3 +105,32 @@ if (cancelDictionaryButton) {
 		modal.style.display = 'none';
 	});
 }
+
+/**
+ * モーダル内にキーボードフォーカスを留める。
+ */
+modal.addEventListener('keydown', event => {
+	if (event.key !== 'Tab') {
+		return;
+	}
+
+	const focusableElements = modal.querySelectorAll(
+		'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), a[href]'
+	);
+
+	if (focusableElements.length === 0) {
+		event.preventDefault();
+		return;
+	}
+
+	const firstElement = focusableElements[0];
+	const lastElement = focusableElements[focusableElements.length - 1];
+
+	if (event.shiftKey && document.activeElement === firstElement) {
+		event.preventDefault();
+		lastElement.focus();
+	} else if (!event.shiftKey && document.activeElement === lastElement) {
+		event.preventDefault();
+		firstElement.focus();
+	}
+});
