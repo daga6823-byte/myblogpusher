@@ -18,6 +18,7 @@ import com.app.myblogpusher.entity.Article.Article;
 import com.app.myblogpusher.entity.Article.ArticleWork;
 import com.app.myblogpusher.service.HugoArticleService;
 import com.app.myblogpusher.service.Facade.GitHubFacadeService;
+import com.app.myblogpusher.service.Github.GitHubActionsService;
 
 @Service
 public class ArticlePublishWorkerService {
@@ -33,6 +34,9 @@ public class ArticlePublishWorkerService {
 
 	@Autowired
 	private HugoArticleService hugoArticleService;
+	
+	@Autowired
+	private GitHubActionsService gitHubActionsService;
 
 	/**
 	 * 1記事分の投稿処理を実行する。
@@ -90,21 +94,15 @@ public class ArticlePublishWorkerService {
 
 			// GitHub投稿を実行する。
 			// 投稿成功前にArticleテーブルへ保存しない。
-			gitHubFacadeService.pushArticle(
-					repo,
-					cipherKey,
-					article,
-					existingArticle,
-					existingArticle == null,
-					work.getSlug());
+			String commitSha = gitHubFacadeService.pushArticle(
+					repo, cipherKey, article, existingArticle,
+					existingArticle == null, work.getSlug());
 
-			// GitHub投稿成功後にArticleを作成・更新する。
-			// Articleの重複整理、PUBLISHEDへの変更、Work削除まで
-			// DBトランザクション内でまとめて実行する。
-			Article publishedArticle = articleService.completePublish(
-					work,
-					work.getSlug(),
-					thumbnailUrl);
+			gitHubActionsService.waitForDeployment(
+					repo, cipherKey, commitSha);
+
+			articleService.completePublish(
+					work, work.getSlug(), thumbnailUrl);
 
 		} catch (Exception e) {
 			System.err.println(

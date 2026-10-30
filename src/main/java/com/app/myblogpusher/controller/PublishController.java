@@ -86,7 +86,7 @@ public class PublishController {
 
 		// 保存前のワークと投稿済み記事を取得する。
 		PublishPreviewPreparationService.ExistingArticleData existingData = publishPreviewPreparationService
-		        .findExistingArticleData(workId, userId);
+				.findExistingArticleData(workId, userId);
 
 		// 記事とカテゴリー情報をワークテーブルへ保存する。
 		Long savedWorkId = articleSaveUtil.doSaveDraft(
@@ -278,7 +278,7 @@ public class PublishController {
 
 		/// 保存前のワークと投稿済み記事を取得する。
 		PublishPreviewPreparationService.ExistingArticleData existingData = publishPreviewPreparationService
-		        .findExistingArticleData(workId, userId);
+				.findExistingArticleData(workId, userId);
 
 		// 保存済みワークのスラッグを優先して投稿確認画面の表示情報を準備する。
 		PublishPreviewPreparationService.PreparationResult result = publishPreviewPreparationService.preparePreview(
@@ -363,5 +363,22 @@ public class PublishController {
 	@GetMapping("/publish/wait")
 	public String showPublishWait() {
 		return "publish_wait";
+	}
+
+	/**
+	 * 記事投稿失敗時に共通エラー画面を表示する。
+	 */
+	@GetMapping("/error")
+	public String showPublishError(Model model) {
+
+		model.addAttribute(
+				"errorMessage",
+				"記事の投稿に失敗しました。投稿状況を確認し、必要に応じて再投稿してください。");
+
+		model.addAttribute(
+				"errorReason",
+				"GitHubへのPushまたはGitHub Actionsによるデプロイに失敗した可能性があります。");
+
+		return "error";
 	}
 }

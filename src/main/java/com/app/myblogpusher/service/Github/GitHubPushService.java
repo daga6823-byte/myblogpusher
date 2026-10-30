@@ -12,6 +12,7 @@ import java.io.IOException;
 
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.revwalk.RevCommit;
 import org.springframework.stereotype.Service;
 
 import com.app.myblogpusher.entity.UserRepositoryEntity;
@@ -35,7 +36,7 @@ public class GitHubPushService {
 	/**
 	 * 記事をMarkdownファイルとしてGitHubへプッシュ
 	 */
-	public void pushArticle(
+	public String pushArticle(
 			UserRepositoryEntity repoEntity,
 			String cipherKey,
 			Article article,
@@ -93,7 +94,7 @@ public class GitHubPushService {
 					? "Add article: "
 					: "Update article: ";
 
-			git.commit()
+			RevCommit commit = git.commit()
 					.setMessage(commitMessage + article.getSlug())
 					.setAuthor(
 							"Myblogpusher",
@@ -101,6 +102,8 @@ public class GitHubPushService {
 					.call();
 
 			workspace.push();
+
+			return commit.getName();
 		}
 	}
 }

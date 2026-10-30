@@ -10,6 +10,9 @@ package com.app.myblogpusher.service;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import com.app.myblogpusher.entity.UserRepositoryEntity;
 import com.app.myblogpusher.repository.UserRepositoryRepository;
@@ -45,6 +48,7 @@ public class PublishExecutionService {
 	 *
 	 * @return リポジトリが設定され、投稿処理を開始できた場合はtrue
 	 */
+	@Transactional
 	public boolean executePublish(
 			Long workId,
 			Long categoryId,
@@ -72,13 +76,19 @@ public class PublishExecutionService {
 		// 投稿開始時に編集用ワークスペースを削除する。
 		workspaceService.delete(userId);
 
-		// GitHubへの投稿を非同期で開始する。
-		articlePublishService.publishAsync(
-				repo,
-				cipherKey,
-				userId,
-				workId,
-				thumbnailUrl);
+		// DBのコミット完了後にGitHubへの投稿を非同期で開始する。
+		TransactionSynchronizationManager.registerSynchronization(
+				new TransactionSynchronization() {
+					@Override
+					public void afterCommit() {
+						articlePublishService.publishAsync(
+								repo,
+								cipherKey,
+								userId,
+								workId,
+								thumbnailUrl);
+					}
+				});
 
 		return true;
 	}

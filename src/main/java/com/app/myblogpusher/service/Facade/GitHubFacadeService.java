@@ -44,7 +44,7 @@ public class GitHubFacadeService {
 	/**
 	 * 記事をMarkdownファイルとしてGitHubへプッシュ
 	 */
-	public void pushArticle(
+	public String pushArticle(
 			UserRepositoryEntity repoEntity,
 			String cipherKey,
 			Article article,
@@ -53,7 +53,7 @@ public class GitHubFacadeService {
 			String slug)
 			throws IOException, GitAPIException {
 
-		gitHubPushService.pushArticle(
+		return gitHubPushService.pushArticle(
 				repoEntity,
 				cipherKey,
 				article,

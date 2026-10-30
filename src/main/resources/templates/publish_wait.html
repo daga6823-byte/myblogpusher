@@ -27,8 +27,15 @@
 			}
 
 			let checking = false;
+			let finished = false;
+			let publishTab = window.open("about:blank", "_blank");
 
 			async function checkPublishStatus() {
+
+				if (finished || checking) {
+					return;
+				}
+
 				if (checking) {
 					return;
 				}
@@ -52,14 +59,17 @@
 					const result = await response.json();
 
 					if (result.status === "PUBLISHED") {
+						finished = true;
+
 						statusTitle.textContent = "投稿が完了しました";
 						statusMessage.textContent = "公開記事へ移動します。";
 
 						if (!result.url) {
-							showError("公開URLを取得できませんでした。");
+							showError("公開記事のURLを取得できませんでした。");
 							return;
 						}
 
+						// 投稿状況確認用タブを公開記事へ遷移させる
 						window.location.replace(result.url);
 						return;
 					}
@@ -84,8 +94,8 @@
 			}
 
 			function showError(message) {
-				statusTitle.textContent = "投稿状況を確認できません";
-				statusMessage.textContent = message;
+				finished = true;
+				window.location.replace("/publish/error");
 			}
 
 			checkPublishStatus();

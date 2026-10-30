@@ -7,8 +7,6 @@
 
 package com.app.myblogpusher.service.Article;
 
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -21,7 +19,7 @@ public class ArticlePublishService {
 
 	@Autowired
 	private ArticleWorkService articleWorkService;
-	
+
 	@Autowired
 	private ArticlePublishWorkerService articlePublishWorkerService;
 
@@ -39,16 +37,20 @@ public class ArticlePublishService {
 			Long workId,
 			String thumbnailUrl) {
 
-		// ログインユーザーの投稿処理中の記事を取得する。
-		List<ArticleWork> works = articleWorkService.findPublishing(userId);
+		// 投稿ボタンで指定されたWorkだけを取得する。
+		ArticleWork work = articleWorkService.findById(
+				workId,
+				userId);
 
-		// 1記事ずつ投稿処理を実行する。
-		for (ArticleWork work : works) {
-			articlePublishWorkerService.publish(
-					repo,
-					cipherKey,
-					work,
-					thumbnailUrl);
+		// 指定された1記事の投稿処理を実行する。
+		if (work.getStatus() == null || work.getStatus() != 1) {
+			return;
 		}
+
+		articlePublishWorkerService.publish(
+				repo,
+				cipherKey,
+				work,
+				thumbnailUrl);
 	}
 }
