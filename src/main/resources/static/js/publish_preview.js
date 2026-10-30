@@ -74,12 +74,28 @@ function publishSubmit() {
 	// 投稿処理のリダイレクト先を非表示iframeにする。
 	// MBPの確認画面は遷移させず、待機タブで投稿状況を確認する。
 	let publishFrame = document.getElementById("publishSubmitFrame");
+	const isNewFrame = !publishFrame;
 
 	if (!publishFrame) {
 		publishFrame = document.createElement("iframe");
 		publishFrame.id = "publishSubmitFrame";
 		publishFrame.name = "publishSubmitFrame";
 		publishFrame.style.display = "none";
+	}
+
+	// iframeの初期読み込みは無視し、投稿リクエストへの応答後に画面遷移する。
+	let initialLoad = isNewFrame;
+
+	publishFrame.addEventListener('load', function() {
+		if (initialLoad) {
+			initialLoad = false;
+			return;
+		}
+
+		window.location.href = '/home';
+	});
+
+	if (isNewFrame) {
 		document.body.appendChild(publishFrame);
 	}
 
@@ -90,11 +106,6 @@ function publishSubmit() {
 		button.disabled = true;
 		button.textContent = "投稿中...";
 	}
-
-	// 投稿前確認画面を離れ、MBPのトップページへ戻る
-	setTimeout(() => {
-		window.location.href = '/home';
-	}, 0);
 
 	return true;
 }
