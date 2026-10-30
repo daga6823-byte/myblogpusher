@@ -1,0 +1,41 @@
+<!-- 英単語辞典追加・編集モーダル -->
+
+<div th:fragment="englishDictionaryModal">
+
+	<div id="englishDictionaryModal" class="modal" style="display:none;">
+
+		<div class="modal-content">
+
+			<h2 id="englishDictionaryModalTitle">英単語辞典追加</h2>
+
+			<input type="hidden" id="dictionaryId">
+
+			<div class="form-group">
+
+				<label for="dictionaryJapanese">日本語</label>
+
+				<input type="text" id="dictionaryJapanese">
+
+			</div>
+
+			<div class="form-group">
+
+				<label for="dictionaryEnglish">英単語</label>
+
+				<input type="text" id="dictionaryEnglish">
+
+			</div>
+
+			<div class="modal-footer">
+
+				<button type="button" id="saveDictionaryButton" class="btn-correct">保存</button>
+
+				<button type="button" id="cancelDictionaryButton" class="btn-delete">キャンセル</button>
+
+			</div>
+
+		</div>
+
+	</div>
+
+</div>

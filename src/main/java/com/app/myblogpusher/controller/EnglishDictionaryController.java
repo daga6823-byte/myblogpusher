@@ -66,7 +66,8 @@ public class EnglishDictionaryController {
 
 		// ログインユーザーの管理者権限を確認する。
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
-		if (loginUser == null || !Integer.valueOf(2).equals(loginUser.getRole())) {
+		if (loginUser == null || loginUser.getRole() == null
+        || loginUser.getRole() < 1) {
 			return "redirect:/english-dictionary/list";
 		}
 
@@ -113,7 +114,8 @@ public class EnglishDictionaryController {
 
 	    // ログインユーザーの管理者権限を確認する。
 	    UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
-	    if (loginUser == null || !Integer.valueOf(2).equals(loginUser.getRole())) {
+	    if (loginUser == null || loginUser.getRole() == null
+        || loginUser.getRole() < 1) {
 	        return "redirect:/english-dictionary/list";
 	    }
 
@@ -129,6 +131,7 @@ public class EnglishDictionaryController {
 	                .findByIdAndUserIdIsNull(form.getId())
 	                .orElseThrow();
 
+	        dictionary.setJapanese(form.getJapanese());
 	        dictionary.setEnglish(form.getEnglish());
 	        dictionary.setUpdateDate(now);
 	        dictionary.setUpdateUser(userId);
@@ -173,7 +176,8 @@ public class EnglishDictionaryController {
 
 	    // ログインユーザーの管理者権限を確認する。
 	    UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
-	    if (loginUser == null || !Integer.valueOf(2).equals(loginUser.getRole())) {
+	    if (loginUser == null || loginUser.getRole() == null
+        || loginUser.getRole() < 1) {
 	        return "redirect:/english-dictionary/list";
 	    }
 
