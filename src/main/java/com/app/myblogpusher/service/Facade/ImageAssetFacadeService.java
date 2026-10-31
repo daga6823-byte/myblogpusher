@@ -65,6 +65,20 @@ public class ImageAssetFacadeService {
 				userId,
 				folderName);
 	}
+	
+	/**
+	 * ファイル名で絞り込んだ画像一覧を取得する。
+	 */
+	public List<ImageAssetView> listImages(
+			Long userId,
+			String folderName,
+			String keyword) {
+
+		return imageAssetQueryService.listImages(
+				userId,
+				folderName,
+				keyword);
+	}
 
 	/**
 	 * Supabase Storage上の既存画像をDBへインポートする。

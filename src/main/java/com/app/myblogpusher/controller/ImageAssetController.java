@@ -54,14 +54,16 @@ public class ImageAssetController {
 	@GetMapping("/article/images")
 	@ResponseBody
 	public List<ImageAssetView> getImages(
-			@RequestParam(required = false) String folderName,
-			HttpSession session) {
+	        @RequestParam(required = false) String folderName,
+	        @RequestParam(required = false) String keyword,
+	        HttpSession session) {
 
-		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
+	    UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 
-		return imageAssetFacadeService.listImages(
-				loginUser.getUserId(),
-				folderName);
+	    return imageAssetFacadeService.listImages(
+	            loginUser.getUserId(),
+	            folderName,
+	            keyword);
 	}
 
 	/**

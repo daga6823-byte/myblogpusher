@@ -76,11 +76,18 @@ public class ImageAssetFacade {
 		imageAssetWriteService.deleteImage(imageId, userId);
 	}
 
+	public List<ImageAssetView> listImages(Long userId, String folderName) {
+		return imageAssetQueryService.listImages(userId, folderName);
+	}
+
+	/**
+	 * ファイル名で絞り込んだ画像一覧を取得する。
+	 */
 	public List<ImageAssetView> listImages(
 			Long userId,
-			String folderName) {
-
-		return imageAssetQueryService.listImages(userId, folderName);
+			String folderName,
+			String keyword) {
+		return imageAssetQueryService.listImages(userId, folderName, keyword);
 	}
 
 	public Page<ImageAssetView> findImagePage(

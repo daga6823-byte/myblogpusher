@@ -120,6 +120,44 @@ public class ImageAssetQueryService {
 	}
 
 	/**
+	 * ファイル名で絞り込んだ画像一覧を取得する。
+	 *
+	 * 検索時はキャッシュを使わず、DBからユーザーの全画像を取得する。
+	 */
+	public List<ImageAssetView> listImages(
+			Long userId,
+			String folderName,
+			String keyword) {
+
+		if (keyword != null && !keyword.isBlank()) {
+			return imageAssetRepository.findByUserIdOrderByUploadDateDesc(userId)
+					.stream()
+					.filter(asset -> folderName == null || folderName.isBlank()
+							|| folderName.equals(asset.getFolderName()))
+					.filter(asset -> asset.getFileName() != null
+							&& asset.getFileName().toLowerCase()
+									.contains(keyword.trim().toLowerCase()))
+					.map(this::toImageAssetView)
+					.toList();
+		}
+
+		return listImages(userId, folderName);
+	}
+	
+	/**
+	 * 画像情報を画面表示用DTOへ変換する。
+	 */
+	private ImageAssetView toImageAssetView(ImageAsset asset) {
+		return new ImageAssetView(
+				asset.getImageId(),
+				asset.getFolderName(),
+				asset.getFileName(),
+				asset.getFolderName(),
+				asset.getUploadDate(),
+				supabaseStorageService.getImageUrl(asset.getStoragePath()));
+	}
+
+	/**
 	 * 画像一覧画面用に、ユーザーの全画像を取得する。
 	 *
 	 * 全件キャッシュがあれば再利用し、なければDBから取得してキャッシュする。

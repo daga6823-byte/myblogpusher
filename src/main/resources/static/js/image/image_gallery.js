@@ -15,11 +15,19 @@ export function loadImageList() {
 
 	const requestId = ++imageState.loadRequestId;
 
-	const query = imageState.folderName
-		? '?folderName=' + encodeURIComponent(imageState.folderName)
-		: '';
+	const params = new URLSearchParams();
 
-	fetch('/article/images' + query)
+	if (imageState.folderName) {
+		params.set('folderName', imageState.folderName);
+	}
+
+	if (imageState.searchKeyword) {
+		params.set('keyword', imageState.searchKeyword);
+	}
+
+	const query = params.toString();
+
+	fetch('/article/images' + (query ? '?' + query : ''))
 		.then(res => res.json())
 		.then(images => {
 
@@ -35,18 +43,6 @@ export function loadImageList() {
 
 				images = images.filter(
 					img => img.folderName === imageState.folderName
-				);
-			}
-
-			// ファイル名で部分一致検索する
-			if (imageState.searchKeyword) {
-
-				const keyword =
-					imageState.searchKeyword.toLowerCase();
-
-				images = images.filter(img =>
-					img.fileName
-					&& img.fileName.toLowerCase().includes(keyword)
 				);
 			}
 
@@ -126,29 +122,18 @@ export function loadImageList() {
 
 				div.style.textAlign = 'center';
 
-				div.innerHTML = `
+				const imageElement = document.createElement('img');
+				imageElement.src = img.url;
+				imageElement.style.cssText =
+					'width:100%;height:150px;object-fit:cover;';
 
-					<img src="${img.url}"
+				const fileNameElement = document.createElement('div');
+				fileNameElement.style.cssText =
+					'margin-top:5px;font-size:13px;word-break:break-all;';
+				fileNameElement.textContent = img.fileName || '';
 
-						 style="width:100%;height:150px;object-fit:cover;">
-
-					<div style="
-
-						margin-top:5px;
-
-						font-size:13px;
-
-						word-break:break-all;
-
-					">
-
-						${img.fileName}
-
-					</div>
-
-				`;
-
-				const imageElement = div.querySelector('img');
+				div.appendChild(imageElement);
+				div.appendChild(fileNameElement);
 
 				imageElement.addEventListener('click', async function() {
 					if (imageState.thumbnailMode) {
