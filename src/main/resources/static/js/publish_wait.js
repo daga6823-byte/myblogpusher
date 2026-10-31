@@ -1,0 +1,93 @@
+// =====================================================
+// publish_wait.js
+//
+// Githubへの投稿を待ち、投稿完了後に記事を表示する。
+// =====================================================
+
+document.addEventListener("DOMContentLoaded", () => {
+	const params = new URLSearchParams(window.location.search);
+	const workId = params.get("workId");
+	const slug = params.get("slug");
+	const statusTitle = document.getElementById("statusTitle");
+	const statusMessage = document.getElementById("statusMessage");
+
+	if (!workId || !slug) {
+		showError("投稿状況の確認に必要な情報がありません。");
+		return;
+	}
+
+	let checking = false;
+	let finished = false;
+	let publishTab = window.open("about:blank", "_blank");
+
+	async function checkPublishStatus() {
+
+		if (finished || checking) {
+			return;
+		}
+
+		if (checking) {
+			return;
+		}
+
+		checking = true;
+
+		try {
+			const query = new URLSearchParams({ workId, slug });
+			const response = await fetch(
+				`/publish/status?${query.toString()}`,
+				{
+					method: "GET",
+					cache: "no-store"
+				}
+			);
+
+			if (!response.ok) {
+				throw new Error("投稿状況を取得できませんでした。");
+			}
+
+			const result = await response.json();
+
+			if (result.status === "PUBLISHED") {
+				finished = true;
+
+				statusTitle.textContent = "投稿が完了しました";
+				statusMessage.textContent = "公開記事へ移動します。";
+
+				if (!result.url) {
+					showError("公開記事のURLを取得できませんでした。");
+					return;
+				}
+
+				// 最初に開いた投稿状況確認タブをそのまま公開記事へ遷移させる。
+				window.location.replace(result.url);
+				return;
+			}
+
+			if (result.status === "FAILED") {
+				showError("記事の投稿に失敗しました。MBP側で投稿状況をご確認ください。");
+				return;
+			}
+
+			if (result.status === "UNAUTHORIZED") {
+				showError("ログイン状態を確認できません。MBPで再度ログインしてください。");
+				return;
+			}
+
+			statusMessage.textContent = "投稿処理中です。完了までお待ちください。";
+		} catch (error) {
+			statusMessage.textContent =
+				"投稿状況を確認できませんでした。再度確認します。";
+		} finally {
+			checking = false;
+		}
+	}
+
+	function showError(message) {
+		finished = true;
+		window.location.replace("/publish/error");
+	}
+
+	checkPublishStatus();
+	setInterval(checkPublishStatus, 2000);
+});
