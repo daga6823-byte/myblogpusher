@@ -113,6 +113,7 @@ public class ImageAssetCache {
 	 */
 	public void clear(Long userId) {
 		imageCache.remove(userId);
+		allImagesCache.remove(userId);
 		folderImageCache.keySet().removeIf(
 				key -> key.startsWith(userId + ":"));
 		categoryCache.remove(userId);

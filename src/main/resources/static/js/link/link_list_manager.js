@@ -82,6 +82,9 @@ export class LinkListManager {
 		if (urlInput) {
 			urlInput.value = article.hugoPath;
 		}
+
+		// OKボタンへフォーカスを移す。
+		document.getElementById('articleLinkInsertButton')?.focus();
 	}
 
 	/**
