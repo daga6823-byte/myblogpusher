@@ -10,6 +10,7 @@ package com.app.myblogpusher.controller;
 
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -26,6 +27,7 @@ import com.app.myblogpusher.service.PublishPreviewPreparationService;
 import com.app.myblogpusher.service.PublishPreviewService;
 import com.app.myblogpusher.service.Article.ArticleService;
 import com.app.myblogpusher.service.Article.ArticleWorkService;
+import com.app.myblogpusher.service.Article.ArticleWorkspaceService;
 import com.app.myblogpusher.util.ArticleSaveUtil;
 
 import jakarta.servlet.http.HttpSession;
@@ -39,6 +41,9 @@ public class PublishController {
 	private final ArticleSaveUtil articleSaveUtil;
 	private final ArticleService articleService;
 	private final UserRepositoryRepository userRepositoryRepository;
+
+	@Autowired
+	private ArticleWorkspaceService workspaceService;
 
 	/**
 	 * 投稿確認画面と投稿確定処理に必要な依存関係を設定する。
@@ -102,6 +107,9 @@ public class PublishController {
 			model.addAttribute("error", "記事の保存に失敗しました");
 			return "error";
 		}
+
+		// ワークテーブルへの保存成功後、一時ワークスペースを削除する。
+		workspaceService.delete(userId);
 
 		// 辞典登録後に投稿確認画面へ戻るための記事情報を保持する。
 		session.setAttribute("previewTitle", title);
