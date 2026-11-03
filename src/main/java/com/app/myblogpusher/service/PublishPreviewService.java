@@ -71,7 +71,8 @@ public class PublishPreviewService {
 		} else if (existingArticle != null && fallbackSlug != null && !fallbackSlug.isBlank()) {
 		    slug = fallbackSlug;
 		} else {
-		    slug = null;
+			// 形態素解析結果から辞典変換済みのスラッグを生成する。
+			slug = slugUtil.generateSlugFromAnalysis(analysis);
 		}
 
 		// 投稿確認画面に渡す基本情報を設定する。
