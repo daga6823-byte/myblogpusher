@@ -5,9 +5,7 @@
 
 package com.app.myblogpusher.controller.Article;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -44,31 +42,13 @@ public class ArticleListController {
 
 		List<ArticleWork> works = articleWorkService.findDrafts(userId);
 
-		Map<Long, String> categoryPathMap = new HashMap<>();
-
-		categoryRelationRepository.findAll()
-				.forEach(relation -> {
-
-					if (relation.getGroupId() == null
-							|| relation.getCategoryPath() == null
-							|| relation.getCategoryPath().isBlank()) {
-						return;
-					}
-
-					categoryPathMap.putIfAbsent(
-							relation.getGroupId(),
-							relation.getCategoryPath());
-				});
-
 		List<ArticleWorkView> workViews = works.stream()
 				.map(work -> {
 
-					String categoryName = "（未分類）";
+					String categoryName = work.getHugoPath();
 
-					if (work.getCategoryGroupId() != null) {
-						categoryName = categoryPathMap.getOrDefault(
-								work.getCategoryGroupId(),
-								"（未分類）");
+					if (categoryName == null || categoryName.isBlank()) {
+						categoryName = "（未分類）";
 					}
 
 					return new ArticleWorkView(
