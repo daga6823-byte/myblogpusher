@@ -15,19 +15,31 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import com.app.myblogpusher.service.ApplicationErrorLogService;
+
 import jakarta.servlet.http.HttpServletRequest;
 
 @ControllerAdvice
 public class GlobalErrorController {
 
+    private final ApplicationErrorLogService applicationErrorLogService;
+
+    public GlobalErrorController(
+            ApplicationErrorLogService applicationErrorLogService) {
+        this.applicationErrorLogService = applicationErrorLogService;
+    }
+
     /**
-     * 未処理例外を共通エラー画面またはAPIエラー応答へ変換する。
+     * 未処理例外を記録し、共通エラー画面またはAPIエラー応答へ変換する。
      */
     @ExceptionHandler(Exception.class)
     public Object handleException(
             Exception exception,
             HttpServletRequest request,
             Model model) {
+
+        // 発生した例外情報をDBへ記録する。
+        applicationErrorLogService.record(exception, request);
 
         // APIの例外はJSON形式のエラー応答として返す。
         if (isApiRequest(request)) {
