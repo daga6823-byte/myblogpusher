@@ -56,7 +56,14 @@ function registerWord(btn) {
 			if (!response.ok) {
 				throw new Error('スラッグの再生成に失敗しました。');
 			}
-			return response.json();
+			return response.text().then(text => {
+				try {
+					return JSON.parse(text);
+				} catch (error) {
+					console.error('スラッグ再生成APIのレスポンス:', text);
+					throw new Error('スラッグ再生成APIからJSON以外の応答が返されました。');
+				}
+			});
 		})
 		.then(data => {
 			document.getElementById('slugInput').value = data.slug;
