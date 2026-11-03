@@ -18,16 +18,12 @@ import com.app.myblogpusher.entity.Article.Article;
 import com.app.myblogpusher.entity.Article.ArticleWork;
 import com.app.myblogpusher.enums.ArticleStatus;
 import com.app.myblogpusher.repository.Article.ArticleRepository;
-import com.app.myblogpusher.service.HugoArticleService;
 
 @Service
 public class ArticleService {
 
 	@Autowired
 	private ArticleRepository articleRepository;
-
-	@Autowired
-	private HugoArticleService hugoArticleService;
 
 	@Autowired
 	private ArticleWorkService articleWorkService;

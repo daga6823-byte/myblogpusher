@@ -33,7 +33,6 @@ public class ApiRateLimitInterceptor implements HandlerInterceptor {
 
 	private static final long SECOND_LIMIT_MILLIS = 1_000L;
 	private static final long MINUTE_LIMIT_MILLIS = 60_000L;
-	private static final int MAX_REQUESTS_PER_SECOND = 1;
 	private static final int MAX_REQUESTS_PER_MINUTE = 60;
 
 	/**

@@ -4,40 +4,70 @@
  * 形態素解析結果の単語を英語辞書へ登録する。
  * 登録前に入力値を確認し、成功後は画面を再読み込みする。
  */
+/**
+ * 英単語辞典への登録とスラッグの再生成を行う
+ */
 function registerWord(btn) {
+	const form = btn.closest('.dictionary-register-form');
 
-	const reading = btn.getAttribute('data-reading');
-	const converted = btn.getAttribute('data-converted');
-
-	const english = prompt('英単語を入力してください', converted);
-
-	if (!english) {
+	if (!form) {
+		alert('辞書登録フォームを取得できません。');
 		return;
 	}
 
-	fetch('/dictionary/register', {
+	// 表示中の変換結果をフォームに反映する
+	syncEnglish(btn);
+
+	const formData = new URLSearchParams(new FormData(form));
+
+	fetch(form.action, {
 		method: 'POST',
 		headers: {
-			'Content-Type': 'application/json'
+			'Content-Type': 'application/x-www-form-urlencoded',
+			'X-Requested-With': 'XMLHttpRequest'
 		},
-		body: JSON.stringify({
-			japanese: reading,
-			english: english
-		})
+		body: formData,
 	})
-		.then(res => {
-
-			if (res.ok) {
-
-				alert('登録しました');
-
-				// 登録結果を反映するため画面を再表示
-				location.reload();
+		.then(response => {
+			if (!response.ok) {
+				throw new Error('辞書登録に失敗しました。');
 			}
 
+			// 登録した辞書を使ってスラッグを再生成する
+			const workId = document.querySelector(
+				'input[name="workId"]'
+			).value;
+			const title = document.querySelector(
+				'input[name="title"]'
+			).value;
+
+			return fetch('/publish/generate-slug', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({
+					workId: workId,
+					title: title
+				})
+			});
+		})
+		.then(response => {
+			if (!response.ok) {
+				throw new Error('スラッグの再生成に失敗しました。');
+			}
+			return response.json();
+		})
+		.then(data => {
+			document.getElementById('slugInput').value = data.slug;
+			document.getElementById('slugHidden').value = data.slug;
+			alert('辞書を登録し、スラッグを更新しました。');
+		})
+		.catch(error => {
+			console.error(error);
+			alert(error.message);
 		});
 }
-
 
 /**
  * 投稿送信前処理
@@ -82,7 +112,8 @@ async function publishSubmit() {
 		const response = await fetch('/publish/generate-slug', {
 			method: 'POST',
 			headers: {
-				'Content-Type': 'application/x-www-form-urlencoded'
+				'Content-Type': 'application/x-www-form-urlencoded',
+				'X-Requested-With': 'XMLHttpRequest'
 			},
 			body: new URLSearchParams({
 				workId: workIdInput.value,

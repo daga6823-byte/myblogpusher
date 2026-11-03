@@ -52,7 +52,6 @@ public class ImageConvertService {
 		File output = null;
 		File identifyOutput = null;
 		File identifyError = null;
-		boolean converted = false;
 
 		try {
 			input = Files.createTempFile("upload_", "." + extension).toFile();
@@ -180,7 +179,6 @@ public class ImageConvertService {
 
 			File convertedFile = output;
 			output = null;
-			converted = true;
 			return convertedFile;
 
 		} catch (InterruptedException e) {

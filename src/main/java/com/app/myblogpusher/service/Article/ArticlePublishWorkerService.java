@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service;
 import com.app.myblogpusher.entity.UserRepositoryEntity;
 import com.app.myblogpusher.entity.Article.Article;
 import com.app.myblogpusher.entity.Article.ArticleWork;
-import com.app.myblogpusher.service.HugoArticleService;
 import com.app.myblogpusher.service.Facade.GitHubFacadeService;
 import com.app.myblogpusher.service.Github.GitHubActionsService;
 
@@ -31,9 +30,6 @@ public class ArticlePublishWorkerService {
 
 	@Autowired
 	private GitHubFacadeService gitHubFacadeService;
-
-	@Autowired
-	private HugoArticleService hugoArticleService;
 	
 	@Autowired
 	private GitHubActionsService gitHubActionsService;

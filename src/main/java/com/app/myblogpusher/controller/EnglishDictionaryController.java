@@ -10,11 +10,13 @@ package com.app.myblogpusher.controller;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.app.myblogpusher.dto.EnglishDictionaryForm;
@@ -112,9 +114,10 @@ public class EnglishDictionaryController {
 	 * @return 登録元画面または辞典一覧画面へのリダイレクト
 	 */
 	@PostMapping("/english-dictionary/save")
-	public CompletableFuture<String> save(
+	public CompletableFuture<ResponseEntity<Void>> save(
 			@ModelAttribute("form") EnglishDictionaryForm form,
 			@RequestParam(required = false) String returnTo,
+			@RequestHeader(value = "X-Requested-With", required = false) String requestedWith,
 			HttpSession session) {
 
 		// ログインユーザーの管理者権限を確認する。
@@ -122,7 +125,9 @@ public class EnglishDictionaryController {
 		if (loginUser == null || loginUser.getRole() == null
 				|| loginUser.getRole() < 1) {
 			return CompletableFuture.completedFuture(
-					"redirect:/english-dictionary/list");
+					ResponseEntity.status(302)
+							.header("Location", "/english-dictionary/list")
+							.build());
 		}
 
 		Long userId = loginUser.getUserId();
@@ -131,13 +136,22 @@ public class EnglishDictionaryController {
 				.thenApply(result -> {
 					String savedReturnTo = (String) session.getAttribute("dictionaryReturnTo");
 
+					if ("XMLHttpRequest".equalsIgnoreCase(requestedWith)) {
+						session.removeAttribute("dictionaryReturnTo");
+						return ResponseEntity.ok().build();
+					}
+
 					if ("publish_preview".equals(returnTo)
 							|| "publish_preview".equals(savedReturnTo)) {
 						session.removeAttribute("dictionaryReturnTo");
-						return "redirect:/publish/preview/back";
+						return ResponseEntity.status(302)
+								.header("Location", "/publish/preview/back")
+								.build();
 					}
 
-					return "redirect:/english-dictionary/list?saved";
+					return ResponseEntity.status(302)
+							.header("Location", "/english-dictionary/list?saved")
+							.build();
 				});
 	}
 

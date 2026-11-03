@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import com.app.myblogpusher.dto.Article.ArticleWorkView;
 import com.app.myblogpusher.entity.UserMaster;
 import com.app.myblogpusher.entity.Article.ArticleWork;
-import com.app.myblogpusher.repository.CategoryRelationRepository;
 import com.app.myblogpusher.service.Article.ArticleWorkService;
 
 import jakarta.servlet.http.HttpSession;
@@ -27,10 +26,7 @@ public class ArticleListController {
 
 	@Autowired
 	private ArticleWorkService articleWorkService;
-
-	@Autowired
-	private CategoryRelationRepository categoryRelationRepository;
-
+	
 	@GetMapping("/article/list")
 	public String list(
 			@RequestParam(required = false) Boolean published,

@@ -82,14 +82,14 @@
 							style="width: 120px;">
 					</td>
 					<td>
-						<form th:action="@{/english-dictionary/save}" method="post" style="display:inline;">
-							<input type="hidden" th:name="japanese" th:value="${token.surface}">
-							<input type="hidden" th:name="english" th:value="${token.converted}"
+						<form class="dictionary-register-form" th:action="@{/english-dictionary/save}" method="post"
+							style="display:inline;">
+							<input type="hidden" name="japanese" th:value="${token.surface}">
+							<input type="hidden" name="english" th:value="${token.converted}"
 								th:id="'hidden_' + ${token.reading}">
 							<input type="hidden" name="id" value="">
-							<input type="hidden" name="returnTo" value="publish_preview">
-							<button type="submit" class="btn-save" th:data-reading="${token.reading}"
-								onclick="syncEnglish(this)">
+							<button type="button" class="btn-save" th:data-reading="${token.reading}"
+								onclick="registerWord(this)">
 								登録
 							</button>
 						</form>
