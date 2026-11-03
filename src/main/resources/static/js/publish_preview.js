@@ -41,15 +41,17 @@ function registerWord(btn) {
 				'input[name="title"]'
 			).value;
 
+			const params = new URLSearchParams({
+				workId: workId,
+				title: title
+			});
+
 			return fetch('/publish/generate-slug', {
 				method: 'POST',
 				headers: {
-					'Content-Type': 'application/json'
+					'Content-Type': 'application/x-www-form-urlencoded'
 				},
-				body: JSON.stringify({
-					workId: workId,
-					title: title
-				})
+				body: params
 			});
 		})
 		.then(response => {

@@ -51,8 +51,8 @@ public class PublishController {
 	private SlugUtil slugUtil;
 
 	/**
-	 * 投稿確認画面と投稿確定処理に必要な依存関係を設定する。
-	 */
+	* 投稿確認画面と投稿確定処理に必要な依存関係を設定する。
+	*/
 	public PublishController(
 			PublishPreviewService publishPreviewService,
 			PublishPreviewPreparationService publishPreviewPreparationService,
@@ -70,11 +70,11 @@ public class PublishController {
 	}
 
 	/**
-	 * 投稿前確認画面を表示する。
-	 *
-	 * 投稿確認へ進む前に記事をワークテーブルへ保存し、
-	 * 保存済みデータをもとに確認画面のフォームを生成する。
-	 */
+	* 投稿前確認画面を表示する。
+	*
+	* 投稿確認へ進む前に記事をワークテーブルへ保存し、
+	* 保存済みデータをもとに確認画面のフォームを生成する。
+	*/
 	@PostMapping("/publish/preview")
 	public String showPreview(
 			@RequestParam(required = false) Long workId,
@@ -145,11 +145,11 @@ public class PublishController {
 	}
 
 	/**
-	 * 投稿確定時にスラッグを決定する。
-	 *
-	 * 新規記事は形態素解析と英語辞書による変換結果から生成し、
-	 * 既存記事は保存済みのスラッグを維持する。
-	 */
+	* 投稿確定時にスラッグを決定する。
+	*
+	* 新規記事は形態素解析と英語辞書による変換結果から生成し、
+	* 既存記事は保存済みのスラッグを維持する。
+	*/
 	@PostMapping("/publish/generate-slug")
 	@ResponseBody
 	public ResponseEntity<Map<String, String>> generatePublishSlug(
@@ -190,10 +190,10 @@ public class PublishController {
 	}
 
 	/**
-	 * 投稿を確定し、非同期のGitHub投稿処理を開始する。
-	 *
-	 * 投稿確定後の処理はPublishExecutionServiceへ委譲する。
-	 */
+	* 投稿を確定し、非同期のGitHub投稿処理を開始する。
+	*
+	* 投稿確定後の処理はPublishExecutionServiceへ委譲する。
+	*/
 	@PostMapping("/publish/execute")
 	public String executePublish(
 			@RequestParam(required = false) Long workId,
@@ -231,11 +231,11 @@ public class PublishController {
 	}
 
 	/**
-	 * 非同期投稿の状態を確認し、成功時に公開記事のURLを返す。
-	 *
-	 * ArticleWorkが存在する間は投稿状態を確認し、
-	 * Work削除後はArticleの公開ステータスを確認する。
-	 */
+	* 非同期投稿の状態を確認し、成功時に公開記事のURLを返す。
+	*
+	* ArticleWorkが存在する間は投稿状態を確認し、
+	* Work削除後はArticleの公開ステータスを確認する。
+	*/
 	@GetMapping("/publish/status")
 	@ResponseBody
 	public ResponseEntity<Map<String, String>> getPublishStatus(
@@ -312,11 +312,11 @@ public class PublishController {
 	}
 
 	/**
-	 * 投稿確認画面への復帰要求を処理する。
-	 *
-	 * セッションに保持された記事情報を取得し、
-	 * 投稿確認画面の表示準備をPublishPreviewPreparationServiceへ委譲する。
-	 */
+	* 投稿確認画面への復帰要求を処理する。
+	*
+	* セッションに保持された記事情報を取得し、
+	* 投稿確認画面の表示準備をPublishPreviewPreparationServiceへ委譲する。
+	*/
 	@GetMapping("/publish/preview/back")
 	public String backToPreview(HttpSession session, Model model) {
 
@@ -363,8 +363,8 @@ public class PublishController {
 	}
 
 	/**
-	 * 投稿確認画面で選択されたサムネイルを保存する。
-	 */
+	* 投稿確認画面で選択されたサムネイルを保存する。
+	*/
 	@PostMapping("/publish/preview/thumbnail")
 	@ResponseBody
 	public ResponseEntity<Void> savePreviewThumbnail(
@@ -387,8 +387,8 @@ public class PublishController {
 	}
 
 	/**
-	 * 投稿確認画面で編集されたスラッグを保存する。
-	 */
+	* 投稿確認画面で編集されたスラッグを保存する。
+	*/
 	@PostMapping("/publish/preview/slug")
 	@ResponseBody
 	public ResponseEntity<Void> savePreviewSlug(
@@ -411,21 +411,21 @@ public class PublishController {
 	}
 
 	/**
-	 * 記事の投稿完了を待機する画面を表示する
-	 *
-	 * 投稿状況の確認と、投稿成功後の公開記事への遷移は
-	 * publish_wait.html 側で行う。
-	 *
-	 * @return 投稿待機画面
-	 */
+	* 記事の投稿完了を待機する画面を表示する
+	*
+	* 投稿状況の確認と、投稿成功後の公開記事への遷移は
+	* publish_wait.html 側で行う。
+	*
+	* @return 投稿待機画面
+	*/
 	@GetMapping("/publish/wait")
 	public String showPublishWait() {
 		return "publish_wait";
 	}
 
 	/**
-	 * 記事投稿失敗時に共通エラー画面を表示する。
-	 */
+	* 記事投稿失敗時に共通エラー画面を表示する。
+	*/
 	@GetMapping("/error")
 	public String showPublishError(Model model) {
 
