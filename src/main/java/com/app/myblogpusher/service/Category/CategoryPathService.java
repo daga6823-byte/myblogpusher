@@ -54,22 +54,29 @@ public class CategoryPathService {
 				.findFirst()
 				.orElseThrow();
 
-		String categoryPath = relation.getCategoryPath();
+		Long categoryId = relation.getCategoryId();
+		Long parentCategoryId = relation.getParentCategoryId();
 
-		String[] parts = categoryPath.split("/");
+		while (parentCategoryId != null) {
 
-		if (parts.length <= 2) {
-			return groupId;
+		    CategoryRelation parentRelation = categoryRelationRepository
+		            .findByCategoryId(parentCategoryId)
+		            .stream()
+		            .findFirst()
+		            .orElse(null);
+
+		    if (parentRelation == null
+		            || parentRelation.getParentCategoryId() == null) {
+		        return parentRelation != null
+		                ? parentRelation.getGroupId()
+		                : groupId;
+		    }
+
+		    categoryId = parentCategoryId;
+		    parentCategoryId = parentRelation.getParentCategoryId();
 		}
 
-		String referencePath = parts[0] + "/" + parts[1];
-
-		return categoryRelationRepository
-				.findByCategoryPath(referencePath)
-				.stream()
-				.findFirst()
-				.orElseThrow()
-				.getGroupId();
+		return groupId;
 	}
 
 	/**
@@ -109,18 +116,27 @@ public class CategoryPathService {
 			return relation.getCategoryId();
 		}
 
-		String referencePath = findSecondLevelPath(groupId);
+		Long referenceCategoryId = relation.getCategoryId();
+		Long parentCategoryId = relation.getParentCategoryId();
 
-		if (referencePath == null) {
-			return null;
+		while (parentCategoryId != null) {
+
+			referenceCategoryId = parentCategoryId;
+
+			CategoryRelation parentRelation = categoryRelationRepository
+					.findByCategoryId(parentCategoryId)
+					.stream()
+					.findFirst()
+					.orElse(null);
+
+			if (parentRelation == null) {
+				break;
+			}
+
+			parentCategoryId = parentRelation.getParentCategoryId();
 		}
 
-		return categoryRelationRepository
-				.findByCategoryPath(referencePath)
-				.stream()
-				.findFirst()
-				.map(CategoryRelation::getCategoryId)
-				.orElse(null);
+		return referenceCategoryId;
 	}
 
 	/**
@@ -140,18 +156,37 @@ public class CategoryPathService {
 			return null;
 		}
 
-		String referencePath = findSecondLevelPath(groupId);
+		CategoryRelation relation = categoryRelationRepository
+				.findByGroupId(groupId)
+				.stream()
+				.findFirst()
+				.orElse(null);
 
-		if (referencePath == null) {
+		if (relation == null) {
 			return null;
 		}
 
-		return categoryRelationRepository
-				.findByCategoryPath(referencePath)
-				.stream()
-				.findFirst()
-				.map(CategoryRelation::getCategoryId)
-				.orElse(null);
+		Long categoryId = relation.getCategoryId();
+		Long parentCategoryId = relation.getParentCategoryId();
+
+		while (parentCategoryId != null) {
+
+			categoryId = parentCategoryId;
+
+			CategoryRelation parentRelation = categoryRelationRepository
+					.findByCategoryId(parentCategoryId)
+					.stream()
+					.findFirst()
+					.orElse(null);
+
+			if (parentRelation == null) {
+				break;
+			}
+
+			parentCategoryId = parentRelation.getParentCategoryId();
+		}
+
+		return categoryId;
 	}
 
 	/**
@@ -190,8 +225,7 @@ public class CategoryPathService {
 
 		return categoryRelationRepository.findByGroupIdIn(groupIds)
 				.stream()
-				.filter(relation ->
-						relation.getCategoryPath() != null
+				.filter(relation -> relation.getCategoryPath() != null
 						&& !relation.getCategoryPath().isBlank())
 				.collect(Collectors.toMap(
 						CategoryRelation::getGroupId,
@@ -241,14 +275,10 @@ public class CategoryPathService {
 	}
 
 	/**
-	 * フルパスからカテゴリーIDを取得する。
+	 * カテゴリー名からカテゴリーIDを取得する。
 	 *
-	 * CategoryRelationを使用して親子関係を辿る。
-	 *
-	 * 例:
-	 * movie/batman/gadget
-	 *
-	 * → gadgetのcategoryId
+	 * 同一ユーザー内でカテゴリー名は一意であるため、
+	 * 経路の末尾ではなく指定されたカテゴリー名で直接検索する。
 	 */
 	public Long findCategoryIdByFullPath(
 			Long userId,
@@ -258,43 +288,13 @@ public class CategoryPathService {
 			return null;
 		}
 
-		/*
-		 * 2階層以上のカテゴリーはCategoryRelationのcategoryPathを
-		 * 直接検索する。
-		 *
-		 * 同じカテゴリーが複数の親を持つ場合でも、
-		 * 選択されたカテゴリー経路そのものから正しいcategoryIdを取得できる。
-		 */
-		if (fullPath.contains("/")) {
+		String categoryName = fullPath.substring(
+				fullPath.lastIndexOf("/") + 1);
 
-			return categoryRelationRepository
-					.findByCategoryPath(fullPath)
-					.stream()
-					.filter(relation -> articleCategoryRepository
-							.findById(relation.getCategoryId())
-							.map(category -> userId.equals(category.getUserId()))
-							.orElse(false))
-					.map(CategoryRelation::getCategoryId)
-					.findFirst()
-					.orElse(null);
-		}
-
-		/*
-		 * ルートカテゴリーにはCategoryRelationが存在しないため、
-		 * categoryPathから直接取得することはできない。
-		 *
-		 * CategoryRelationの親として一度も登場していないカテゴリーを
-		 * ルートカテゴリーとして判定する。
-		 */
-		List<ArticleCategory> categories = articleCategoryRepository.findByUserId(userId);
-
-		List<CategoryRelation> relations = categoryRelationRepository.findAll();
-
-		return categories.stream()
-				.filter(category -> getCategoryLabel(category).equals(fullPath))
-				.filter(category -> relations.stream()
-						.noneMatch(relation -> relation.getCategoryId()
-								.equals(category.getCategoryId())))
+		return articleCategoryRepository.findByUserId(userId)
+				.stream()
+				.filter(category -> categoryName.equals(
+						category.getCategoryName()))
 				.map(ArticleCategory::getCategoryId)
 				.findFirst()
 				.orElse(null);
@@ -321,13 +321,48 @@ public class CategoryPathService {
 			return null;
 		}
 
-		return categoryRelationRepository
-				.findByCategoryPath(fullPath)
+		String[] pathParts = fullPath.split("/");
+
+		String categoryName = pathParts[pathParts.length - 1];
+
+		Long categoryId = articleCategoryRepository.findByUserId(userId)
 				.stream()
-				.filter(relation -> articleCategoryRepository
-						.findById(relation.getCategoryId())
-						.map(category -> userId.equals(category.getUserId()))
-						.orElse(false))
+				.filter(category -> categoryName.equals(category.getCategoryName()))
+				.map(ArticleCategory::getCategoryId)
+				.findFirst()
+				.orElse(null);
+
+		if (categoryId == null) {
+			return null;
+		}
+
+		final Long parentCategoryId;
+
+		if (pathParts.length >= 2) {
+
+			String parentCategoryName = pathParts[pathParts.length - 2];
+
+			parentCategoryId = articleCategoryRepository.findByUserId(userId)
+					.stream()
+					.filter(category -> parentCategoryName.equals(
+							category.getCategoryName()))
+					.map(ArticleCategory::getCategoryId)
+					.findFirst()
+					.orElse(null);
+
+			if (parentCategoryId == null) {
+				return null;
+			}
+
+		} else {
+			parentCategoryId = null;
+		}
+
+		return categoryRelationRepository.findByCategoryId(categoryId)
+				.stream()
+				.filter(relation -> java.util.Objects.equals(
+						parentCategoryId,
+						relation.getParentCategoryId()))
 				.map(CategoryRelation::getGroupId)
 				.findFirst()
 				.orElse(null);
@@ -375,21 +410,27 @@ public class CategoryPathService {
 			return null;
 		}
 
-		String[] pathParts = relation.getCategoryPath().split("/");
+		Long categoryId = relation.getCategoryId();
+		Long parentCategoryId = relation.getParentCategoryId();
 
-		if (pathParts.length < 2) {
-			return null;
+		while (parentCategoryId != null) {
+
+			CategoryRelation parentRelation = categoryRelationRepository
+					.findByCategoryId(parentCategoryId)
+					.stream()
+					.findFirst()
+					.orElse(null);
+
+			if (parentRelation == null
+					|| parentRelation.getParentCategoryId() == null) {
+				return categoryId;
+			}
+
+			categoryId = parentCategoryId;
+			parentCategoryId = parentRelation.getParentCategoryId();
 		}
 
-		String secondCategoryName = pathParts[1];
-
-		return articleCategoryRepository.findByUserId(userId)
-				.stream()
-				.filter(category -> getCategoryLabel(category)
-						.equals(secondCategoryName))
-				.map(ArticleCategory::getCategoryId)
-				.findFirst()
-				.orElse(null);
+		return null;
 	}
 
 }

@@ -157,10 +157,10 @@ public class ArticleSaveUtil {
 
 			if (categoryResolution.groupIdPending()) {
 				categoryRelationService.updateArticleWorkCategoryGroupId(
-						newWorkId,
-						categoryResolution.categoryId(),
-						hugoPath,
-						userId);
+				        newWorkId,
+				        categoryResolution.categoryId(),
+				        categoryResolution.parentCategoryId(),
+				        userId);
 			}
 
 			return newWorkId;
@@ -182,10 +182,10 @@ public class ArticleSaveUtil {
 
 			if (categoryResolution.groupIdPending()) {
 				categoryRelationService.updateArticleWorkCategoryGroupId(
-						workId,
-						categoryResolution.categoryId(),
-						hugoPath,
-						userId);
+				        workId,
+				        categoryResolution.categoryId(),
+				        categoryResolution.parentCategoryId(),
+				        userId);
 			}
 
 			return workId;
@@ -281,50 +281,41 @@ public class ArticleSaveUtil {
 			// まだgroupIdが採番されていない場合はArticleWorkを先に保存する。
 			if (groupId == null) {
 				return new CategoryResolution(
-						null,
-						categoryId,
-						true);
+				        null,
+				        categoryId,
+				        parentCategoryId,
+				        true);
 			}
 
 			return new CategoryResolution(
-					groupId,
-					categoryId,
-					false);
+			        groupId,
+			        categoryId,
+			        parentCategoryId,
+			        false);
 		}
 
 		if (categorySelect == null || categorySelect.isBlank()) {
 			return new CategoryResolution(
-					null,
-					null,
-					false);
+			        null,
+			        null,
+			        null,
+			        false);
 		}
 
 		Long groupId = categoryPathService.findGroupIdByFullPath(
-				userId,
-				categorySelect);
+		        userId,
+		        categorySelect);
 
 		if (groupId == null) {
-
-			// 欠落しているカテゴリー経路を同期的に補完する。
-			categoryRelationService.repairCategoryPath(
-					userId,
-					categorySelect);
-
-			// 補完後にgroupIdを再取得する。
-			groupId = categoryPathService.findGroupIdByFullPath(
-					userId,
-					categorySelect);
-		}
-
-		if (groupId == null) {
-			throw new IllegalStateException(
-					"カテゴリー経路を復旧できませんでした: " + categorySelect);
+		    throw new IllegalStateException(
+		            "カテゴリーグループが見つかりません: " + categorySelect);
 		}
 
 		return new CategoryResolution(
-				groupId,
-				null,
-				false);
+		        groupId,
+		        null,
+		        null,
+		        false);
 	}
 
 	/**
@@ -334,9 +325,10 @@ public class ArticleSaveUtil {
 	 * ArticleWork保存後に非同期でgroupIdを反映する。
 	 */
 	private record CategoryResolution(
-			Long groupId,
-			Long categoryId,
-			boolean groupIdPending) {
+	        Long groupId,
+	        Long categoryId,
+	        Long parentCategoryId,
+	        boolean groupIdPending) {
 	}
 
 	@Transactional
