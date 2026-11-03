@@ -122,6 +122,12 @@ public class ArticleSaveUtil {
 			}
 		}
 
+		// 既存のslugがない場合は、タイトルからスラッグを生成する。
+		// 形態素解析と英単語辞典による変換はSlugUtilに委譲する。
+		if (slug == null || slug.isBlank()) {
+			slug = slugUtil.generateSlug(title);
+		}
+
 		if (workId == null) {
 
 			if ((title == null || title.isBlank())
