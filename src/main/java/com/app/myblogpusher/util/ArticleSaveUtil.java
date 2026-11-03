@@ -1,9 +1,10 @@
 /**
  * 記事の下書き保存処理を担当するユーティリティ
- * カテゴリー選択値(categorySelect)の解決、本文フォーマット、スラッグ生成、
- * ArticleWorkの新規作成/更新/重複チェックを行う
+ *
+ * カテゴリー選択値(categorySelect)の解決、本文フォーマット、
+ * ArticleWorkの新規作成・更新・重複チェックを行う。
+ * スラッグの生成は投稿確定時に行う。
  */
-
 package com.app.myblogpusher.util;
 
 import java.util.List;
@@ -63,22 +64,62 @@ public class ArticleSaveUtil {
 
 		Long categoryGroupId = categoryResolution.groupId();
 
-		String formattedContent = articleFormatService.formatContent(content);
+		// categorySelectに新規カテゴリー名が含まれていない場合だけ追加する。
+		String hugoPath = categorySelect;
 
+		if (newCategoryName != null && !newCategoryName.isBlank()) {
+
+			String lastCategoryName = hugoPath == null || hugoPath.isBlank()
+					? null
+					: hugoPath.substring(hugoPath.lastIndexOf("/") + 1);
+
+			if (!newCategoryName.equals(lastCategoryName)) {
+
+				hugoPath = hugoPath == null || hugoPath.isBlank()
+						? newCategoryName
+						: hugoPath + "/" + newCategoryName;
+			}
+		}
+
+		// 添削・誤字チェック用の第2階層カテゴリーIDを取得する。
+		Long typoCategoryId = null;
+
+		if (hugoPath != null && !hugoPath.isBlank()) {
+
+			String[] pathParts = hugoPath.split("/");
+
+			if (pathParts.length >= 2) {
+
+				String typoCategoryPath = pathParts[0] + "/" + pathParts[1];
+
+				// 新規カテゴリー自体が第2階層の場合は、
+				// 非同期のCategoryRelation登録を待たずに取得できるIDを使用する。
+				if (newCategoryName != null
+						&& !newCategoryName.isBlank()
+						&& typoCategoryPath.equals(hugoPath)) {
+
+					typoCategoryId = categoryResolution.categoryId();
+
+				} else {
+
+					typoCategoryId = categoryPathService.findCategoryIdByFullPath(
+							userId,
+							typoCategoryPath);
+				}
+			}
+		}
+
+		String formattedContent = articleFormatService.formatContent(content);
 		formattedContent = MarkdownFootnoteUtil.normalize(formattedContent);
 
 		String slug = null;
 
 		if (workId != null) {
-		    ArticleWork work = articleWorkService.findById(workId, userId);
+			ArticleWork work = articleWorkService.findById(workId, userId);
 
-		    if (work != null) {
-		        slug = work.getSlug();
-		    }
-		}
-
-		if (slug == null || slug.isBlank()) {
-		    slug = slugUtil.generateSlug(title);
+			if (work != null) {
+				slug = work.getSlug();
+			}
 		}
 
 		if (workId == null) {
@@ -98,38 +139,47 @@ public class ArticleSaveUtil {
 				return existing.get().getWorkId();
 			}
 
-			Long savedWorkId = articleWorkService.insertArticleWork(
+			Long newWorkId = articleWorkService.insertArticleWork(
 					userId,
 					null,
 					categoryGroupId,
+					hugoPath,
+					null,
 					title,
 					formattedContent,
 					slug);
 
 			if (categoryResolution.groupIdPending()) {
-			    categoryRelationService.updateArticleWorkCategoryGroupId(
-			            savedWorkId,
-			            categoryResolution.categoryId(),
-			            userId);
+				categoryRelationService.updateArticleWorkCategoryGroupId(
+						newWorkId,
+						categoryResolution.categoryId(),
+						hugoPath,
+						userId);
 			}
 
-			return savedWorkId;
+			return newWorkId;
 
 		} else {
+
+			typoCategoryId = articleWorkService.findById(workId, userId)
+					.getTypoCategoryId();
 
 			articleWorkService.updateArticleWork(
 					workId,
 					categoryGroupId,
+					hugoPath,
+					typoCategoryId,
 					title,
 					formattedContent,
 					userId,
 					slug);
 
 			if (categoryResolution.groupIdPending()) {
-			    categoryRelationService.updateArticleWorkCategoryGroupId(
-			            workId,
-			            categoryResolution.categoryId(),
-			            userId);
+				categoryRelationService.updateArticleWorkCategoryGroupId(
+						workId,
+						categoryResolution.categoryId(),
+						hugoPath,
+						userId);
 			}
 
 			return workId;
@@ -150,31 +200,72 @@ public class ArticleSaveUtil {
 
 		if (newCategoryName != null && !newCategoryName.isBlank()) {
 
-			// categorySelectには、現在選択されている親カテゴリーまでの
-			// フルパスが入っている。
-			Long parentCategoryId = categoryPathService.findCategoryIdByFullPath(
-					userId,
-					categorySelect);
+			// categorySelectに新規カテゴリー名が含まれている場合は、
+			// 末尾を除いたPathから親カテゴリーIDを取得する。
+			String parentCategoryPath = categorySelect;
+
+			if (parentCategoryPath != null
+					&& !parentCategoryPath.isBlank()) {
+
+				String lastCategoryName = parentCategoryPath.substring(
+						parentCategoryPath.lastIndexOf("/") + 1);
+
+				if (newCategoryName.equals(lastCategoryName)) {
+
+					int lastSlash = parentCategoryPath.lastIndexOf("/");
+
+					parentCategoryPath = lastSlash >= 0
+							? parentCategoryPath.substring(0, lastSlash)
+							: null;
+				}
+			}
+
+			// 親カテゴリーの経路が存在する場合だけ、親カテゴリーIDを取得する。
+			// 最上位カテゴリーの場合は親を持たないため、nullのまま登録する。
+			Long parentCategoryId = parentCategoryPath == null
+					|| parentCategoryPath.isBlank()
+							? null
+							: categoryPathService.findCategoryIdByFullPath(
+									userId,
+									parentCategoryPath);
 
 			List<Long> parentCategoryIds = parentCategoryId != null
 					? List.of(parentCategoryId)
 					: List.of();
 
-			Long categoryId = articleCategoryService
-					.findByUserIdAndName(userId, newCategoryName)
-					.map(ArticleCategory::getCategoryId)
-					.orElseGet(() -> articleCategoryService.insertCategory(
-							userId,
-							newCategoryName,
-							parentCategoryIds,
-							newCategoryDisplayName));
+			Optional<ArticleCategory> existingCategory = articleCategoryService
+					.findByUserIdAndName(userId, newCategoryName);
 
-			// 新カテゴリー作成後は、現在の選択カテゴリーに
-			// 新カテゴリー名を追加した完全フルパスからgroupIdを取得する。
+			Long categoryId;
+
+			if (existingCategory.isPresent()) {
+
+				categoryId = existingCategory.get().getCategoryId();
+
+				// 既存カテゴリーにも、今回選択された親カテゴリーとの経路を追加する。
+				categoryRelationService.addCategoryRelations(
+						categoryId,
+						parentCategoryIds,
+						userId);
+
+			} else {
+
+				categoryId = articleCategoryService.insertCategory(
+						userId,
+						newCategoryName,
+						parentCategoryIds,
+						newCategoryDisplayName);
+			}
+
+			// categorySelectに新規カテゴリー名が含まれていれば、そのPathを使用する。
 			String newCategoryPath = categorySelect == null
 					|| categorySelect.isBlank()
 							? newCategoryName
-							: categorySelect + "/" + newCategoryName;
+							: categorySelect.substring(
+									categorySelect.lastIndexOf("/") + 1)
+									.equals(newCategoryName)
+											? categorySelect
+											: categorySelect + "/" + newCategoryName;
 
 			Long groupId = categoryPathService.findGroupIdByFullPath(
 					userId,

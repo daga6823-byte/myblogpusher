@@ -17,29 +17,14 @@ let workspaceSavePromise = Promise.resolve();
 // -----------------------------------------------------
 // ワークスペースをサーバへ保存する
 //
-// categoryGroupIdはCategoryRelation.groupIdを使用する。
-// categorySelectはカテゴリーPathなので、ここでは使用しない。
+// categorySelectから編集中のカテゴリーPathを取得して保存する。
 // -----------------------------------------------------
 function saveWorkspace() {
 
-	const categoryGroupIdElement =
-		document.getElementById('categoryGroupId');
-
-	const categoryGroupId =
-		categoryGroupIdElement
-			? categoryGroupIdElement.value || null
-			: null;
-
 	const data = {
-
 		title: document.getElementById('title').value,
-
 		content: document.getElementById('content').value,
-
-		categoryGroupId: categoryGroupId
-			? Number(categoryGroupId)
-			: null
-
+		hugoPath: document.getElementById('categorySelect').value || null
 	};
 
 	workspaceSavePromise = fetch('/article/workspace/save', {

@@ -8,13 +8,11 @@
 
 document.getElementById('proofreadButton')?.addEventListener('click', async () => {
 	const content = document.getElementById('content').value;
-	const categorySelect = document.getElementById('categorySelect').value;
-	const newCategoryName = document.getElementById('newCategoryName').value;
-
 	const params = new URLSearchParams();
+
 	params.append('content', content);
-	params.append('categorySelect', categorySelect);
-	params.append('newCategoryName', newCategoryName);
+
+	params.append('workId', document.querySelector('[name="workId"]').value);
 
 	const button = document.getElementById('proofreadButton');
 	const originalLabel = button.textContent;

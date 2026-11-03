@@ -177,6 +177,17 @@ function updateCategoryPath() {
 
 		if (!select.value || select.value === '__new__') return;
 
+		if (select.value === '__pending__') {
+
+			const pendingOption = select.selectedOptions[0];
+
+			if (pendingOption) {
+				selectedCategories.push(pendingOption.textContent);
+			}
+
+			return;
+		}
+
 		const category = categoryData.find(
 
 			item => String(item.categoryId) === String(select.value)
@@ -361,20 +372,9 @@ function restoreCategorySelection() {
 
 		const categoryName = pathParts[i];
 
-		const category = categoryData.find(item => {
-
-			if (item.categoryName !== categoryName) {
-				return false;
-			}
-
-			if (parentCategoryId === null) {
-				return !item.parentCategoryIds
-					|| item.parentCategoryIds.length === 0;
-			}
-
-			return (item.parentCategoryIds || [])
-				.some(id => String(id) === String(parentCategoryId));
-		});
+		const category = categoryData.find(
+			item => item.categoryName === categoryName
+		);
 
 		const selects =
 			categorySelectors.querySelectorAll('.category-level');
@@ -385,10 +385,30 @@ function restoreCategorySelection() {
 		}
 
 		if (category) {
+
+			// 非同期のRelation登録が未完了でも、
+			// 保存済みPathに従ってカテゴリーを復元できるようにする。
+			const existingOption = Array.from(select.options).find(
+				option => String(option.value) === String(category.categoryId)
+			);
+
+			if (!existingOption) {
+
+				const option = document.createElement('option');
+
+				option.value = category.categoryId;
+				option.dataset.categoryName = category.categoryName;
+				option.textContent = getCategoryDisplayName(category);
+
+				select.appendChild(option);
+			}
+
 			select.value = category.categoryId;
 			parentCategoryId = category.categoryId;
 
-			categorySelectors.appendChild(createCategorySelect(parentCategoryId));
+			categorySelectors.appendChild(
+				createCategorySelect(parentCategoryId)
+			);
 
 			continue;
 		}

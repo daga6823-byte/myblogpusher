@@ -15,6 +15,7 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import com.app.myblogpusher.entity.UserRepositoryEntity;
+import com.app.myblogpusher.entity.Article.ArticleWork;
 import com.app.myblogpusher.repository.UserRepositoryRepository;
 import com.app.myblogpusher.service.Article.ArticlePublishService;
 import com.app.myblogpusher.service.Article.ArticleWorkService;
@@ -66,9 +67,26 @@ public class PublishExecutionService {
 
 		UserRepositoryEntity repo = repoOpt.get();
 
+		// 投稿対象のWorkを取得する。
+		ArticleWork work = articleWorkService.findById(workId, userId);
+
 		// 確認画面で確定したカテゴリーグループIDとスラッグを保存する。
 		articleWorkService.updateCategoryGroupId(workId, categoryId, userId);
 		articleWorkService.updateSlug(workId, slug, userId);
+
+		// 新規記事の場合はカテゴリーPathにslugを結合する。
+		// 投稿済み記事の場合は完成済みのhugoPathを維持する。
+		String hugoPath = work.getHugoPath();
+
+		if (work.getArticleId() == null) {
+		    if (hugoPath == null || hugoPath.isBlank()) {
+		        hugoPath = slug;
+		    } else {
+		        hugoPath = hugoPath + "/" + slug;
+		    }
+		}
+
+		articleWorkService.updateHugoPath(workId, hugoPath, userId);
 
 		// 投稿処理中のステータスに更新する。
 		articleWorkService.updateStatus(workId, 1, userId);

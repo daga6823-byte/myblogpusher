@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.app.myblogpusher.entity.UserMaster;
+import com.app.myblogpusher.entity.Article.ArticleWork;
 import com.app.myblogpusher.enums.ArticleStatus;
 import com.app.myblogpusher.repository.UserRepositoryRepository;
 import com.app.myblogpusher.service.PublishExecutionService;
@@ -29,6 +30,7 @@ import com.app.myblogpusher.service.Article.ArticleService;
 import com.app.myblogpusher.service.Article.ArticleWorkService;
 import com.app.myblogpusher.service.Article.ArticleWorkspaceService;
 import com.app.myblogpusher.util.ArticleSaveUtil;
+import com.app.myblogpusher.util.SlugUtil;
 
 import jakarta.servlet.http.HttpSession;
 
@@ -44,6 +46,9 @@ public class PublishController {
 
 	@Autowired
 	private ArticleWorkspaceService workspaceService;
+
+	@Autowired
+	private SlugUtil slugUtil;
 
 	/**
 	 * 投稿確認画面と投稿確定処理に必要な依存関係を設定する。
@@ -137,6 +142,51 @@ public class PublishController {
 		model.addAttribute("form", previewData.getForm());
 
 		return "publish_preview";
+	}
+
+	/**
+	 * 投稿確定時にスラッグを決定する。
+	 *
+	 * 新規記事は形態素解析と英語辞書による変換結果から生成し、
+	 * 既存記事は保存済みのスラッグを維持する。
+	 */
+	@PostMapping("/publish/generate-slug")
+	@ResponseBody
+	public ResponseEntity<Map<String, String>> generatePublishSlug(
+			@RequestParam Long workId,
+			@RequestParam String title,
+			HttpSession session) {
+
+		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
+
+		if (loginUser == null) {
+			return ResponseEntity.status(401)
+					.body(Map.of("error", "UNAUTHORIZED"));
+		}
+
+		ArticleWork work = articleWorkService.findById(
+				workId,
+				loginUser.getUserId());
+
+		if (work == null) {
+			return ResponseEntity.notFound().build();
+		}
+
+		String slug;
+
+		if (work.getArticleId() != null) {
+			slug = work.getSlug();
+		} else {
+			var analysis = slugUtil.analyzeSlug(title);
+			slug = slugUtil.generateSlugFromAnalysis(analysis);
+		}
+
+		if (slug == null || slug.isBlank()) {
+			return ResponseEntity.badRequest()
+					.body(Map.of("error", "SLUG_GENERATION_FAILED"));
+		}
+
+		return ResponseEntity.ok(Map.of("slug", slug));
 	}
 
 	/**

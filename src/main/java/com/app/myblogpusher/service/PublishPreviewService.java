@@ -66,16 +66,12 @@ public class PublishPreviewService {
 		// 新規記事・下書きは現在のタイトルと辞書からスラッグを生成する。
 		String slug;
 
-		if (existingArticle != null
-				&& primarySlug != null
-				&& !primarySlug.isBlank()) {
-			slug = primarySlug;
-		} else if (existingArticle != null
-				&& fallbackSlug != null
-				&& !fallbackSlug.isBlank()) {
-			slug = fallbackSlug;
+		if (existingArticle != null && primarySlug != null && !primarySlug.isBlank()) {
+		    slug = primarySlug;
+		} else if (existingArticle != null && fallbackSlug != null && !fallbackSlug.isBlank()) {
+		    slug = fallbackSlug;
 		} else {
-			slug = slugUtil.generateSlugFromAnalysis(analysis);
+		    slug = null;
 		}
 
 		// 投稿確認画面に渡す基本情報を設定する。

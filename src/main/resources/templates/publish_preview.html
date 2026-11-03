@@ -39,7 +39,7 @@
 
 		<div class="button-row">
 			<form id="publishForm" th:action="@{/publish/execute}" method="post" style="display: inline;"
-				onsubmit="return publishSubmit();">
+				onsubmit="event.preventDefault(); publishSubmit();">
 				<input type="hidden" name="workId" th:value="${form.articleId}">
 				<input type="hidden" name="title" th:value="${form.articleTitle}">
 				<input type="hidden" name="content" th:value="${form.articleContent}">

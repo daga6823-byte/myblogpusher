@@ -15,10 +15,13 @@ document.getElementById('addTypoButton')?.addEventListener('click', () => {
 	}
 
 	const params = new URLSearchParams();
+
+	params.append('workId', ArticleEditor.getWorkId());
+
 	params.append('wrongWord', wrongWord);
+
 	params.append('correctWord', correctWord);
-	params.append('categorySelect', categorySelect);
-	params.append('newCategoryName', newCategoryName);
+
 	params.append('isGeneral', isGeneral);
 
 	fetch('/article/typo/add', {

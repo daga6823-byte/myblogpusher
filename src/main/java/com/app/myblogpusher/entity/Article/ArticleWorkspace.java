@@ -31,6 +31,10 @@ public class ArticleWorkspace {
 	@Column(name = "category_group_id")
 	private Long categoryGroupId;
 
+	/** 編集中の記事のカテゴリーPath。 */
+	@Column(name = "hugo_path")
+	private String hugoPath;
+	
 	/** 編集中の記事のタイトル。 */
 	@Column(name = "title")
 	private String title;

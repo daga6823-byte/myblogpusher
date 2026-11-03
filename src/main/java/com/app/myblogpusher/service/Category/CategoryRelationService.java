@@ -60,7 +60,9 @@ public class CategoryRelationService {
 		boolean exists = categoryRelationRepository
 				.findByCategoryId(categoryId)
 				.stream()
-				.anyMatch(relation -> parentCategoryId.equals(relation.getParentCategoryId())
+				.anyMatch(relation -> java.util.Objects.equals(
+						parentCategoryId,
+						relation.getParentCategoryId())
 						&& categoryPath.equals(relation.getCategoryPath()));
 
 		if (exists) {
@@ -96,10 +98,22 @@ public class CategoryRelationService {
 			List<Long> parentCategoryIds,
 			Long userId) {
 
-		if (parentCategoryIds == null || parentCategoryIds.isEmpty())
-			return;
+		ArticleCategory category = articleCategoryRepository
+				.findById(categoryId)
+				.orElseThrow();
 
-		ArticleCategory category = articleCategoryRepository.findById(categoryId).orElseThrow();
+		// 親カテゴリーがない場合は、最上位カテゴリーとして経路を登録する。
+		if (parentCategoryIds == null || parentCategoryIds.isEmpty()) {
+
+			addRelation(
+					categoryId,
+					null,
+					null,
+					category.getCategoryName(),
+					userId);
+
+			return;
+		}
 
 		for (Long parentCategoryId : parentCategoryIds) {
 			ArticleCategory parentCategory = articleCategoryRepository.findById(parentCategoryId).orElseThrow();
@@ -179,42 +193,44 @@ public class CategoryRelationService {
 	}
 
 	/**
-	 * 非同期で登録されたカテゴリー経路のgroupIdをArticleWorkへ反映する。
+	 * 指定されたカテゴリー経路のgroupIdをArticleWorkへ反映する。
 	 *
-	 * CategoryRelationはINSERT時にgroupIdがDBで採番されるため、
-	 * ArticleWork保存時点でgroupIdが未確定の場合に後から設定する。
+	 * 記事のhugoPathに対応するCategoryRelationを特定し、
+	 * 編集画面で使用するgroupIdを設定する。
 	 */
 	@Async
 	public void updateArticleWorkCategoryGroupId(
 	        Long workId,
 	        Long categoryId,
+	        String categoryPath,
 	        Long userId) {
 
-		for (int i = 0; i < 20; i++) {
+	    for (int i = 0; i < 20; i++) {
 
-			List<CategoryRelation> relations = categoryRelationRepository.findByCategoryId(categoryId);
+	        CategoryRelation relation = categoryRelationRepository
+	                .findByCategoryPath(categoryPath)
+	                .stream()
+	                .filter(item -> categoryId.equals(item.getCategoryId()))
+	                .findFirst()
+	                .orElse(null);
 
-			Long groupId = relations.stream()
-					.map(CategoryRelation::getGroupId)
-					.filter(id -> id != null)
-					.findFirst()
-					.orElse(null);
+	        if (relation != null && relation.getGroupId() != null) {
 
-			if (groupId != null) {
-			    articleWorkService.updateCategoryGroupId(
-			            workId,
-			            groupId,
-			            userId);
-			    return;
-			}
+	            articleWorkService.updateCategoryGroupId(
+	                    workId,
+	                    relation.getGroupId(),
+	                    userId);
 
-			try {
-				Thread.sleep(100);
-			} catch (InterruptedException e) {
-				Thread.currentThread().interrupt();
-				return;
-			}
-		}
+	            return;
+	        }
+
+	        try {
+	            Thread.sleep(100);
+	        } catch (InterruptedException e) {
+	            Thread.currentThread().interrupt();
+	            return;
+	        }
+	    }
 	}
 
 	/**

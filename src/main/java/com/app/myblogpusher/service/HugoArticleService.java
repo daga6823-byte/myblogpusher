@@ -39,12 +39,12 @@ public class HugoArticleService {
 			String slug)
 			throws IOException, GitAPIException {
 
-		String categoryPath = categoryRelationRepository
-				.findByGroupId(article.getCategoryGroupId())
-				.stream()
-				.findFirst()
-				.orElseThrow()
-				.getCategoryPath();
+		String categoryPath = article.getHugoPath();
+
+		int lastSlash = categoryPath.lastIndexOf("/");
+		categoryPath = lastSlash >= 0
+		        ? categoryPath.substring(0, lastSlash)
+		        : "";
 
 		createCategoryIndexesRecursively(
 				git,
@@ -52,10 +52,8 @@ public class HugoArticleService {
 				categoryPath,
 				article.getUserId());
 
-		// 投稿先は投稿確認画面で確定したslugから生成する
-		String hugoPath = buildArticlePath(
-				article.getCategoryGroupId(),
-				slug);
+		// Articleに保存された完成済みHugoパスを使用する
+		String hugoPath = article.getHugoPath();
 
 		Path contentPath = Paths.get(
 				repoPath,

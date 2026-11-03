@@ -5,9 +5,10 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class WorkspaceSaveRequest {	
-	
-	private Long categoryGroupId;
-	private String title;
-	private String content;
+public class WorkspaceSaveRequest {
+
+    private Long categoryGroupId;
+    private String hugoPath;
+    private String title;
+    private String content;
 }

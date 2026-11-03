@@ -45,9 +45,11 @@ public class ArticleWorkspaceController {
 
 		workspaceService.save(
 				loginUser.getUserId(),
-				req.getCategoryGroupId(),
-				req.getTitle(),
-				req.getContent());
+			    req.getCategoryGroupId(),
+			    req.getHugoPath(),
+			    req.getTitle(),
+			    req.getContent()
+			);
 
 		return ResponseEntity.ok().build();
 	}

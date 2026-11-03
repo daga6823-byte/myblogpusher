@@ -46,68 +46,127 @@ function registerWord(btn) {
  * ・二重送信防止のため投稿ボタンを無効化する
  * ・画面で編集したslugをhidden項目へ反映する
  */
-function publishSubmit() {
+/**
+ * 投稿送信前処理
+ *
+ * ・投稿確認ダイアログを表示する
+ * ・タイトルからスラッグを生成する
+ * ・二重送信防止のため投稿ボタンを無効化する
+ * ・生成したスラッグをhidden項目へ反映する
+ */
+async function publishSubmit() {
+
 	if (!confirm("この記事を投稿しますか？")) {
 		return false;
 	}
 
+	const form = document.getElementById("publishForm");
+	const titleInput = form.querySelector('input[name="title"]');
+	const workIdInput = form.querySelector('input[name="workId"]');
 	const slugInput = document.getElementById('slugInput');
 	const slugHidden = document.getElementById('slugHidden');
 
-	if (slugInput && slugHidden) {
-		slugHidden.value = slugInput.value;
+	if (!form || !titleInput || !workIdInput || !slugHidden) {
+		alert('記事情報を取得できません。');
+		return false;
 	}
-
-	const form = document.getElementById("publishForm");
-	const workIdInput = form.querySelector('input[name="workId"]');
-	const slug = slugHidden.value;
-	const workId = workIdInput.value;
-
-	// 投稿状況の確認用タブを先に開き、ポップアップブロックを回避する
-	const waitTab = window.open("about:blank", "_blank");
-
-	if (waitTab) {
-		const params = new URLSearchParams({ workId, slug });
-		waitTab.location.href = `/publish/wait?${params.toString()}`;
-	}
-
-	// 投稿処理のリダイレクト先を非表示iframeにする。
-	// MBPの確認画面は遷移させず、待機タブで投稿状況を確認する。
-	let publishFrame = document.getElementById("publishSubmitFrame");
-	const isNewFrame = !publishFrame;
-
-	if (!publishFrame) {
-		publishFrame = document.createElement("iframe");
-		publishFrame.id = "publishSubmitFrame";
-		publishFrame.name = "publishSubmitFrame";
-		publishFrame.style.display = "none";
-	}
-
-	// iframeの初期読み込みは無視し、投稿リクエストへの応答後に画面遷移する。
-	let initialLoad = isNewFrame;
-
-	publishFrame.addEventListener('load', function() {
-		if (initialLoad) {
-			initialLoad = false;
-			return;
-		}
-
-		window.location.href = '/home';
-	});
-
-	if (isNewFrame) {
-		document.body.appendChild(publishFrame);
-	}
-
-	form.target = "publishSubmitFrame";
 
 	const button = document.getElementById("publishButton");
+
 	if (button) {
 		button.disabled = true;
-		button.textContent = "投稿中...";
+		button.textContent = "投稿準備中...";
 	}
 
-	return true;
+	try {
+		const response = await fetch('/publish/generate-slug', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/x-www-form-urlencoded'
+			},
+			body: new URLSearchParams({
+				workId: workIdInput.value,
+				title: titleInput.value
+			})
+		});
+
+		if (!response.ok) {
+			throw new Error('スラッグの生成に失敗しました。');
+		}
+
+		const result = await response.json();
+
+		if (!result.slug) {
+			throw new Error('スラッグを取得できませんでした。');
+		}
+
+		const slug = result.slug;
+
+		slugHidden.value = slug;
+
+		if (slugInput) {
+			slugInput.value = slug;
+		}
+
+		const workId = workIdInput.value;
+
+		// 投稿状況の確認用タブを先に開き、ポップアップブロックを回避する
+		const waitTab = window.open("about:blank", "_blank");
+
+		if (waitTab) {
+			const params = new URLSearchParams({ workId, slug });
+			waitTab.location.href = `/publish/wait?${params.toString()}`;
+		}
+
+		// 投稿処理のリダイレクト先を非表示iframeにする。
+		const publishFrame = document.getElementById("publishSubmitFrame");
+		const isNewFrame = !publishFrame;
+
+		let frame = publishFrame;
+
+		if (!frame) {
+			frame = document.createElement("iframe");
+			frame.id = "publishSubmitFrame";
+			frame.name = "publishSubmitFrame";
+			frame.style.display = "none";
+		}
+
+		// iframeの初期読み込みは無視し、投稿リクエストへの応答後に画面遷移する。
+		let initialLoad = isNewFrame;
+
+		frame.addEventListener('load', function() {
+			if (initialLoad) {
+				initialLoad = false;
+				return;
+			}
+
+			window.location.href = '/home';
+		});
+
+		if (isNewFrame) {
+			document.body.appendChild(frame);
+		}
+
+		form.target = "publishSubmitFrame";
+
+		if (button) {
+			button.textContent = "投稿中...";
+		}
+
+		form.submit();
+		return false;
+
+	} catch (error) {
+		console.error(error);
+		alert('投稿準備に失敗しました。');
+
+		if (button) {
+			button.disabled = false;
+			button.textContent = "投稿";
+		}
+
+		return false;
+	}
 }
 
 

@@ -15,26 +15,19 @@ public class ArticleWorkspaceService {
 	@Autowired
 	private ArticleWorkspaceRepository repository;
 
-	public void save(
-	        Long userId,
-	        Long categoryGroupId,
-	        String title,
-	        String content) {
-
-		if (userId == null) {
-		    return;
-		}
-		
+	public void save(Long userId, Long categoryGroupId, String hugoPath,
+			String title, String content) {
 		ArticleWorkspace workspace = repository.findById(userId)
 				.orElse(new ArticleWorkspace());
 
 		workspace.setUserId(userId);
-		workspace.setCategoryGroupId(categoryGroupId);
-		workspace.setTitle(title);
-		workspace.setContent(content);
-		workspace.setUpdateDate(LocalDateTime.now());
+	    workspace.setCategoryGroupId(categoryGroupId);
+	    workspace.setHugoPath(hugoPath);
+	    workspace.setTitle(title);
+	    workspace.setContent(content);
+	    workspace.setUpdateDate(LocalDateTime.now());
 
-		repository.save(workspace);
+	    repository.save(workspace);
 	}
 
 	public Optional<ArticleWorkspace> find(Long userId) {

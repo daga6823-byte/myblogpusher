@@ -115,10 +115,7 @@ public class ArticleService {
 		// 画面で編集したslugを使用
 		article.setSlug(slug);
 
-		article.setHugoPath(
-				hugoArticleService.buildArticlePath(
-						work.getCategoryGroupId(),
-						slug));
+		article.setHugoPath(work.getHugoPath());
 
 		article.setContent(work.getContent());
 
@@ -153,10 +150,7 @@ public class ArticleService {
 		// 画面で編集したslugを使用
 		article.setSlug(slug);
 
-		article.setHugoPath(
-				hugoArticleService.buildArticlePath(
-						work.getCategoryGroupId(),
-						slug));
+		article.setHugoPath(work.getHugoPath());
 
 		article.setContent(work.getContent());
 

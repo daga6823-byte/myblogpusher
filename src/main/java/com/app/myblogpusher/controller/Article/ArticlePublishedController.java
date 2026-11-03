@@ -117,6 +117,7 @@ public class ArticlePublishedController {
 				hugoPath);
 
 		Long workId;
+		String categoryPath = hugoPath;
 
 		if (article != null) {
 
@@ -125,14 +126,30 @@ public class ArticlePublishedController {
 
 			if (existing.isPresent()) {
 
-				workId = existing.get().getWorkId();
+			    ArticleWork work = existing.get();
+			    workId = work.getWorkId();
+
+			    // 投稿済み記事の保存先をカテゴリー選択の復元に使用する。
+			    int lastSlash = article.getHugoPath().lastIndexOf("/");
+
+			    if (lastSlash > 0) {
+			        categoryPath = article.getHugoPath().substring(0, lastSlash);
+			    }
 
 			} else {
+
+				int lastSlash = article.getHugoPath().lastIndexOf("/");
+
+				if (lastSlash > 0) {
+					categoryPath = article.getHugoPath().substring(0, lastSlash);
+				}
 
 				workId = articleWorkService.insertArticleWork(
 						userId,
 						article.getArticleId(),
 						article.getCategoryGroupId(),
+						categoryPath,
+						null,
 						article.getTitle(),
 						article.getContent(),
 						article.getSlug());
@@ -177,21 +194,21 @@ public class ArticlePublishedController {
 				return "redirect:/article/published";
 			}
 
+			int lastSlash = hugoPath.lastIndexOf("/");
+
+			if (lastSlash > 0) {
+				categoryPath = hugoPath.substring(0, lastSlash);
+			}
+
 			workId = articleWorkService.insertArticleWork(
 					userId,
 					null,
 					null,
+					categoryPath,
+					null,
 					githubArticle.getTitle(),
 					githubArticle.getContent(),
 					githubArticle.getSlug());
-		}
-
-		String categoryPath = hugoPath;
-
-		int lastSlash = hugoPath.lastIndexOf("/");
-
-		if (lastSlash > 0) {
-			categoryPath = hugoPath.substring(0, lastSlash);
 		}
 
 		return "redirect:/article/edit?workId="

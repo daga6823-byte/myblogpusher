@@ -96,20 +96,15 @@ public class ArticleEditController {
 			work = articleWorkService.findById(workId, userId);
 
 			model.addAttribute("work", work);
+
 			model.addAttribute("categoryGroupId", work.getCategoryGroupId());
 
-			// 保存直後は非同期でgroupIdがまだ設定されていない場合がある。
-			// その場合は保存時点で保持したカテゴリー経路をそのまま使用する。
+			// URLにカテゴリー経路がない場合は、保存済みのPathを使用する。
 			if (categoryPath == null || categoryPath.isBlank()) {
 
-				if (work.getCategoryGroupId() != null) {
+				categoryPath = work.getHugoPath();
 
-					categoryPath = categorySelectionService
-							.findCategoryPathByGroupId(work.getCategoryGroupId());
-				}
 			}
-
-			model.addAttribute("categoryPath", categoryPath);
 
 		} else {
 
@@ -121,21 +116,22 @@ public class ArticleEditController {
 				var workspace = workspaceOptional.get();
 
 				model.addAttribute("workspace", workspace);
+
 				model.addAttribute("categoryGroupId", workspace.getCategoryGroupId());
 
-				// URLからカテゴリー経路が指定されていない場合は、保存済みのgroupIdから取得する。
+				// URLにカテゴリー経路がない場合は、保存済みのPathを使用する。
 				if (categoryPath == null || categoryPath.isBlank()) {
 
-					if (workspace.getCategoryGroupId() != null) {
+					categoryPath = workspace.getHugoPath();
 
-						categoryPath = categorySelectionService
-								.findCategoryPathByGroupId(workspace.getCategoryGroupId());
-					}
 				}
 
-				model.addAttribute("categoryPath", categoryPath);
 			}
+
 		}
+
+		// 編集画面のカテゴリー選択復元用Path
+		model.addAttribute("categoryPath", categoryPath);
 
 		if (work != null) {
 
@@ -236,18 +232,18 @@ public class ArticleEditController {
 		}
 
 		return "redirect:/article/edit?workId=" + savedWorkId
-		        + "&saved=true"
-		        + "&categoryPath="
-		        + URLEncoder.encode(
-		                savedCategoryPath == null ? "" : savedCategoryPath,
-		                StandardCharsets.UTF_8)
-		        + "&newCategoryName="
-		        + URLEncoder.encode(
-		                newCategoryName == null ? "" : newCategoryName,
-		                StandardCharsets.UTF_8)
-		        + "&newCategoryDisplayName="
-		        + URLEncoder.encode(
-		                newCategoryDisplayName == null ? "" : newCategoryDisplayName,
-		                StandardCharsets.UTF_8);
+				+ "&saved=true"
+				+ "&categoryPath="
+				+ URLEncoder.encode(
+						savedCategoryPath == null ? "" : savedCategoryPath,
+						StandardCharsets.UTF_8)
+				+ "&newCategoryName="
+				+ URLEncoder.encode(
+						newCategoryName == null ? "" : newCategoryName,
+						StandardCharsets.UTF_8)
+				+ "&newCategoryDisplayName="
+				+ URLEncoder.encode(
+						newCategoryDisplayName == null ? "" : newCategoryDisplayName,
+						StandardCharsets.UTF_8);
 	}
 }

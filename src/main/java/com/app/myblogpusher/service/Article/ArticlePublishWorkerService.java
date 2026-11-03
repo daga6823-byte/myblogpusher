@@ -66,9 +66,7 @@ public class ArticlePublishWorkerService {
 				return;
 			}
 
-			String hugoPath = hugoArticleService.buildArticlePath(
-					work.getCategoryGroupId(),
-					work.getSlug());
+			String hugoPath = work.getHugoPath();
 
 			// ArticleWork.articleIdを基準に元の記事を取得する。
 			// カテゴリー変更後のhugoPathではなく、元の記事そのものを特定する。

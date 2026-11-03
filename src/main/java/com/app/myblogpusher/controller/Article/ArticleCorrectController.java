@@ -23,13 +23,11 @@ import com.app.myblogpusher.dto.Typo.TypoScanResultView;
 import com.app.myblogpusher.entity.UserMaster;
 import com.app.myblogpusher.entity.Article.ArticleCategory;
 import com.app.myblogpusher.entity.Article.ArticleWork;
-import com.app.myblogpusher.repository.CategoryRelationRepository;
 import com.app.myblogpusher.service.HomophoneTypoScanService;
 import com.app.myblogpusher.service.LanguageToolService;
 import com.app.myblogpusher.service.TypoCorrectionService;
 import com.app.myblogpusher.service.Article.ArticleCategoryService;
 import com.app.myblogpusher.service.Article.ArticleWorkService;
-import com.app.myblogpusher.service.Category.CategoryPathService;
 import com.app.myblogpusher.service.Category.CategorySelectionService;
 import com.app.myblogpusher.util.ArticleSaveUtil;
 
@@ -51,13 +49,9 @@ public class ArticleCorrectController {
 	private ArticleSaveUtil articleSaveUtil;
 
 	@Autowired
-	private CategoryPathService categoryPathService;
-
-	@Autowired
 	private CategorySelectionService categorySelectionService;
 
-	@Autowired
-	private CategoryRelationRepository categoryRelationRepository;
+	private static final String SESSION_KEY_WORK_ID = "ltCachedWorkId";
 
 	//添削画面
 	@PostMapping("/article/correct")
@@ -95,14 +89,10 @@ public class ArticleCorrectController {
 		ArticleWork work = articleWorkService.findById(savedWorkId, userId);
 
 		Long categoryGroupId = work.getCategoryGroupId();
+		String categoryPath = work.getHugoPath();
 
-		// 現在選択されているカテゴリー経路を取得する。
-		// categoryGroupIdはCategoryRelation.groupIdを指す。
-		String categoryPath = categorySelectionService
-				.findCategoryPathByGroupId(categoryGroupId);
-
-		Long categoryId = categoryPathService
-				.findTypoCategoryIdByGroupId(categoryGroupId);
+		// 添削・誤字チェック用カテゴリーIDはArticleWorkから取得する。
+		Long categoryId = work.getTypoCategoryId();
 
 		List<TypoCorrectionService.TypoMatch> matches = typoCorrectionService.findMatches(categoryId, content);
 
@@ -124,10 +114,10 @@ public class ArticleCorrectController {
 
 	@PostMapping("/article/typo/add")
 	@ResponseBody
-	public Map<String, String> addTypo(@RequestParam String wrongWord,
+	public Map<String, String> addTypo(
+			@RequestParam Long workId,
+			@RequestParam String wrongWord,
 			@RequestParam String correctWord,
-			@RequestParam String categorySelect,
-			@RequestParam(required = false) String newCategoryName,
 			@RequestParam(required = false) Boolean isGeneral,
 			HttpSession session) {
 
@@ -137,37 +127,23 @@ public class ArticleCorrectController {
 		Long targetCategoryId = null;
 
 		if (isGeneral == null || !isGeneral) {
-
-			if ("__new__".equals(categorySelect)) {
-
-				targetCategoryId = articleCategoryService.insertCategory(
-						userId,
-						newCategoryName,
-						null,
-						newCategoryName);
-
-			} else {
-
-				Long categoryGroupId = categoryRelationRepository
-						.findByCategoryPath(categorySelect)
-						.stream()
-						.findFirst()
-						.orElseThrow()
-						.getGroupId();
-
-				targetCategoryId = categoryPathService
-						.findTypoCategoryIdByGroupId(categoryGroupId);
-			}
+			ArticleWork work = articleWorkService.findById(workId, userId);
+			targetCategoryId = work.getTypoCategoryId();
 		}
 
-		boolean inserted = typoCorrectionService.insertTypo(targetCategoryId, wrongWord, correctWord, userId);
+		boolean inserted = typoCorrectionService.insertTypo(
+				targetCategoryId,
+				wrongWord,
+				correctWord,
+				userId);
 
 		if (!inserted) {
-			return Map.of("result", "duplicate", "message", "この誤字パターンは既に登録されています");
+			return Map.of(
+					"result", "duplicate",
+					"message", "この誤字パターンは既に登録されています");
 		}
 
 		return Map.of("result", "ok");
-
 	}
 
 	@Autowired
@@ -181,39 +157,51 @@ public class ArticleCorrectController {
 
 	@PostMapping("/article/typo/scan")
 	@ResponseBody
-	public List<TypoScanResultView> scanTypos(@RequestParam String content,
-			@RequestParam String categorySelect,
-			@RequestParam(required = false) String newCategoryName,
+	public List<TypoScanResultView> scanTypos(
+			@RequestParam String content,
+			@RequestParam Long workId,
 			HttpSession session) {
 
-		ensureLanguageToolCache(content, categorySelect, newCategoryName, session);
+		ensureLanguageToolCache(content, workId, session);
 
 		@SuppressWarnings("unchecked")
 		List<TypoScanResultView> cached = (List<TypoScanResultView>) session.getAttribute(SESSION_KEY_TYPO_RESULTS);
+
 		return cached;
 	}
 
 	@PostMapping("/article/proofread/scan")
 	@ResponseBody
-	public List<ProofreadResultView> scanProofreading(@RequestParam String content,
-			@RequestParam String categorySelect,
-			@RequestParam(required = false) String newCategoryName,
+	public List<ProofreadResultView> scanProofreading(
+			@RequestParam String content,
+			@RequestParam Long workId,
 			HttpSession session) {
 
-		ensureLanguageToolCache(content, categorySelect, newCategoryName, session);
+		ensureLanguageToolCache(content, workId, session);
 
 		@SuppressWarnings("unchecked")
 		List<ProofreadResultView> cached = (List<ProofreadResultView>) session.getAttribute(SESSION_KEY_PROOF_RESULTS);
+
 		return cached;
 	}
 
-	private void ensureLanguageToolCache(String content, String categorySelect, String newCategoryName,
+	/**
+	 * LanguageToolと誤字スキャンの結果をキャッシュする。
+	 *
+	 * 本文とWork IDが前回と同じ場合は再解析しない。
+	 * 誤字チェック用カテゴリーIDはArticleWorkから取得する。
+	 */
+	private void ensureLanguageToolCache(
+			String content,
+			Long workId,
 			HttpSession session) {
 
 		String cachedContent = (String) session.getAttribute(SESSION_KEY_LT_CONTENT);
+		Long cachedWorkId = (Long) session.getAttribute(SESSION_KEY_WORK_ID);
 
-		// 本文が前回と同じであれば再解析しない
+		// 本文とWorkが前回と同じであれば再解析しない
 		if (content.equals(cachedContent)
+				&& workId.equals(cachedWorkId)
 				&& session.getAttribute(SESSION_KEY_TYPO_RESULTS) != null
 				&& session.getAttribute(SESSION_KEY_PROOF_RESULTS) != null) {
 			return;
@@ -222,54 +210,42 @@ public class ArticleCorrectController {
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 		Long userId = loginUser.getUserId();
 
-		Long categoryId = null;
-
-		if ("__new__".equals(categorySelect)) {
-
-			if (newCategoryName != null && !newCategoryName.isBlank()) {
-				categoryId = articleCategoryService.insertCategory(
-						userId,
-						newCategoryName,
-						null,
-						newCategoryName);
-			}
-
-		} else if (categorySelect != null && !categorySelect.isBlank()) {
-
-			Long categoryGroupId = categoryRelationRepository
-					.findByCategoryPath(categorySelect)
-					.stream()
-					.findFirst()
-					.orElseThrow()
-					.getGroupId();
-
-			categoryId = categoryPathService
-					.findTypoCategoryIdByGroupId(categoryGroupId);
-		}
+		ArticleWork work = articleWorkService.findById(workId, userId);
+		Long categoryId = work.getTypoCategoryId();
 
 		List<LanguageToolService.LanguageToolMatch> allMatches = languageToolService.checkText(content);
 
 		List<LanguageToolService.LanguageToolMatch> typoMatches = homophoneTypoScanService.scan(content);
+
 		List<LanguageToolService.LanguageToolMatch> filteredTypos = typoCorrectionService.excludeKnownTypos(categoryId,
 				typoMatches);
 
 		List<TypoScanResultView> typoResults = filteredTypos.stream()
-				.map(m -> new TypoScanResultView(m.getMatchedText(), m.getSuggestion(), m.getMessage()))
+				.map(m -> new TypoScanResultView(
+						m.getMatchedText(),
+						m.getSuggestion(),
+						m.getMessage()))
 				.toList();
 
 		List<LanguageToolService.LanguageToolMatch> proofMatches = languageToolService.filterProofreading(allMatches);
 
 		List<ProofreadResultView> proofResults = new ArrayList<>();
 		int idx = 0;
+
 		for (LanguageToolService.LanguageToolMatch m : proofMatches) {
-			proofResults.add(new ProofreadResultView(idx, m.getFromPos(), m.getToPos(), m.getMatchedText(),
-					m.getMessage(), m.getSuggestion()));
+			proofResults.add(new ProofreadResultView(
+					idx,
+					m.getFromPos(),
+					m.getToPos(),
+					m.getMatchedText(),
+					m.getMessage(),
+					m.getSuggestion()));
 			idx++;
 		}
 
 		session.setAttribute(SESSION_KEY_LT_CONTENT, content);
+		session.setAttribute(SESSION_KEY_WORK_ID, workId);
 		session.setAttribute(SESSION_KEY_TYPO_RESULTS, typoResults);
 		session.setAttribute(SESSION_KEY_PROOF_RESULTS, proofResults);
 	}
-
 }

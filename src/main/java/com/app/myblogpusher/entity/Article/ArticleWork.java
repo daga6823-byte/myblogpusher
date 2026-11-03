@@ -25,10 +25,19 @@ public class ArticleWork {
 
     @Column(name = "user_id", nullable = false)
     private Long userId;
+    
+    /** 添削・誤字チェックで使用するカテゴリーID。 */
+    @Column(name = "typo_category_id")
+    private Long typoCategoryId;
 
+    /** 編集中の記事に選択されているカテゴリーグループID。 */
     @Column(name = "category_group_id")
     private Long categoryGroupId;
 
+	/** 編集中の記事のカテゴリーPath。 */
+	@Column(name = "hugo_path")
+	private String hugoPath;
+	
     @Column(name = "title")
     private String title;
 

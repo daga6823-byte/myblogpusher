@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
 import com.app.myblogpusher.entity.Article.ArticleWork;
 import com.app.myblogpusher.repository.Article.ArticleWorkRepository;
 
+import jakarta.transaction.Transactional;
+
 /**
  * 記事編集中データ(article_work)を管理するサービス
  *
@@ -44,6 +46,8 @@ public class ArticleWorkService {
 			Long userId,
 			Long articleId,
 			Long categoryGroupId,
+			String hugoPath,
+			Long typoCategoryId,
 			String title,
 			String content,
 			String slug) {
@@ -53,12 +57,11 @@ public class ArticleWorkService {
 		work.setUserId(userId);
 		work.setArticleId(articleId);
 		work.setCategoryGroupId(categoryGroupId);
+		work.setHugoPath(hugoPath);
+		work.setTypoCategoryId(typoCategoryId);
 		work.setTitle(title);
 		work.setContent(content);
-
-		// 投稿時に使用するslugを保持
 		work.setSlug(slug);
-
 		work.setCreateUser(userId);
 		work.setUpdateUser(userId);
 
@@ -82,6 +85,8 @@ public class ArticleWorkService {
 	public void updateArticleWork(
 			Long workId,
 			Long categoryGroupId,
+			String hugoPath,
+			Long typoCategoryId,
 			String title,
 			String content,
 			Long userId,
@@ -92,6 +97,8 @@ public class ArticleWorkService {
 				.orElseThrow();
 
 		work.setCategoryGroupId(categoryGroupId);
+		work.setHugoPath(hugoPath);
+		work.setTypoCategoryId(typoCategoryId);
 		work.setTitle(title);
 		work.setContent(content);
 		work.setSlug(slug);
@@ -290,6 +297,26 @@ public class ArticleWorkService {
 		work.setSlug(slug);
 		work.setUpdateUser(userId);
 		work.setUpdateDate(LocalDateTime.now());
+
+		articleWorkRepository.save(work);
+	}
+
+	/**
+	 * ArticleWorkのHugoパスを更新する。
+	 */
+	@Transactional
+	public void updateHugoPath(
+			Long workId,
+			String hugoPath,
+			Long userId) {
+
+		ArticleWork work = articleWorkRepository
+				.findByWorkIdAndUserId(workId, userId)
+				.orElseThrow();
+
+		work.setHugoPath(hugoPath);
+		work.setUpdateDate(LocalDateTime.now());
+		work.setUpdateUser(userId);
 
 		articleWorkRepository.save(work);
 	}
