@@ -26,6 +26,7 @@
 		</div>
 
 		<form th:action="@{/article/save}" method="post">
+			<input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
 
 			<div th:replace="~{article/fragments/article_editor :: editorFields}"></div>
 			<div th:replace="~{fragments/article_link_modal :: articleLinkModal}"></div>

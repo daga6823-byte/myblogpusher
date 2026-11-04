@@ -20,7 +20,7 @@
 		<h1>添削</h1>
 
 		<form th:action="@{/article/save}" method="post">
-
+			<input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
 			<div th:replace="~{article/fragments/article_editor :: editorFields}"></div>
 
 			<div class="button-row">
@@ -98,7 +98,7 @@
 
 			<script th:src="@{/js/category_select.js}"></script>
 			<script th:src="@{/js/markdown_toolbar.js}"></script>
-<!--			<script th:src="@{/js/correct/button_state.js}"></script>-->
+			<!--			<script th:src="@{/js/correct/button_state.js}"></script>-->
 			<script th:src="@{/js/correct/highlight.js}"></script>
 			<script th:src="@{/js/correct/proofread.js}"></script>
 			<script th:src="@{/js/correct/save_control.js}"></script>
