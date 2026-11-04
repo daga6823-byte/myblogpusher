@@ -11,8 +11,11 @@ import java.time.LocalDateTime;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.MissingServletRequestParameterException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import com.app.myblogpusher.entity.ApplicationErrorLog;
+import com.app.myblogpusher.entity.UserMaster;
 import com.app.myblogpusher.repository.ApplicationErrorLogRepository;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -35,16 +38,20 @@ public class ApplicationErrorLogService {
 	 */
 	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	public void record(
-			Exception exception,
-			HttpServletRequest request) {
+	        Exception exception,
+	        HttpServletRequest request) {
 
-		ApplicationErrorLog errorLog = new ApplicationErrorLog();
+	    if (!shouldLog(exception, request)) {
+	        return;
+	    }
+
+	    ApplicationErrorLog errorLog = new ApplicationErrorLog();
 
 		Object loginUser = request.getSession(false) != null
 				? request.getSession(false).getAttribute("loginUser")
 				: null;
 
-		if (loginUser instanceof com.app.myblogpusher.entity.UserMaster user) {
+		if (loginUser instanceof UserMaster user) {
 			errorLog.setUserId(user.getUserId());
 		}
 
@@ -173,5 +180,38 @@ public class ApplicationErrorLogService {
 		}
 
 		return cause;
+	}
+	
+	/**
+	 * DBへの記録が不要な例外か判定する。
+	 *
+	 * ブラウザによるアイコン探索やリクエストパラメータ不足は
+	 * DBのエラーログには記録しない。
+	 */
+	private boolean shouldLog(
+	        Exception exception,
+	        HttpServletRequest request) {
+
+	    Throwable cause = exception;
+
+	    while (cause != null) {
+
+	        if (cause instanceof NoResourceFoundException) {
+	            String uri = request.getRequestURI();
+
+	            if (uri.endsWith("/apple-touch-icon.png")
+	                    || uri.endsWith("/apple-touch-icon-precomposed.png")) {
+	                return false;
+	            }
+	        }
+
+	        if (cause instanceof MissingServletRequestParameterException) {
+	            return false;
+	        }
+
+	        cause = cause.getCause();
+	    }
+
+	    return true;
 	}
 }
