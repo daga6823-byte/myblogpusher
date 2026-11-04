@@ -52,7 +52,6 @@ public class PublishExecutionService {
 	@Transactional
 	public boolean executePublish(
 			Long workId,
-			Long categoryId,
 			String slug,
 			String thumbnailUrl,
 			Long userId,
@@ -70,8 +69,7 @@ public class PublishExecutionService {
 		// 投稿対象のWorkを取得する。
 		ArticleWork work = articleWorkService.findById(workId, userId);
 
-		// 確認画面で確定したカテゴリーグループIDとスラッグを保存する。
-		articleWorkService.updateCategoryGroupId(workId, categoryId, userId);
+		// 確認画面で確定したスラッグを保存する。
 		articleWorkService.updateSlug(workId, slug, userId);
 
 		// 新規記事の場合はカテゴリーPathにslugを結合する。

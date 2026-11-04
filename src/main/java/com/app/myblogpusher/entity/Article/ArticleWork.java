@@ -30,7 +30,10 @@ public class ArticleWork {
     @Column(name = "typo_category_id")
     private Long typoCategoryId;
 
-    /** 編集中の記事に選択されているカテゴリーグループID。 */
+    /**
+     * 旧カテゴリーグループID。
+     * 記事のカテゴリー管理には使用しない。
+     */
     @Column(name = "category_group_id")
     private Long categoryGroupId;
 

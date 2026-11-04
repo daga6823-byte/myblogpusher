@@ -62,8 +62,6 @@ public class ArticleSaveUtil {
 				newCategoryName,
 				newCategoryDisplayName);
 
-		Long categoryGroupId = categoryResolution.groupId();
-
 		// categorySelectに新規カテゴリー名が含まれていない場合だけ追加する。
 		String hugoPath = categorySelect;
 
@@ -136,10 +134,10 @@ public class ArticleSaveUtil {
 			}
 
 			Optional<ArticleWork> existing = articleWorkService.findDuplicate(
-					userId,
-					categoryGroupId,
-					title,
-					formattedContent);
+			        userId,
+			        hugoPath,
+			        title,
+			        formattedContent);
 
 			if (existing.isPresent()) {
 				return existing.get().getWorkId();
@@ -148,20 +146,11 @@ public class ArticleSaveUtil {
 			Long newWorkId = articleWorkService.insertArticleWork(
 					userId,
 					null,
-					categoryGroupId,
 					hugoPath,
 					null,
 					title,
 					formattedContent,
 					slug);
-
-			if (categoryResolution.groupIdPending()) {
-				categoryRelationService.updateArticleWorkCategoryGroupId(
-				        newWorkId,
-				        categoryResolution.categoryId(),
-				        categoryResolution.parentCategoryId(),
-				        userId);
-			}
 
 			return newWorkId;
 
@@ -172,21 +161,12 @@ public class ArticleSaveUtil {
 
 			articleWorkService.updateArticleWork(
 					workId,
-					categoryGroupId,
 					hugoPath,
 					typoCategoryId,
 					title,
 					formattedContent,
 					userId,
 					slug);
-
-			if (categoryResolution.groupIdPending()) {
-				categoryRelationService.updateArticleWorkCategoryGroupId(
-				        workId,
-				        categoryResolution.categoryId(),
-				        categoryResolution.parentCategoryId(),
-				        userId);
-			}
 
 			return workId;
 		}
@@ -195,8 +175,8 @@ public class ArticleSaveUtil {
 	/**
 	 * カテゴリー選択値を解決する。
 	 *
-	 * 新規カテゴリーの場合はCategoryRelationの登録が非同期になるため、
-	 * groupIdがまだ存在しない場合はArticleWorkを先に保存できるようにする。
+	 * 新規カテゴリーの場合はカテゴリーの存在確認と登録を行う。
+	 * 記事保存ではgroupIdを使用せず、カテゴリー階層はhugoPathで管理する。
 	 */
 	private CategoryResolution resolveCategory(
 			Long userId,
@@ -204,131 +184,72 @@ public class ArticleSaveUtil {
 			String newCategoryName,
 			String newCategoryDisplayName) {
 
-		if (newCategoryName != null && !newCategoryName.isBlank()) {
+		if (newCategoryName == null || newCategoryName.isBlank()) {
+			return new CategoryResolution(null);
+		}
 
-			// categorySelectに新規カテゴリー名が含まれている場合は、
-			// 末尾を除いたPathから親カテゴリーIDを取得する。
-			String parentCategoryPath = categorySelect;
+		// categorySelectに新規カテゴリー名が含まれている場合は、
+		// 末尾を除いたPathから親カテゴリーIDを取得する。
+		String parentCategoryPath = categorySelect;
 
-			if (parentCategoryPath != null
-					&& !parentCategoryPath.isBlank()) {
+		if (parentCategoryPath != null && !parentCategoryPath.isBlank()) {
 
-				String lastCategoryName = parentCategoryPath.substring(
-						parentCategoryPath.lastIndexOf("/") + 1);
+			String lastCategoryName = parentCategoryPath.substring(
+					parentCategoryPath.lastIndexOf("/") + 1);
 
-				if (newCategoryName.equals(lastCategoryName)) {
+			if (newCategoryName.equals(lastCategoryName)) {
 
-					int lastSlash = parentCategoryPath.lastIndexOf("/");
+				int lastSlash = parentCategoryPath.lastIndexOf("/");
 
-					parentCategoryPath = lastSlash >= 0
-							? parentCategoryPath.substring(0, lastSlash)
-							: null;
-				}
+				parentCategoryPath = lastSlash >= 0
+						? parentCategoryPath.substring(0, lastSlash)
+						: null;
 			}
+		}
 
-			// 親カテゴリーの経路が存在する場合だけ、親カテゴリーIDを取得する。
-			// 最上位カテゴリーの場合は親を持たないため、nullのまま登録する。
-			Long parentCategoryId = parentCategoryPath == null
-					|| parentCategoryPath.isBlank()
-							? null
-							: categoryPathService.findCategoryIdByFullPath(
-									userId,
-									parentCategoryPath);
+		// 親カテゴリーの経路が存在する場合だけ、親カテゴリーIDを取得する。
+		Long parentCategoryId = parentCategoryPath == null
+				|| parentCategoryPath.isBlank()
+						? null
+						: categoryPathService.findCategoryIdByFullPath(
+								userId,
+								parentCategoryPath);
 
-			List<Long> parentCategoryIds = parentCategoryId != null
-					? List.of(parentCategoryId)
-					: List.of();
+		List<Long> parentCategoryIds = parentCategoryId != null
+				? List.of(parentCategoryId)
+				: List.of();
 
-			Optional<ArticleCategory> existingCategory = articleCategoryService
-					.findByUserIdAndName(userId, newCategoryName);
+		Optional<ArticleCategory> existingCategory = articleCategoryService
+				.findByUserIdAndName(userId, newCategoryName);
 
-			Long categoryId;
+		Long categoryId;
 
-			if (existingCategory.isPresent()) {
+		if (existingCategory.isPresent()) {
 
-				categoryId = existingCategory.get().getCategoryId();
+			categoryId = existingCategory.get().getCategoryId();
 
-				// 既存カテゴリーにも、今回選択された親カテゴリーとの経路を追加する。
-				categoryRelationService.addCategoryRelations(
-						categoryId,
-						parentCategoryIds,
-						userId);
+			// 既存カテゴリーにも、今回選択された親カテゴリーとの経路を追加する。
+			categoryRelationService.addCategoryRelations(
+					categoryId,
+					parentCategoryIds,
+					userId);
 
-			} else {
+		} else {
 
-				categoryId = articleCategoryService.insertCategory(
-						userId,
-						newCategoryName,
-						parentCategoryIds,
-						newCategoryDisplayName);
-			}
-
-			// categorySelectに新規カテゴリー名が含まれていれば、そのPathを使用する。
-			String newCategoryPath = categorySelect == null
-					|| categorySelect.isBlank()
-							? newCategoryName
-							: categorySelect.substring(
-									categorySelect.lastIndexOf("/") + 1)
-									.equals(newCategoryName)
-											? categorySelect
-											: categorySelect + "/" + newCategoryName;
-
-			Long groupId = categoryPathService.findGroupIdByFullPath(
+			categoryId = articleCategoryService.insertCategory(
 					userId,
-					newCategoryPath);
-
-			// CategoryRelationは非同期登録のため、
-			// まだgroupIdが採番されていない場合はArticleWorkを先に保存する。
-			if (groupId == null) {
-				return new CategoryResolution(
-				        null,
-				        categoryId,
-				        parentCategoryId,
-				        true);
-			}
-
-			return new CategoryResolution(
-			        groupId,
-			        categoryId,
-			        parentCategoryId,
-			        false);
+					newCategoryName,
+					parentCategoryIds,
+					newCategoryDisplayName);
 		}
 
-		if (categorySelect == null || categorySelect.isBlank()) {
-			return new CategoryResolution(
-			        null,
-			        null,
-			        null,
-			        false);
-		}
-
-		Long groupId = categoryPathService.findGroupIdByFullPath(
-		        userId,
-		        categorySelect);
-
-		if (groupId == null) {
-		    throw new IllegalStateException(
-		            "カテゴリーグループが見つかりません: " + categorySelect);
-		}
-
-		return new CategoryResolution(
-		        groupId,
-		        null,
-		        null,
-		        false);
+		return new CategoryResolution(categoryId);
 	}
 
 	/**
 	 * カテゴリー解決結果を保持する。
-	 *
-	 * groupIdがまだ採番されていない場合は、
-	 * ArticleWork保存後に非同期でgroupIdを反映する。
 	 */
-	private record CategoryResolution(
-	        Long groupId,
-	        Long categoryId,
-	        Long parentCategoryId,
-	        boolean groupIdPending) {
+	private record CategoryResolution(Long categoryId) {
 	}
 
 	@Transactional

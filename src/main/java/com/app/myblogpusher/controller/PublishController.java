@@ -199,7 +199,6 @@ public class PublishController {
 			@RequestParam(required = false) Long workId,
 			@RequestParam String title,
 			@RequestParam String content,
-			@RequestParam Long categoryId,
 			@RequestParam String slug,
 			@RequestParam(required = false) String thumbnailUrl,
 			HttpSession session,
@@ -215,7 +214,6 @@ public class PublishController {
 		// 投稿確定後の処理をサービスへ委譲する。
 		boolean started = publishExecutionService.executePublish(
 				workId,
-				categoryId,
 				slug,
 				thumbnailUrl,
 				loginUser.getUserId(),

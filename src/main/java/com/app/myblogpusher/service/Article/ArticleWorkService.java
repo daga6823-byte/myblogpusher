@@ -45,7 +45,6 @@ public class ArticleWorkService {
 	public Long insertArticleWork(
 			Long userId,
 			Long articleId,
-			Long categoryGroupId,
 			String hugoPath,
 			Long typoCategoryId,
 			String title,
@@ -56,7 +55,6 @@ public class ArticleWorkService {
 
 		work.setUserId(userId);
 		work.setArticleId(articleId);
-		work.setCategoryGroupId(categoryGroupId);
 		work.setHugoPath(hugoPath);
 		work.setTypoCategoryId(typoCategoryId);
 		work.setTitle(title);
@@ -84,7 +82,6 @@ public class ArticleWorkService {
 	 */
 	public void updateArticleWork(
 			Long workId,
-			Long categoryGroupId,
 			String hugoPath,
 			Long typoCategoryId,
 			String title,
@@ -96,7 +93,6 @@ public class ArticleWorkService {
 				.findByWorkIdAndUserId(workId, userId)
 				.orElseThrow();
 
-		work.setCategoryGroupId(categoryGroupId);
 		work.setHugoPath(hugoPath);
 		work.setTypoCategoryId(typoCategoryId);
 		work.setTitle(title);
@@ -163,17 +159,17 @@ public class ArticleWorkService {
 	 * 同一内容の下書きが存在するか確認する
 	 */
 	public Optional<ArticleWork> findDuplicate(
-			Long userId,
-			Long categoryGroupId,
-			String title,
-			String content) {
+	        Long userId,
+	        String hugoPath,
+	        String title,
+	        String content) {
 
-		return articleWorkRepository
-				.findByUserIdAndCategoryGroupIdAndTitleAndContent(
-						userId,
-						categoryGroupId,
-						title,
-						content);
+	    return articleWorkRepository
+	            .findByUserIdAndHugoPathAndTitleAndContent(
+	                    userId,
+	                    hugoPath,
+	                    title,
+	                    content);
 	}
 
 	/**
@@ -223,25 +219,6 @@ public class ArticleWorkService {
 		return articleWorkRepository.findByUserIdAndStatusOrderByUpdateDateDesc(
 				userId,
 				0);
-	}
-
-	/**
-	 * ユーザーが所有する編集中記事のカテゴリーグループIDを更新する
-	 */
-	public void updateCategoryGroupId(
-			Long workId,
-			Long categoryGroupId,
-			Long userId) {
-
-		ArticleWork work = articleWorkRepository
-				.findByWorkIdAndUserId(workId, userId)
-				.orElseThrow();
-
-		work.setCategoryGroupId(categoryGroupId);
-		work.setUpdateUser(userId);
-		work.setUpdateDate(LocalDateTime.now());
-
-		articleWorkRepository.save(work);
 	}
 
 	/**

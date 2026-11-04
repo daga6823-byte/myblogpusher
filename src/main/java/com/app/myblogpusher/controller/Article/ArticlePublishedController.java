@@ -147,7 +147,6 @@ public class ArticlePublishedController {
 				workId = articleWorkService.insertArticleWork(
 						userId,
 						article.getArticleId(),
-						article.getCategoryGroupId(),
 						categoryPath,
 						null,
 						article.getTitle(),
@@ -202,7 +201,6 @@ public class ArticlePublishedController {
 
 			workId = articleWorkService.insertArticleWork(
 					userId,
-					null,
 					null,
 					categoryPath,
 					null,

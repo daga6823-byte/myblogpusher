@@ -135,49 +135,6 @@ public class CategoryRelationService {
 	}
 
 	/**
-	 * 指定されたカテゴリー経路のgroupIdをArticleWorkへ反映する。
-	 *
-	 * 記事のhugoPathに対応するCategoryRelationを特定し、
-	 * 編集画面で使用するgroupIdを設定する。
-	 */
-	@Async
-	public void updateArticleWorkCategoryGroupId(
-	        Long workId,
-	        Long categoryId,
-	        Long parentCategoryId,
-	        Long userId) {
-
-		for (int i = 0; i < 20; i++) {
-
-			CategoryRelation relation = categoryRelationRepository
-			        .findByCategoryId(categoryId)
-			        .stream()
-			        .filter(item -> java.util.Objects.equals(
-			                parentCategoryId,
-			                item.getParentCategoryId()))
-			        .findFirst()
-			        .orElse(null);
-
-			if (relation != null && relation.getGroupId() != null) {
-
-				articleWorkService.updateCategoryGroupId(
-						workId,
-						relation.getGroupId(),
-						userId);
-
-				return;
-			}
-
-			try {
-				Thread.sleep(100);
-			} catch (InterruptedException e) {
-				Thread.currentThread().interrupt();
-				return;
-			}
-		}
-	}
-
-	/**
 	 * 指定カテゴリーの親子関係をすべて削除する。
 	 */
 	public void deleteRelationsByCategoryId(Long categoryId) {

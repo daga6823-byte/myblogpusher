@@ -20,6 +20,12 @@ public interface ArticleWorkRepository extends JpaRepository<ArticleWork, Long> 
 			Long categoryGroupId,
 			String title,
 			String content);
+	
+	Optional<ArticleWork> findByUserIdAndHugoPathAndTitleAndContent(
+	        Long userId,
+	        String hugoPath,
+	        String title,
+	        String content);
 
 	Optional<ArticleWork> findBySlug(String slug);
 
