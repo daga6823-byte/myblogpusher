@@ -41,9 +41,7 @@
 
 			<tbody>
 
-				<tr th:each="work : ${indexWorks}" th:with="categoryPath=${categoryPaths.?[groupId == #vars.work.groupId].size() > 0
-                        ? categoryPaths.?[groupId == #vars.work.groupId][0].categoryPath
-                        : '（カテゴリー不明）'}">
+				<tr th:each="work : ${indexWorks}" th:with="categoryPath=${${work.hugoPath != null ? work.hugoPath : '（カテゴリー不明）'}
 
 					<td th:text="${work.title}"></td>
 

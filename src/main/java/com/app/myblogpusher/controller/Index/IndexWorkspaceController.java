@@ -6,6 +6,8 @@
  */
 package com.app.myblogpusher.controller.Index;
 
+import java.util.regex.Pattern;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -77,8 +79,8 @@ public class IndexWorkspaceController {
 			return null;
 		}
 
-		java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(
-				"(?m)^" + java.util.regex.Pattern.quote(key)
+		Pattern pattern = Pattern.compile(
+				"(?m)^" + Pattern.quote(key)
 						+ "\\s*:\\s*[\"']?(.*?)[\"']?\\s*$");
 
 		java.util.regex.Matcher matcher = pattern.matcher(markdown);

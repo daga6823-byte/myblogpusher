@@ -27,7 +27,6 @@ import com.app.myblogpusher.entity.UserMaster;
 import com.app.myblogpusher.entity.UserRepositoryEntity;
 import com.app.myblogpusher.entity.Index.IndexEntity;
 import com.app.myblogpusher.entity.Index.IndexWork;
-import com.app.myblogpusher.repository.CategoryRelationRepository;
 import com.app.myblogpusher.repository.UserRepositoryRepository;
 import com.app.myblogpusher.repository.Index.IndexRepository;
 import com.app.myblogpusher.service.Index.IndexEditService;
@@ -47,9 +46,6 @@ public class IndexPublishedController {
 
 	@Autowired
 	private UserRepositoryRepository userRepositoryRepository;
-
-	@Autowired
-	private CategoryRelationRepository categoryRelationRepository;
 
 	@Autowired
 	private IndexPublishService indexPublishService;

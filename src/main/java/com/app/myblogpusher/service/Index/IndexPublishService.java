@@ -25,7 +25,6 @@ import com.app.myblogpusher.service.Facade.GitHubFacadeService;
 public class IndexPublishService {
 
 	private final UserRepositoryRepository userRepositoryRepository;
-	private final CategoryRelationRepository categoryRelationRepository;
 	private final IndexRepository indexRepository;
 	private final IndexWorkService indexWorkService;
 	private final IndexEditService hugoIndexService;
@@ -42,7 +41,6 @@ public class IndexPublishService {
 			IndexWorkspaceService indexWorkspaceService) {
 
 		this.userRepositoryRepository = userRepositoryRepository;
-		this.categoryRelationRepository = categoryRelationRepository;
 		this.indexRepository = indexRepository;
 		this.indexWorkService = indexWorkService;
 		this.hugoIndexService = hugoIndexService;

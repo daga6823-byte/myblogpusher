@@ -4,15 +4,21 @@
  */
 package com.app.myblogpusher.handler;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import com.app.myblogpusher.service.ApplicationErrorLogService;
+
 import jakarta.servlet.http.HttpServletRequest;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
+	
+	@Autowired
+	private ApplicationErrorLogService applicationErrorLogService;
 
 	/**
 	 * 必須のリクエストパラメータが存在しない場合の処理。
@@ -25,11 +31,7 @@ public class GlobalExceptionHandler {
 			HttpServletRequest request,
 			Model model) {
 
-		System.out.println("=== MissingServletRequestParameterException ===");
-		System.out.println("method = " + request.getMethod());
-		System.out.println("uri = " + request.getRequestURI());
-		System.out.println("parameter = " + e.getParameterName());
-		System.out.println("message = " + e.getMessage());
+		applicationErrorLogService.record(e, request);
 
 		model.addAttribute("errorMessage",
 				"必要なパラメータ「" + e.getParameterName()
@@ -68,11 +70,7 @@ public class GlobalExceptionHandler {
 			HttpServletRequest request,
 			Model model) {
 
-		System.out.println("=== Unexpected Exception ===");
-		System.out.println("method = " + request.getMethod());
-		System.out.println("uri = " + request.getRequestURI());
-		System.out.println("message = " + e.getMessage());
-		e.printStackTrace();
+		applicationErrorLogService.record(e, request);
 
 		model.addAttribute("errorMessage",
 				"エラーが発生しました。時間をおいて再度お試しください。"
