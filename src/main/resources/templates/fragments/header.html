@@ -26,24 +26,15 @@
 
 		</div>
 
-		<div class="header-user">
-
+		<div class="header-user" th:if="${session.loginUser != null}">
 			<span class="header-user-name" th:text="${session.loginUser.userName}">
-
 				ユーザー名
-
 			</span>
-
 			<form th:action="@{/logout}" method="post">
-
 				<button type="submit" class="header-logout">
-
 					ログアウト
-
 				</button>
-
 			</form>
-
 		</div>
 
 	</header>
