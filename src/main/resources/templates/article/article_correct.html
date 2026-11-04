@@ -20,7 +20,7 @@
 		<h1>添削</h1>
 
 		<form th:action="@{/article/save}" method="post">
-			<input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+			<input type="hidden" name="_csrf" th:value="${_csrf}">
 			<div th:replace="~{article/fragments/article_editor :: editorFields}"></div>
 
 			<div class="button-row">
