@@ -37,7 +37,7 @@ public class IndexEditController {
 	 */
 	@GetMapping("/index/edit")
 	public String showIndexManager(
-			@RequestParam(required = false) Long groupId,
+			@RequestParam(required = false) String hugoPath,
 			HttpSession session,
 			Model model) {
 
@@ -53,21 +53,21 @@ public class IndexEditController {
 				"categoryPaths",
 				hugoIndexService.findCategoryPaths(userId));
 
-		model.addAttribute("selectedGroupId", groupId);
+		model.addAttribute("selectedHugoPath", hugoPath);
 
-		if (groupId != null) {
+		if (hugoPath != null) {
 			// 自動保存データを確認し、同じカテゴリーのデータがあれば復元する。
 			var workspace = indexWorkspaceService.find(userId);
 
 			if (workspace.isPresent()
-					&& groupId.equals(workspace.get().getGroupId())) {
+			        && hugoPath.equals(workspace.get().getHugoPath())) {
 
 				model.addAttribute("title", workspace.get().getTitle());
 				model.addAttribute("content", workspace.get().getContent());
 
 			} else {
 				// 自動保存データがなければ、編集中データを表示する。
-				indexWorkService.findByUserIdAndGroupId(userId, groupId)
+				indexWorkService.findByUserIdAndHugoPath(userId, hugoPath)
 						.ifPresent(work -> {
 							model.addAttribute("title", work.getTitle());
 							model.addAttribute("content", work.getContent());

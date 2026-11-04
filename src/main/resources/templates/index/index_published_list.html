@@ -85,10 +85,7 @@
 
 			<tbody id="indexList">
 
-				<tr th:each="index : ${indexes}"
-					th:with="categoryPath=${categoryPaths.?[groupId == #vars.index.groupId].size() > 0
-                        ? categoryPaths.?[groupId == #vars.index.groupId][0].categoryPath
-                        : '（カテゴリー不明）'}"
+				<tr th:each="index : ${indexes}" th:with="categoryPath=${index.hugoPath}"
 					th:data-category="${categoryPath}">
 
 					<td th:text="${index.title}">
@@ -102,7 +99,7 @@
 
 					<td class="list-actions">
 
-						<a th:href="@{/index/published/edit(groupId=${index.groupId})}" class="btn-edit">
+						<a th:href="@{/index/published/edit(hugoPath=${index.hugoPath})}" class="btn-edit">
 							編集
 						</a>
 

@@ -271,11 +271,11 @@ function updateIndexButtonState() {
 	}
 
 	publishButton.addEventListener('click', () => {
-		const groupId = contentForm.querySelector('input[name="groupId"]')?.value;
+		const hugoPath = contentForm.querySelector('input[name="hugoPath"]')?.value;
 		const textarea = document.getElementById('content');
 		const titleInput = document.getElementById('title');
 
-		if (!groupId || !textarea || !titleInput) {
+		if (!hugoPath || !textarea || !titleInput) {
 			return;
 		}
 
@@ -293,7 +293,7 @@ function updateIndexButtonState() {
 		form.action = '/index/publish/preview';
 
 		[
-			['groupId', groupId],
+			['hugoPath', hugoPath],
 			['content', textarea.value]
 		].forEach(([name, value]) => {
 			const input = document.createElement('input');
@@ -317,18 +317,18 @@ function updateIndexButtonState() {
 	let workspaceTimer;
 
 	function saveIndexWorkspace() {
-		const groupId = document.querySelector('input[name="groupId"]');
+		const hugoPath = document.querySelector('input[name="hugoPath"]');
 		const titleInput = document.getElementById('title');
 		const textarea = document.getElementById('content');
 
-		if (!groupId?.value || !titleInput || !textarea) {
+		if (!hugoPath?.value || !titleInput || !textarea) {
 			return;
 		}
 
 		// コントローラーの@RequestParamに合わせてフォーム形式で送信する。
 		// タイトル欄と説明欄の内容は、textareaを書き換えずに本文へ反映して送る。
 		const params = new URLSearchParams({
-			groupId: groupId.value,
+			hugoPath: hugoPath.value,
 			content: buildIndexContent()
 		});
 

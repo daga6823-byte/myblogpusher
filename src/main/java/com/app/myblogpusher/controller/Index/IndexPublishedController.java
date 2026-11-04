@@ -8,10 +8,10 @@
 package com.app.myblogpusher.controller.Index;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import com.app.myblogpusher.entity.CategoryRelation;
+import com.app.myblogpusher.dto.Category.CategoryOptionView;
 import com.app.myblogpusher.entity.UserMaster;
 import com.app.myblogpusher.entity.UserRepositoryEntity;
 import com.app.myblogpusher.entity.Index.IndexEntity;
@@ -62,7 +62,7 @@ public class IndexPublishedController {
 	 */
 	@PostMapping("/index/publish/preview")
 	public String showPublishPreview(
-			@RequestParam Long groupId,
+			@RequestParam String hugoPath,
 			@RequestParam String content,
 			HttpSession session,
 			Model model,
@@ -81,7 +81,7 @@ public class IndexPublishedController {
 			boolean ownsCategoryPath = indexEditService
 					.findCategoryPaths(userId)
 					.stream()
-					.anyMatch(category -> category.getGroupId().equals(groupId));
+					.anyMatch(category -> hugoPath.equals(category.getCategoryPath()));
 
 			if (!ownsCategoryPath) {
 				throw new IllegalArgumentException(
@@ -90,35 +90,28 @@ public class IndexPublishedController {
 
 			// 投稿用データを保存し、確認画面で使用する。
 			IndexWork work = indexWorkService.saveDraft(
-					userId,
-					groupId,
-					extractFrontMatterValue(content, "title"),
-					content);
+			        userId,
+			        hugoPath,
+			        extractFrontMatterValue(content, "title"),
+			        content);
 
 			UserRepositoryEntity repository = userRepositoryRepository
 					.findByUserId(userId)
 					.orElseThrow(() -> new IllegalArgumentException(
 							"リポジトリが設定されていません。"));
 
-			CategoryRelation relation = categoryRelationRepository
-					.findByGroupId(groupId)
-					.stream()
-					.findFirst()
-					.orElseThrow(() -> new IllegalArgumentException(
-							"カテゴリー階層が見つかりません。"));
-
-			String categoryPath = relation.getCategoryPath();
+			String categoryPath = hugoPath;
 
 			if (categoryPath == null || categoryPath.isBlank()) {
 				throw new IllegalArgumentException(
 						"カテゴリー経路が設定されていません。");
 			}
 
-			model.addAttribute("groupId", groupId);
+			model.addAttribute("hugoPath", hugoPath);
 			model.addAttribute("title", work.getTitle());
 			model.addAttribute("content", content);
 			IndexEntity publishedIndex = indexRepository
-					.findByUserIdAndGroupId(userId, groupId)
+					.findByUserIdAndHugoPath(userId, categoryPath)
 					.orElse(null);
 
 			model.addAttribute(
@@ -146,7 +139,7 @@ public class IndexPublishedController {
 	 */
 	@PostMapping("/index/publish/execute")
 	public String publishIndex(
-			@RequestParam Long groupId,
+			@RequestParam String hugoPath,
 			@RequestParam(required = false) String thumbnailUrl,
 			HttpSession session,
 			RedirectAttributes redirectAttributes) {
@@ -161,10 +154,10 @@ public class IndexPublishedController {
 
 		try {
 			indexPublishService.publish(
-					userId,
-					loginUser.getCipherKey(),
-					groupId,
-					thumbnailUrl);
+			        userId,
+			        loginUser.getCipherKey(),
+			        hugoPath,
+			        thumbnailUrl);
 
 			redirectAttributes.addFlashAttribute(
 					"message", "インデックスをGitHubへ反映しました。");
@@ -211,14 +204,14 @@ public class IndexPublishedController {
 
 		List<IndexEntity> indexes = indexRepository.findByUserIdOrderByUpdateDateDesc(userId);
 
-		List<Long> groupIds = indexes.stream()
-				.map(IndexEntity::getGroupId)
+		List<String> publishedPaths = indexes.stream()
+				.map(IndexEntity::getHugoPath)
 				.distinct()
-				.toList();
+				.collect(Collectors.toList());
 
-		List<CategoryRelation> categoryPaths = groupIds.isEmpty()
-				? Collections.emptyList()
-				: categoryRelationRepository.findByGroupIdIn(groupIds);
+		List<CategoryOptionView> categoryPaths = indexEditService.findCategoryPaths(userId).stream()
+				.filter(category -> publishedPaths.contains(category.getCategoryPath()))
+				.collect(Collectors.toList());
 
 		model.addAttribute("indexes", indexes);
 		model.addAttribute("categoryPaths", categoryPaths);
@@ -229,34 +222,39 @@ public class IndexPublishedController {
 	/**
 	 * 公開済みインデックスを編集用データに読み込み、編集画面を開く。
 	 */
+	/**
+	 * 公開済みインデックスを編集用データに読み込み、編集画面を開く。
+	 */
 	@GetMapping("/index/published/edit")
 	public String editPublished(
-			@RequestParam Long groupId,
+			@RequestParam String hugoPath,
 			HttpSession session,
 			RedirectAttributes redirectAttributes) {
 
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
-
 		if (loginUser == null) {
 			return "redirect:/login";
 		}
 
 		Long userId = loginUser.getUserId();
 
-		// 指定されたカテゴリー階層がユーザー所有か確認する。
-		boolean ownsCategoryPath = indexEditService
+		// 指定されたHugo経路がユーザー所有か確認する。
+		CategoryOptionView selectedCategory = indexEditService
 				.findCategoryPaths(userId)
 				.stream()
-				.anyMatch(category -> category.getGroupId().equals(groupId));
+				.filter(category -> hugoPath.equals(category.getCategoryPath()))
+				.findFirst()
+				.orElse(null);
 
-		if (!ownsCategoryPath) {
+		if (selectedCategory == null) {
 			redirectAttributes.addFlashAttribute(
 					"error", "指定されたカテゴリー階層が見つかりません。");
 			return "redirect:/index/published";
 		}
 
-		// 公開済みのマスターデータを取得する。
-		com.app.myblogpusher.entity.Index.IndexEntity index = indexRepository.findByUserIdAndGroupId(userId, groupId)
+		// Hugo経路をキーに公開済みインデックスを取得する。
+		IndexEntity index = indexRepository
+				.findByUserIdAndHugoPath(userId, hugoPath)
 				.orElse(null);
 
 		if (index == null) {
@@ -265,14 +263,14 @@ public class IndexPublishedController {
 			return "redirect:/index/published";
 		}
 
-		// 既存の編集中データがあれば再利用し、なければ公開済み内容から作成する。
-		indexWorkService.findByUserIdAndGroupId(userId, groupId)
-				.orElseGet(() -> indexWorkService.saveDraft(
-						userId,
-						groupId,
-						index.getTitle(),
-						index.getContent()));
+		// Hugo経路をキーに編集用データを取得する。
+		indexWorkService.findByUserIdAndHugoPath(userId, hugoPath)
+		        .orElseGet(() -> indexWorkService.saveDraft(
+		                userId,
+		                hugoPath,
+		                index.getTitle(),
+		                index.getContent()));
 
-		return "redirect:/index/edit?groupId=" + groupId;
+		return "redirect:/index/edit?hugoPath=" + hugoPath;
 	}
 }

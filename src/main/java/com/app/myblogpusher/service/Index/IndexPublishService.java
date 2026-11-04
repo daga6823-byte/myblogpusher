@@ -13,7 +13,6 @@ import java.time.LocalDateTime;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.springframework.stereotype.Service;
 
-import com.app.myblogpusher.entity.CategoryRelation;
 import com.app.myblogpusher.entity.UserRepositoryEntity;
 import com.app.myblogpusher.entity.Index.IndexEntity;
 import com.app.myblogpusher.entity.Index.IndexWork;
@@ -60,11 +59,11 @@ public class IndexPublishService {
 	public void publish(
 			Long userId,
 			String cipherKey,
-			Long groupId,
+			String hugoPath,
 			String thumbnailUrl) throws IOException, GitAPIException {
 
 		IndexWork work = indexWorkService
-				.findByUserIdAndGroupId(userId, groupId)
+				.findByUserIdAndHugoPath(userId, hugoPath)
 				.orElseThrow(() -> new IllegalArgumentException(
 						"反映するインデックスが見つかりません。"));
 
@@ -73,7 +72,7 @@ public class IndexPublishService {
 			boolean ownsCategoryPath = hugoIndexService
 					.findCategoryPaths(userId)
 					.stream()
-					.anyMatch(category -> category.getGroupId().equals(groupId));
+					.anyMatch(category -> category.getCategoryPath().equals(hugoPath));
 
 			if (!ownsCategoryPath) {
 				throw new IllegalArgumentException(
@@ -85,14 +84,7 @@ public class IndexPublishService {
 					.orElseThrow(() -> new IllegalArgumentException(
 							"リポジトリが設定されていません。"));
 
-			CategoryRelation relation = categoryRelationRepository
-					.findByGroupId(groupId)
-					.stream()
-					.findFirst()
-					.orElseThrow(() -> new IllegalArgumentException(
-							"カテゴリー階層が見つかりません。"));
-
-			String categoryPath = relation.getCategoryPath();
+			String categoryPath = hugoPath;
 
 			if (categoryPath == null || categoryPath.isBlank()) {
 				throw new IllegalArgumentException(
@@ -112,15 +104,15 @@ public class IndexPublishService {
 
 			// GitHub反映成功後に公開済みデータを登録・更新する。
 			IndexEntity index = indexRepository
-					.findByUserIdAndGroupId(userId, groupId)
-					.orElseGet(() -> {
-						IndexEntity newIndex = new IndexEntity();
-						newIndex.setUserId(userId);
-						newIndex.setGroupId(groupId);
-						newIndex.setCreateUser(userId);
-						newIndex.setCreateDate(LocalDateTime.now());
-						return newIndex;
-					});
+			        .findByUserIdAndHugoPath(userId, categoryPath)
+			        .orElseGet(() -> {
+			            IndexEntity newIndex = new IndexEntity();
+			            newIndex.setUserId(userId);
+			            newIndex.setHugoPath(categoryPath);
+			            newIndex.setCreateUser(userId);
+			            newIndex.setCreateDate(LocalDateTime.now());
+			            return newIndex;
+			        });
 
 			index.setTitle(work.getTitle());
 			index.setContent(applyThumbnailToFrontMatter(

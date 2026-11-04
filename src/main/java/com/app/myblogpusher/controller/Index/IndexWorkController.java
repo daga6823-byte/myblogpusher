@@ -32,7 +32,7 @@ public class IndexWorkController {
      */
     @PostMapping("/index/edit/save")
     public String saveDraft(
-            @RequestParam Long groupId,
+            @RequestParam String hugoPath,
             @RequestParam String title,
             @RequestParam String content,
             HttpSession session,
@@ -51,7 +51,7 @@ public class IndexWorkController {
             // index_workに下書きを保存する。
             indexWorkService.saveDraft(
                     userId,
-                    groupId,
+                    hugoPath,
                     title,
                     content);
 

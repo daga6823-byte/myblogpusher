@@ -1,10 +1,9 @@
-
 /**
- * Hugoカテゴリーのインデックス情報をGitHubから取得し、DBへ同期するサービス
- *
- * CategoryRelationのカテゴリー経路を基準にGitHub上の_index.mdを読み込み、
- * indexテーブルへ新規登録または更新する。
- */
+* Hugoカテゴリーのインデックス情報をGitHubから取得し、DBへ同期するサービス
+*
+* カテゴリー経路を基準にGitHub上の_index.mdを読み込み、
+* hugoPathを使ってindexテーブルへ新規登録または更新する。
+*/
 package com.app.myblogpusher.service.Index;
 
 import java.io.IOException;
@@ -68,15 +67,13 @@ public class IndexSyncService {
 				}
 
 				Optional<IndexEntity> existing = indexRepository
-						.findByUserIdAndGroupId(
-								userId,
-								category.getGroupId());
+						.findByUserIdAndHugoPath(userId, category.getCategoryPath());
 
 				IndexEntity index = existing.orElseGet(IndexEntity::new);
 
 				if (existing.isEmpty()) {
 					index.setUserId(userId);
-					index.setGroupId(category.getGroupId());
+					index.setHugoPath(category.getCategoryPath());
 					index.setCreateUser(userId);
 					index.setCreateDate(LocalDateTime.now());
 				}

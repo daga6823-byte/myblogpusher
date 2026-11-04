@@ -23,8 +23,8 @@ public class IndexWorkspace {
 	@Column(name = "user_id")
 	private Long userId;
 
-	@Column(name = "group_id")
-	private Long groupId;
+	@Column(name = "hugo_path")
+	private String hugoPath;
 
 	@Column(name = "title")
 	private String title;

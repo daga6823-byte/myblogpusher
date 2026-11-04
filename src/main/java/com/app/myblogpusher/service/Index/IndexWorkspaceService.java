@@ -22,7 +22,7 @@ public class IndexWorkspaceService {
 
 	public void save(
 	        Long userId,
-	        Long groupId,
+	        String hugoPath,
 	        String title,
 	        String content) {
 
@@ -34,7 +34,7 @@ public class IndexWorkspaceService {
 				.orElse(new IndexWorkspace());
 
 		workspace.setUserId(userId);
-		workspace.setGroupId(groupId);
+		workspace.setHugoPath(hugoPath);
 		workspace.setTitle(title);
 		workspace.setContent(content);
 		workspace.setUpdateDate(LocalDateTime.now());

@@ -38,29 +38,29 @@ public class IndexWorkService {
 	/**
 	 * ユーザーとカテゴリー経路から編集データを取得する。
 	 */
-	public Optional<IndexWork> findByUserIdAndGroupId(
-			Long userId,
-			Long groupId) {
-		return indexWorkRepository.findByUserIdAndGroupId(userId, groupId);
+	public Optional<IndexWork> findByUserIdAndHugoPath(
+	        Long userId,
+	        String hugoPath) {
+	    return indexWorkRepository.findByUserIdAndHugoPath(userId, hugoPath);
 	}
 
 	/**
 	 * 編集内容を新規保存、または既存データへ上書き保存する。
 	 */
 	public IndexWork saveDraft(
-			Long userId,
-			Long groupId,
-			String title,
-			String content) {
+	        Long userId,
+	        String hugoPath,
+	        String title,
+	        String content) {
 
 		LocalDateTime now = LocalDateTime.now();
 
 		IndexWork work = indexWorkRepository
-				.findByUserIdAndGroupId(userId, groupId)
+				.findByUserIdAndHugoPath(userId, hugoPath)
 				.orElseGet(() -> {
 					IndexWork newWork = new IndexWork();
 					newWork.setUserId(userId);
-					newWork.setGroupId(groupId);
+					newWork.setHugoPath(hugoPath);
 					newWork.setCreateUser(userId);
 					newWork.setCreateDate(now);
 					newWork.setStatus(0);

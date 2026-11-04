@@ -1,11 +1,10 @@
 /**
  * Hugoカテゴリーの_index.mdを管理するエンティティ
  *
- * ユーザーごとにカテゴリー階層のインデックス内容を保持する。
- * groupIdでCategoryRelationのカテゴリー経路を特定し、
+ * ユーザーごとにHugo上のカテゴリー経路でインデックス内容を保持する。
+ * categoryIdでArticleCategoryを特定し、
  * GitHub上の_index.mdとDBの内容を対応付ける。
  */
-
 package com.app.myblogpusher.entity.Index;
 
 import java.time.LocalDateTime;
@@ -33,8 +32,8 @@ public class IndexEntity {
 	@Column(name = "user_id", nullable = false)
 	private Long userId;
 
-	@Column(name = "group_id", nullable = false)
-	private Long groupId;
+	@Column(name = "hugo_path", nullable = false)
+	private String hugoPath;
 
 	@Column(name = "title")
 	private String title;

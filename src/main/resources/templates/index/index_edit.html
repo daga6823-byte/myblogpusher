@@ -23,7 +23,7 @@
 		<p th:if="${error}" th:text="${error}"></p>
 
 		<form th:action="@{/index/edit/save}" method="post">
-			<input type="hidden" name="groupId" th:value="${selectedGroupId}">
+			<input type="hidden" name="hugoPath" th:value="${selectedHugoPath}">
 
 			<!-- インデックス専用の編集領域 -->
 			<div th:replace="~{index/index_editor :: editorFields}"></div>
@@ -46,7 +46,7 @@
 		window.updateDate = /*[[${updateDate}]]*/ null;
 		window.categorySelects = /*[[${categories}]]*/[];
 		window.categoryPath = /*[[${categoryPath}]]*/ null;
-		window.categoryGroupId = /*[[${selectedGroupId}]]*/ null;
+		window.categoryHugoPath = /*[[${selectedHugoPath}]]*/ null;
 		window.indexEditMode = true;
 	</script>
 

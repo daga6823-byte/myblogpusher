@@ -1,7 +1,7 @@
 /**
  * Hugoカテゴリーのインデックス情報を取得・管理するリポジトリ
  *
- * ユーザーIDとカテゴリー経路のグループIDを基準に、
+ * ユーザーIDとカテゴリーIDを基準に、
  * indexテーブルの検索を担当する。
  */
 package com.app.myblogpusher.repository.Index;
@@ -16,9 +16,9 @@ import com.app.myblogpusher.entity.Index.IndexEntity;
 public interface IndexRepository extends JpaRepository<IndexEntity, Long> {
 
 	/**
-	 * ユーザーIDとカテゴリー経路のグループIDからインデックスを取得する。
+	 * ユーザーIDとカテゴリーIDからインデックスを取得する。
 	 */
-	Optional<IndexEntity> findByUserIdAndGroupId(Long userId, Long groupId);
+	Optional<IndexEntity> findByUserIdAndHugoPath(Long userId, String hugoPath);
 
 	/**
 	 * 指定したユーザーのインデックス一覧を取得する。
@@ -28,8 +28,8 @@ public interface IndexRepository extends JpaRepository<IndexEntity, Long> {
 	List<IndexEntity> findByUserIdOrderByUpdateDateDesc(Long userId);
 
 	/**
-	 * 指定したカテゴリー経路のグループIDにインデックスが存在するか確認する。
+	 * 指定したHugo上のカテゴリー経路にインデックスが存在するか確認する。
 	 */
-	boolean existsByUserIdAndGroupId(Long userId, Long groupId);
+	boolean existsByUserIdAndHugoPath(Long userId, String hugoPath);
 
 }

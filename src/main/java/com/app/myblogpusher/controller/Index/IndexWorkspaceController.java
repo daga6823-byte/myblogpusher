@@ -37,7 +37,7 @@ public class IndexWorkspaceController {
 	@PostMapping("/index/workspace/autosave")
 	@ResponseBody
 	public String autosaveIndex(
-			@RequestParam Long groupId,
+			@RequestParam String hugoPath,
 			@RequestParam String content,
 			HttpSession session) {
 
@@ -51,7 +51,7 @@ public class IndexWorkspaceController {
 		boolean ownsCategoryPath = indexEditService
 				.findCategoryPaths(loginUser.getUserId())
 				.stream()
-				.anyMatch(category -> category.getGroupId().equals(groupId));
+				.anyMatch(category -> category.getCategoryPath().equals(hugoPath));
 
 		if (!ownsCategoryPath) {
 			throw new ResponseStatusException(
@@ -62,7 +62,7 @@ public class IndexWorkspaceController {
 		// フロントマターのタイトルと本文を自動保存する。
 		indexWorkspaceService.save(
 				loginUser.getUserId(),
-				groupId,
+				hugoPath,
 				extractFrontMatterValue(content, "title"),
 				content);
 
