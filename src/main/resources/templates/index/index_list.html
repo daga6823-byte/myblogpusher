@@ -58,15 +58,9 @@
 
 					<td class="list-actions">
 
-						<form th:action="@{/index/edit/load}" method="post" style="display: inline;">
-
-							<input type="hidden" name="hugoPath" th:value="${work.hugoPath}">
-
-							<button type="submit" class="btn-edit">
-								編集
-							</button>
-
-						</form>
+						<a th:href="@{/index/published/edit(hugoPath=${work.hugoPath})}" class="btn-edit">
+							編集
+						</a>
 
 					</td>
 

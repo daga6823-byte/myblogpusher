@@ -64,10 +64,9 @@
 				</button>
 			</form>
 
-			<form th:action="@{/index/edit/load}" method="post" style="display: inline;">
-				<input type="hidden" name="groupId" th:value="${groupId}">
-				<button type="submit" class="btn-back">戻る</button>
-			</form>
+			<a th:href="@{/index/edit(hugoPath=${hugoPath})}" class="btn-back">
+				戻る
+			</a>
 		</div>
 	</div>
 

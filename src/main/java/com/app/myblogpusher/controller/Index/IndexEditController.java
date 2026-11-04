@@ -7,12 +7,15 @@
 
 package com.app.myblogpusher.controller.Index;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import com.app.myblogpusher.dto.Category.CategoryOptionView;
 import com.app.myblogpusher.entity.UserMaster;
 import com.app.myblogpusher.service.Index.IndexEditService;
 import com.app.myblogpusher.service.Index.IndexWorkService;
@@ -49,11 +52,30 @@ public class IndexEditController {
 
 		Long userId = loginUser.getUserId();
 
-		model.addAttribute(
-				"categoryPaths",
-				hugoIndexService.findCategoryPaths(userId));
+		List<CategoryOptionView> categoryPaths =
+		        hugoIndexService.findCategoryPaths(userId);
 
+		model.addAttribute("categoryPaths", categoryPaths);
+		model.addAttribute("categories", categoryPaths);
 		model.addAttribute("selectedHugoPath", hugoPath);
+
+		CategoryOptionView selectedCategory = categoryPaths.stream()
+		        .filter(category -> hugoPath != null
+		                && hugoPath.equals(category.getCategoryPath()))
+		        .findFirst()
+		        .orElse(null);
+
+		model.addAttribute(
+		        "categoryPath",
+		        selectedCategory != null
+		                ? selectedCategory.getCategoryPath()
+		                : null);
+
+		model.addAttribute(
+		        "categoryGroupId",
+		        selectedCategory != null
+		                ? selectedCategory.getGroupId()
+		                : null);
 
 		if (hugoPath != null) {
 			// 自動保存データを確認し、同じカテゴリーのデータがあれば復元する。
