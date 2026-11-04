@@ -50,7 +50,9 @@ public class ApplicationErrorLogService {
 
 		errorLog.setRequestUri(request.getRequestURI());
 		errorLog.setHttpMethod(request.getMethod());
-		errorLog.setExceptionClass(exception.getClass().getName());
+		Throwable rootCause = getRootCause(exception);
+
+		errorLog.setExceptionClass(rootCause.getClass().getName());
 		errorLog.setErrorMessage(toErrorMessage(exception));
 		errorLog.setStackTrace(toStackTrace(exception));
 		errorLog.setCreateDate(LocalDateTime.now());
@@ -85,8 +87,12 @@ public class ApplicationErrorLogService {
 			int recordedFrames = 0;
 
 			for (StackTraceElement element : cause.getStackTrace()) {
-				if (!element.getClassName().startsWith("com.app.myblogpusher.")) {
-					continue;
+				String className = element.getClassName();
+
+				if (!className.startsWith("com.app.myblogpusher.")
+				        || className.contains(".filter.")
+				        || className.contains(".handler.")) {
+				    continue;
 				}
 
 				trace.append("\n    at ").append(element);
@@ -109,30 +115,63 @@ public class ApplicationErrorLogService {
 	}
 
 	/**
-	 * 例外と原因例外のメッセージをまとめる。
+	 * 例外の内容を調査しやすい概要に変換する。
 	 *
-	 * 原因例外は最大5階層まで取得し、全体を最大2,000文字に制限する。
+	 * Thymeleafのテンプレート解析エラーは、
+	 * テンプレート名と行・列番号を抽出して記録する。
 	 */
 	private String toErrorMessage(Exception exception) {
-		StringBuilder message = new StringBuilder();
 		Throwable cause = exception;
-		int causeCount = 0;
 
-		while (cause != null && causeCount < 5) {
-			if (message.length() > 0) {
-				message.append(" / ");
-			}
+		while (cause != null) {
+			if (cause.getClass().getSimpleName().equals("TemplateInputException")) {
+				String message = cause.getMessage();
 
-			message.append(cause.getClass().getSimpleName());
+				if (message != null) {
+					int templateStart = message.indexOf("templates/");
+					int templateEnd = message.indexOf("\"]", templateStart);
+					int lineStart = message.indexOf("line ", templateEnd);
+					int columnStart = message.indexOf(", col ", lineStart);
 
-			if (cause.getMessage() != null) {
-				message.append(": ").append(cause.getMessage());
+					if (templateStart >= 0 && templateEnd > templateStart
+							&& lineStart >= 0 && columnStart > lineStart) {
+
+						String template = message.substring(
+								templateStart, templateEnd);
+
+						String line = message.substring(
+								lineStart + 5, columnStart);
+
+						String column = message.substring(columnStart + 6)
+								.replaceAll("[^0-9].*$", "");
+
+						return "テンプレート解析エラー: "
+								+ template + " (" + line + "行" + column + "列)";
+					}
+				}
 			}
 
 			cause = cause.getCause();
-			causeCount++;
 		}
 
-		return message.toString();
+		Throwable rootCause = getRootCause(exception);
+
+		return rootCause.getClass().getSimpleName()
+				+ (rootCause.getMessage() != null
+						? ": " + rootCause.getMessage()
+						: "");
+	}
+
+	/**
+	 * 原因例外を取得する。
+	 */
+	private Throwable getRootCause(Throwable exception) {
+		Throwable cause = exception;
+
+		while (cause.getCause() != null && cause.getCause() != cause) {
+			cause = cause.getCause();
+		}
+
+		return cause;
 	}
 }

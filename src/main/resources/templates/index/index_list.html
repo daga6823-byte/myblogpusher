@@ -41,7 +41,8 @@
 
 			<tbody>
 
-				<tr th:each="work : ${indexWorks}" th:with="categoryPath=${${work.hugoPath != null ? work.hugoPath : '（カテゴリー不明）'}
+				<tr th:each="work : ${indexWorks}"
+					th:with="categoryPath=${work.hugoPath != null ? work.hugoPath : '（カテゴリー不明）'}">
 
 					<td th:text="${work.title}"></td>
 
@@ -59,7 +60,7 @@
 
 						<form th:action="@{/index/edit/load}" method="post" style="display: inline;">
 
-							<input type="hidden" name="groupId" th:value="${work.groupId}">
+							<input type="hidden" name="hugoPath" th:value="${work.hugoPath}">
 
 							<button type="submit" class="btn-edit">
 								編集
