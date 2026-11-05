@@ -129,10 +129,23 @@ public class ImageAssetController {
 						"fileName", asset.getFileName()));
 
 			} catch (HttpClientErrorException e) {
-				results.add(Map.of(
-						"result", "error",
-						"fileName", file.getOriginalFilename(),
-						"message", "アップロード中にエラーが発生しました"));
+
+			    String responseBody = e.getResponseBodyAsString();
+
+			    logger.warn(
+			            "画像アップロードに失敗しました。fileName={}, status={}, response={}",
+			            file.getOriginalFilename(),
+			            e.getStatusCode(),
+			            responseBody);
+
+			    String message = responseBody.toLowerCase().contains("duplicate")
+			            ? "同じフォルダに同名の画像が既に存在します"
+			            : "画像のアップロードに失敗しました";
+
+			    results.add(Map.of(
+			            "result", "error",
+			            "fileName", file.getOriginalFilename(),
+			            "message", message));
 
 			} catch (IOException e) {
 				logger.error(
