@@ -121,14 +121,19 @@ public class GitHubArticleService {
 				})
 				.filter(a -> a != null)
 				.sorted((a, b) -> {
-					if (a.getUpdateDate() == null)
-						return 1;
+				    if (a.getUpdateDate() == null && b.getUpdateDate() == null) {
+				        return 0;
+				    }
 
-					if (b.getUpdateDate() == null)
-						return -1;
+				    if (a.getUpdateDate() == null) {
+				        return 1;
+				    }
 
-					return b.getUpdateDate()
-							.compareTo(a.getUpdateDate());
+				    if (b.getUpdateDate() == null) {
+				        return -1;
+				    }
+
+				    return b.getUpdateDate().compareTo(a.getUpdateDate());
 				})
 				.toList();
 

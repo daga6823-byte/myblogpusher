@@ -8,7 +8,6 @@
  */
 package com.app.myblogpusher.service;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
@@ -38,6 +37,9 @@ public class PublishedArticleSyncService {
 
 	@Autowired
 	private ArticleRepository articleRepository;
+	
+	@Autowired
+	private ApplicationErrorLogService applicationErrorLogService;
 
 	/**
 	 * GitHub上の記事をArticleテーブルへ同期する。
@@ -152,11 +154,12 @@ public class PublishedArticleSyncService {
 				}
 			}
 
-		} catch (IOException e) {
+		} catch (Exception e) {
 
-			System.err.println(
-					"投稿済み記事同期に失敗しました: "
-							+ e.getMessage());
+			applicationErrorLogService.recordAsync(
+					e,
+					userId,
+					"PublishedArticleSyncService.syncArticles");
 		}
 	}
 }
