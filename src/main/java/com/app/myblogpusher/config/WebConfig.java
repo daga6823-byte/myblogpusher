@@ -1,5 +1,6 @@
 package com.app.myblogpusher.config;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,12 +16,9 @@ import com.app.myblogpusher.service.ApplicationErrorLogService;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
-
-	private final ApiRateLimitInterceptor apiRateLimitInterceptor;
-
-	public WebConfig(ApiRateLimitInterceptor apiRateLimitInterceptor) {
-		this.apiRateLimitInterceptor = apiRateLimitInterceptor;
-	}
+	
+	@Autowired
+	private ApiRateLimitInterceptor apiRateLimitInterceptor;
 
 	@Bean
 	public PasswordEncoder passwordEncoder() {
@@ -51,12 +49,6 @@ public class WebConfig implements WebMvcConfigurer {
 		// APIのレート制限
 		registry.addInterceptor(apiRateLimitInterceptor)
 				.addPathPatterns("/**");
-	}
-
-	@Bean
-	public ApiRateLimitInterceptor apiRateLimitInterceptor(
-			ApplicationErrorLogService applicationErrorLogService) {
-		return new ApiRateLimitInterceptor(applicationErrorLogService);
 	}
 
 	/**
