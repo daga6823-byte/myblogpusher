@@ -300,6 +300,8 @@ document.querySelectorAll('.btn-update').forEach(btn => {
 		);
 
 		modal.style.display = 'block';
+		
+		categoryNameInput.focus();
 
 	});
 

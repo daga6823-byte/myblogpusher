@@ -70,9 +70,16 @@ document.getElementById('imageUploadButton').addEventListener(
 		}
 
 		// CSRFトークンを追加する。
-		const csrfToken = document.querySelector(
-			'.edit-box form input[name="_csrf"]'
-		)?.value;
+		const csrfCookie = document.cookie
+			.split(';')
+			.map(cookie => cookie.trim())
+			.find(cookie => cookie.startsWith('XSRF-TOKEN='));
+
+		const csrfToken = csrfCookie
+			? decodeURIComponent(
+				csrfCookie.substring('XSRF-TOKEN='.length)
+			)
+			: null;
 
 		if (!csrfToken) {
 			status.textContent = 'CSRFトークンを取得できませんでした';
