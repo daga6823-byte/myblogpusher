@@ -39,7 +39,11 @@ document.getElementById('publishButton').addEventListener('click', function() {
 	form.action = '/publish/preview';
 
 	// CSRFトークンを設定
-	const csrfToken = document.querySelector('input[name="_csrf"]').value;
+	const csrfToken = document.querySelector(
+		'.edit-box form input[name="_csrf"]'
+	)?.value;
+
+	console.log('[Publish] CSRF token exists:', !!csrfToken);
 
 	const csrfInput = document.createElement('input');
 
