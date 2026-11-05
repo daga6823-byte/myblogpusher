@@ -7,6 +7,20 @@
 /**
  * 英単語辞典への登録とスラッグの再生成を行う
  */
+
+/**
+ * CSRFトークンをCookieから取得する。
+ */
+function getCsrfToken() {
+	const cookie = document.cookie
+		.split('; ')
+		.find(row => row.startsWith('XSRF-TOKEN='));
+
+	return cookie
+		? decodeURIComponent(cookie.substring('XSRF-TOKEN='.length))
+		: null;
+}
+
 function registerWord(btn) {
 	const form = btn.closest('.dictionary-register-form');
 
@@ -24,7 +38,8 @@ function registerWord(btn) {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/x-www-form-urlencoded',
-			'X-Requested-With': 'XMLHttpRequest'
+			'X-Requested-With': 'XMLHttpRequest',
+			'X-CSRF-TOKEN': getCsrfToken()
 		},
 		body: formData,
 	})
@@ -49,7 +64,8 @@ function registerWord(btn) {
 			return fetch('/publish/generate-slug', {
 				method: 'POST',
 				headers: {
-					'Content-Type': 'application/x-www-form-urlencoded'
+					'Content-Type': 'application/x-www-form-urlencoded',
+					'X-CSRF-TOKEN': getCsrfToken()
 				},
 				body: params
 			});
@@ -122,7 +138,8 @@ async function publishSubmit() {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/x-www-form-urlencoded',
-				'X-Requested-With': 'XMLHttpRequest'
+				'X-Requested-With': 'XMLHttpRequest',
+				'X-CSRF-TOKEN': getCsrfToken()
 			},
 			body: new URLSearchParams({
 				workId: workIdInput.value,
@@ -306,7 +323,8 @@ if (publishBackButton) {
 				method: 'POST',
 				headers: {
 					'Content-Type':
-						'application/x-www-form-urlencoded'
+						'application/x-www-form-urlencoded',
+					'X-CSRF-TOKEN': getCsrfToken()
 				},
 				body: new URLSearchParams({
 					workId: workIdInput.value,
