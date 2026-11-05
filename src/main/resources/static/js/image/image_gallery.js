@@ -158,7 +158,11 @@ export function loadImageList() {
 									method: 'POST',
 									headers: {
 										'Content-Type':
-											'application/x-www-form-urlencoded'
+											'application/x-www-form-urlencoded',
+										'X-CSRF-TOKEN':
+											document.querySelector(
+												'#publishForm input[name="_csrf"]'
+											)?.value
 									},
 									body: new URLSearchParams({
 										workId: workIdInput.value,
