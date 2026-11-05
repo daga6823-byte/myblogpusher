@@ -107,11 +107,7 @@ public class ArticlePublishWorkerService {
 					"ArticlePublishWorkerService.publish");
 
 			String errorMessage = e.getClass().getSimpleName()
-					+ ": " + e.getMessage();
-
-			if (errorMessage.length() > 100) {
-				errorMessage = errorMessage.substring(0, 100);
-			}
+			        + ": " + e.getMessage();
 
 			articleWorkService.updateStatus(
 					work.getWorkId(),
