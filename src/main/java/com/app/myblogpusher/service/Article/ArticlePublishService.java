@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import com.app.myblogpusher.entity.UserRepositoryEntity;
 import com.app.myblogpusher.entity.Article.ArticleWork;
+import com.app.myblogpusher.service.ApplicationErrorLogService;
 
 @Service
 public class ArticlePublishService {
@@ -22,6 +23,9 @@ public class ArticlePublishService {
 
 	@Autowired
 	private ArticlePublishWorkerService articlePublishWorkerService;
+
+	@Autowired
+	private ApplicationErrorLogService applicationErrorLogService;
 
 	/**
 	 * 投稿中の記事をまとめて非同期投稿する。
@@ -37,20 +41,21 @@ public class ArticlePublishService {
 			Long workId,
 			String thumbnailUrl) {
 
-		// 投稿ボタンで指定されたWorkだけを取得する。
-		ArticleWork work = articleWorkService.findById(
-				workId,
-				userId);
+		try {
+			ArticleWork work = articleWorkService.findById(workId, userId);
 
-		// 指定された1記事の投稿処理を実行する。
-		if (work.getStatus() == null || work.getStatus() != 1) {
-			return;
+			if (work.getStatus() == null || work.getStatus() != 1) {
+				return;
+			}
+
+			articlePublishWorkerService.publish(
+					repo, cipherKey, work, thumbnailUrl);
+
+		} catch (Exception e) {
+			applicationErrorLogService.recordAsync(
+					e,
+					userId,
+					"ArticlePublishService.publishAsync");
 		}
-
-		articlePublishWorkerService.publish(
-				repo,
-				cipherKey,
-				work,
-				thumbnailUrl);
 	}
 }

@@ -16,6 +16,12 @@ import com.app.myblogpusher.service.ApplicationErrorLogService;
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
+	private final ApiRateLimitInterceptor apiRateLimitInterceptor;
+
+	public WebConfig(ApiRateLimitInterceptor apiRateLimitInterceptor) {
+		this.apiRateLimitInterceptor = apiRateLimitInterceptor;
+	}
+
 	@Bean
 	public PasswordEncoder passwordEncoder() {
 		return new BCryptPasswordEncoder();
@@ -43,15 +49,16 @@ public class WebConfig implements WebMvcConfigurer {
 						"/images/**");
 
 		// APIのレート制限
-		registry.addInterceptor(apiRateLimitInterceptor())
+		registry.addInterceptor(apiRateLimitInterceptor)
 				.addPathPatterns("/**");
 	}
 
 	@Bean
-	public ApiRateLimitInterceptor apiRateLimitInterceptor() {
-		return new ApiRateLimitInterceptor();
+	public ApiRateLimitInterceptor apiRateLimitInterceptor(
+			ApplicationErrorLogService applicationErrorLogService) {
+		return new ApiRateLimitInterceptor(applicationErrorLogService);
 	}
-	
+
 	/**
 	 * CSRF対策フィルターを登録する。
 	 *
@@ -60,19 +67,18 @@ public class WebConfig implements WebMvcConfigurer {
 	 */
 	@Bean
 	public FilterRegistrationBean<CsrfProtectionFilter> csrfProtectionFilter(
-	        ApplicationErrorLogService applicationErrorLogService) {
+			ApplicationErrorLogService applicationErrorLogService) {
 
-	    FilterRegistrationBean<CsrfProtectionFilter> registration =
-	            new FilterRegistrationBean<>();
+		FilterRegistrationBean<CsrfProtectionFilter> registration = new FilterRegistrationBean<>();
 
-	    registration.setFilter(
-	            new CsrfProtectionFilter(applicationErrorLogService));
+		registration.setFilter(
+				new CsrfProtectionFilter(applicationErrorLogService));
 
-	    registration.addUrlPatterns("/*");
-	    registration.setName("csrfProtectionFilter");
-	    registration.setEnabled(true);
-	    registration.setOrder(1);
+		registration.addUrlPatterns("/*");
+		registration.setName("csrfProtectionFilter");
+		registration.setEnabled(true);
+		registration.setOrder(1);
 
-	    return registration;
+		return registration;
 	}
 }

@@ -1,4 +1,3 @@
-
 /**
  * APIリクエストのレート制限を担当するインターセプター
  *
@@ -25,6 +24,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 
+import com.app.myblogpusher.service.ApplicationErrorLogService;
+
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -46,9 +47,19 @@ public class ApiRateLimitInterceptor implements HandlerInterceptor {
 			"/article/link/categories");
 
 	/**
+	 * エラー記録サービス
+	 */
+	private final ApplicationErrorLogService applicationErrorLogService;
+
+	/**
 	 * IPアドレスごとのリクエスト履歴
 	 */
 	private final ConcurrentMap<String, RequestHistory> requestHistories = new ConcurrentHashMap<>();
+
+	public ApiRateLimitInterceptor(
+			ApplicationErrorLogService applicationErrorLogService) {
+		this.applicationErrorLogService = applicationErrorLogService;
+	}
 
 	/**
 	 * APIリクエストを判定し、制限超過時はHTTP 429を返す。
@@ -113,6 +124,10 @@ public class ApiRateLimitInterceptor implements HandlerInterceptor {
 						+ "#" + handlerMethod.getMethod().getName());
 
 		if (clientIp == null || clientIp.isBlank()) {
+			applicationErrorLogService.recordSecurityRejection(
+					"Client address could not be determined",
+					request);
+
 			response.sendError(
 					HttpServletResponse.SC_FORBIDDEN,
 					"Client address could not be determined");
@@ -135,6 +150,10 @@ public class ApiRateLimitInterceptor implements HandlerInterceptor {
 								+ " path=" + path
 								+ " clientIp=" + clientIp
 								+ " requestsInLastMinute=" + history.requestTimes.size());
+
+				applicationErrorLogService.recordSecurityRejection(
+						"API rate limit exceeded; clientIp=" + clientIp,
+						request);
 
 				response.setStatus(429);
 				response.setContentType("application/json");

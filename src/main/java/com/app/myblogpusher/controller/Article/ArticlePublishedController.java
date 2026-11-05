@@ -88,8 +88,9 @@ public class ArticlePublishedController {
 						.collect(
 								Collectors.toMap(
 										Article::getArticleId,
-										article -> categoryPaths.get(
-												article.getCategoryGroupId()),
+										article -> categoryPaths.getOrDefault(
+												article.getCategoryGroupId(),
+												""),
 										(existing, replacement) -> existing)));
 
 		model.addAttribute(
@@ -126,15 +127,15 @@ public class ArticlePublishedController {
 
 			if (existing.isPresent()) {
 
-			    ArticleWork work = existing.get();
-			    workId = work.getWorkId();
+				ArticleWork work = existing.get();
+				workId = work.getWorkId();
 
-			    // 投稿済み記事の保存先をカテゴリー選択の復元に使用する。
-			    int lastSlash = article.getHugoPath().lastIndexOf("/");
+				// 投稿済み記事の保存先をカテゴリー選択の復元に使用する。
+				int lastSlash = article.getHugoPath().lastIndexOf("/");
 
-			    if (lastSlash > 0) {
-			        categoryPath = article.getHugoPath().substring(0, lastSlash);
-			    }
+				if (lastSlash > 0) {
+					categoryPath = article.getHugoPath().substring(0, lastSlash);
+				}
 
 			} else {
 

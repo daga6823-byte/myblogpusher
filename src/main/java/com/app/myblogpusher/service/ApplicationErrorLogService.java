@@ -11,7 +11,6 @@ import java.time.LocalDateTime;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import com.app.myblogpusher.entity.ApplicationErrorLog;
@@ -65,7 +64,7 @@ public class ApplicationErrorLogService {
 		errorLog.setStackTrace(toStackTrace(exception));
 		errorLog.setCreateDate(LocalDateTime.now());
 
-		errorLogRepository.save(errorLog);
+		saveErrorLog(errorLog);
 	}
 
 	/**
@@ -96,7 +95,35 @@ public class ApplicationErrorLogService {
 		errorLog.setErrorMessage(rejectionReason);
 		errorLog.setCreateDate(LocalDateTime.now());
 
-		errorLogRepository.save(errorLog);
+		saveErrorLog(errorLog);
+	}
+
+	/**
+	 * 非同期処理で発生した例外をDBへ記録する。
+	 *
+	 * HTTPリクエストを伴わない処理のため、
+	 * 処理名をリクエストURI欄に記録する。
+	 */
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
+	public void recordAsync(
+			Throwable exception,
+			Long userId,
+			String processName) {
+
+		ApplicationErrorLog errorLog = new ApplicationErrorLog();
+
+		errorLog.setUserId(userId);
+		errorLog.setRequestUri(processName);
+		errorLog.setHttpMethod("ASYNC");
+
+		Throwable rootCause = getRootCause(exception);
+
+		errorLog.setExceptionClass(rootCause.getClass().getName());
+		errorLog.setErrorMessage(toErrorMessage(exception));
+		errorLog.setStackTrace(toStackTrace(exception));
+		errorLog.setCreateDate(LocalDateTime.now());
+
+		saveErrorLog(errorLog);
 	}
 
 	/**
@@ -106,7 +133,7 @@ public class ApplicationErrorLogService {
 	 * Springなどのフレームワーク内部の情報は省略する。
 	 * 原因例外も最大5階層まで記録する。
 	 */
-	private String toStackTrace(Exception exception) {
+	private String toStackTrace(Throwable exception) {
 		StringBuilder trace = new StringBuilder();
 		Throwable cause = exception;
 		int causeCount = 0;
@@ -128,9 +155,7 @@ public class ApplicationErrorLogService {
 			for (StackTraceElement element : cause.getStackTrace()) {
 				String className = element.getClassName();
 
-				if (!className.startsWith("com.app.myblogpusher.")
-						|| className.contains(".filter.")
-						|| className.contains(".handler.")) {
+				if (!className.startsWith("com.app.myblogpusher.")) {
 					continue;
 				}
 
@@ -159,7 +184,7 @@ public class ApplicationErrorLogService {
 	 * Thymeleafのテンプレート解析エラーは、
 	 * テンプレート名と行・列番号を抽出して記録する。
 	 */
-	private String toErrorMessage(Exception exception) {
+	private String toErrorMessage(Throwable exception) {
 		Throwable cause = exception;
 
 		while (cause != null) {
@@ -237,13 +262,25 @@ public class ApplicationErrorLogService {
 				}
 			}
 
-			if (cause instanceof MissingServletRequestParameterException) {
-				return false;
-			}
-
 			cause = cause.getCause();
 		}
 
 		return true;
+	}
+	
+	/**
+	 * エラーログをDBへ保存する。
+	 *
+	 * DB保存に失敗した場合は標準エラーログへ出力し、
+	 * 保存失敗の例外を呼び出し元へ伝播させる。
+	 */
+	private void saveErrorLog(ApplicationErrorLog errorLog) {
+	    try {
+	        errorLogRepository.save(errorLog);
+	    } catch (RuntimeException e) {
+	        System.err.println("[ApplicationErrorLog] DBへの保存に失敗しました。");
+	        e.printStackTrace();
+	        throw e;
+	    }
 	}
 }

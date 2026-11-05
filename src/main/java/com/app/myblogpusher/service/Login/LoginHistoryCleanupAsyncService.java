@@ -13,12 +13,16 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import com.app.myblogpusher.repository.LoginHistoryRepository;
+import com.app.myblogpusher.service.ApplicationErrorLogService;
 
 @Service
 public class LoginHistoryCleanupAsyncService {
 
 	@Autowired
 	private LoginHistoryRepository loginHistoryRepository;
+
+	@Autowired
+	private ApplicationErrorLogService applicationErrorLogService;
 
 	/**
 	 * 毎日午前3時に、各ユーザーの古いログイン履歴を一括整理する。
@@ -27,10 +31,18 @@ public class LoginHistoryCleanupAsyncService {
 	 */
 	@Scheduled(cron = "0 0 3 * * *")
 	public void cleanupOldHistories() {
-		int deletedCount = loginHistoryRepository.deleteOlderThanLatest100PerUser();
+	    try {
+	        int deletedCount = loginHistoryRepository.deleteOlderThanLatest100PerUser();
 
-		System.out.println(
-				"[LoginHistoryCleanup] 古いログイン履歴の削除件数: "
-						+ deletedCount);
+	        System.out.println(
+	                "[LoginHistoryCleanup] 古いログイン履歴の削除件数: "
+	                        + deletedCount);
+
+	    } catch (Exception e) {
+	        applicationErrorLogService.recordAsync(
+	                e,
+	                null,
+	                "LoginHistoryCleanupAsyncService.cleanupOldHistories");
+	    }
 	}
 }

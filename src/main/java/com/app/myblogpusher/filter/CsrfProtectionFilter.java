@@ -170,10 +170,13 @@ public class CsrfProtectionFilter extends OncePerRequestFilter {
 		}
 
 		try {
-			filterChain.doFilter(request, response);
+		    filterChain.doFilter(request, response);
+		} catch (Exception e) {
+		    applicationErrorLogService.record(e, request);
+		    throw e;
 		} finally {
-			// コントローラーやインターセプターの処理後の状態を記録する。
-			logRequest("RESPONSE", method, uri, response);
+		    // コントローラーやインターセプターの処理後の状態を記録する。
+		    logRequest("RESPONSE", method, uri, response);
 		}
 	}
 

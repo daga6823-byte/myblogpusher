@@ -7,15 +7,13 @@
  */
 package com.app.myblogpusher.service.Article;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.app.myblogpusher.entity.UserRepositoryEntity;
 import com.app.myblogpusher.entity.Article.Article;
 import com.app.myblogpusher.entity.Article.ArticleWork;
+import com.app.myblogpusher.service.ApplicationErrorLogService;
 import com.app.myblogpusher.service.Facade.GitHubFacadeService;
 import com.app.myblogpusher.service.Github.GitHubActionsService;
 
@@ -30,9 +28,12 @@ public class ArticlePublishWorkerService {
 
 	@Autowired
 	private GitHubFacadeService gitHubFacadeService;
-	
+
 	@Autowired
 	private GitHubActionsService gitHubActionsService;
+	
+	@Autowired
+	private ApplicationErrorLogService applicationErrorLogService;
 
 	/**
 	 * 1記事分の投稿処理を実行する。
@@ -99,16 +100,12 @@ public class ArticlePublishWorkerService {
 					work, work.getSlug(), thumbnailUrl);
 
 		} catch (Exception e) {
-			System.err.println(
-					"投稿処理に失敗しました: " + e.getMessage());
-			e.printStackTrace();
 
-			StringWriter sw = new StringWriter();
-			PrintWriter pw = new PrintWriter(sw);
-			e.printStackTrace(pw);
+			applicationErrorLogService.recordAsync(
+					e,
+					work.getUserId(),
+					"ArticlePublishWorkerService.publish");
 
-			// 投稿失敗した記事はエラー状態で残す。
-			// 詳細なスタックトレースはサーバーログに出力し、DBには100文字以内のエラー情報を保存する。
 			String errorMessage = e.getClass().getSimpleName()
 					+ ": " + e.getMessage();
 
