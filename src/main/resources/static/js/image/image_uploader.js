@@ -64,11 +64,22 @@ document.getElementById('imageUploadButton').addEventListener(
 		}
 
 		if (folderName) {
-
 			formData.append(
 				'folderName',
 				folderName);
 		}
+
+		// CSRFトークンを追加する。
+		const csrfToken = document.querySelector(
+			'.edit-box form input[name="_csrf"]'
+		)?.value;
+
+		if (!csrfToken) {
+			status.textContent = 'CSRFトークンを取得できませんでした';
+			return;
+		}
+
+		formData.append('_csrf', csrfToken);
 
 		status.textContent = 'アップロード中...';
 

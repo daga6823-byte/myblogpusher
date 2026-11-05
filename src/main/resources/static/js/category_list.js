@@ -36,18 +36,19 @@ function rebuildParentCategorySelect(currentId, selectedIds) {
 
 	);
 
-	categories.forEach(c => {
+	const sortedCategories = [...categories].sort((a, b) =>
+		(a.displayName || '').localeCompare(
+			b.displayName || '',
+			'ja'
+		)
+	);
 
+	sortedCategories.forEach(c => {
 		if (!c.displayName || c.displayName.trim() === '') {
-
 			return;
-
 		}
-
 		if (String(c.categoryId) === String(currentId)) {
-
 			return;
-
 		}
 
 		const wrapper = document.createElement('label');
