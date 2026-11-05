@@ -33,8 +33,23 @@ document.getElementById('publishButton').addEventListener('click', function() {
 	// （URLパラメータを使わず画面遷移するため）
 	// -------------------------------------------------
 	const form = document.createElement('form');
+
 	form.method = 'POST';
+
 	form.action = '/publish/preview';
+
+	// CSRFトークンを設定
+	const csrfToken = document.querySelector('input[name="_csrf"]').value;
+
+	const csrfInput = document.createElement('input');
+
+	csrfInput.type = 'hidden';
+
+	csrfInput.name = '_csrf';
+
+	csrfInput.value = csrfToken;
+
+	form.appendChild(csrfInput);
 
 	const fields = {
 		workId: workId || '',

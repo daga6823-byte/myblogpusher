@@ -11,6 +11,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import com.app.myblogpusher.filter.CsrfProtectionFilter;
 import com.app.myblogpusher.interceptor.ApiRateLimitInterceptor;
 import com.app.myblogpusher.interceptor.LoginCheckInterceptor;
+import com.app.myblogpusher.service.ApplicationErrorLogService;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
@@ -58,11 +59,15 @@ public class WebConfig implements WebMvcConfigurer {
 	 * 全画面の対応確認後に有効化する。
 	 */
 	@Bean
-	public FilterRegistrationBean<CsrfProtectionFilter> csrfProtectionFilter() {
+	public FilterRegistrationBean<CsrfProtectionFilter> csrfProtectionFilter(
+	        ApplicationErrorLogService applicationErrorLogService) {
+
 	    FilterRegistrationBean<CsrfProtectionFilter> registration =
 	            new FilterRegistrationBean<>();
 
-	    registration.setFilter(new CsrfProtectionFilter());
+	    registration.setFilter(
+	            new CsrfProtectionFilter(applicationErrorLogService));
+
 	    registration.addUrlPatterns("/*");
 	    registration.setName("csrfProtectionFilter");
 	    registration.setEnabled(true);

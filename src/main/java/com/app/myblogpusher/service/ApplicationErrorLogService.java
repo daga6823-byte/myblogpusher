@@ -19,6 +19,7 @@ import com.app.myblogpusher.entity.UserMaster;
 import com.app.myblogpusher.repository.ApplicationErrorLogRepository;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 
 @Service
 public class ApplicationErrorLogService {
@@ -38,14 +39,14 @@ public class ApplicationErrorLogService {
 	 */
 	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	public void record(
-	        Exception exception,
-	        HttpServletRequest request) {
+			Exception exception,
+			HttpServletRequest request) {
 
-	    if (!shouldLog(exception, request)) {
-	        return;
-	    }
+		if (!shouldLog(exception, request)) {
+			return;
+		}
 
-	    ApplicationErrorLog errorLog = new ApplicationErrorLog();
+		ApplicationErrorLog errorLog = new ApplicationErrorLog();
 
 		Object loginUser = request.getSession(false) != null
 				? request.getSession(false).getAttribute("loginUser")
@@ -62,6 +63,37 @@ public class ApplicationErrorLogService {
 		errorLog.setExceptionClass(rootCause.getClass().getName());
 		errorLog.setErrorMessage(toErrorMessage(exception));
 		errorLog.setStackTrace(toStackTrace(exception));
+		errorLog.setCreateDate(LocalDateTime.now());
+
+		errorLogRepository.save(errorLog);
+	}
+
+	/**
+	 * CSRF検証などのセキュリティ拒否情報をDBへ記録する。
+	 *
+	 * 例外が発生しない拒否処理も調査できるよう、
+	 * リクエスト情報と拒否理由を独立したトランザクションで保存する。
+	 */
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
+	public void recordSecurityRejection(
+			String rejectionReason,
+			HttpServletRequest request) {
+
+		ApplicationErrorLog errorLog = new ApplicationErrorLog();
+
+		HttpSession session = request.getSession(false);
+		Object loginUser = session != null
+				? session.getAttribute("loginUser")
+				: null;
+
+		if (loginUser instanceof UserMaster user) {
+			errorLog.setUserId(user.getUserId());
+		}
+
+		errorLog.setRequestUri(request.getRequestURI());
+		errorLog.setHttpMethod(request.getMethod());
+		errorLog.setExceptionClass("SecurityRejection");
+		errorLog.setErrorMessage(rejectionReason);
 		errorLog.setCreateDate(LocalDateTime.now());
 
 		errorLogRepository.save(errorLog);
@@ -97,9 +129,9 @@ public class ApplicationErrorLogService {
 				String className = element.getClassName();
 
 				if (!className.startsWith("com.app.myblogpusher.")
-				        || className.contains(".filter.")
-				        || className.contains(".handler.")) {
-				    continue;
+						|| className.contains(".filter.")
+						|| className.contains(".handler.")) {
+					continue;
 				}
 
 				trace.append("\n    at ").append(element);
@@ -181,7 +213,7 @@ public class ApplicationErrorLogService {
 
 		return cause;
 	}
-	
+
 	/**
 	 * DBへの記録が不要な例外か判定する。
 	 *
@@ -189,29 +221,29 @@ public class ApplicationErrorLogService {
 	 * DBのエラーログには記録しない。
 	 */
 	private boolean shouldLog(
-	        Exception exception,
-	        HttpServletRequest request) {
+			Exception exception,
+			HttpServletRequest request) {
 
-	    Throwable cause = exception;
+		Throwable cause = exception;
 
-	    while (cause != null) {
+		while (cause != null) {
 
-	        if (cause instanceof NoResourceFoundException) {
-	            String uri = request.getRequestURI();
+			if (cause instanceof NoResourceFoundException) {
+				String uri = request.getRequestURI();
 
-	            if (uri.endsWith("/apple-touch-icon.png")
-	                    || uri.endsWith("/apple-touch-icon-precomposed.png")) {
-	                return false;
-	            }
-	        }
+				if (uri.endsWith("/apple-touch-icon.png")
+						|| uri.endsWith("/apple-touch-icon-precomposed.png")) {
+					return false;
+				}
+			}
 
-	        if (cause instanceof MissingServletRequestParameterException) {
-	            return false;
-	        }
+			if (cause instanceof MissingServletRequestParameterException) {
+				return false;
+			}
 
-	        cause = cause.getCause();
-	    }
+			cause = cause.getCause();
+		}
 
-	    return true;
+		return true;
 	}
 }
