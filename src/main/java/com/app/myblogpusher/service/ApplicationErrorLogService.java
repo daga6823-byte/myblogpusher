@@ -127,103 +127,47 @@ public class ApplicationErrorLogService {
 	}
 
 	/**
-	 * 例外の発生箇所と原因を簡潔な文字列に変換する。
+	 * 例外のスタックトレースを完全な文字列に変換する。
 	 *
-	 * アプリケーション内部のスタックフレームを最大5件記録し、
-	 * Springなどのフレームワーク内部の情報は省略する。
-	 * 原因例外も最大5階層まで記録する。
+	 * 原因例外、すべてのスタックフレームを省略せずに記録する。
 	 */
 	private String toStackTrace(Throwable exception) {
-		StringBuilder trace = new StringBuilder();
-		Throwable cause = exception;
-		int causeCount = 0;
+	    StringBuilder trace = new StringBuilder();
+	    Throwable cause = exception;
 
-		while (cause != null && causeCount < 5) {
-			if (causeCount == 0) {
-				trace.append(cause.getClass().getName());
-			} else {
-				trace.append("\nCaused by: ")
-						.append(cause.getClass().getName());
-			}
+	    while (cause != null) {
+	        if (trace.length() > 0) {
+	            trace.append("\nCaused by: ");
+	        }
 
-			if (cause.getMessage() != null) {
-				trace.append(": ").append(cause.getMessage());
-			}
+	        trace.append(cause.getClass().getName());
 
-			int recordedFrames = 0;
+	        if (cause.getMessage() != null) {
+	            trace.append(": ").append(cause.getMessage());
+	        }
 
-			for (StackTraceElement element : cause.getStackTrace()) {
-				String className = element.getClassName();
+	        for (StackTraceElement element : cause.getStackTrace()) {
+	            trace.append("\n    at ").append(element);
+	        }
 
-				if (!className.startsWith("com.app.myblogpusher.")) {
-					continue;
-				}
+	        cause = cause.getCause();
+	    }
 
-				trace.append("\n    at ").append(element);
-
-				recordedFrames++;
-				if (recordedFrames >= 5) {
-					break;
-				}
-			}
-
-			if (recordedFrames == 0) {
-				trace.append("\n    （アプリケーション内部の発生箇所なし）");
-			}
-
-			cause = cause.getCause();
-			causeCount++;
-		}
-
-		return trace.toString();
+	    return trace.toString();
 	}
 
 	/**
-	 * 例外の内容を調査しやすい概要に変換する。
+	 * 例外のクラス名とメッセージを取得する。
 	 *
-	 * Thymeleafのテンプレート解析エラーは、
-	 * テンプレート名と行・列番号を抽出して記録する。
+	 * 例外メッセージは加工・省略せずに記録する。
 	 */
 	private String toErrorMessage(Throwable exception) {
-		Throwable cause = exception;
+	    Throwable rootCause = getRootCause(exception);
 
-		while (cause != null) {
-			if (cause.getClass().getSimpleName().equals("TemplateInputException")) {
-				String message = cause.getMessage();
-
-				if (message != null) {
-					int templateStart = message.indexOf("templates/");
-					int templateEnd = message.indexOf("\"]", templateStart);
-					int lineStart = message.indexOf("line ", templateEnd);
-					int columnStart = message.indexOf(", col ", lineStart);
-
-					if (templateStart >= 0 && templateEnd > templateStart
-							&& lineStart >= 0 && columnStart > lineStart) {
-
-						String template = message.substring(
-								templateStart, templateEnd);
-
-						String line = message.substring(
-								lineStart + 5, columnStart);
-
-						String column = message.substring(columnStart + 6)
-								.replaceAll("[^0-9].*$", "");
-
-						return "テンプレート解析エラー: "
-								+ template + " (" + line + "行" + column + "列)";
-					}
-				}
-			}
-
-			cause = cause.getCause();
-		}
-
-		Throwable rootCause = getRootCause(exception);
-
-		return rootCause.getClass().getSimpleName()
-				+ (rootCause.getMessage() != null
-						? ": " + rootCause.getMessage()
-						: "");
+	    return rootCause.getClass().getSimpleName()
+	            + (rootCause.getMessage() != null
+	                    ? ": " + rootCause.getMessage()
+	                    : "");
 	}
 
 	/**
