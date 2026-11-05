@@ -66,6 +66,12 @@ public class PublishExecutionService {
 
 		UserRepositoryEntity repo = repoOpt.get();
 
+		// 投稿前の記事だけを投稿中に更新する。
+		// 先に確保することで、後続の更新処理も二重実行されないようにする。
+		if (!articleWorkService.startPublishing(workId, userId)) {
+			return true;
+		}
+
 		// 投稿対象のWorkを取得する。
 		ArticleWork work = articleWorkService.findById(workId, userId);
 
@@ -85,9 +91,6 @@ public class PublishExecutionService {
 		}
 
 		articleWorkService.updateHugoPath(workId, hugoPath, userId);
-
-		// 投稿処理中のステータスに更新する。
-		articleWorkService.updateStatus(workId, 1, userId);
 
 		// 投稿開始時に編集用ワークスペースを削除する。
 		workspaceService.delete(userId);

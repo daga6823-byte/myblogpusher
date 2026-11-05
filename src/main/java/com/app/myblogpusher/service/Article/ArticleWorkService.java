@@ -137,6 +137,19 @@ public class ArticleWorkService {
 		articleWorkRepository.save(work);
 	}
 
+	/**
+	 * 投稿前の記事を投稿中に変更する
+	 *
+	 * 条件付き更新により、連打や同時リクエストによる二重投稿を防ぐ。
+	 *
+	 * @return 更新できた場合はtrue
+	 */
+	@Transactional
+	public boolean startPublishing(Long workId, Long userId) {
+
+		return articleWorkRepository.startPublishing(workId, userId) == 1;
+	}
+
 	public void updateStatus(
 			Long workId,
 			Integer status,

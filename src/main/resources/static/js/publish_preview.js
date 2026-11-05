@@ -175,36 +175,8 @@ async function publishSubmit() {
 			waitTab.location.href = `/publish/wait?${params.toString()}`;
 		}
 
-		// 投稿処理のリダイレクト先を非表示iframeにする。
-		const publishFrame = document.getElementById("publishSubmitFrame");
-		const isNewFrame = !publishFrame;
-
-		let frame = publishFrame;
-
-		if (!frame) {
-			frame = document.createElement("iframe");
-			frame.id = "publishSubmitFrame";
-			frame.name = "publishSubmitFrame";
-			frame.style.display = "none";
-		}
-
-		// iframeの初期読み込みは無視し、投稿リクエストへの応答後に画面遷移する。
-		let initialLoad = isNewFrame;
-
-		frame.addEventListener('load', function() {
-			if (initialLoad) {
-				initialLoad = false;
-				return;
-			}
-
-			window.location.href = '/home';
-		});
-
-		if (isNewFrame) {
-			document.body.appendChild(frame);
-		}
-
-		form.target = "publishSubmitFrame";
+				// 元のタブで投稿リクエストを送信し、Controllerのredirectでホームへ戻る。
+		form.target = "_self";
 
 		if (button) {
 			button.textContent = "投稿中...";
