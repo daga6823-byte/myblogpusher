@@ -91,12 +91,36 @@ public class GitWorkspaceService {
 
 				Git git = new Git(repository);
 
+				UsernamePasswordCredentialsProvider credentialsProvider =
+				        new UsernamePasswordCredentialsProvider(
+				                "git",
+				                accessToken);
+
+				// リモートのmainブランチを取得する。
+				git.fetch()
+				        .setCredentialsProvider(credentialsProvider)
+				        .call();
+
+				// ローカルにmainブランチがなければ作成する。
+				if (repository.findRef("refs/heads/main") == null) {
+				    git.checkout()
+				            .setName("main")
+				            .setCreateBranch(true)
+				            .setStartPoint("origin/main")
+				            .setUpstreamMode(
+				                    org.eclipse.jgit.api.CreateBranchCommand.SetupUpstreamMode.TRACK)
+				            .call();
+				} else {
+				    git.checkout()
+				            .setName("main")
+				            .call();
+				}
+
+				// mainブランチを最新化する。
 				git.pull()
-						.setCredentialsProvider(
-								new UsernamePasswordCredentialsProvider(
-										"git",
-										accessToken))
-						.call();
+				        .setRemoteBranchName("main")
+				        .setCredentialsProvider(credentialsProvider)
+				        .call();
 
 				return git;
 

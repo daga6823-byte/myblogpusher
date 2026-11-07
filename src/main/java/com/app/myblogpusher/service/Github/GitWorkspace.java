@@ -46,9 +46,11 @@ public final class GitWorkspace implements AutoCloseable {
 	 * 認証情報付きでリモートへpushする
 	 */
 	public void push() throws GitAPIException {
-		git.push()
-				.setCredentialsProvider(credentials())
-				.call();
+	    git.push()
+	            .setCredentialsProvider(credentials())
+	            .setRemote("origin")
+	            .add("refs/heads/main:refs/heads/main")
+	            .call();
 	}
 
 	@Override
