@@ -213,9 +213,8 @@ function updateArticleList() {
 	const categoryFilter =
 		document.getElementById('categoryFilter');
 
-	if (!categoryFilter) {
-		return;
-	}
+	const searchInput =
+		document.getElementById('articleSearchInput');
 
 	const rows =
 		Array.from(
@@ -223,21 +222,33 @@ function updateArticleList() {
 		);
 
 	const selectedCategory =
-		categoryFilter.value;
+		categoryFilter?.value || '';
+
+	const searchText =
+		searchInput?.value.trim().toLowerCase() || '';
 
 	/*
-  
-	* カテゴリーで絞り込む。
-	* 元のDOM要素を削除せず、表示・非表示だけを切り替える。
-	  */
+	 * カテゴリーと記事名で絞り込む。
+	 * 元のDOM要素を削除せず、表示・非表示だけを切り替える。
+	 */
 	rows.forEach(row => {
 
 		const category =
 			row.dataset.categoryName || '';
 
-		row.style.display =
+		const title =
+			getTitle(row).toLowerCase();
+
+		const matchesCategory =
 			!selectedCategory ||
-				category === selectedCategory
+			category === selectedCategory;
+
+		const matchesTitle =
+			!searchText ||
+			title.includes(searchText);
+
+		row.style.display =
+			matchesCategory && matchesTitle
 				? ''
 				: 'none';
 
@@ -321,17 +332,26 @@ function initializeArticleList() {
 
 	if (categoryFilter) {
 
-
 		categoryFilter.addEventListener(
 			'change',
 			updateArticleList
 		);
 
+	}
+
+	const searchInput =
+		document.getElementById('articleSearchInput');
+
+	if (searchInput) {
+
+		searchInput.addEventListener(
+			'input',
+			updateArticleList
+		);
 
 	}
 
 	initializeSortButtons();
-
 	updateArticleList();
 
 }

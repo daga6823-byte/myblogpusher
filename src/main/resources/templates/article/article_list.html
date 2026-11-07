@@ -50,27 +50,24 @@
 	-->
 
 		<div class="list-controls">
-
 			<div class="list-control">
-
 				<label for="categoryFilter">
-
 					カテゴリー
-
 				</label>
-
 				<select id="categoryFilter">
-
 					<option value="">すべて</option>
-
 					<option th:each="category : ${categoryNames}" th:value="${category}" th:text="${category}">
-
 					</option>
-
 				</select>
-
 			</div>
 
+			<div class="list-control">
+				<label for="articleSearchInput">
+					<span style="font-size:16px;">🔍</span>
+					<input type="text" id="articleSearchInput" placeholder="記事名を検索"
+						style="width:160px; height:30px; box-sizing:border-box; padding:4px 8px;">
+				</label>
+			</div>
 		</div>
 
 		<table>
