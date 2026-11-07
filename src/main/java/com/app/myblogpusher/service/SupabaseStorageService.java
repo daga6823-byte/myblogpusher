@@ -157,9 +157,9 @@ public class SupabaseStorageService {
 	}
 
 	public String getImageUrl(String fileName) {
-	    String encodedPath = Arrays.stream(fileName.split("/", -1))
-	            .map(segment -> UriUtils.encodePathSegment(segment, StandardCharsets.UTF_8))
-	            .collect(Collectors.joining("/"));
+		String encodedPath = Arrays.stream(fileName.split("/", -1))
+		        .map(segment -> UriUtils.encode(segment, StandardCharsets.UTF_8))
+		        .collect(Collectors.joining("/"));
 
 	    return supabaseUrl
 	            + "/storage/v1/object/public/"
