@@ -5,113 +5,6 @@
  * 共通の脚注処理を利用した本文への挿入を担当する。
  */
 
-let referenceCache = [];
-let referenceCategoriesLoaded = false;
-
-/**
- * 参考文献カテゴリーの選択肢を取得する。
- */
-async function loadReferenceCategories() {
-	const select = document.getElementById('referenceCategorySelect');
-
-	if (!select) {
-		return;
-	}
-
-	// 取得済みのカテゴリー一覧を再利用する。
-	if (referenceCategoriesLoaded) {
-		return;
-	}
-
-	select.innerHTML = '';
-
-	const allOption = document.createElement('option');
-	allOption.value = '';
-	allOption.textContent = 'すべて';
-	select.appendChild(allOption);
-
-	const response = await fetch('/category/reference/categories');
-
-	if (!response.ok) {
-		alert('参考文献カテゴリーの取得に失敗しました');
-		return;
-	}
-
-	const categories = await response.json();
-
-	categories.forEach(category => {
-		const option = document.createElement('option');
-		option.value = category.categoryId;
-		option.textContent = category.categoryName;
-		select.appendChild(option);
-	});
-
-	// 選択肢の作成完了後に取得済みとする。
-	referenceCategoriesLoaded = true;
-}
-
-/**
- * 取得済みの参考文献を一覧表示する。
- */
-function displayReferences(references) {
-	const list = document.getElementById('referenceList');
-
-	if (!list) {
-		return;
-	}
-
-	list.innerHTML = '';
-
-	references.forEach(reference => {
-		const label = document.createElement('label');
-		const checkbox = document.createElement('input');
-
-		checkbox.type = 'checkbox';
-		checkbox.name = 'referenceCheck';
-		checkbox.value = JSON.stringify(reference);
-
-		checkbox.addEventListener('change', () => {
-			if (checkbox.checked) {
-				document.getElementById('insertReferenceButton').focus();
-			}
-		});
-
-		label.appendChild(checkbox);
-		label.appendChild(
-			document.createTextNode(reference.referenceName)
-		);
-
-		list.appendChild(label);
-		list.appendChild(document.createElement('br'));
-	});
-}
-
-/**
- * 現在のカテゴリーに紐づく参考文献を取得する。
- */
-async function loadReferences() {
-	const groupId = window.categoryGroupId;
-
-	if (!groupId) {
-		alert('カテゴリー情報を取得できません');
-		return false;
-	}
-
-	const response = await fetch(
-		`/category/reference/list?groupId=${encodeURIComponent(groupId)}`
-	);
-
-	if (!response.ok) {
-		alert('参考文献の取得に失敗しました');
-		return false;
-	}
-
-	referenceCache = await response.json();
-	displayReferences(referenceCache);
-
-	return true;
-}
-
 /**
  * 脚注ボタンから参考文献一覧を開く。
  */
@@ -126,9 +19,12 @@ if (footnoteButton) {
 			return;
 		}
 
-		await loadReferenceCategories();
+		await window.ReferenceManager.loadCategories();
 
-		if (!await loadReferences()) {
+		if (!await window.ReferenceManager.loadReferences(
+			window.categoryGroupId,
+			true
+		)) {
 			return;
 		}
 
@@ -144,19 +40,12 @@ const referenceCategorySelect =
 
 if (referenceCategorySelect) {
 	referenceCategorySelect.addEventListener('change', () => {
-		const categoryId = referenceCategorySelect.value;
 
-		if (!categoryId) {
-			displayReferences(referenceCache);
-			return;
-		}
-
-		displayReferences(
-			referenceCache.filter(
-				reference =>
-					String(reference.categoryId) === String(categoryId)
-			)
+		window.ReferenceManager.filterReferences(
+			referenceCategorySelect.value,
+			true
 		);
+
 	});
 }
 
@@ -168,49 +57,13 @@ const saveReferenceButton =
 
 if (saveReferenceButton) {
 	saveReferenceButton.addEventListener('click', async () => {
-		const categoryPath = window.categoryPath;
-		const referenceName =
-			document.getElementById('referenceName').value.trim();
-		const url =
-			document.getElementById('referenceUrl').value.trim();
 
-		if (!categoryPath) {
-			alert('カテゴリー情報を取得できません');
-			return;
-		}
-
-		if (!referenceName) {
-			alert('参考文献名を入力してください');
-			return;
-		}
-
-		const response = await fetch('/category/reference/save', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/x-www-form-urlencoded'
-			},
-			body:
-				`categoryPath=${encodeURIComponent(categoryPath)}`
-				+ `&referenceName=${encodeURIComponent(referenceName)}`
-				+ `&url=${encodeURIComponent(url)}`
+		await window.ReferenceManager.saveReference({
+			parameterName: 'categoryPath',
+			parameterValue: window.categoryPath,
+			groupId: window.categoryGroupId
 		});
 
-		if (response.status === 409) {
-			const error = await response.json();
-			alert(error.message);
-			return;
-		}
-
-		if (!response.ok) {
-			alert('参考文献の登録に失敗しました');
-			return;
-		}
-
-		document.getElementById('referenceName').value = '';
-		document.getElementById('referenceUrl').value = '';
-
-		// 登録後、現在のカテゴリーの参考文献一覧を再取得する。
-		await loadReferences();
 	});
 }
 

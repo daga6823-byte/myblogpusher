@@ -11,13 +11,6 @@
  * 参考文献はカテゴリー経路単位で管理する。
  */
 
-// -----------------------------------------------------
-// 取得済み参考文献
-// -----------------------------------------------------
-
-let referenceCache = [];
-let referenceCategoriesLoaded = false;
-
 // =====================================================
 // 参考文献カテゴリーを作成
 //
@@ -140,43 +133,19 @@ document.getElementById('footnoteButton')
 			return;
 		}
 
-		// カテゴリー選択肢を作成
-		// 取得した参考文献を表示カテゴリーで絞り込むために使用する。
-
-		await loadReferenceCategories();
+		await window.ReferenceManager.loadCategories();
 
 		const groupId =
 			document.getElementById('categorySelect').value;
 
 		if (!groupId || groupId === '__new__') {
-
 			alert('記事のカテゴリーを選択してください');
-
 			return;
-
 		}
 
-		// 現在の記事カテゴリーを基準に
-		// 参考文献を取得する。
-
-		const response =
-			await fetch(
-				`/category/reference/list?groupId=${encodeURIComponent(groupId)}`
-			);
-
-		if (!response.ok) {
-
-			alert('参考文献の取得に失敗しました');
-
+		if (!await window.ReferenceManager.loadReferences(groupId)) {
 			return;
-
 		}
-
-		referenceCache =
-			await response.json();
-
-		// 全件表示
-		displayReferences(referenceCache);
 
 		selector.style.display = 'block';
 	});
@@ -194,29 +163,9 @@ document.getElementById('referenceCategorySelect')
 			document.getElementById('referenceCategorySelect')
 				.value;
 
-		if (!categoryId) {
-			displayReferences(referenceCache);
-			return;
-		}
+		window.ReferenceManager.filterReferences(categoryId);
 
-		const references =
-			referenceCache.filter(
-				reference =>
-					String(reference.categoryId) === String(categoryId)
-			);
-
-		displayReferences(references);
 	});
-
-// =====================================================
-/**
- * 脚注番号と脚注定義を本文へ挿入する。
- */
-// =====================================================
-function insertFootnote(reference) {
-	const textarea = document.getElementById('content');
-	FootnoteManager.insert(textarea, reference);
-}
 
 // =====================================================
 // 参考文献登録
@@ -229,71 +178,20 @@ document.getElementById('saveReferenceButton')
 
 		const groupId = window.categoryGroupId;
 
-		const referenceName =
-			document.getElementById('referenceName')
-				.value.trim();
-
-		const url =
-			document.getElementById('referenceUrl')
-				.value.trim();
-
 		if (!categoryPath || categoryPath === '__new__' || !groupId) {
 			alert('記事のカテゴリーを選択してください');
 			return;
 		}
 
-		if (!referenceName) {
-			alert('参考文献名を入力してください');
-			return;
-		}
+		await window.ReferenceManager.saveReference({
+			parameterName: 'groupId',
+			parameterValue: groupId,
+			groupId: groupId,
+			headers: {
+				'X-Requested-With': 'XMLHttpRequest'
+			}
+		});
 
-		const response =
-			await fetch('/category/reference/save', {
-
-				method: 'POST',
-
-				headers: {
-					'Content-Type': 'application/x-www-form-urlencoded',
-					'X-Requested-With': 'XMLHttpRequest'
-				},
-
-				body:
-					`groupId=${encodeURIComponent(groupId)}`
-					+ `&referenceName=${encodeURIComponent(referenceName)}`
-					+ `&url=${encodeURIComponent(url)}`
-			});
-
-		if (response.status === 409) {
-			const error = await response.json();
-			alert(error.message);
-			return;
-		}
-
-		if (!response.ok) {
-			alert('参考文献の登録に失敗しました');
-			return;
-		}
-
-		document.getElementById('referenceName').value = '';
-		document.getElementById('referenceUrl').value = '';
-
-		// 登録後、現在の記事カテゴリーの参考文献を再取得して表示する。
-		const listResponse =
-
-			await fetch(
-				'/category/reference/list'
-			);
-
-		if (!listResponse.ok) {
-			alert('参考文献一覧の再取得に失敗しました');
-			return;
-		}
-
-		referenceCache =
-			await listResponse.json();
-
-		// ページ全体をリロードせず、登録後の一覧だけ再表示する。
-		displayReferences(referenceCache);
 	});
 
 // =====================================================
@@ -320,7 +218,10 @@ document.getElementById('insertReferenceButton')
 			? { referenceName: referenceName }
 			: JSON.parse(checked.value);
 
-		insertFootnote(reference);
+		window.FootnoteManager.insert(
+			document.getElementById('content'),
+			reference
+		);
 
 		document.getElementById('referenceSelector')
 			.style.display = 'none';
