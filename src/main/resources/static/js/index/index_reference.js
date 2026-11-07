@@ -70,6 +70,12 @@ function displayReferences(references) {
 		checkbox.name = 'referenceCheck';
 		checkbox.value = JSON.stringify(reference);
 
+		checkbox.addEventListener('change', () => {
+			if (checkbox.checked) {
+				document.getElementById('insertReferenceButton').focus();
+			}
+		});
+
 		label.appendChild(checkbox);
 		label.appendChild(
 			document.createTextNode(reference.referenceName)
@@ -220,13 +226,18 @@ if (insertReferenceButton) {
 			'input[name="referenceCheck"]:checked'
 		);
 
-		if (!checked) {
-			alert('参考文献を選択してください');
+		const referenceName =
+			document.getElementById('referenceName').value.trim();
+
+		if (!checked && !referenceName) {
 			return;
 		}
 
 		const textarea = document.getElementById('content');
-		const reference = JSON.parse(checked.value);
+
+		const reference = checked
+			? JSON.parse(checked.value)
+			: { referenceName: referenceName };
 
 		if (!window.FootnoteManager) {
 			console.error('FootnoteManager が読み込まれていません');
