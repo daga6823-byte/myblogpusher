@@ -308,18 +308,23 @@ document.getElementById('insertReferenceButton')
 				'input[name="referenceCheck"]:checked'
 			);
 
-		if (!checked) {
-			alert('参考文献を選択してください');
+		const referenceName =
+			document.getElementById('referenceName')
+				.value.trim();
+
+		if (!referenceName && !checked) {
 			return;
 		}
 
-		const reference =
-			JSON.parse(checked.value);
+		const reference = referenceName
+			? { referenceName: referenceName }
+			: JSON.parse(checked.value);
 
 		insertFootnote(reference);
 
 		document.getElementById('referenceSelector')
 			.style.display = 'none';
+
 	});
 
 // =====================================================
