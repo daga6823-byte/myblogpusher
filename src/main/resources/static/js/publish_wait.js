@@ -84,8 +84,13 @@ document.addEventListener("DOMContentLoaded", () => {
 	}
 
 	function showError(message) {
+
 		finished = true;
-		window.location.replace("/publish/error");
+
+		statusTitle.textContent = "投稿に失敗しました";
+
+		statusMessage.textContent = message;
+
 	}
 
 	checkPublishStatus();
