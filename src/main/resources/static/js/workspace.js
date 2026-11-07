@@ -84,15 +84,28 @@ function scheduleWorkspaceSave() {
 // セッション維持
 //
 // 編集中にセッション切れにならないよう
-// 10分ごとにKeepAliveを送信する
+// 10分ごとにKeepAliveを送信する。
+// セッション切れを検知したら送信を停止する。
 // -----------------------------------------------------
-setInterval(() => {
 
-	fetch('/article/session/keepalive', {
+const keepAliveTimer = setInterval(async () => {
 
-		method: 'POST'
+	try {
 
-	}).catch(err => console.error(err));
+		const response = await fetch('/article/session/keepalive', {
+			method: 'POST'
+		});
+
+		if (response.status === 401) {
+			clearInterval(keepAliveTimer);
+			console.info('セッションが切れたためKeepAliveを停止しました');
+		}
+
+	} catch (err) {
+
+		console.error(err);
+
+	}
 
 }, 10 * 60 * 1000);
 

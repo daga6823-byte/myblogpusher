@@ -235,9 +235,9 @@ if (insertReferenceButton) {
 
 		const textarea = document.getElementById('content');
 
-		const reference = checked
-			? JSON.parse(checked.value)
-			: { referenceName: referenceName };
+		const reference = referenceName
+			? { referenceName: referenceName }
+			: JSON.parse(checked.value);
 
 		if (!window.FootnoteManager) {
 			console.error('FootnoteManager が読み込まれていません');
