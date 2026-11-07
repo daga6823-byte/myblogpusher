@@ -8,11 +8,14 @@ package com.app.myblogpusher.service;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -21,6 +24,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -91,9 +95,19 @@ public class SupabaseStorageService {
 
 		HttpHeaders headers = new HttpHeaders();
 		headers.set("apikey", supabaseKey);
+
+		String contentType;
+
+		if (fileName.toLowerCase().endsWith(".webp")) {
+		    contentType = "image/webp";
+		} else {
+		    contentType = Files.probeContentType(file.toPath());
+		}
+
 		headers.setContentType(
-				MediaType.parseMediaType(
-						Files.probeContentType(file.toPath())));
+		        contentType != null
+		                ? MediaType.parseMediaType(contentType)
+		                : MediaType.APPLICATION_OCTET_STREAM);
 
 		HttpEntity<byte[]> entity = new HttpEntity<>(
 				Files.readAllBytes(file.toPath()),
@@ -143,7 +157,15 @@ public class SupabaseStorageService {
 	}
 
 	public String getImageUrl(String fileName) {
-		return supabaseUrl + "/storage/v1/object/public/" + bucketName + "/" + fileName;
+	    String encodedPath = Arrays.stream(fileName.split("/", -1))
+	            .map(segment -> UriUtils.encodePathSegment(segment, StandardCharsets.UTF_8))
+	            .collect(Collectors.joining("/"));
+
+	    return supabaseUrl
+	            + "/storage/v1/object/public/"
+	            + bucketName
+	            + "/"
+	            + encodedPath;
 	}
 
 	/**

@@ -38,9 +38,10 @@ public class ImageAssetImportService {
 
 		List<String> allPaths = supabaseStorageService.listAllFilePaths();
 
-		Set<String> existingPaths = imageAssetRepository.findAll().stream()
-				.map(ImageAsset::getStoragePath)
-				.collect(Collectors.toSet());
+		Set<String> existingPaths = imageAssetRepository
+		        .findByUserIdOrderByUploadDateDesc(userId).stream()
+		        .map(ImageAsset::getStoragePath)
+		        .collect(Collectors.toSet());
 
 		int importedCount = 0;
 
