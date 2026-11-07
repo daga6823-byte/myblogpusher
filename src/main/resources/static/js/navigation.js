@@ -119,7 +119,7 @@ if (listButton) {
 
 				const form = document.querySelector('form');
 				form.action = '/article/save';
-				form.submit();
+				form.requestSubmit();
 
 			} else {
 				window.location.href = '/article/list';
@@ -149,7 +149,7 @@ if (backButton) {
 
 				const form = document.querySelector('form');
 				form.action = '/article/save';
-				form.submit();
+				form.requestSubmit();
 
 			} else {
 				window.location.href = '/home';
