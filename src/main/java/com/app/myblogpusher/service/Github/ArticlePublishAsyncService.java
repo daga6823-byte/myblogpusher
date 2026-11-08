@@ -48,6 +48,10 @@ public class ArticlePublishAsyncService {
 			Long workId,
 			String slug) {
 
+		System.err.println(
+				"### ArticlePublishAsyncService START ### workId="
+						+ workId);
+
 		try {
 			article.setContent(
 					articleImageUtil.convertImageUrl(
@@ -66,6 +70,10 @@ public class ArticlePublishAsyncService {
 			articleWorkService.delete(
 					workId,
 					article.getUserId());
+			
+			System.err.println(
+			        "### ArticlePublishAsyncService SUCCESS ### workId="
+			                + workId);
 
 		} catch (Exception e) {
 
