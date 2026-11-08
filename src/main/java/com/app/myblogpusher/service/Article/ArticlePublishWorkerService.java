@@ -103,6 +103,10 @@ public class ArticlePublishWorkerService {
 
 			articleService.completePublish(
 					work, work.getSlug(), thumbnailUrl);
+			
+			System.err.println(
+			        "[PUBLISH_DEBUG] workId=" + work.getWorkId()
+			        + " step=complete_publish_returned");
 
 		} catch (Exception e) {
 			
