@@ -41,24 +41,19 @@ public class HugoArticleService {
 
 		String categoryPath = article.getHugoPath();
 
-		int lastSlash = categoryPath.lastIndexOf("/");
-		categoryPath = lastSlash >= 0
-		        ? categoryPath.substring(0, lastSlash)
-		        : "";
-
 		createCategoryIndexesRecursively(
-				git,
-				repoPath,
-				categoryPath,
-				article.getUserId());
+		        git,
+		        repoPath,
+		        categoryPath,
+		        article.getUserId());
 
-		// Articleに保存された完成済みHugoパスを使用する
-		String hugoPath = article.getHugoPath();
+		// カテゴリー経路とslugを結合して記事ファイルのパスを生成する。
+		String hugoPath = article.getHugoPath() + "/" + slug;
 
 		Path contentPath = Paths.get(
-				repoPath,
-				"content",
-				hugoPath + ".md");
+		        repoPath,
+		        "content",
+		        hugoPath + ".md");
 
 		contentPath.getParent().toFile().mkdirs();
 
@@ -138,58 +133,55 @@ public class HugoArticleService {
 	}
 
 	/**
-	 * 既存記事のHugoファイルを新しいカテゴリー経路へ移動する
+	 * 既存記事のHugoファイルを新しいカテゴリー経路へ移動する。
 	 *
-	 * 既存ファイルを削除して作り直すのではなく、
-	 * Files.move()で移動することで既存記事を維持する。
+	 * 移動元はArticleに保存されたフルパス、
+	 * 移動先はカテゴリー経路とslugを結合したフルパスを受け取る。
 	 */
 	public void moveArticle(
-			Git git,
-			String repoPath,
-			String oldHugoPath,
-			String newHugoPath)
-			throws IOException, GitAPIException {
+	        Git git,
+	        String repoPath,
+	        String oldHugoPath,
+	        String newHugoPath)
+	        throws IOException, GitAPIException {
 
-		Path oldPath = Paths.get(
-				repoPath,
-				"content",
-				oldHugoPath + ".md");
+	    // 移動元と移動先が同じ場合は何もしない。
+	    if (oldHugoPath.equals(newHugoPath)) {
+	        return;
+	    }
 
-		Path newPath = Paths.get(
-				repoPath,
-				"content",
-				newHugoPath + ".md");
+	    Path oldPath = Paths.get(
+	            repoPath,
+	            "content",
+	            oldHugoPath + ".md");
 
-		if (!Files.exists(oldPath)) {
-			throw new IOException(
-					"移動元の記事ファイルが存在しません: "
-							+ oldPath);
-		}
+	    Path newPath = Paths.get(
+	            repoPath,
+	            "content",
+	            newHugoPath + ".md");
 
-		// 新しいカテゴリー階層が存在しない場合は作成する。
-		Files.createDirectories(newPath.getParent());
+	    if (!Files.exists(oldPath)) {
+	        throw new IOException(
+	                "移動元の記事ファイルが存在しません: " + oldPath);
+	    }
 
-		// 既存記事を削除せず、新しいHugoパスへ移動する。
-		// 移動先に既存ファイルがある場合も置き換える。
-		Files.move(
-				oldPath,
-				newPath,
-				java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+	    // 移動先に別の記事が存在する場合は誤上書きを防止する。
+	    if (Files.exists(newPath)) {
+	        throw new IOException(
+	                "移動先の記事ファイルが既に存在します: " + newPath);
+	    }
 
-		// 移動元の削除をGitインデックスへ反映する。
-		// Files.move()によって作業ツリーから旧ファイルがなくなっているため、
-		// 旧パスをadd対象にすることでGit側にも削除を認識させる。
-		String oldRelativePath = "content/" + oldHugoPath + ".md";
+	    Files.createDirectories(newPath.getParent());
 
-		git.add()
-				.addFilepattern(oldRelativePath)
-				.call();
+	    Files.move(oldPath, newPath);
 
-		// 移動先の記事をGitインデックスへ追加する。
-		String newRelativePath = "content/" + newHugoPath + ".md";
+	    // Gitインデックスに移動元の削除と移動先の追加を反映する。
+	    git.add()
+	            .addFilepattern("content/" + oldHugoPath + ".md")
+	            .call();
 
-		git.add()
-				.addFilepattern(newRelativePath)
-				.call();
+	    git.add()
+	            .addFilepattern("content/" + newHugoPath + ".md")
+	            .call();
 	}
 }

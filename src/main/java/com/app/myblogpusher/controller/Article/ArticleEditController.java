@@ -135,7 +135,8 @@ public class ArticleEditController {
 			// URLにカテゴリー経路がない場合は、保存済みのPathを使用する。
 			if (categoryPath == null || categoryPath.isBlank()) {
 
-				categoryPath = work.getHugoPath();
+			    categoryPath = categoryPathService.findCategoryPathByGroupId(
+			            work.getCategoryGroupId());
 
 			}
 
@@ -155,7 +156,8 @@ public class ArticleEditController {
 				// URLにカテゴリー経路がない場合は、保存済みのPathを使用する。
 				if (categoryPath == null || categoryPath.isBlank()) {
 
-					categoryPath = workspace.getHugoPath();
+				    categoryPath = categoryPathService.findCategoryPathByGroupId(
+				            workspace.getCategoryGroupId());
 
 				}
 
@@ -256,13 +258,10 @@ public class ArticleEditController {
 		// 下書き保存後は一時ワークスペースを削除
 		workspaceService.delete(userId);
 
-		String savedCategoryPath = categorySelect;
-
-		if (newCategoryName != null && !newCategoryName.isBlank()) {
-			savedCategoryPath = categorySelect == null || categorySelect.isBlank()
-					? newCategoryName
-					: categorySelect + "/" + newCategoryName;
-		}
+		// 保存後のArticleWorkに記録されたカテゴリー経路を使用する。
+		String savedCategoryPath = articleWorkService
+		        .findById(savedWorkId, userId)
+		        .getHugoPath();
 
 		return "redirect:/article/edit?workId=" + savedWorkId
 				+ "&saved=true"

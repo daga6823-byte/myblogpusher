@@ -1,3 +1,14 @@
+/**
+ * 記事編集中データ(article_work)を管理するサービス
+ *
+ * ・編集中記事の取得
+ * ・新規下書き保存
+ * ・下書き更新
+ * ・投稿完了後の削除
+ * を担当する。
+ *
+ * 投稿済み記事(article)への変換処理はArticleService側で行う。
+ */
 package com.app.myblogpusher.service.Article;
 
 import java.time.LocalDateTime;
@@ -12,17 +23,6 @@ import com.app.myblogpusher.repository.Article.ArticleWorkRepository;
 
 import jakarta.transaction.Transactional;
 
-/**
- * 記事編集中データ(article_work)を管理するサービス
- *
- * ・編集中記事の取得
- * ・新規下書き保存
- * ・下書き更新
- * ・投稿完了後の削除
- * を担当する。
- *
- * 投稿済み記事(article)への変換処理はArticleService側で行う。
- */
 @Service
 public class ArticleWorkService {
 

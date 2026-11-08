@@ -73,7 +73,7 @@ public class ArticleSaveUtil {
 				newCategoryName,
 				newCategoryDisplayName);
 
-		// categorySelectに新規カテゴリー名が含まれていない場合だけ追加する。
+		// ArticleWork.hugoPathにはカテゴリー経路のみを保存する。
 		String hugoPath = categorySelect;
 
 		// 既存記事の場合は、Articleテーブルから正しいslugを取得する。
@@ -91,29 +91,6 @@ public class ArticleSaveUtil {
 			} else if (work != null) {
 				slug = work.getSlug();
 			}
-		}
-
-		// categorySelectに新規カテゴリー名が含まれていない場合だけ追加する。
-		if (newCategoryName != null && !newCategoryName.isBlank()) {
-
-			String lastCategoryName = hugoPath == null || hugoPath.isBlank()
-					? null
-					: hugoPath.substring(hugoPath.lastIndexOf("/") + 1);
-
-			if (!newCategoryName.equals(lastCategoryName)) {
-
-				hugoPath = hugoPath == null || hugoPath.isBlank()
-						? newCategoryName
-						: hugoPath + "/" + newCategoryName;
-			}
-		}
-
-		// 既存記事の場合は、カテゴリー経路の末尾に元のslugを付ける。
-		if (slug != null && !slug.isBlank()) {
-
-			hugoPath = hugoPath == null || hugoPath.isBlank()
-					? slug
-					: hugoPath + "/" + slug;
 		}
 
 		// 添削・誤字チェック用の第2階層カテゴリーIDを取得する。

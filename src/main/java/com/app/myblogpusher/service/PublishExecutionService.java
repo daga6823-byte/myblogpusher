@@ -85,20 +85,6 @@ public class PublishExecutionService {
 		// 確認画面で確定したスラッグを保存する。
 		articleWorkService.updateSlug(workId, slug, userId);
 
-		// 新規記事の場合はカテゴリーPathにslugを結合する。
-		// 投稿済み記事の場合は完成済みのhugoPathを維持する。
-		String hugoPath = work.getHugoPath();
-
-		if (work.getArticleId() == null) {
-		    if (hugoPath == null || hugoPath.isBlank()) {
-		        hugoPath = slug;
-		    } else {
-		        hugoPath = hugoPath + "/" + slug;
-		    }
-		}
-
-		articleWorkService.updateHugoPath(workId, hugoPath, userId);
-
 		// 投稿開始時に編集用ワークスペースを削除する。
 		workspaceService.delete(userId);
 

@@ -60,17 +60,24 @@ public class ArticleService {
 							+ currentWork.getStatus());
 		}
 
-		// 同一ユーザー・同一slugの記事を取得する。
-		// 同一slugでもカテゴリーが異なれば別記事として扱う。
-		List<Article> articles = articleRepository.findAllByUserIdAndSlug(
-				currentWork.getUserId(),
-				slug);
+		// ArticleWork.articleIdがある場合は、元の記事を直接特定する。
+		// カテゴリーやslugを変更していても、元の記事を更新できる。
+		Article targetArticle = null;
 
-		Article targetArticle = articles.stream()
-				.filter(article -> currentWork.getCategoryGroupId().equals(
-						article.getCategoryGroupId()))
-				.findFirst()
-				.orElse(null);
+		if (currentWork.getArticleId() != null) {
+		    targetArticle = articleRepository.findById(
+		            currentWork.getArticleId())
+		            .orElseThrow(() -> new IllegalStateException(
+		                    "更新対象のArticleが存在しません。articleId="
+		                            + currentWork.getArticleId()));
+
+		    // 別ユーザーの記事を更新しないよう所有者を確認する。
+		    if (!currentWork.getUserId().equals(targetArticle.getUserId())) {
+		        throw new IllegalStateException(
+		                "Articleの所有者が一致しません。articleId="
+		                        + targetArticle.getArticleId());
+		    }
+		}
 
 		// 対象カテゴリーの記事が存在しない場合は新規作成する。
 		if (targetArticle == null) {
@@ -111,7 +118,8 @@ public class ArticleService {
 		// 画面で編集したslugを使用
 		article.setSlug(slug);
 
-		article.setHugoPath(work.getHugoPath());
+		// カテゴリー経路とslugを結合したフルパスを保存する。
+		article.setHugoPath(work.getHugoPath() + "/" + slug);
 
 		article.setContent(work.getContent());
 
@@ -146,7 +154,8 @@ public class ArticleService {
 		// 画面で編集したslugを使用
 		article.setSlug(slug);
 
-		article.setHugoPath(work.getHugoPath());
+		// カテゴリー経路とslugを結合したフルパスを保存する。
+		article.setHugoPath(work.getHugoPath() + "/" + slug);
 
 		article.setContent(work.getContent());
 

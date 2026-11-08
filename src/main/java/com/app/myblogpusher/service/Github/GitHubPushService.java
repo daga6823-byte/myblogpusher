@@ -67,21 +67,23 @@ public class GitHubPushService {
 				System.out.println("existingArticle = null");
 			}
 
-			// 既存記事のカテゴリー変更などでHugoパスが変わった場合、
-			// 既存ファイルを削除せず、新しいパスへ移動する。
+			// カテゴリー経路とslugを結合してGitHub上の記事フルパスを生成する。
+			String newHugoPath = article.getHugoPath() + "/" + slug;
+
+			// 既存記事のカテゴリー変更やslug変更があれば、記事ファイルを移動する。
 			if (existingArticle != null
-					&& existingArticle.getHugoPath() != null
-					&& !existingArticle.getHugoPath().equals(article.getHugoPath())) {
+			        && existingArticle.getHugoPath() != null
+			        && !existingArticle.getHugoPath().equals(newHugoPath)) {
 
-				System.out.println("=== Hugoパス変更検出 ===");
-				System.out.println("旧パス: " + existingArticle.getHugoPath());
-				System.out.println("新パス: " + article.getHugoPath());
+			    System.out.println("=== Hugoパス変更検出 ===");
+			    System.out.println("旧パス: " + existingArticle.getHugoPath());
+			    System.out.println("新パス: " + newHugoPath);
 
-				hugoArticleService.moveArticle(
-						git,
-						repoPath,
-						existingArticle.getHugoPath(),
-						article.getHugoPath());
+			    hugoArticleService.moveArticle(
+			            git,
+			            repoPath,
+			            existingArticle.getHugoPath(),
+			            newHugoPath);
 			}
 
 			hugoArticleService.createArticle(

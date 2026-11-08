@@ -68,7 +68,8 @@ public class ArticlePublishWorkerService {
 				return;
 			}
 
-			String hugoPath = work.getHugoPath();
+			// ArticleWorkのカテゴリー経路を取得する。
+			String categoryPath = work.getHugoPath();
 
 			// ArticleWork.articleIdを基準に元の記事を取得する。
 			// カテゴリー変更後のhugoPathではなく、元の記事そのものを特定する。
@@ -85,7 +86,9 @@ public class ArticlePublishWorkerService {
 			article.setCategoryGroupId(work.getCategoryGroupId());
 			article.setTitle(work.getTitle());
 			article.setSlug(work.getSlug());
-			article.setHugoPath(hugoPath);
+			// GitHub投稿用Articleにはカテゴリー経路を設定する。
+			// GitHub上のフルパスはGitHubPushService側でslugと結合する。
+			article.setHugoPath(categoryPath);
 			article.setContent(
 					applyThumbnailToFrontMatter(
 							work.getContent(),
