@@ -35,19 +35,23 @@ public class ArticlePublishService {
 	 */
 	@Async
 	public void publishAsync(
-	        UserRepositoryEntity repo,
-	        String cipherKey,
-	        Long userId,
-	        Long workId,
-	        String thumbnailUrl) {
+			UserRepositoryEntity repo,
+			String cipherKey,
+			Long userId,
+			Long workId,
+			String thumbnailUrl) {
 
-	    System.out.println(
-	            "[ArticlePublishService] 非同期投稿開始"
-	            + " workId=" + workId
-	            + " thread=" + Thread.currentThread().getName());
+		System.out.println(
+				"[ArticlePublishService] 非同期投稿開始"
+						+ " workId=" + workId
+						+ " thread=" + Thread.currentThread().getName());
 
-	    try {
-	        ArticleWork work = articleWorkService.findById(workId, userId);
+		try {
+			System.err.println(
+					"### ArticlePublishService START ### workId="
+							+ workId);
+
+			ArticleWork work = articleWorkService.findById(workId, userId);
 
 			if (work.getStatus() == null || work.getStatus() != 1) {
 				return;

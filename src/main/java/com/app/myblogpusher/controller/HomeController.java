@@ -24,14 +24,7 @@ public class HomeController {
 
         UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 
-        long start = System.nanoTime();
-
         List<MenuMaster> menus = menuMasterService.findVisibleMenus(loginUser.getRole());
-
-        System.out.println(
-                "[HomeTiming] メニュー取得: "
-                + (System.nanoTime() - start) / 1_000_000
-                + " ms");
 
         model.addAttribute("menus", menus);
         model.addAttribute("userName", loginUser.getUserName());
