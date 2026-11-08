@@ -47,6 +47,12 @@ public class ArticleSaveUtil {
 	@Autowired
 	private CategoryRelationService categoryRelationService;
 
+	// -----------------------------------------------------
+	// カテゴリー情報の解決
+	//
+	// 選択されたカテゴリーと新規カテゴリー入力から、
+	// カテゴリー登録・親カテゴリー情報を解決する。
+	// -----------------------------------------------------
 	public Long doSaveDraft(
 			Long workId,
 			String categorySelect,

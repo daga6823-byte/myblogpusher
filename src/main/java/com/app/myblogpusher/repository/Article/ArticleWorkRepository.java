@@ -48,7 +48,7 @@ public interface ArticleWorkRepository extends JpaRepository<ArticleWork, Long> 
 	@Query("UPDATE ArticleWork w SET w.status = 1 "
 			+ "WHERE w.workId = :workId "
 			+ "AND w.userId = :userId "
-			+ "AND w.status = 0")
+			+ "AND w.status IN (0, 2)")
 	int startPublishing(
 			@Param("workId") Long workId,
 			@Param("userId") Long userId);
