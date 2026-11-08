@@ -47,6 +47,11 @@ public class ArticlePublishWorkerService {
 			String thumbnailUrl) {
 
 		try {
+			
+			System.err.println(
+			        "### ArticlePublishWorkerService.publish START ### workId="
+			                + work.getWorkId());
+			
 			// 投稿処理中(status=1)のWorkだけを投稿する。
 			// 非同期処理開始後にstatusが変更された場合の誤投稿を防ぐ。
 			if (work.getStatus() == null || work.getStatus() != 1) {
@@ -100,6 +105,10 @@ public class ArticlePublishWorkerService {
 					work, work.getSlug(), thumbnailUrl);
 
 		} catch (Exception e) {
+			
+			System.err.println(
+			        "### ArticlePublishWorkerService.publish CATCH ### workId="
+			                + work.getWorkId());
 
 			applicationErrorLogService.recordAsync(
 					e,
