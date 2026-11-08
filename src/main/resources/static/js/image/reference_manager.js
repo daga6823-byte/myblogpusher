@@ -187,17 +187,27 @@ window.ReferenceManager = {
 		body.append('referenceName', referenceName);
 		body.append('url', url);
 
+		const csrfCookie = document.cookie
+			.split('; ')
+			.find(cookie => cookie.startsWith('XSRF-TOKEN='));
+
+		const csrfToken = csrfCookie
+			? decodeURIComponent(csrfCookie.substring('XSRF-TOKEN='.length))
+			: '';
+
+		if (!csrfToken) {
+			alert('CSRFトークンを取得できません。画面を再読み込みしてください。');
+			return false;
+		}
+
 		const response = await fetch('/category/reference/save', {
-
 			method: 'POST',
-
 			headers: {
 				'Content-Type': 'application/x-www-form-urlencoded',
+				'X-CSRF-TOKEN': csrfToken,
 				...headers
 			},
-
 			body: body.toString()
-
 		});
 
 		if (response.status === 409) {

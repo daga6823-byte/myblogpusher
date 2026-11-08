@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import com.app.myblogpusher.entity.UserRepositoryEntity;
 import com.app.myblogpusher.entity.Article.Article;
+import com.app.myblogpusher.service.ApplicationErrorLogService;
 import com.app.myblogpusher.service.Article.ArticleWorkService;
 import com.app.myblogpusher.util.ArticleImageUtil;
 
@@ -21,15 +22,18 @@ public class ArticlePublishAsyncService {
 	private final GitHubPushService gitHubPushService;
 	private final ArticleImageUtil articleImageUtil;
 	private final ArticleWorkService articleWorkService;
+	private final ApplicationErrorLogService applicationErrorLogService;
 
 	public ArticlePublishAsyncService(
 			GitHubPushService gitHubPushService,
 			ArticleImageUtil articleImageUtil,
-			ArticleWorkService articleWorkService) {
+			ArticleWorkService articleWorkService,
+			ApplicationErrorLogService applicationErrorLogService) {
 
 		this.gitHubPushService = gitHubPushService;
 		this.articleImageUtil = articleImageUtil;
 		this.articleWorkService = articleWorkService;
+		this.applicationErrorLogService = applicationErrorLogService;
 	}
 
 	/**
@@ -73,13 +77,24 @@ public class ArticlePublishAsyncService {
 
 			String errorCode = resolveErrorCode(e);
 
+			// 非同期投稿の失敗をDBへ記録する
+			try {
+				applicationErrorLogService.recordAsync(
+						e,
+						article.getUserId(),
+						"GitHub記事投稿");
+			} catch (Exception loggingException) {
+				// ログ記録自体の失敗で記事のエラー状態更新を妨げない
+				loggingException.printStackTrace();
+			}
+
 			// 投稿失敗した記事はエラー状態で残し、
 			// エラーコードをArticleWorkへ保存する。
 			articleWorkService.updateStatus(
-			        workId,
-			        2,
-			        errorCode,
-			        article.getUserId());
+					workId,
+					2,
+					errorCode,
+					article.getUserId());
 		}
 	}
 

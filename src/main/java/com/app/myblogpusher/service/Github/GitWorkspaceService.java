@@ -91,48 +91,61 @@ public class GitWorkspaceService {
 
 				Git git = new Git(repository);
 
-				UsernamePasswordCredentialsProvider credentialsProvider =
-				        new UsernamePasswordCredentialsProvider(
-				                "git",
-				                accessToken);
+				UsernamePasswordCredentialsProvider credentialsProvider = new UsernamePasswordCredentialsProvider(
+						"git",
+						accessToken);
 
 				// リモートのmainブランチを取得する。
 				git.fetch()
-				        .setCredentialsProvider(credentialsProvider)
-				        .call();
+						.setCredentialsProvider(credentialsProvider)
+						.call();
 
 				// ローカルにmainブランチがなければ作成する。
 				if (repository.findRef("refs/heads/main") == null) {
-				    git.checkout()
-				            .setName("main")
-				            .setCreateBranch(true)
-				            .setStartPoint("origin/main")
-				            .setUpstreamMode(
-				                    org.eclipse.jgit.api.CreateBranchCommand.SetupUpstreamMode.TRACK)
-				            .call();
+					git.checkout()
+							.setName("main")
+							.setCreateBranch(true)
+							.setStartPoint("origin/main")
+							.setUpstreamMode(
+									org.eclipse.jgit.api.CreateBranchCommand.SetupUpstreamMode.TRACK)
+							.call();
 				} else {
-				    git.checkout()
-				            .setName("main")
-				            .call();
+					git.checkout()
+							.setName("main")
+							.call();
 				}
 
 				// mainブランチを最新化する。
 				git.pull()
-				        .setRemoteBranchName("main")
-				        .setCredentialsProvider(credentialsProvider)
-				        .call();
+						.setRemoteBranchName("main")
+						.setCredentialsProvider(credentialsProvider)
+						.call();
 
 				return git;
 
 			} catch (IOException | GitAPIException e) {
+
+				Throwable rootCause = e;
+
+				while (rootCause.getCause() != null
+						&& rootCause.getCause() != rootCause) {
+					rootCause = rootCause.getCause();
+				}
+
+				String rootCauseMessage = rootCause.getClass().getSimpleName()
+						+ ": "
+						+ rootCause.getMessage();
+
 				throw new IOException(
 						"既存のGit作業領域を開くか最新化できませんでした: "
-			                    + gitDir.getAbsolutePath()
-			                    + " / 原因: "
-			                    + e.getClass().getSimpleName()
-			                    + ": "
-			                    + e.getMessage(),
-			            e);
+								+ gitDir.getAbsolutePath()
+								+ " / 発生例外: "
+								+ e.getClass().getSimpleName()
+								+ ": "
+								+ e.getMessage()
+								+ " / 根本原因: "
+								+ rootCauseMessage,
+						e);
 			}
 		}
 
