@@ -14,11 +14,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.app.myblogpusher.entity.Article.Article;
 import com.app.myblogpusher.entity.Article.ArticleCategory;
 import com.app.myblogpusher.entity.Article.ArticleWork;
 import com.app.myblogpusher.repository.Article.ArticleRepository;
 import com.app.myblogpusher.service.Article.ArticleCategoryService;
 import com.app.myblogpusher.service.Article.ArticleFormatService;
+import com.app.myblogpusher.service.Article.ArticleService;
 import com.app.myblogpusher.service.Article.ArticleWorkService;
 import com.app.myblogpusher.service.Category.CategoryPathService;
 import com.app.myblogpusher.service.Category.CategoryRelationService;
@@ -47,6 +49,9 @@ public class ArticleSaveUtil {
 	@Autowired
 	private CategoryRelationService categoryRelationService;
 
+	@Autowired
+	private ArticleService articleService;
+
 	// -----------------------------------------------------
 	// カテゴリー情報の解決
 	//
@@ -71,6 +76,24 @@ public class ArticleSaveUtil {
 		// categorySelectに新規カテゴリー名が含まれていない場合だけ追加する。
 		String hugoPath = categorySelect;
 
+		// 既存記事の場合は、Articleテーブルから正しいslugを取得する。
+		String slug = null;
+
+		if (workId != null) {
+
+			ArticleWork work = articleWorkService.findById(workId, userId);
+
+			if (work != null && work.getArticleId() != null) {
+
+				Article article = articleService.findById(work.getArticleId());
+
+				slug = article.getSlug();
+			} else if (work != null) {
+				slug = work.getSlug();
+			}
+		}
+
+		// categorySelectに新規カテゴリー名が含まれていない場合だけ追加する。
 		if (newCategoryName != null && !newCategoryName.isBlank()) {
 
 			String lastCategoryName = hugoPath == null || hugoPath.isBlank()
@@ -83,6 +106,14 @@ public class ArticleSaveUtil {
 						? newCategoryName
 						: hugoPath + "/" + newCategoryName;
 			}
+		}
+
+		// 既存記事の場合は、カテゴリー経路の末尾に元のslugを付ける。
+		if (slug != null && !slug.isBlank()) {
+
+			hugoPath = hugoPath == null || hugoPath.isBlank()
+					? slug
+					: hugoPath + "/" + slug;
 		}
 
 		// 添削・誤字チェック用の第2階層カテゴリーIDを取得する。
@@ -116,16 +147,6 @@ public class ArticleSaveUtil {
 		String formattedContent = articleFormatService.formatContent(content);
 		formattedContent = MarkdownFootnoteUtil.normalize(formattedContent);
 
-		String slug = null;
-
-		if (workId != null) {
-			ArticleWork work = articleWorkService.findById(workId, userId);
-
-			if (work != null) {
-				slug = work.getSlug();
-			}
-		}
-
 		// 既存のslugがない場合は、タイトルからスラッグを生成する。
 		// 形態素解析と英単語辞典による変換はSlugUtilに委譲する。
 		if (slug == null || slug.isBlank()) {
@@ -140,10 +161,10 @@ public class ArticleSaveUtil {
 			}
 
 			Optional<ArticleWork> existing = articleWorkService.findDuplicate(
-			        userId,
-			        hugoPath,
-			        title,
-			        formattedContent);
+					userId,
+					hugoPath,
+					title,
+					formattedContent);
 
 			if (existing.isPresent()) {
 				return existing.get().getWorkId();
