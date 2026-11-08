@@ -29,9 +29,6 @@ public class Article {
 	@Column(name = "user_id", nullable = false)
 	private Long userId;
 
-	@Column(name = "category_group_id")
-	private Long categoryGroupId;
-
 	@Column(name = "title", nullable = false)
 	private String title;
 

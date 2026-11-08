@@ -65,18 +65,18 @@ public class ArticleService {
 		Article targetArticle = null;
 
 		if (currentWork.getArticleId() != null) {
-		    targetArticle = articleRepository.findById(
-		            currentWork.getArticleId())
-		            .orElseThrow(() -> new IllegalStateException(
-		                    "更新対象のArticleが存在しません。articleId="
-		                            + currentWork.getArticleId()));
+			targetArticle = articleRepository.findById(
+					currentWork.getArticleId())
+					.orElseThrow(() -> new IllegalStateException(
+							"更新対象のArticleが存在しません。articleId="
+									+ currentWork.getArticleId()));
 
-		    // 別ユーザーの記事を更新しないよう所有者を確認する。
-		    if (!currentWork.getUserId().equals(targetArticle.getUserId())) {
-		        throw new IllegalStateException(
-		                "Articleの所有者が一致しません。articleId="
-		                        + targetArticle.getArticleId());
-		    }
+			// 別ユーザーの記事を更新しないよう所有者を確認する。
+			if (!currentWork.getUserId().equals(targetArticle.getUserId())) {
+				throw new IllegalStateException(
+						"Articleの所有者が一致しません。articleId="
+								+ targetArticle.getArticleId());
+			}
 		}
 
 		// 対象カテゴリーの記事が存在しない場合は新規作成する。
@@ -112,7 +112,6 @@ public class ArticleService {
 		Article article = new Article();
 
 		article.setUserId(work.getUserId());
-		article.setCategoryGroupId(work.getCategoryGroupId());
 		article.setTitle(work.getTitle());
 
 		// 画面で編集したslugを使用
@@ -148,7 +147,6 @@ public class ArticleService {
 			String slug,
 			String thumbnailUrl) {
 
-		article.setCategoryGroupId(work.getCategoryGroupId());
 		article.setTitle(work.getTitle());
 
 		// 画面で編集したslugを使用
@@ -174,7 +172,6 @@ public class ArticleService {
 	public Article saveFromGitHub(
 			Long articleId,
 			Long userId,
-			Long categoryGroupId,
 			String slug,
 			String hugoPath,
 			String title,
@@ -196,18 +193,9 @@ public class ArticleService {
 		}
 
 		if (article.getArticleId() == null) {
-			if (categoryGroupId == null) {
-				throw new IllegalArgumentException(
-						"新規記事のカテゴリーグループIDを特定できません。hugoPath="
-								+ hugoPath);
-			}
-
 			article.setUserId(userId);
 			article.setCreateDate(articleDate);
 			article.setCreateUser(userId);
-			article.setCategoryGroupId(categoryGroupId);
-		} else if (categoryGroupId != null) {
-			article.setCategoryGroupId(categoryGroupId);
 		}
 
 		article.setTitle(title);

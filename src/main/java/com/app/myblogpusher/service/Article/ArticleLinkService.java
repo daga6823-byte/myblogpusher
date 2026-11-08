@@ -25,58 +25,113 @@ public class ArticleLinkService {
 
 	@Autowired
 	private CategorySelectionService categorySelectionService;
-
 	/**
 	 * リンク挿入用の記事一覧を取得する。
 	 *
 	 * カテゴリー未指定の場合はユーザーの投稿済み記事をすべて取得する。
-	 * カテゴリー指定時は、そのカテゴリーの記事だけを取得する。
+	 * カテゴリー指定時は、groupIdからカテゴリー経路を取得し、
+	 * HugoPathがそのカテゴリー配下にある記事だけを取得する。
 	 */
 	public List<ArticleLinkView> findLinkArticles(
-			Long userId,
-			Long categoryGroupId) {
+	        Long userId,
+	        Long categoryGroupId) {
 
-		List<Article> articles;
+	    List<CategoryOptionView> categories =
+	            categorySelectionService.findSelectableCategories(userId);
 
-		if (categoryGroupId == null) {
-			articles = articleRepository
-					.findByUserIdOrderByUpdateDateDesc(userId);
-		} else {
-			articles = articleRepository
-					.findByUserIdAndCategoryGroupIdOrderByUpdateDateDesc(
-							userId,
-							categoryGroupId);
-		}
+	    List<Article> articles;
 
-		return articles.stream()
-				.map(article -> new ArticleLinkView(
-						article.getSlug(),
-						article.getHugoPath(),
-						article.getTitle(),
-						article.getHugoPath(),
-						article.getCategoryGroupId()))
-				.toList();
+	    if (categoryGroupId == null) {
+
+	        articles = articleRepository
+	                .findByUserIdOrderByUpdateDateDesc(userId);
+
+	    } else {
+
+	        String categoryPath = categories.stream()
+	                .filter(category -> categoryGroupId.equals(
+	                        category.getGroupId()))
+	                .map(CategoryOptionView::getCategoryPath)
+	                .findFirst()
+	                .orElse(null);
+
+	        if (categoryPath == null) {
+	            return List.of();
+	        }
+
+	        articles = articleRepository.findLinkArticles(
+	                userId,
+	                categoryPath + "/");
+	    }
+
+	    return articles.stream()
+	            .map(article -> {
+
+	                String articleCategoryPath =
+	                        extractCategoryPath(article.getHugoPath());
+
+	                Long groupId = categories.stream()
+	                        .filter(category -> category.getCategoryPath()
+	                                .equals(articleCategoryPath))
+	                        .map(CategoryOptionView::getGroupId)
+	                        .findFirst()
+	                        .orElse(null);
+
+	                return new ArticleLinkView(
+	                        article.getSlug(),
+	                        article.getHugoPath(),
+	                        article.getTitle(),
+	                        article.getHugoPath(),
+	                        groupId);
+	            })
+	            .toList();
 	}
 
 	/**
-	 * リンク挿入用のカテゴリー一覧を取得する。
+	 * 投稿済み記事が存在するカテゴリー一覧を取得する。
 	 *
-	 * 投稿済み記事が1件以上存在するカテゴリーだけを返す。
-	 * カテゴリーの表示形式と階層情報は既存サービスの結果を維持する。
+	 * ArticleのHugoPathからカテゴリー経路を抽出し、
+	 * 既存のカテゴリー選択肢と照合する。
 	 */
 	public List<CategoryOptionView> findLinkCategories(Long userId) {
 
-		List<Long> articleCategoryGroupIds = articleRepository
-				.findDistinctCategoryGroupIdsByUserId(userId);
+	    List<Article> articles = articleRepository.findByUserId(userId);
 
-		if (articleCategoryGroupIds.isEmpty()) {
-			return List.of();
-		}
+	    if (articles.isEmpty()) {
+	        return List.of();
+	    }
 
-		return categorySelectionService.findSelectableCategories(userId)
-				.stream()
-				.filter(category -> articleCategoryGroupIds
-						.contains(category.getGroupId()))
-				.toList();
+	    List<String> articleCategoryPaths = articles.stream()
+	            .map(article -> extractCategoryPath(article.getHugoPath()))
+	            .distinct()
+	            .toList();
+
+	    return categorySelectionService.findSelectableCategories(userId)
+	            .stream()
+	            .filter(category -> articleCategoryPaths.contains(
+	                    category.getCategoryPath()))
+	            .toList();
+	}
+
+	/**
+	 * HugoPathから末尾のslugを除いたカテゴリー経路を取得する。
+	 *
+	 * 例:
+	 * movie/batman/dark-knight
+	 * → movie/batman
+	 */
+	private String extractCategoryPath(String hugoPath) {
+
+	    if (hugoPath == null || hugoPath.isBlank()) {
+	        return "";
+	    }
+
+	    int lastSlash = hugoPath.lastIndexOf("/");
+
+	    if (lastSlash < 0) {
+	        return "";
+	    }
+
+	    return hugoPath.substring(0, lastSlash);
 	}
 }

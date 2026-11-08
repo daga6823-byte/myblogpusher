@@ -83,7 +83,6 @@ public class ArticlePublishWorkerService {
 			// GitHub投稿用のArticleをメモリ上だけで作成する。
 			Article article = new Article();
 			article.setUserId(work.getUserId());
-			article.setCategoryGroupId(work.getCategoryGroupId());
 			article.setTitle(work.getTitle());
 			article.setSlug(work.getSlug());
 			// GitHub投稿用Articleにはカテゴリー経路を設定する。

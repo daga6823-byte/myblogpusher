@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -23,7 +22,6 @@ import com.app.myblogpusher.entity.Article.ArticleWork;
 import com.app.myblogpusher.repository.UserRepositoryRepository;
 import com.app.myblogpusher.service.Article.ArticleService;
 import com.app.myblogpusher.service.Article.ArticleWorkService;
-import com.app.myblogpusher.service.Category.CategoryPathService;
 import com.app.myblogpusher.service.Facade.ImageAssetFacadeService;
 import com.app.myblogpusher.service.Github.GitHubArticleService;
 
@@ -51,9 +49,6 @@ public class ArticlePublishedController {
 	@Autowired
 	private UserRepositoryRepository userRepositoryRepository;
 
-	@Autowired
-	private CategoryPathService categoryPathService;
-
 	/**
 	 * 投稿済み記事一覧を表示
 	 */
@@ -69,29 +64,31 @@ public class ArticlePublishedController {
 		List<Article> articles = articleService.findPublishedByUserId(userId);
 
 		/*
-		 * 投稿済み記事のカテゴリー経路を一括取得する。
+		 * 投稿済み記事のHugoPathからカテゴリー経路を取得する。
 		 *
-		 * 記事ごとのDB検索を避け、取得したカテゴリー経路を
-		 * articleIdごとに一覧表示用のマップへ変換する。
+		 * HugoPathの末尾にあるslugを除去し、
+		 * 記事IDごとに一覧表示用のマップを作成する。
 		 */
-		List<Long> groupIds = articles.stream()
-				.map(Article::getCategoryGroupId)
-				.filter(java.util.Objects::nonNull)
-				.distinct()
-				.toList();
-
-		Map<Long, String> categoryPaths = categoryPathService.findCategoryPathsByGroupIds(groupIds);
-
 		model.addAttribute(
-				"articleCategories",
-				articles.stream()
-						.collect(
-								Collectors.toMap(
-										Article::getArticleId,
-										article -> categoryPaths.getOrDefault(
-												article.getCategoryGroupId(),
-												""),
-										(existing, replacement) -> existing)));
+		        "articleCategories",
+		        articles.stream()
+		                .collect(
+		                        Collectors.toMap(
+		                                Article::getArticleId,
+		                                article -> {
+		                                    String hugoPath = article.getHugoPath();
+
+		                                    if (hugoPath == null || hugoPath.isBlank()) {
+		                                        return "";
+		                                    }
+
+		                                    int lastSlash = hugoPath.lastIndexOf("/");
+
+		                                    return lastSlash > 0
+		                                            ? hugoPath.substring(0, lastSlash)
+		                                            : "";
+		                                },
+		                                (existing, replacement) -> existing)));
 
 		model.addAttribute(
 				"articles",

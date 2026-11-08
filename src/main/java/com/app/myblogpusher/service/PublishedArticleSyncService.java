@@ -20,7 +20,6 @@ import com.app.myblogpusher.entity.UserRepositoryEntity;
 import com.app.myblogpusher.entity.Article.Article;
 import com.app.myblogpusher.repository.Article.ArticleRepository;
 import com.app.myblogpusher.service.Article.ArticleService;
-import com.app.myblogpusher.service.Category.CategoryPathService;
 import com.app.myblogpusher.service.Github.GitHubArticleService;
 
 @Service
@@ -31,9 +30,6 @@ public class PublishedArticleSyncService {
 
 	@Autowired
 	private ArticleService articleService;
-
-	@Autowired
-	private CategoryPathService categoryPathService;
 
 	@Autowired
 	private ArticleRepository articleRepository;
@@ -67,47 +63,11 @@ public class PublishedArticleSyncService {
 						.map(Article::getArticleId)
 						.orElse(null);
 
-				Long categoryGroupId = null;
-
-				/*
-				 * hugoPathの末尾は記事slugなので、
-				 * それを除いた部分をカテゴリーのフルパスとして扱う。
-				 */
-				String hugoPath = summary.getHugoPath();
-
-				int lastSlash = hugoPath.lastIndexOf("/");
-
-				if (lastSlash > 0) {
-
-					String categoryPath = hugoPath.substring(
-							0,
-							lastSlash);
-
-					/*
-					 * CategoryRelationを使って既存カテゴリーを特定する。
-					 *
-					 * 同期処理ではカテゴリーを新規作成・変更しない。
-					 */
-					categoryGroupId = categoryPathService
-							.findGroupIdByFullPath(
-									userId,
-									categoryPath);
-				}
-
-				// 新規記事でカテゴリーを特定できない場合は登録しない。
-				if (existing.isEmpty() && categoryGroupId == null) {
-					System.err.println(
-							"カテゴリーを特定できないため記事同期をスキップします: "
-									+ summary.getHugoPath());
-					continue;
-				}
-
 				if (existing.isEmpty()) {
 
 					articleService.saveFromGitHub(
 							articleId,
 							userId,
-							categoryGroupId,
 							summary.getSlug(),
 							summary.getHugoPath(),
 							summary.getTitle(),
@@ -127,7 +87,6 @@ public class PublishedArticleSyncService {
 						articleService.saveFromGitHub(
 								articleId,
 								userId,
-								categoryGroupId,
 								summary.getSlug(),
 								summary.getHugoPath(),
 								summary.getTitle(),
