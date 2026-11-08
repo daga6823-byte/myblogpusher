@@ -135,10 +135,9 @@ document.getElementById('footnoteButton')
 
 		await window.ReferenceManager.loadCategories();
 
-		const groupId =
-			document.getElementById('categorySelect').value;
+		const groupId = window.categoryGroupId;
 
-		if (!groupId || groupId === '__new__') {
+		if (groupId == null) {
 			alert('記事のカテゴリーを選択してください');
 			return;
 		}
@@ -178,7 +177,7 @@ document.getElementById('saveReferenceButton')
 
 		const groupId = window.categoryGroupId;
 
-		if (!categoryPath || categoryPath === '__new__' || !groupId) {
+		if (!categoryPath || groupId == null) {
 			alert('記事のカテゴリーを選択してください');
 			return;
 		}

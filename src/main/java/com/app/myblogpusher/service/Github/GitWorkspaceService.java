@@ -127,8 +127,12 @@ public class GitWorkspaceService {
 			} catch (IOException | GitAPIException e) {
 				throw new IOException(
 						"既存のGit作業領域を開くか最新化できませんでした: "
-								+ gitDir.getAbsolutePath(),
-						e);
+			                    + gitDir.getAbsolutePath()
+			                    + " / 原因: "
+			                    + e.getClass().getSimpleName()
+			                    + ": "
+			                    + e.getMessage(),
+			            e);
 			}
 		}
 

@@ -163,6 +163,47 @@ function handleCategoryChange(event) {
 
 	updateCategoryPath();
 }
+/**
+ * 選択されたカテゴリー経路からgroupIdを取得する。
+ *
+ * 古いリクエストの結果で新しい選択を上書きしないよう、
+ * リクエスト番号で管理する。
+ */
+let categoryGroupIdRequestId = 0;
+
+async function updateCategoryGroupId(categoryPath) {
+	const requestId = ++categoryGroupIdRequestId;
+
+	window.categoryGroupId = null;
+
+	if (!categoryPath) {
+		return;
+	}
+
+	try {
+		const response = await fetch(
+			`/article/category/group-id?categoryPath=${encodeURIComponent(categoryPath)}`
+		);
+
+		if (!response.ok) {
+			return;
+		}
+
+		const groupId = await response.json();
+
+		if (requestId !== categoryGroupIdRequestId) {
+			return;
+		}
+
+		window.categoryGroupId = groupId;
+
+	} catch (error) {
+		console.error(
+			'カテゴリーgroupIdの取得に失敗しました:',
+			error
+		);
+	}
+}
 
 // =====================================================
 // 現在選択されているカテゴリー経路をhidden inputへ設定する。
@@ -204,6 +245,8 @@ function updateCategoryPath() {
 
 	// 保存時は既存のcategorySelectパラメータとしてカテゴリー経路を送る。
 	categoryPathInput.value = selectedCategories.join('/');
+
+	updateCategoryGroupId(categoryPathInput.value);
 }
 
 //

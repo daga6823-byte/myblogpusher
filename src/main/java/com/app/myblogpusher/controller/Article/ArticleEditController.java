@@ -10,11 +10,13 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.app.myblogpusher.dto.Category.CategorySelectView;
 import com.app.myblogpusher.entity.UserMaster;
@@ -25,6 +27,7 @@ import com.app.myblogpusher.repository.UserRepositoryRepository;
 import com.app.myblogpusher.repository.Article.ArticleRepository;
 import com.app.myblogpusher.service.Article.ArticleWorkService;
 import com.app.myblogpusher.service.Article.ArticleWorkspaceService;
+import com.app.myblogpusher.service.Category.CategoryPathService;
 import com.app.myblogpusher.service.Category.CategorySelectionService;
 import com.app.myblogpusher.service.Facade.ImageAssetFacadeService;
 import com.app.myblogpusher.util.ArticleSaveUtil;
@@ -54,6 +57,36 @@ public class ArticleEditController {
 
 	@Autowired
 	private CategorySelectionService categorySelectionService;
+	
+	@Autowired
+	private CategoryPathService categoryPathService;
+	
+	/**
+	 * 記事編集画面で選択されたカテゴリー経路からgroupIdを取得する。
+	 *
+	 * カテゴリー経路に対応するCategoryRelationが存在する場合のみ返す。
+	 */
+	@GetMapping("/article/category/group-id")
+	@ResponseBody
+	public ResponseEntity<Long> resolveCategoryGroupId(
+	        @RequestParam String categoryPath,
+	        HttpSession session) {
+
+	    UserMaster loginUser =
+	            (UserMaster) session.getAttribute("loginUser");
+
+	    Long userId = loginUser.getUserId();
+
+	    Long groupId = categoryPathService.findGroupIdByFullPath(
+	            userId,
+	            categoryPath);
+
+	    if (groupId == null) {
+	        return ResponseEntity.notFound().build();
+	    }
+
+	    return ResponseEntity.ok(groupId);
+	}
 
 	/**
 	 * 記事編集画面を表示
