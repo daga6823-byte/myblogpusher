@@ -29,16 +29,16 @@ public class ErrorMaster {
 	@Column(name = "error_id")
 	private Long errorId;
 
-	@Column(name = "error_code", nullable = false, unique = true, length = 100)
+	@Column(name = "error_code", nullable = false, unique = true)
 	private String errorCode;
 
-	@Column(name = "error_name", nullable = false, length = 200)
+	@Column(name = "error_name", nullable = false)
 	private String errorName;
 
-	@Column(name = "error_message", nullable = false, length = 1000)
+	@Column(name = "error_message", nullable = false, columnDefinition = "TEXT")
 	private String errorMessage;
 
-	@Column(name = "description", length = 2000)
+	@Column(name = "description", columnDefinition = "TEXT")
 	private String description;
 
 	@Column(name = "enabled", nullable = false)
