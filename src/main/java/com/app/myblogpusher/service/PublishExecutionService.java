@@ -68,8 +68,15 @@ public class PublishExecutionService {
 
 		// 投稿前の記事だけを投稿中に更新する。
 		// 先に確保することで、後続の更新処理も二重実行されないようにする。
-		if (!articleWorkService.startPublishing(workId, userId)) {
-			return true;
+		boolean started = articleWorkService.startPublishing(workId, userId);
+
+		System.err.println(
+		        "[PublishExecutionService] startPublishing"
+		        + " workId=" + workId
+		        + " result=" + started);
+
+		if (!started) {
+		    return true;
 		}
 
 		// 投稿対象のWorkを取得する。
