@@ -130,14 +130,12 @@ public class ArticleEditController {
 
 			model.addAttribute("work", work);
 
+			// 旧categoryGroupIdではなく、ArticleWorkに保存されたhugoPathを使用する。
 			model.addAttribute("categoryGroupId", work.getCategoryGroupId());
 
-			// URLにカテゴリー経路がない場合は、保存済みのPathを使用する。
+			// URLにカテゴリー経路がない場合は、ArticleWorkのhugoPathを使用する。
 			if (categoryPath == null || categoryPath.isBlank()) {
-
-			    categoryPath = categoryPathService.findCategoryPathByGroupId(
-			            work.getCategoryGroupId());
-
+				categoryPath = work.getHugoPath();
 			}
 
 		} else {
