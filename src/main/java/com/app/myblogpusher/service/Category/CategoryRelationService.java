@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -20,7 +21,6 @@ import com.app.myblogpusher.entity.CategoryRelation;
 import com.app.myblogpusher.entity.Article.ArticleCategory;
 import com.app.myblogpusher.repository.CategoryRelationRepository;
 import com.app.myblogpusher.repository.Article.ArticleCategoryRepository;
-import com.app.myblogpusher.service.Article.ArticleWorkService;
 
 @Service
 public class CategoryRelationService {
@@ -31,14 +31,13 @@ public class CategoryRelationService {
 	@Autowired
 	private ArticleCategoryRepository articleCategoryRepository;
 
-	@Autowired
-	private ArticleWorkService articleWorkService;
-
 	/**
 	 * カテゴリーと親カテゴリーの直接の関係を登録する。
 	 *
 	 * groupIdが指定されている場合は既存のgroupIdを使用する。
-	 * groupIdが未指定の場合は採番せず、nullのまま登録する。
+	 * 未指定の場合はDBの自動採番を使用する。
+	 *
+	 * DBのユニーク制約により、並行実行時の重複登録も防止する。
 	 */
 	public void addRelation(
 			Long categoryId,
@@ -47,25 +46,12 @@ public class CategoryRelationService {
 			String categoryPath,
 			Long userId) {
 
+		// 既存の関係がある場合は登録しない。
 		if (categoryRelationRepository
 				.existsByCategoryIdAndParentCategoryIdAndCategoryPath(
 						categoryId,
 						parentCategoryId,
 						categoryPath)) {
-			return;
-		}
-
-		// 同じカテゴリー・親カテゴリー・カテゴリー経路が
-		// すでに存在する場合は重複登録しない。
-		boolean exists = categoryRelationRepository
-				.findByCategoryId(categoryId)
-				.stream()
-				.anyMatch(relation -> java.util.Objects.equals(
-						parentCategoryId,
-						relation.getParentCategoryId())
-						&& categoryPath.equals(relation.getCategoryPath()));
-
-		if (exists) {
 			return;
 		}
 
@@ -83,7 +69,26 @@ public class CategoryRelationService {
 		relation.setCreateUser(userId);
 		relation.setUpdateUser(userId);
 
-		categoryRelationRepository.save(relation);
+		try {
+
+			categoryRelationRepository.saveAndFlush(relation);
+
+		} catch (DataIntegrityViolationException e) {
+
+			// 並行実行によって同じ関係が先に登録された場合は正常終了する。
+			boolean alreadyExists = categoryRelationRepository
+					.existsByCategoryIdAndParentCategoryIdAndCategoryPath(
+							categoryId,
+							parentCategoryId,
+							categoryPath);
+
+			if (alreadyExists) {
+				return;
+			}
+
+			// 重複以外のDB制約違反は呼び出し元へ通知する。
+			throw e;
+		}
 	}
 
 	/**
@@ -250,12 +255,12 @@ public class CategoryRelationService {
 			Long userId) {
 
 		CategoryRelation existing = existingRelations.stream()
-		        .filter(relation -> categoryId.equals(relation.getCategoryId()))
-		        .filter(relation -> java.util.Objects.equals(
-		                parentCategoryId,
-		                relation.getParentCategoryId()))
-		        .findFirst()
-		        .orElse(null);
+				.filter(relation -> categoryId.equals(relation.getCategoryId()))
+				.filter(relation -> java.util.Objects.equals(
+						parentCategoryId,
+						relation.getParentCategoryId()))
+				.findFirst()
+				.orElse(null);
 
 		if (existing != null) {
 
@@ -278,8 +283,31 @@ public class CategoryRelationService {
 		relation.setCreateUser(userId);
 		relation.setUpdateUser(userId);
 
-		categoryRelationRepository.save(relation);
-		usedRelations.add(relation);
+		try {
+
+			categoryRelationRepository.saveAndFlush(relation);
+			usedRelations.add(relation);
+
+		} catch (DataIntegrityViolationException e) {
+
+			// 並行処理で同じ関係が登録済みになった場合は、既存の関係を維持する。
+			CategoryRelation duplicate = categoryRelationRepository
+			        .findByCategoryId(categoryId)
+			        .stream()
+			        .filter(candidate -> java.util.Objects.equals(
+			                parentCategoryId,
+			                candidate.getParentCategoryId()))
+			        .filter(candidate -> categoryPath.equals(
+			                candidate.getCategoryPath()))
+			        .findFirst()
+			        .orElse(null);
+
+			if (duplicate == null) {
+				throw e;
+			}
+
+			usedRelations.add(duplicate);
+		}
 	}
 
 	/**
