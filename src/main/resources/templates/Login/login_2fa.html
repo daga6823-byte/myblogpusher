@@ -27,6 +27,7 @@
 
 			<label for="code">認証コード</label>
 
+			<input type="hidden" name="_csrf" th:value="${_csrf}">
 			<input type="text" id="code" name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6"
 				autocomplete="one-time-code" required>
 
