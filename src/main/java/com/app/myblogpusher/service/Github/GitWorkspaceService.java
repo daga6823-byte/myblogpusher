@@ -9,6 +9,9 @@ package com.app.myblogpusher.service.Github;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -32,41 +35,75 @@ public class GitWorkspaceService {
 	}
 
 	/**
+	 * リポジトリ単位のGit操作を排他制御するロック
+	 */
+	private final ConcurrentMap<Long, ReentrantLock> repositoryLocks = new ConcurrentHashMap<>();
+
+	/**
 	 * リポジトリを最新状態にした作業領域を開く。
+	 *
+	 * 同一repoIdのGit操作を排他制御する。
 	 * 呼び出し側はtry-with-resourcesで閉じること。
+	 * ロックはGitWorkspace.close()で解放される。
 	 */
 	public GitWorkspace open(
 			UserRepositoryEntity repoEntity,
 			String cipherKey)
 			throws IOException, GitAPIException {
 
-		String accessToken = tokenCipherService.decrypt(
-				repoEntity.getAccessToken(),
-				repoEntity.getTokenIv(),
-				cipherKey);
+		Long repoId = repoEntity.getRepoId();
 
-		String repoPath = System.getProperty("java.io.tmpdir")
-				+ "/myblogpusher_"
-				+ repoEntity.getRepoId();
+		ReentrantLock lock = repositoryLocks.computeIfAbsent(
+				repoId,
+				key -> new ReentrantLock());
 
-		File repoDir = new File(repoPath);
+		lock.lock();
 
-		if (!repoDir.exists() && !repoDir.mkdirs()) {
-			throw new IOException(
-					"Git作業ディレクトリを作成できません: " + repoPath);
+		boolean lockTransferred = false;
+
+		try {
+			String accessToken = tokenCipherService.decrypt(
+					repoEntity.getAccessToken(),
+					repoEntity.getTokenIv(),
+					cipherKey);
+
+			String repoPath = System.getProperty("java.io.tmpdir")
+					+ "/myblogpusher_"
+					+ repoId;
+
+			File repoDir = new File(repoPath);
+
+			if (!repoDir.exists() && !repoDir.mkdirs()) {
+				throw new IOException(
+						"Git作業ディレクトリを作成できません: " + repoPath);
+			}
+
+			if (!repoDir.isDirectory() || !repoDir.canWrite()) {
+				throw new IOException(
+						"Git作業ディレクトリに書き込めません: " + repoPath);
+			}
+
+			Git git = initializeRepository(
+					repoDir,
+					repoEntity,
+					accessToken);
+
+			GitWorkspace workspace = new GitWorkspace(
+					git,
+					repoPath,
+					accessToken,
+					lock);
+
+			lockTransferred = true;
+
+			return workspace;
+
+		} finally {
+			// Workspace生成に失敗した場合は、open()側でロックを解放する。
+			if (!lockTransferred) {
+				lock.unlock();
+			}
 		}
-
-		if (!repoDir.isDirectory() || !repoDir.canWrite()) {
-			throw new IOException(
-					"Git作業ディレクトリに書き込めません: " + repoPath);
-		}
-
-		Git git = initializeRepository(
-				repoDir,
-				repoEntity,
-				accessToken);
-
-		return new GitWorkspace(git, repoPath, accessToken);
 	}
 
 	private Git initializeRepository(

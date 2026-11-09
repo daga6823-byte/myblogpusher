@@ -50,6 +50,12 @@ public class UserRepositoryEntity {
     @Column(name = "update_date")
     private LocalDateTime updateDate;
 
+    /**
+     * GitHubカテゴリーインデックスの最終同期日時
+     */
+    @Column(name = "index_sync_date")
+    private LocalDateTime indexSyncDate;
+
     @Column(name = "create_user")
     private Long createUser;
 

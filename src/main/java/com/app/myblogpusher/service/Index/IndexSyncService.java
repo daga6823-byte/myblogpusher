@@ -6,12 +6,13 @@
 */
 package com.app.myblogpusher.service.Index;
 
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.locks.ReentrantLock;
 
-import org.eclipse.jgit.api.errors.GitAPIException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -19,7 +20,9 @@ import org.springframework.stereotype.Service;
 import com.app.myblogpusher.dto.Category.CategoryOptionView;
 import com.app.myblogpusher.entity.UserRepositoryEntity;
 import com.app.myblogpusher.entity.Index.IndexEntity;
+import com.app.myblogpusher.repository.UserRepositoryRepository;
 import com.app.myblogpusher.repository.Index.IndexRepository;
+import com.app.myblogpusher.service.ApplicationErrorLogService;
 import com.app.myblogpusher.service.Facade.GitHubFacadeService;
 import com.app.myblogpusher.service.Github.GitWorkspace;
 import com.app.myblogpusher.service.Github.GitWorkspaceService;
@@ -38,65 +41,137 @@ public class IndexSyncService {
 
 	@Autowired
 	private GitWorkspaceService gitWorkspaceService;
+	
+	/**
+	 * リポジトリ単位でカテゴリーインデックス同期を排他制御するロック
+	 */
+	private final ConcurrentMap<Long, ReentrantLock> syncLocks =
+	        new ConcurrentHashMap<>();
+
+	@Autowired
+	private UserRepositoryRepository userRepositoryRepository;
+
+	@Autowired
+	private ApplicationErrorLogService applicationErrorLogService;
 
 	/**
 	 * GitHub上のカテゴリー_index.mdを非同期で取得し、indexテーブルへ同期する。
 	 *
-	 * リポジトリを一度だけ最新化し、同じ作業領域から全カテゴリーを読み込む。
+	 * リポジトリ単位で同期処理を排他制御し、最終同期日時から
+	 * 24時間以内の場合はGitHub同期をスキップする。
+	 *
+	 * 同期が正常に完了した場合のみ、最終同期日時を更新する。
+	 *
+	 * @param userId ユーザーID
+	 * @param repo GitHubリポジトリ情報
+	 * @param cipherKey アクセストークン復号キー
 	 */
 	@Async
 	public void syncFromGitHub(
-			Long userId, UserRepositoryEntity repo, String cipherKey) {
+	        Long userId, UserRepositoryEntity repo, String cipherKey) {
 
-		try (GitWorkspace workspace = gitWorkspaceService.open(repo, cipherKey)) {
+	    Long repoId = repo.getRepoId();
 
-			List<CategoryOptionView> categoryPaths = hugoIndexService.findCategoryPaths(userId);
+	    // 同一リポジトリの同期処理が重複しないように排他制御する。
+	    ReentrantLock lock = syncLocks.computeIfAbsent(
+	            repoId,
+	            key -> new ReentrantLock());
 
-			int syncedCount = 0;
+	    lock.lock();
 
-			for (CategoryOptionView category : categoryPaths) {
-				String categoryPath = category.getCategoryPath();
+	    try {
+	        // DBから最新の同期日時を取得する。
+	        UserRepositoryEntity latestRepo = userRepositoryRepository
+	                .findById(repoId)
+	                .orElse(repo);
 
-				String markdown = gitHubFacadeService.readMarkdownFile(
-						workspace,
-						categoryPath + "/_index.md");
+	        LocalDateTime lastSyncDate = latestRepo.getIndexSyncDate();
 
-				// GitHub上にファイルがない階層は同期対象にしない。
-				if (markdown == null) {
-					continue;
-				}
+	        // 最終同期から24時間以内であればGitHub同期をスキップする。
+	        if (lastSyncDate != null
+	                && lastSyncDate.isAfter(LocalDateTime.now().minusHours(24))) {
 
-				Optional<IndexEntity> existing = indexRepository
-						.findByUserIdAndHugoPath(userId, category.getCategoryPath());
+	            System.out.println(
+	                    "カテゴリーインデックス同期をスキップしました: repoId="
+	                            + repoId
+	                            + ", 最終同期日時="
+	                            + lastSyncDate);
 
-				IndexEntity index = existing.orElseGet(IndexEntity::new);
+	            return;
+	        }
 
-				if (existing.isEmpty()) {
-					index.setUserId(userId);
-					index.setHugoPath(category.getCategoryPath());
-					index.setCreateUser(userId);
-					index.setCreateDate(LocalDateTime.now());
-				}
+	        try (GitWorkspace workspace = gitWorkspaceService.open(
+	                latestRepo,
+	                cipherKey)) {
 
-				// Front Matterと本文をDBへ反映する。
-				index.setTitle(extractFrontMatterValue(markdown, "title"));
-				index.setContent(markdown);
-				index.setUpdateUser(userId);
-				index.setUpdateDate(LocalDateTime.now());
+	            List<CategoryOptionView> categoryPaths =
+	                    hugoIndexService.findCategoryPaths(userId);
 
-				indexRepository.save(index);
-				syncedCount++;
-			}
+	            int syncedCount = 0;
 
-			System.out.println(
-					"カテゴリーインデックス同期完了: " + syncedCount + "件");
+	            for (CategoryOptionView category : categoryPaths) {
 
-		} catch (IOException | GitAPIException e) {
-			System.err.println(
-					"カテゴリーインデックス同期に失敗しました: "
-							+ e.getMessage());
-			e.printStackTrace();
-		}
+	                String categoryPath = category.getCategoryPath();
+
+	                String markdown = gitHubFacadeService.readMarkdownFile(
+	                        workspace,
+	                        categoryPath + "/_index.md");
+
+	                // GitHub上にファイルがない階層は同期対象にしない。
+	                if (markdown == null) {
+	                    continue;
+	                }
+
+	                Optional<IndexEntity> existing = indexRepository
+	                        .findByUserIdAndHugoPath(
+	                                userId,
+	                                category.getCategoryPath());
+
+	                IndexEntity index = existing.orElseGet(IndexEntity::new);
+
+	                if (existing.isEmpty()) {
+	                    index.setUserId(userId);
+	                    index.setHugoPath(category.getCategoryPath());
+	                    index.setCreateUser(userId);
+	                    index.setCreateDate(LocalDateTime.now());
+	                }
+
+	                // Front Matterと本文をDBへ反映する。
+	                index.setTitle(
+	                        extractFrontMatterValue(markdown, "title"));
+	                index.setContent(markdown);
+	                index.setUpdateUser(userId);
+	                index.setUpdateDate(LocalDateTime.now());
+
+	                indexRepository.save(index);
+
+	                syncedCount++;
+	            }
+
+	            System.out.println(
+	                    "カテゴリーインデックス同期完了: "
+	                            + syncedCount
+	                            + "件");
+	        }
+
+	        // 全カテゴリーの同期が正常終了した場合のみ最終同期日時を更新する。
+	        latestRepo.setIndexSyncDate(LocalDateTime.now());
+
+	        userRepositoryRepository.save(latestRepo);
+
+	    } catch (Exception e) {
+
+	        // 非同期同期処理で発生した例外をDBへ記録する。
+	        applicationErrorLogService.recordAsync(
+	                e,
+	                userId,
+	                "IndexSyncService.syncFromGitHub");
+
+	    } finally {
+
+	        // 同期処理の終了時に排他ロックを解放する。
+	        lock.unlock();
+	    }
 	}
 
 	/**

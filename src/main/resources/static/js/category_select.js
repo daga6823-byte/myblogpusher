@@ -415,8 +415,15 @@ function restoreCategorySelection() {
 
 		const categoryName = pathParts[i];
 
-		const category = categoryData.find(
-			item => item.categoryName === categoryName
+		const category = categoryData.find(item =>
+			item.categoryName === categoryName
+			&& (
+				parentCategoryId === null
+					? !item.parentCategoryIds
+					|| item.parentCategoryIds.length === 0
+					: (item.parentCategoryIds || [])
+						.some(id => String(id) === String(parentCategoryId))
+			)
 		);
 
 		const selects =
