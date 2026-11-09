@@ -361,12 +361,57 @@ function updateIndexButtonState() {
 	});
 })();
 
-// 10分ごとにセッションを維持する。
-setInterval(() => {
-	fetch('/article/session/keepalive', {
-		method: 'POST'
-	}).catch(error => {
-		console.error('セッション維持に失敗しました:', error);
+// =====================================================
+// セッション維持
+//
+// 10分ごとにkeepaliveを送る。
+// CSRFトークンはXSRF-TOKENクッキーから読み、X-CSRF-TOKENヘッダーで送る。
+// セッション切れ(401/403/リダイレクト)を検知したら、
+// 以降の送信を止めて利用者へ知らせる。
+// タブが再表示されたときにも即座に確認する(放置・スリープ対策)。
+// =====================================================
+(() => {
+	let keepAliveTimer;
+	let sessionExpiredNotified = false;
+
+	function getCsrfToken() {
+		const match = document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]*)/);
+
+		return match ? decodeURIComponent(match[1]) : '';
+	}
+
+	async function keepAlive() {
+		try {
+			const response = await fetch('/article/session/keepalive', {
+				method: 'POST',
+				headers: {
+					'X-CSRF-TOKEN': getCsrfToken()
+				}
+			});
+
+			const expired = response.status === 401
+				|| response.status === 403
+				|| response.redirected;
+
+			if (expired) {
+				clearInterval(keepAliveTimer);
+
+				if (!sessionExpiredNotified) {
+					sessionExpiredNotified = true;
+					alert('セッションが切れました。編集中の内容をコピーしてから、再ログインしてください。');
+				}
+			}
+		} catch (error) {
+			console.error('セッション維持に失敗しました:', error);
+		}
+	}
+
+	keepAliveTimer = setInterval(keepAlive, 10 * 60 * 1000);
+
+	document.addEventListener('visibilitychange', () => {
+		if (document.visibilityState === 'visible') {
+			keepAlive();
+		}
 	});
-}, 10 * 60 * 1000);
+})();
 

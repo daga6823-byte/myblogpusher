@@ -333,12 +333,9 @@ restoreCategorySelection();
 
 
 // =====================================================
-// 保存後のカテゴリー選択状態を復元する。
-//
-// 登録済みカテゴリーは通常の選択肢として復元し、
-// DB未登録の新規カテゴリー名は一時的な選択肢として表示する。
+// 保存済みのhugoPathからカテゴリー選択状態を復元する。
+// categoryPathの完全一致で各階層のRelationを特定する。
 // =====================================================
-
 function restoreCategorySelection() {
 
 	const newCategoryNameInput =
@@ -353,11 +350,16 @@ function restoreCategorySelection() {
 	const newCategoryDisplayNameHidden =
 		document.getElementById('newCategoryDisplayName');
 
-	if (!window.categoryPath) {
+	// window.categoryPathだけでなくhidden項目の値も参照する。
+	const savedCategoryPath =
+		window.categoryPath || categoryPathInput.value;
+
+	if (!savedCategoryPath) {
+		console.warn('保存済みのhugoPathがありません。');
 		return;
 	}
 
-	const pathParts = window.categoryPath
+	const pathParts = savedCategoryPath
 		.split('/')
 		.filter(part => part !== '');
 
@@ -367,18 +369,31 @@ function restoreCategorySelection() {
 
 	let parentCategoryId = null;
 	let lastGroupId = null;
+	let currentPath = '';
 
 	for (const categoryName of pathParts) {
 
-		const category = categoryData.find(item =>
-			item.categoryName === categoryName &&
-			(
-				parentCategoryId === null
-					? item.parentCategoryId == null
-					: String(item.parentCategoryId) ===
-					String(parentCategoryId)
-			)
+		currentPath = currentPath
+			? currentPath + '/' + categoryName
+			: categoryName;
+
+		// hugoPathの各階層を完全一致で検索する。
+		let category = categoryData.find(item =>
+			item.categoryPath === currentPath
 		);
+
+		// Relation未登録の場合は親子関係でも検索する。
+		if (!category) {
+			category = categoryData.find(item =>
+				item.categoryName === categoryName &&
+				(
+					parentCategoryId == null
+						? item.parentCategoryId == null
+						: String(item.parentCategoryId) ===
+						String(parentCategoryId)
+				)
+			);
+		}
 
 		const selects =
 			categorySelectors.querySelectorAll('.category-level');
@@ -386,9 +401,14 @@ function restoreCategorySelection() {
 		const select = selects[selects.length - 1];
 
 		if (!select) {
+			console.error(
+				'カテゴリー選択欄がありません:',
+				currentPath
+			);
 			return;
 		}
 
+		// DB上にカテゴリーが存在しない場合。
 		if (!category) {
 
 			const option = document.createElement('option');
@@ -416,12 +436,13 @@ function restoreCategorySelection() {
 				newCategoryDisplayNameInput.style.display = 'block';
 			}
 
+			lastGroupId = null;
 			break;
 		}
 
-		let option = Array.from(select.options).find(
-			item => String(item.value) ===
-				String(category.categoryId)
+		// 現在の選択欄にカテゴリーがなければ追加する。
+		let option = Array.from(select.options).find(item =>
+			String(item.value) === String(category.categoryId)
 		);
 
 		if (!option) {
@@ -430,22 +451,24 @@ function restoreCategorySelection() {
 
 			option.value = category.categoryId;
 			option.dataset.categoryName = category.categoryName;
-			option.dataset.groupId = category.groupId;
+			option.dataset.groupId = category.groupId ?? '';
 			option.textContent = getCategoryDisplayName(category);
 
 			select.appendChild(option);
 		}
 
+		// 保存済みカテゴリーを選択状態にする。
 		select.value = String(category.categoryId);
 
 		parentCategoryId = category.categoryId;
 		lastGroupId = category.groupId;
 
+		// 次の階層は親カテゴリーIDで取得する。
 		categorySelectors.appendChild(
 			createCategorySelect(parentCategoryId)
 		);
 	}
 
-	categoryPathInput.value = window.categoryPath;
+	categoryPathInput.value = savedCategoryPath;
 	window.categoryGroupId = lastGroupId;
 }

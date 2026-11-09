@@ -11,6 +11,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 
 @Controller
@@ -18,19 +19,21 @@ public class ArticleSessionController {
 
 	/**
 	 * ログインセッションの維持
+	 *
+	 * セッションが無い場合は新規作成せず、401を返す。
+	 * セッションの有効期限は、このリクエストを受けた時点で延長される。
 	 */
 	@PostMapping("/article/session/keepalive")
 	@ResponseBody
-	public ResponseEntity<Void> keepAlive(HttpSession session) {
+	public ResponseEntity<Void> keepAlive(HttpServletRequest request) {
 
-		if (session.getAttribute("loginUser") == null) {
+		HttpSession session = request.getSession(false);
+
+		if (session == null || session.getAttribute("loginUser") == null) {
 			return ResponseEntity
 					.status(HttpStatus.UNAUTHORIZED)
 					.build();
 		}
-
-		// セッションからログインユーザーを取得して維持する。
-		session.getAttribute("loginUser");
 
 		return ResponseEntity.ok().build();
 	}
