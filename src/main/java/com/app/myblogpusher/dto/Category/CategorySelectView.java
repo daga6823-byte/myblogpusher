@@ -1,32 +1,34 @@
 /**
  * 記事編集画面のカテゴリー階層選択用ビューDTO
  *
- * カテゴリー自身のIDと表示名、親カテゴリーIDを保持する。
- * 記事編集画面ではカテゴリーを階層ごとに選択するため、
- * CategoryOptionViewのような完成済みcategoryPathは使用しない。
+ * CategoryRelationの情報を基準として、
+ * カテゴリーID、親カテゴリーID、groupId、カテゴリー経路を保持する。
  */
-
 package com.app.myblogpusher.dto.Category;
-
-import java.util.List;
 
 public class CategorySelectView {
 
 	private final Long categoryId;
 	private final String categoryName;
 	private final String displayName;
-	private final List<Long> parentCategoryIds;
+	private final Long parentCategoryId;
+	private final Long groupId;
+	private final String categoryPath;
 
 	public CategorySelectView(
-	        Long categoryId,
-	        String categoryName,
-	        String displayName,
-	        List<Long> parentCategoryIds) {
+			Long categoryId,
+			String categoryName,
+			String displayName,
+			Long parentCategoryId,
+			Long groupId,
+			String categoryPath) {
 
-	    this.categoryId = categoryId;
-	    this.categoryName = categoryName;
-	    this.displayName = displayName;
-	    this.parentCategoryIds = parentCategoryIds;
+		this.categoryId = categoryId;
+		this.categoryName = categoryName;
+		this.displayName = displayName;
+		this.parentCategoryId = parentCategoryId;
+		this.groupId = groupId;
+		this.categoryPath = categoryPath;
 	}
 
 	public Long getCategoryId() {
@@ -41,7 +43,15 @@ public class CategorySelectView {
 		return displayName;
 	}
 
-	public List<Long> getParentCategoryIds() {
-	    return parentCategoryIds;
+	public Long getParentCategoryId() {
+		return parentCategoryId;
+	}
+
+	public Long getGroupId() {
+		return groupId;
+	}
+
+	public String getCategoryPath() {
+		return categoryPath;
 	}
 }

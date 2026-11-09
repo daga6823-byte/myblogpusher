@@ -4,6 +4,8 @@ package com.app.myblogpusher.service.Category;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -106,27 +108,29 @@ public class CategorySelectionService {
 			return List.of();
 		}
 
-		List<CategoryRelation> relations = categoryRelationRepository.findAll();
+		Map<Long, ArticleCategory> categoryMap = categories.stream()
+				.collect(Collectors.toMap(
+						ArticleCategory::getCategoryId,
+						category -> category));
 
-		return categories.stream()
-				.map(category -> {
+		return categoryRelationRepository.findAll().stream()
+				.filter(relation -> categoryMap.containsKey(
+						relation.getCategoryId()))
+				.map(relation -> {
 
-					List<Long> parentCategoryIds = relations.stream()
-							.filter(relation -> category.getCategoryId()
-									.equals(relation.getCategoryId()))
-							.map(CategoryRelation::getParentCategoryId)
-							.distinct()
-							.toList();
+					ArticleCategory category = categoryMap.get(relation.getCategoryId());
 
 					return new CategorySelectView(
 							category.getCategoryId(),
 							category.getCategoryName(),
 							category.getDisplayName(),
-							parentCategoryIds);
+							relation.getParentCategoryId(),
+							relation.getGroupId(),
+							relation.getCategoryPath());
 				})
 				.toList();
 	}
-	
+
 	/**
 	 * 指定されたカテゴリーグループIDからカテゴリー経路を取得する。
 	 *

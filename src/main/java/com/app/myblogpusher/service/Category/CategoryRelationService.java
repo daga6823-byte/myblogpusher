@@ -89,8 +89,8 @@ public class CategoryRelationService {
 	/**
 	 * カテゴリーと親カテゴリーの直接の親子関係を登録する。
 	 *
-	 * 祖先カテゴリーの経路は生成せず、
-	 * 指定された親カテゴリーと子カテゴリーの関係のみを登録する。
+	 * 親カテゴリーの経路を引き継ぎ、
+	 * ルートからの完全なカテゴリー経路を登録する。
 	 */
 	@Async
 	public void addCategoryRelations(
@@ -115,15 +115,23 @@ public class CategoryRelationService {
 			return;
 		}
 
-		// 指定された親カテゴリーとの直接の関係だけを登録する。
+		// 指定された親カテゴリーごとに完全な経路を登録する。
 		for (Long parentCategoryId : parentCategoryIds) {
 
 			ArticleCategory parentCategory = articleCategoryRepository
 					.findById(parentCategoryId)
 					.orElseThrow();
 
-			String categoryPath = parentCategory.getCategoryName()
-					+ "/" + category.getCategoryName();
+			List<CategoryRelation> parentRelations = categoryRelationRepository
+					.findByCategoryId(parentCategoryId);
+
+			String parentPath = parentRelations.stream()
+					.map(CategoryRelation::getCategoryPath)
+					.filter(path -> path != null && !path.isBlank())
+					.findFirst()
+					.orElse(parentCategory.getCategoryName());
+
+			String categoryPath = parentPath + "/" + category.getCategoryName();
 
 			addRelation(
 					categoryId,
@@ -183,6 +191,18 @@ public class CategoryRelationService {
 
 		List<CategoryRelation> usedRelations = new ArrayList<>();
 
+		// 親カテゴリーがない場合は、最上位カテゴリーとして登録・維持する。
+		if (newParentIds.isEmpty()) {
+
+			updateOrCreateRelation(
+					categoryId,
+					null,
+					category.getCategoryName(),
+					existingRelations,
+					usedRelations,
+					userId);
+		}
+
 		/*
 		 * 変更後に必要となる直接の親子関係だけを登録する。
 		 */
@@ -192,7 +212,15 @@ public class CategoryRelationService {
 					.findById(parentCategoryId)
 					.orElseThrow();
 
-			String categoryPath = parentCategory.getCategoryName()
+			String parentPath = categoryRelationRepository
+					.findByCategoryId(parentCategoryId)
+					.stream()
+					.map(CategoryRelation::getCategoryPath)
+					.filter(path -> path != null && !path.isBlank())
+					.findFirst()
+					.orElse(parentCategory.getCategoryName());
+
+			String categoryPath = parentPath
 					+ "/"
 					+ category.getCategoryName();
 
@@ -204,6 +232,13 @@ public class CategoryRelationService {
 					usedRelations,
 					userId);
 		}
+
+		// 変更後の親子関係で使用されなくなった関係を削除する。
+		List<CategoryRelation> unusedRelations = existingRelations.stream()
+				.filter(existing -> !usedRelations.contains(existing))
+				.toList();
+
+		categoryRelationRepository.deleteAll(unusedRelations);
 	}
 
 	private void updateOrCreateRelation(
@@ -215,6 +250,7 @@ public class CategoryRelationService {
 			Long userId) {
 
 		CategoryRelation existing = existingRelations.stream()
+		        .filter(relation -> categoryId.equals(relation.getCategoryId()))
 		        .filter(relation -> java.util.Objects.equals(
 		                parentCategoryId,
 		                relation.getParentCategoryId()))
@@ -222,6 +258,13 @@ public class CategoryRelationService {
 		        .orElse(null);
 
 		if (existing != null) {
+
+			existing.setCategoryPath(categoryPath);
+			existing.setUpdateDate(LocalDateTime.now());
+			existing.setUpdateUser(userId);
+
+			categoryRelationRepository.save(existing);
+
 			usedRelations.add(existing);
 			return;
 		}

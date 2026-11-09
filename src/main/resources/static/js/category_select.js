@@ -29,18 +29,37 @@ function getCategoryDisplayName(category) {
 // =====================================================
 // 指定された親カテゴリーを持つカテゴリーを取得する。
 // =====================================================
-function findChildren(parentCategoryId) {
+function findChildren(parentGroupId) {
 
-	return categoryData.filter(category =>
-		(category.parentCategoryIds || [])
-			.some(id => String(id) === String(parentCategoryId))
+	if (parentGroupId == null) {
+		return categoryData.filter(
+			category => category.parentCategoryId == null
+		);
+	}
+
+	if (parentGroupId === '__pending__') {
+		return [];
+	}
+
+	const parentRelation = categoryData.find(
+		category => String(category.groupId) === String(parentGroupId)
+	);
+
+	if (!parentRelation) {
+		return [];
+	}
+
+	return categoryData.filter(
+		category =>
+			String(category.parentCategoryId) ===
+			String(parentRelation.categoryId)
 	);
 }
 
 // =====================================================
 // カテゴリー選択欄を作成する。
 // =====================================================
-function createCategorySelect(parentCategoryId) {
+function createCategorySelect(parentGroupId) {
 
 	const select = document.createElement('select');
 
@@ -53,7 +72,7 @@ function createCategorySelect(parentCategoryId) {
 
 	select.appendChild(placeholder);
 
-	findChildren(parentCategoryId)
+	findChildren(parentGroupId)
 		.sort((a, b) =>
 			getCategoryDisplayName(a)
 				.localeCompare(
@@ -68,6 +87,7 @@ function createCategorySelect(parentCategoryId) {
 			option.value = category.categoryId;
 
 			option.dataset.categoryName = category.categoryName;
+			option.dataset.groupId = category.groupId;
 
 			option.textContent = getCategoryDisplayName(category);
 
@@ -157,8 +177,11 @@ function handleCategoryChange(event) {
 		return;
 	}
 
+	const selectedOption = select.selectedOptions[0];
+	const selectedGroupId = selectedOption?.dataset.groupId;
+
 	categorySelectors.appendChild(
-		createCategorySelect(selectedCategoryId)
+		createCategorySelect(selectedGroupId)
 	);
 
 	updateCategoryPath();
@@ -212,49 +235,38 @@ async function updateCategoryGroupId(categoryPath) {
 // reference/batman/gadget/batman
 // =====================================================
 function updateCategoryPath() {
+
 	const selectedCategories = [];
+	let selectedGroupId = null;
 
 	categorySelectors.querySelectorAll('.category-level').forEach(select => {
 
-		if (!select.value || select.value === '__new__') return;
-
-		if (select.value === '__pending__') {
-
-			const pendingOption = select.selectedOptions[0];
-
-			if (pendingOption) {
-				selectedCategories.push(pendingOption.textContent);
-			}
-
+		if (!select.value || select.value === '__new__') {
 			return;
 		}
 
-		const category = categoryData.find(
+		const option = select.selectedOptions[0];
 
-			item => String(item.categoryId) === String(select.value)
-
-		);
-
-		if (category) {
-
-			selectedCategories.push(category.categoryName);
-
+		if (select.value === '__pending__') {
+			selectedCategories.push(option.textContent);
+			selectedGroupId = null;
+			return;
 		}
 
+		selectedCategories.push(option.dataset.categoryName);
+		selectedGroupId = option.dataset.groupId || null;
 	});
 
-	// 保存時は既存のcategorySelectパラメータとしてカテゴリー経路を送る。
 	categoryPathInput.value = selectedCategories.join('/');
-
-	updateCategoryGroupId(categoryPathInput.value);
+	window.categoryGroupId = selectedGroupId;
 }
 
-//
+// =====================================================
 // 初期カテゴリー選択欄を作成する。
 //
 // ArticleCategory.parentCategoryIdを使わず、
 // parentCategoryIdsが空のカテゴリーをルートとして扱う。
-//
+// =====================================================
 function initializeCategorySelectors() {
 	categorySelectors.innerHTML = '';
 
@@ -267,10 +279,7 @@ function initializeCategorySelectors() {
 	select.appendChild(placeholder);
 
 	categoryData
-		.filter(category =>
-			!category.parentCategoryIds ||
-			category.parentCategoryIds.length === 0
-		)
+		.filter(category => category.parentCategoryId == null)
 		.sort((a, b) =>
 			getCategoryDisplayName(a).localeCompare(
 				getCategoryDisplayName(b),
@@ -284,6 +293,7 @@ function initializeCategorySelectors() {
 			option.value = category.categoryId;
 
 			option.dataset.categoryName = category.categoryName;
+			option.dataset.groupId = category.groupId;
 
 			option.textContent = getCategoryDisplayName(category);
 
@@ -322,12 +332,7 @@ function initializeCategorySelectors() {
 		newCategoryDisplayNameInput.value = '';
 
 	}
-
-	document.getElementById('newCategoryName').value = '';
-	document.getElementById('newCategoryDisplayName').value = '';
-
 }
-
 
 // =====================================================
 // 新規カテゴリーの表示用入力欄と送信用hidden項目を同期する。
@@ -374,8 +379,8 @@ function syncNewCategoryInputs() {
 }
 
 
-syncNewCategoryInputs();
 initializeCategorySelectors();
+syncNewCategoryInputs();
 restoreCategorySelection();
 
 
@@ -390,10 +395,13 @@ function restoreCategorySelection() {
 
 	const newCategoryNameInput =
 		document.getElementById('newCategoryNameInput');
+
 	const newCategoryNameHidden =
 		document.getElementById('newCategoryName');
+
 	const newCategoryDisplayNameInput =
 		document.getElementById('newCategoryDisplayNameInput');
+
 	const newCategoryDisplayNameHidden =
 		document.getElementById('newCategoryDisplayName');
 
@@ -410,87 +418,86 @@ function restoreCategorySelection() {
 	}
 
 	let parentCategoryId = null;
+	let lastGroupId = null;
 
-	for (let i = 0; i < pathParts.length; i++) {
-
-		const categoryName = pathParts[i];
+	for (const categoryName of pathParts) {
 
 		const category = categoryData.find(item =>
-			item.categoryName === categoryName
-			&& (
+			item.categoryName === categoryName &&
+			(
 				parentCategoryId === null
-					? !item.parentCategoryIds
-					|| item.parentCategoryIds.length === 0
-					: (item.parentCategoryIds || [])
-						.some(id => String(id) === String(parentCategoryId))
+					? item.parentCategoryId == null
+					: String(item.parentCategoryId) ===
+					String(parentCategoryId)
 			)
 		);
 
 		const selects =
 			categorySelectors.querySelectorAll('.category-level');
+
 		const select = selects[selects.length - 1];
 
 		if (!select) {
 			return;
 		}
 
-		if (category) {
+		if (!category) {
 
-			// 非同期のRelation登録が未完了でも、
-			// 保存済みPathに従ってカテゴリーを復元できるようにする。
-			const existingOption = Array.from(select.options).find(
-				option => String(option.value) === String(category.categoryId)
-			);
+			const option = document.createElement('option');
 
-			if (!existingOption) {
+			option.value = '__pending__';
+			option.textContent = categoryName;
+			option.selected = true;
 
-				const option = document.createElement('option');
+			select.appendChild(option);
 
-				option.value = category.categoryId;
-				option.dataset.categoryName = category.categoryName;
-				option.textContent = getCategoryDisplayName(category);
-
-				select.appendChild(option);
+			if (newCategoryNameInput && newCategoryNameHidden) {
+				newCategoryNameInput.value = categoryName;
+				newCategoryNameHidden.value = categoryName;
+				newCategoryNameInput.style.display = 'block';
 			}
 
-			select.value = category.categoryId;
-			parentCategoryId = category.categoryId;
+			if (
+				newCategoryDisplayNameInput &&
+				newCategoryDisplayNameHidden &&
+				newCategoryDisplayNameHidden.value
+			) {
+				newCategoryDisplayNameInput.value =
+					newCategoryDisplayNameHidden.value;
 
-			categorySelectors.appendChild(
-				createCategorySelect(parentCategoryId)
-			);
+				newCategoryDisplayNameInput.style.display = 'block';
+			}
 
-			continue;
+			break;
 		}
 
-		// DB未登録の末尾カテゴリー名を一時的な選択肢として表示する。
-		const option = document.createElement('option');
-		option.value = '__pending__';
-		option.textContent = categoryName;
-		option.selected = true;
-		select.appendChild(option);
-
-		// 未登録カテゴリーを復元した場合も、
-		// そのカテゴリーを親として次の階層を選択できるようにする。
-		categorySelectors.appendChild(
-			createCategorySelect('__pending__')
+		let option = Array.from(select.options).find(
+			item => String(item.value) ===
+				String(category.categoryId)
 		);
 
-		if (newCategoryNameInput && newCategoryNameHidden) {
-			newCategoryNameInput.value = categoryName;
-			newCategoryNameHidden.value = categoryName;
-			newCategoryNameInput.style.display = 'block';
+		if (!option) {
+
+			option = document.createElement('option');
+
+			option.value = category.categoryId;
+			option.dataset.categoryName = category.categoryName;
+			option.dataset.groupId = category.groupId;
+			option.textContent = getCategoryDisplayName(category);
+
+			select.appendChild(option);
 		}
 
-		if (newCategoryDisplayNameInput && newCategoryDisplayNameHidden
-			&& newCategoryDisplayNameHidden.value) {
-			newCategoryDisplayNameInput.value =
-				newCategoryDisplayNameHidden.value;
-			newCategoryDisplayNameInput.style.display = 'block';
-		}
+		select.value = String(category.categoryId);
 
-		break;
+		parentCategoryId = category.categoryId;
+		lastGroupId = category.groupId;
+
+		categorySelectors.appendChild(
+			createCategorySelect(lastGroupId)
+		);
 	}
 
-	updateCategoryPath();
+	categoryPathInput.value = window.categoryPath;
+	window.categoryGroupId = lastGroupId;
 }
