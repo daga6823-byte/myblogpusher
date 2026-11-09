@@ -13,7 +13,6 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.StreamSupport;
 
@@ -24,6 +23,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
 public class GitHubApiService {
+
+	/**
+	 * GitHub上の記事ファイルの情報
+	 *
+	 * pathはファイルパス、shaはファイル内容の識別子を保持する。
+	 */
+	public record GitHubMarkdownFile(
+			String path,
+			String sha) {
+	}
 
 	/**
 	 * リポジトリのデフォルトブランチ名を取得する。
@@ -57,10 +66,11 @@ public class GitHubApiService {
 	}
 
 	/**
-	 * Git Trees APIでリポジトリ全体のファイルパスを再帰的に取得し、
-	 * カテゴリールート配下の.mdファイルだけを取得する。
+	 * Git Trees APIでリポジトリ全体のMarkdownファイル情報を取得する。
+	 *
+	 * カテゴリールート配下の記事について、ファイルパスとSHAを取得する。
 	 */
-	public List<String> fetchAllMarkdownPaths(
+	public List<GitHubMarkdownFile> fetchAllMarkdownFiles(
 			String owner,
 			String repoName,
 			String branch,
@@ -83,7 +93,9 @@ public class GitHubApiService {
 				"application/vnd.github.v3+json");
 
 		if (conn.getResponseCode() != 200) {
-			return new ArrayList<>();
+			throw new IOException(
+					"GitHubのファイル一覧取得に失敗しました。HTTP status: "
+							+ conn.getResponseCode());
 		}
 
 		String response = new String(
@@ -99,9 +111,34 @@ public class GitHubApiService {
 				false)
 				.filter(node -> "blob".equals(
 						node.get("type").asText()))
-				.map(node -> node.get("path").asText())
-				.filter(this::isUnderCategoryRoot)
+				.filter(node -> isUnderCategoryRoot(
+						node.get("path").asText()))
+				.map(node -> new GitHubMarkdownFile(
+						node.get("path").asText(),
+						node.get("sha").asText()))
 				.toList();
+	}
+
+	/**
+	 * Git Trees APIから記事ファイルのパスだけを取得する。
+	 *
+	 * 既存の呼び出し元との互換性を維持する。
+	 */
+	public List<String> fetchAllMarkdownPaths(
+			String owner,
+			String repoName,
+			String branch,
+			String token)
+			throws IOException {
+
+		return fetchAllMarkdownFiles(
+				owner,
+				repoName,
+				branch,
+				token)
+						.stream()
+						.map(GitHubMarkdownFile::path)
+						.toList();
 	}
 
 	/**

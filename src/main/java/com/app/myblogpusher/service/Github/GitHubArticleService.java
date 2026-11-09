@@ -121,19 +121,19 @@ public class GitHubArticleService {
 				})
 				.filter(a -> a != null)
 				.sorted((a, b) -> {
-				    if (a.getUpdateDate() == null && b.getUpdateDate() == null) {
-				        return 0;
-				    }
+					if (a.getUpdateDate() == null && b.getUpdateDate() == null) {
+						return 0;
+					}
 
-				    if (a.getUpdateDate() == null) {
-				        return 1;
-				    }
+					if (a.getUpdateDate() == null) {
+						return 1;
+					}
 
-				    if (b.getUpdateDate() == null) {
-				        return -1;
-				    }
+					if (b.getUpdateDate() == null) {
+						return -1;
+					}
 
-				    return b.getUpdateDate().compareTo(a.getUpdateDate());
+					return b.getUpdateDate().compareTo(a.getUpdateDate());
 				})
 				.toList();
 
@@ -197,6 +197,79 @@ public class GitHubArticleService {
 
 		return new PublishedArticleDto(
 				articleId,
+				slug,
+				hugoPath,
+				title,
+				updateDate,
+				mdContent,
+				categories);
+	}
+
+	/**
+	 * GitHub上の記事ファイル一覧をSHA付きで取得する。
+	 *
+	 * 記事本文は取得せず、ファイルパスとSHAのみを返す。
+	 */
+	public List<GitHubApiService.GitHubMarkdownFile> getPublishedArticleFiles(
+			UserRepositoryEntity repo,
+			String cipherKey)
+			throws IOException {
+
+		String accessToken = tokenCipherService.decrypt(
+				repo.getAccessToken(),
+				repo.getTokenIv(),
+				cipherKey);
+
+		String defaultBranch = gitHubApiService.fetchDefaultBranch(
+				repo.getRepoOwner(),
+				repo.getRepoName(),
+				accessToken);
+
+		return gitHubApiService.fetchAllMarkdownFiles(
+				repo.getRepoOwner(),
+				repo.getRepoName(),
+				defaultBranch,
+				accessToken);
+	}
+
+	/**
+	 * GitHub上の指定記事をSHA付きで取得する。
+	 *
+	 * 記事本文の取得は同期対象の記事に限定する。
+	 */
+	public PublishedArticleSummaryDto getPublishedArticleSummary(
+			UserRepositoryEntity repo,
+			String cipherKey,
+			String path)
+			throws IOException {
+
+		String accessToken = tokenCipherService.decrypt(
+				repo.getAccessToken(),
+				repo.getTokenIv(),
+				cipherKey);
+
+		String contentApiUrl = "https://api.github.com/repos/"
+				+ repo.getRepoOwner() + "/"
+				+ repo.getRepoName()
+				+ "/contents/"
+				+ path;
+
+		String mdContent = gitHubApiService.fetchContentViaApi(
+				contentApiUrl,
+				accessToken);
+
+		String hugoPath = path
+				.replaceFirst("^content/", "")
+				.replaceFirst("\\.md$", "");
+
+		String slug = hugoPath.substring(
+				hugoPath.lastIndexOf("/") + 1);
+
+		String title = frontMatterUtil.extractTitle(mdContent);
+		LocalDateTime updateDate = frontMatterUtil.extractDate(mdContent);
+		List<String> categories = frontMatterUtil.extractCategories(mdContent);
+
+		return new PublishedArticleSummaryDto(
 				slug,
 				hugoPath,
 				title,

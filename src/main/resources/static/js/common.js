@@ -9,12 +9,18 @@
 /**
  * 戻るボタン：ホーム画面へ遷移する。
  */
-const backButton = document.getElementById('backButton');
+{
+    const backButton = document.getElementById('backButton');
 
-if (backButton) {
-	backButton.addEventListener('click', () => {
-		window.location.href = '/home';
-	});
+    if (backButton) {
+
+        backButton.addEventListener('click', () => {
+
+            window.location.href = '/home';
+
+        });
+
+    }
 }
 
 /**

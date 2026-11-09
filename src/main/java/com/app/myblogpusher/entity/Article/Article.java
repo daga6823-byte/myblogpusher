@@ -53,6 +53,14 @@ public class Article {
 
 	@Column(name = "update_date")
 	private LocalDateTime updateDate;
+	
+	/** GitHubとの最終同期日時 */
+	@Column(name = "sync_date")
+	private LocalDateTime syncDate;
+	
+	/** GitHub上の記事ファイルのSHA */
+	@Column(name = "github_sha")
+	private String githubSha;
 
 	@Column(name = "publish_date")
 	private LocalDateTime publishDate;
