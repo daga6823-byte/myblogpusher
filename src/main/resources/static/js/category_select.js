@@ -29,72 +29,63 @@ function getCategoryDisplayName(category) {
 // =====================================================
 // 指定された親カテゴリーを持つカテゴリーを取得する。
 // =====================================================
-function findChildren(parentGroupId) {
+function findChildren(parentCategoryId) {
 
-	if (parentGroupId == null) {
-		return categoryData.filter(
-			category => category.parentCategoryId == null
+	// 最上位カテゴリーを取得
+	if (parentCategoryId == null) {
+		return categoryData.filter(category =>
+			category.parentCategoryId == null
 		);
 	}
 
-	if (parentGroupId === '__pending__') {
+	// 未登録カテゴリーの下には候補を表示しない
+	if (parentCategoryId === '__pending__') {
 		return [];
 	}
 
-	const parentRelation = categoryData.find(
-		category => String(category.groupId) === String(parentGroupId)
-	);
-
-	if (!parentRelation) {
-		return [];
-	}
-
-	return categoryData.filter(
-		category =>
-			String(category.parentCategoryId) ===
-			String(parentRelation.categoryId)
+	// 指定された親カテゴリーIDに属する子カテゴリーを取得
+	return categoryData.filter(category =>
+		String(category.parentCategoryId) === String(parentCategoryId)
 	);
 }
 
 // =====================================================
 // カテゴリー選択欄を作成する。
 // =====================================================
-function createCategorySelect(parentGroupId) {
+function createCategorySelect(parentCategoryId) {
 
 	const select = document.createElement('select');
-
 	select.className = 'category-level';
 
 	const placeholder = document.createElement('option');
-
 	placeholder.value = '';
 	placeholder.textContent = '選択してください';
 
 	select.appendChild(placeholder);
 
-	findChildren(parentGroupId)
+	const children = findChildren(parentCategoryId);
+
+	children
 		.sort((a, b) =>
-			getCategoryDisplayName(a)
-				.localeCompare(
-					getCategoryDisplayName(b),
-					'ja'
-				)
+			getCategoryDisplayName(a).localeCompare(
+				getCategoryDisplayName(b),
+				'ja'
+			)
 		)
 		.forEach(category => {
 
 			const option = document.createElement('option');
 
 			option.value = category.categoryId;
-
 			option.dataset.categoryName = category.categoryName;
-			option.dataset.groupId = category.groupId;
+			option.dataset.groupId = category.groupId ?? '';
 
 			option.textContent = getCategoryDisplayName(category);
 
 			select.appendChild(option);
 		});
 
-	// 選択中のカテゴリーの下に新しいカテゴリーを作成できるようにする。
+	// 新しいカテゴリーの作成 विकल्प
 	const newOption = document.createElement('option');
 	newOption.value = '__new__';
 	newOption.textContent = '＋新しいカテゴリーを作成';
@@ -178,11 +169,7 @@ function handleCategoryChange(event) {
 	}
 
 	const selectedOption = select.selectedOptions[0];
-	const selectedGroupId = selectedOption?.dataset.groupId;
-
-	categorySelectors.appendChild(
-		createCategorySelect(selectedGroupId)
-	);
+	categorySelectors.appendChild(createCategorySelect(selectedCategoryId));
 
 	updateCategoryPath();
 }
@@ -267,49 +254,18 @@ function updateCategoryPath() {
 // ArticleCategory.parentCategoryIdを使わず、
 // parentCategoryIdsが空のカテゴリーをルートとして扱う。
 // =====================================================
+// =====================================================
+// 初期カテゴリー選択欄を作成する。
+// =====================================================
+
 function initializeCategorySelectors() {
+
 	categorySelectors.innerHTML = '';
 
-	const select = document.createElement('select');
-	select.className = 'category-level';
-
-	const placeholder = document.createElement('option');
-	placeholder.value = '';
-	placeholder.textContent = '選択してください';
-	select.appendChild(placeholder);
-
-	categoryData
-		.filter(category => category.parentCategoryId == null)
-		.sort((a, b) =>
-			getCategoryDisplayName(a).localeCompare(
-				getCategoryDisplayName(b),
-				'ja'
-			)
-		)
-		.forEach(category => {
-
-			const option = document.createElement('option');
-
-			option.value = category.categoryId;
-
-			option.dataset.categoryName = category.categoryName;
-			option.dataset.groupId = category.groupId;
-
-			option.textContent = getCategoryDisplayName(category);
-
-			select.appendChild(option);
-		});
-
-	// ルートカテゴリーの新規作成も可能にする。
-	const newOption = document.createElement('option');
-	newOption.value = '__new__';
-	newOption.textContent = '＋新しいカテゴリーを作成';
-
-	select.appendChild(newOption);
-
-	select.addEventListener('change', handleCategoryChange);
-
-	categorySelectors.appendChild(select);
+	// ルートカテゴリーの選択欄を作成する。
+	categorySelectors.appendChild(
+		createCategorySelect(null)
+	);
 
 	const newCategoryInput =
 		document.getElementById('newCategoryNameInput');
@@ -318,19 +274,11 @@ function initializeCategorySelectors() {
 		document.getElementById('newCategoryDisplayNameInput');
 
 	if (newCategoryInput) {
-
 		newCategoryInput.style.display = 'none';
-
-		newCategoryInput.value = '';
-
 	}
 
 	if (newCategoryDisplayNameInput) {
-
 		newCategoryDisplayNameInput.style.display = 'none';
-
-		newCategoryDisplayNameInput.value = '';
-
 	}
 }
 
@@ -494,7 +442,7 @@ function restoreCategorySelection() {
 		lastGroupId = category.groupId;
 
 		categorySelectors.appendChild(
-			createCategorySelect(lastGroupId)
+			createCategorySelect(parentCategoryId)
 		);
 	}
 

@@ -4,8 +4,6 @@ package com.app.myblogpusher.service.Category;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -90,16 +88,6 @@ public class CategorySelectionService {
 		return result;
 	}
 
-	/**
-	 * 記事編集画面のカテゴリー選択用に、
-	 * カテゴリーと親カテゴリーの関係を一括で返す。
-	 *
-	 * CategoryRelationを基準にすることで、
-	 * 1つのカテゴリーが複数の親カテゴリーを持つ構造にも対応する。
-	 *
-	 * 階層の組み立てはJavaScript側で行うため、
-	 * Java側ではカテゴリー自身と親カテゴリーの情報だけを返す。
-	 */
 	public List<CategorySelectView> findCategorySelects(Long userId) {
 
 		List<ArticleCategory> categories = articleCategoryService.findByUserId(userId);
@@ -108,27 +96,44 @@ public class CategorySelectionService {
 			return List.of();
 		}
 
-		Map<Long, ArticleCategory> categoryMap = categories.stream()
-				.collect(Collectors.toMap(
-						ArticleCategory::getCategoryId,
-						category -> category));
+		List<CategoryRelation> relations = categoryRelationRepository.findAll();
 
-		return categoryRelationRepository.findAll().stream()
-				.filter(relation -> categoryMap.containsKey(
-						relation.getCategoryId()))
-				.map(relation -> {
+		List<CategorySelectView> result = new ArrayList<>();
 
-					ArticleCategory category = categoryMap.get(relation.getCategoryId());
+		for (ArticleCategory category : categories) {
 
-					return new CategorySelectView(
-							category.getCategoryId(),
-							category.getCategoryName(),
-							category.getDisplayName(),
-							relation.getParentCategoryId(),
-							relation.getGroupId(),
-							relation.getCategoryPath());
-				})
-				.toList();
+			List<CategoryRelation> categoryRelations = relations.stream()
+					.filter(relation -> category.getCategoryId()
+							.equals(relation.getCategoryId()))
+					.toList();
+
+			// 親子関係がまだ登録されていないカテゴリーも取得する。
+			if (categoryRelations.isEmpty()) {
+
+				result.add(new CategorySelectView(
+						category.getCategoryId(),
+						category.getCategoryName(),
+						category.getDisplayName(),
+						null,
+						null,
+						category.getCategoryName()));
+
+				continue;
+			}
+
+			for (CategoryRelation relation : categoryRelations) {
+
+				result.add(new CategorySelectView(
+						category.getCategoryId(),
+						category.getCategoryName(),
+						category.getDisplayName(),
+						relation.getParentCategoryId(),
+						relation.getGroupId(),
+						relation.getCategoryPath()));
+			}
+		}
+
+		return result;
 	}
 
 	/**
