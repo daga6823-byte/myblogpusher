@@ -168,7 +168,10 @@ public class GitHubApiService {
 			String token)
 			throws IOException {
 
-		HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
+		// URLパスに含まれる空白をエンコードする
+		String encodedUrl = url.replace(" ", "%20");
+
+		HttpURLConnection conn = (HttpURLConnection) new URL(encodedUrl).openConnection();
 		conn.setRequestProperty(
 				"Authorization",
 				"token " + token);

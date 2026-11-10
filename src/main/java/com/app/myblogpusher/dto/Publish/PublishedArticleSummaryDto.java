@@ -20,6 +20,7 @@ public class PublishedArticleSummaryDto {
 	private LocalDateTime updateDate;
 	private String content;
 	private List<String> categories;
+	private String thumbnailUrl;
 
 	public PublishedArticleSummaryDto(
 			String slug,
@@ -27,7 +28,8 @@ public class PublishedArticleSummaryDto {
 			String title,
 			LocalDateTime updateDate,
 			String content,
-			List<String> categories) {
+			List<String> categories,
+			String thumbnailUrl) {
 
 		this.slug = slug;
 		this.hugoPath = hugoPath;
@@ -35,5 +37,6 @@ public class PublishedArticleSummaryDto {
 		this.updateDate = updateDate;
 		this.content = content;
 		this.categories = categories;
+		this.thumbnailUrl = thumbnailUrl;
 	}
 }

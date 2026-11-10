@@ -83,4 +83,41 @@ public class FrontMatterUtil {
 		}
 		return null;
 	}
+
+	/**
+	 * Front MatterのimageフィールドからサムネイルURLを抽出する。
+	 *
+	 * TOML形式: image = "https://example.com/image.webp"
+	 * YAML形式: image: "https://example.com/image.webp"
+	 *
+	 * 該当フィールドが存在しない場合はnullを返す。
+	 */
+	public String extractImage(String content) {
+
+		String delimiter = content.startsWith("+++") ? "\\+\\+\\+" : "---";
+
+		String[] parts = content.split(delimiter, 3);
+
+		if (parts.length >= 2) {
+
+			String frontMatter = parts[1];
+
+			for (String line : frontMatter.split("\n")) {
+
+				String trimmed = line.trim();
+
+				if (trimmed.matches("^image\\s*[=:].*")) {
+
+					String imageUrl = trimmed
+							.replaceFirst("^image\\s*[=:]\\s*['\"]?", "")
+							.replaceAll("['\"]\\s*$", "")
+							.trim();
+
+					return imageUrl.isEmpty() ? null : imageUrl;
+				}
+			}
+		}
+
+		return null;
+	}
 }

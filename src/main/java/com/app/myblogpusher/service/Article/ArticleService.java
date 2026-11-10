@@ -157,6 +157,8 @@ public class ArticleService {
 
 		article.setContent(work.getContent());
 
+		article.setThumbnailUrl(thumbnailUrl);
+
 		article.setUpdateDate(LocalDateTime.now());
 		article.setUpdateUser(work.getUpdateUser());
 
@@ -176,7 +178,8 @@ public class ArticleService {
 			String hugoPath,
 			String title,
 			String content,
-			LocalDateTime publishDate) {
+			LocalDateTime publishDate,
+			String thumbnailUrl) {
 
 		Optional<Article> existing = Optional.empty();
 
@@ -207,6 +210,12 @@ public class ArticleService {
 		article.setHugoPath(hugoPath);
 
 		article.setContent(content);
+		
+		// GitHubのFront Matterから取得したサムネイルURLを保存する。
+		// GitHub側に画像指定がない場合は、既存の画像URLを維持する。
+		if (thumbnailUrl != null && !thumbnailUrl.isBlank()) {
+		    article.setThumbnailUrl(thumbnailUrl);
+		}
 
 		article.setStatus(ArticleStatus.PUBLISHED);
 

@@ -106,14 +106,16 @@ public class GitHubArticleService {
 						LocalDateTime updateDate = frontMatterUtil.extractDate(mdContent);
 
 						List<String> categories = frontMatterUtil.extractCategories(mdContent);
+						String thumbnailUrl = frontMatterUtil.extractImage(mdContent);
 
 						return new PublishedArticleSummaryDto(
-								slug,
-								hugoPath,
-								title,
-								updateDate,
-								mdContent,
-								categories);
+						        slug,
+						        hugoPath,
+						        title,
+						        updateDate,
+						        mdContent,
+						        categories,
+						        thumbnailUrl);
 
 					} catch (IOException e) {
 						return null;
@@ -268,14 +270,16 @@ public class GitHubArticleService {
 		String title = frontMatterUtil.extractTitle(mdContent);
 		LocalDateTime updateDate = frontMatterUtil.extractDate(mdContent);
 		List<String> categories = frontMatterUtil.extractCategories(mdContent);
+		String thumbnailUrl = frontMatterUtil.extractImage(mdContent);
 
 		return new PublishedArticleSummaryDto(
-				slug,
-				hugoPath,
-				title,
-				updateDate,
-				mdContent,
-				categories);
+		        slug,
+		        hugoPath,
+		        title,
+		        updateDate,
+		        mdContent,
+		        categories,
+		        thumbnailUrl);
 	}
 
 	/**

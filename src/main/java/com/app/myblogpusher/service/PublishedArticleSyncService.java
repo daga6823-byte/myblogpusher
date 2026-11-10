@@ -99,13 +99,14 @@ public class PublishedArticleSyncService {
 						.orElse(null);
 
 				Article article = articleService.saveFromGitHub(
-						articleId,
-						userId,
-						summary.getSlug(),
-						summary.getHugoPath(),
-						summary.getTitle(),
-						summary.getContent(),
-						summary.getUpdateDate());
+				        articleId,
+				        userId,
+				        summary.getSlug(),
+				        summary.getHugoPath(),
+				        summary.getTitle(),
+				        summary.getContent(),
+				        summary.getUpdateDate(),
+				        summary.getThumbnailUrl());
 
 				// 本文の同期に成功した場合だけ同期情報を更新
 				article.setGithubSha(file.sha());

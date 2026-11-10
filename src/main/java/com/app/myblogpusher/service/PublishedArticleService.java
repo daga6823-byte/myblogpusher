@@ -81,7 +81,8 @@ public class PublishedArticleService {
 						article.getTitle(),
 						article.getUpdateDate(),
 						article.getContent(),
-						List.of()))
+						List.of(),
+						article.getThumbnailUrl()))
 				.toList();
 
 		if (session != null) {
