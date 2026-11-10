@@ -99,104 +99,54 @@ function registerWord(btn) {
  * 投稿送信前処理
  *
  * ・投稿確認ダイアログを表示する
- * ・二重送信防止のため投稿ボタンを無効化する
  * ・画面で編集したslugをhidden項目へ反映する
- */
-/**
- * 投稿送信前処理
- *
- * ・投稿確認ダイアログを表示する
- * ・タイトルからスラッグを生成する
  * ・二重送信防止のため投稿ボタンを無効化する
- * ・生成したスラッグをhidden項目へ反映する
  */
-async function publishSubmit() {
+function publishSubmit() {
 
 	if (!confirm("この記事を投稿しますか？")) {
 		return false;
 	}
 
 	const form = document.getElementById("publishForm");
-	const titleInput = form.querySelector('input[name="title"]');
+
+	if (!form) {
+		alert('投稿フォームを取得できません。');
+		return false;
+	}
+
 	const workIdInput = form.querySelector('input[name="workId"]');
 	const slugInput = document.getElementById('slugInput');
 	const slugHidden = document.getElementById('slugHidden');
 
-	if (!form || !titleInput || !workIdInput || !slugHidden) {
+	if (!workIdInput || !workIdInput.value || !slugInput || !slugHidden) {
 		alert('記事情報を取得できません。');
 		return false;
 	}
+
+	const slug = slugInput.value.trim();
+
+	if (!slug) {
+		alert('スラッグを入力してください。');
+		return false;
+	}
+
+	// 確認画面で編集したslugを投稿リクエストへ反映する
+	slugHidden.value = slug;
 
 	const button = document.getElementById("publishButton");
 
 	if (button) {
 		button.disabled = true;
-		button.textContent = "投稿準備中...";
+		button.textContent = "投稿中...";
 	}
 
-	try {
-		const response = await fetch('/publish/generate-slug', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/x-www-form-urlencoded',
-				'X-Requested-With': 'XMLHttpRequest',
-				'X-CSRF-TOKEN': getCsrfToken()
-			},
-			body: new URLSearchParams({
-				workId: workIdInput.value,
-				title: titleInput.value
-			})
-		});
+	// 元のタブで投稿リクエストを送信する
+	form.target = "_self";
 
-		if (!response.ok) {
-			throw new Error('スラッグの生成に失敗しました。');
-		}
+	form.submit();
 
-		const result = await response.json();
-
-		if (!result.slug) {
-			throw new Error('スラッグを取得できませんでした。');
-		}
-
-		const slug = result.slug;
-
-		slugHidden.value = slug;
-
-		if (slugInput) {
-			slugInput.value = slug;
-		}
-
-		const workId = workIdInput.value;
-
-		// 投稿状況の確認用タブを先に開き、ポップアップブロックを回避する
-		const waitTab = window.open("about:blank", "_blank");
-
-		if (waitTab) {
-			const params = new URLSearchParams({ workId, slug });
-			waitTab.location.href = `/publish/wait?${params.toString()}`;
-		}
-
-		// 元のタブで投稿リクエストを送信し、Controllerのredirectでホームへ戻る。
-		form.target = "_self";
-
-		if (button) {
-			button.textContent = "投稿中...";
-		}
-
-		form.submit();
-		return false;
-
-	} catch (error) {
-		console.error(error);
-		alert('投稿準備に失敗しました。');
-
-		if (button) {
-			button.disabled = false;
-			button.textContent = "投稿";
-		}
-
-		return false;
-	}
+	return false;
 }
 
 
