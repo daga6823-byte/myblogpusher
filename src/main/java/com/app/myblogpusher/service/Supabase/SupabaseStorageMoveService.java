@@ -72,7 +72,7 @@ public class SupabaseStorageMoveService {
 			image = storageClient.download(oldPath);
 		}
 
-		storageClient.upload(newPath, image, MediaType.APPLICATION_OCTET_STREAM);
+		storageClient.uploadObject(newPath, image, MediaType.APPLICATION_OCTET_STREAM);
 
 		// 新しいファイルの登録に成功してから元ファイルを削除する。
 		if (!oldPath.equals(newPath)) {
@@ -91,7 +91,7 @@ public class SupabaseStorageMoveService {
 
 		byte[] image = storageClient.download(oldPath);
 
-		storageClient.upload(newPath, image, MediaType.APPLICATION_OCTET_STREAM);
+		storageClient.uploadObject(newPath, image, MediaType.APPLICATION_OCTET_STREAM);
 
 		// 新しいパスへのアップロード成功後に元ファイルを削除する。
 		storageClient.delete(oldPath);

@@ -71,7 +71,7 @@ public class SupabaseStorageService {
 				? MediaType.parseMediaType(contentType)
 				: MediaType.APPLICATION_OCTET_STREAM;
 
-		storageClient.upload(path, Files.readAllBytes(file.toPath()), mediaType);
+		storageClient.uploadObject(path, Files.readAllBytes(file.toPath()), mediaType);
 
 		return path;
 	}

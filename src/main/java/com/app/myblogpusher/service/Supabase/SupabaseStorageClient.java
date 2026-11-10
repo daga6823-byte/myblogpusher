@@ -5,7 +5,6 @@
  * どのファイルをどう扱うかの判断は、呼び出し元のサービスが担当する。
  */
 package com.app.myblogpusher.service.Supabase;
-
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,6 +19,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriUtils;
 
@@ -95,19 +95,39 @@ public class SupabaseStorageClient {
 	}
 
 	/**
-	 * 指定パスへファイルをアップロードする(既存ファイルがある場合はエラー)。
+	 * 指定パスへファイルを新規アップロードする。
+	 * 5xxエラーの場合は60秒後に1回だけ再試行する。
+	 * 409の場合は再試行せず、例外を呼び出し元へ送出する。
 	 */
-	public void upload(String storagePath, byte[] data, MediaType contentType) {
-		HttpHeaders headers = createHeaders();
-		headers.setContentType(contentType);
+	public void uploadObject(String storagePath, byte[] data, MediaType contentType) {
+	    HttpHeaders headers = createHeaders();
+	    headers.setContentType(contentType);
 
-		HttpEntity<byte[]> entity = new HttpEntity<>(data, headers);
+	    HttpEntity<byte[]> entity = new HttpEntity<>(data, headers);
 
-		restTemplate.exchange(
-				objectUrl(storagePath),
-				HttpMethod.POST,
-				entity,
-				String.class);
+	    try {
+	        restTemplate.exchange(
+	                objectUrl(storagePath),
+	                HttpMethod.POST,
+	                entity,
+	                String.class);
+
+	    } catch (HttpServerErrorException e) {
+	        try {
+	            Thread.sleep(60_000);
+	        } catch (InterruptedException interruptedException) {
+	            Thread.currentThread().interrupt();
+	            throw new RuntimeException(
+	                    "Supabase Storage upload retry was interrupted",
+	                    interruptedException);
+	        }
+
+	        restTemplate.exchange(
+	                objectUrl(storagePath),
+	                HttpMethod.POST,
+	                entity,
+	                String.class);
+	    }
 	}
 
 	/**
