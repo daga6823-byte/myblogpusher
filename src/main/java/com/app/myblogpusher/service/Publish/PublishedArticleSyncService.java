@@ -67,8 +67,14 @@ public class PublishedArticleSyncService {
 			for (GitHubApiService.GitHubMarkdownFile file : files) {
 
 				String hugoPath = file.path()
-						.replaceFirst("^content/", "")
-						.replaceFirst("\\.md$", "");
+				        .replaceFirst("^content/", "")
+				        .replaceFirst("\\.md$", "");
+
+				// index.mdは通常記事ではないため、Article同期対象から除外する。
+				// githubPathsにも追加しないことで、既存のArticleレコードも削除対象にする。
+				if (hugoPath.equals("index") || hugoPath.endsWith("/index")) {
+				    continue;
+				}
 
 				githubPaths.add(hugoPath);
 
