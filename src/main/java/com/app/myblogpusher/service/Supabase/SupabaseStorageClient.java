@@ -96,8 +96,9 @@ public class SupabaseStorageClient {
 
 	/**
 	 * 指定パスへファイルを新規アップロードする。
-	 * 5xxエラーの場合は60秒後に1回だけ再試行する。
-	 * 409の場合は再試行せず、例外を呼び出し元へ送出する。
+	 *
+	 * 5xxエラーの場合は待機せず1回だけ再試行する。
+	 * 409などの4xxエラーは再試行せず、呼び出し元へ送出する。
 	 */
 	public void uploadObject(String storagePath, byte[] data, MediaType contentType) {
 	    HttpHeaders headers = createHeaders();
@@ -113,15 +114,7 @@ public class SupabaseStorageClient {
 	                String.class);
 
 	    } catch (HttpServerErrorException e) {
-	        try {
-	            Thread.sleep(60_000);
-	        } catch (InterruptedException interruptedException) {
-	            Thread.currentThread().interrupt();
-	            throw new RuntimeException(
-	                    "Supabase Storage upload retry was interrupted",
-	                    interruptedException);
-	        }
-
+	        // 一時的なサーバーエラーに限り、待機せず1回だけ再試行する。
 	        restTemplate.exchange(
 	                objectUrl(storagePath),
 	                HttpMethod.POST,
