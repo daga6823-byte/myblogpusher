@@ -6,7 +6,6 @@
  * 画像関連処理をImageAssetFacadeへ委譲する。
  */
 package com.app.myblogpusher.service.Image;
-
 import java.io.IOException;
 import java.util.List;
 
@@ -19,7 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.app.myblogpusher.dto.ImageAssetView;
 import com.app.myblogpusher.dto.ImageCategoryDto;
 import com.app.myblogpusher.entity.ImageAsset;
-import com.app.myblogpusher.service.Facade.ImageAssetFacade;
+import com.app.myblogpusher.facade.ImageAssetFacade;
 
 @Service
 public class ImageAssetService {

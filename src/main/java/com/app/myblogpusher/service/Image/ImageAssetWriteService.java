@@ -3,11 +3,11 @@
  *
  * Supabase Storage上の実ファイル操作と、
  * image_assetテーブルへの登録・更新・削除をまとめて行う。
+ * Storage操作はSupabaseFacadeを経由して行う。
  *
  * 画像情報の参照処理はImageAssetQueryServiceが担当する。
  */
 package com.app.myblogpusher.service.Image;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -21,8 +21,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.app.myblogpusher.entity.ImageAsset;
+import com.app.myblogpusher.facade.SupabaseFacadeService;
 import com.app.myblogpusher.repository.ImageAssetRepository;
-import com.app.myblogpusher.service.SupabaseStorageService;
 
 @Service
 public class ImageAssetWriteService {
@@ -31,7 +31,7 @@ public class ImageAssetWriteService {
 	private ImageAssetRepository imageAssetRepository;
 
 	@Autowired
-	private SupabaseStorageService supabaseStorageService;
+	private SupabaseFacadeService supabaseFacade;
 
 	@Autowired
 	private ImageConvertService imageConvertService;
@@ -91,7 +91,7 @@ public class ImageAssetWriteService {
 					uploadFile.toPath(),
 					StandardCopyOption.REPLACE_EXISTING);
 
-			storagePath = supabaseStorageService.uploadImage(
+			storagePath = supabaseFacade.uploadImage(
 					uploadFile,
 					resolvedFolderName);
 
@@ -193,7 +193,7 @@ public class ImageAssetWriteService {
 				if (!currentFolderName.equals(newFolderName)
 						|| !currentFileName.equals(newFileName)) {
 
-					String newStoragePath = supabaseStorageService.renameImage(
+					String newStoragePath = supabaseFacade.renameImage(
 							asset.getStoragePath(),
 							newFolderName,
 							newFileName,
@@ -204,7 +204,7 @@ public class ImageAssetWriteService {
 					asset.setStoragePath(newStoragePath);
 
 				} else {
-					supabaseStorageService.replaceImage(
+					supabaseFacade.replaceImage(
 							asset.getStoragePath(),
 							uploadFile);
 				}
@@ -219,7 +219,7 @@ public class ImageAssetWriteService {
 			/*
 			 * ファイル差し替えなしで保存先または画像名だけ変更する。
 			 */
-			String newStoragePath = supabaseStorageService.renameImage(
+			String newStoragePath = supabaseFacade.renameImage(
 					asset.getStoragePath(),
 					newFolderName,
 					newFileName,
@@ -260,7 +260,7 @@ public class ImageAssetWriteService {
 		}
 
 		// Storage上の実ファイル削除
-		supabaseStorageService.deleteImage(
+		supabaseFacade.deleteImage(
 				asset.getStoragePath());
 
 		// DB削除
@@ -306,7 +306,7 @@ public class ImageAssetWriteService {
 		}
 
 		// Storageの実ファイルをフォルダ単位で移動する。
-		Map<String, String> movedPaths = supabaseStorageService.renameFolder(
+		Map<String, String> movedPaths = supabaseFacade.renameFolder(
 				oldFolderName, newFolderName);
 
 		try {
@@ -332,7 +332,7 @@ public class ImageAssetWriteService {
 		} catch (Exception e) {
 			// DB更新に失敗した場合はStorageを元のフォルダへ戻す。
 			try {
-				supabaseStorageService.restoreMovedPaths(movedPaths);
+				supabaseFacade.restoreMovedPaths(movedPaths);
 			} catch (Exception rollbackException) {
 				e.addSuppressed(rollbackException);
 			}

@@ -19,7 +19,7 @@ import org.springframework.stereotype.Service;
 
 import com.app.myblogpusher.entity.ImageAsset;
 import com.app.myblogpusher.repository.ImageAssetRepository;
-import com.app.myblogpusher.service.SupabaseStorageService;
+import com.app.myblogpusher.service.Supabase.SupabaseStorageService;
 
 @Service
 public class ImageAssetImportService {

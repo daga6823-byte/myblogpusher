@@ -7,7 +7,6 @@
  * 画像ファイル自体は取得せず、画像一覧の情報だけを先読みする。
  */
 package com.app.myblogpusher.service.Image;
-
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -16,7 +15,7 @@ import org.springframework.stereotype.Service;
 
 import com.app.myblogpusher.dto.ImageAssetView;
 import com.app.myblogpusher.dto.ImageCategoryDto;
-import com.app.myblogpusher.service.Facade.ImageAssetFacadeService;
+import com.app.myblogpusher.facade.ImageAssetFacadeService;
 
 @Service
 public class ImageAssetPreloadAsyncService {

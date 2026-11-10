@@ -6,7 +6,7 @@
  * 画像の登録・更新・削除・フォルダ名変更はImageAssetWriteServiceへ、
  * 既存画像の取り込みはImageAssetImportServiceへ委譲する。
  */
-package com.app.myblogpusher.service.Facade;
+package com.app.myblogpusher.facade;
 
 import java.io.IOException;
 import java.util.List;

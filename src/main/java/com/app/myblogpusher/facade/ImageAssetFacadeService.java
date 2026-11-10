@@ -10,7 +10,7 @@
  * サービス分割の移行期間中は既存のImageAssetServiceも利用し、
  * 処理単位ごとの分離完了後に不要な委譲処理を削除する。
  */
-package com.app.myblogpusher.service.Facade;
+package com.app.myblogpusher.facade;
 
 import java.io.IOException;
 import java.util.List;

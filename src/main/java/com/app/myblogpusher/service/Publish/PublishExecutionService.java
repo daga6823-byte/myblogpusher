@@ -5,7 +5,7 @@
  * 投稿中ステータスへの変更、編集用ワークスペースの削除、
  * 非同期のGitHub投稿開始を担当する。
  */
-package com.app.myblogpusher.service;
+package com.app.myblogpusher.service.Publish;
 
 import java.util.Optional;
 

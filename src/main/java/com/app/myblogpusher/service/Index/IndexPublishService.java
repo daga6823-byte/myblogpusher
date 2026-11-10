@@ -6,7 +6,6 @@
  * 下書きの削除、失敗時のエラー状態管理を行う。
  */
 package com.app.myblogpusher.service.Index;
-
 import java.io.IOException;
 import java.time.LocalDateTime;
 
@@ -16,10 +15,10 @@ import org.springframework.stereotype.Service;
 import com.app.myblogpusher.entity.UserRepositoryEntity;
 import com.app.myblogpusher.entity.Index.IndexEntity;
 import com.app.myblogpusher.entity.Index.IndexWork;
+import com.app.myblogpusher.facade.GitHubFacadeService;
 import com.app.myblogpusher.repository.CategoryRelationRepository;
 import com.app.myblogpusher.repository.UserRepositoryRepository;
 import com.app.myblogpusher.repository.Index.IndexRepository;
-import com.app.myblogpusher.service.Facade.GitHubFacadeService;
 
 @Service
 public class IndexPublishService {

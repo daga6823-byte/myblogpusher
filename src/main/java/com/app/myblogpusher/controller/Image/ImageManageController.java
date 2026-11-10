@@ -2,8 +2,7 @@
  * 登録済み画像の確認画面、およびSupabase実ファイルからのインポート実行を担当するコントローラー
  */
 
-package com.app.myblogpusher.controller;
-
+package com.app.myblogpusher.controller.Image;
 import java.util.List;
 import java.util.Map;
 
@@ -20,7 +19,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.app.myblogpusher.dto.ImageAssetView;
 import com.app.myblogpusher.entity.UserMaster;
-import com.app.myblogpusher.service.Facade.ImageAssetFacadeService;
+import com.app.myblogpusher.facade.ImageAssetFacadeService;
 
 import jakarta.servlet.http.HttpSession;
 

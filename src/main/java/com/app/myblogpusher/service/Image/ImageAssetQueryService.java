@@ -20,7 +20,7 @@ import com.app.myblogpusher.dto.ImageAssetView;
 import com.app.myblogpusher.dto.ImageCategoryDto;
 import com.app.myblogpusher.entity.ImageAsset;
 import com.app.myblogpusher.repository.ImageAssetRepository;
-import com.app.myblogpusher.service.SupabaseStorageService;
+import com.app.myblogpusher.service.Supabase.SupabaseStorageService;
 
 @Service
 public class ImageAssetQueryService {

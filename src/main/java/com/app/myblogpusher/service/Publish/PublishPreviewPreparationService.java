@@ -7,7 +7,7 @@
  * フォームの組み立てとスラッグ生成はPublishPreviewServiceへ委譲する。
  * 記事の保存とGitHubへの投稿処理は担当しない。
  */
-package com.app.myblogpusher.service;
+package com.app.myblogpusher.service.Publish;
 
 import java.util.Optional;
 

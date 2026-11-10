@@ -6,7 +6,6 @@
  * GitHubへの保存・プッシュ処理はGitHubPushServiceへ委譲する。
  */
 package com.app.myblogpusher.service.Index;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -20,9 +19,9 @@ import com.app.myblogpusher.dto.Category.CategoryOptionView;
 import com.app.myblogpusher.entity.CategoryRelation;
 import com.app.myblogpusher.entity.UserRepositoryEntity;
 import com.app.myblogpusher.entity.Article.ArticleCategory;
+import com.app.myblogpusher.facade.GitHubFacadeService;
 import com.app.myblogpusher.repository.CategoryRelationRepository;
 import com.app.myblogpusher.service.Article.ArticleCategoryService;
-import com.app.myblogpusher.service.Facade.GitHubFacadeService;
 
 @Service
 public class IndexEditService {

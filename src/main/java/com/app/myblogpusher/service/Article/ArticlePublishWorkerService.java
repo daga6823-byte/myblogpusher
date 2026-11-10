@@ -6,15 +6,14 @@
  * 投稿失敗時は記事をエラー状態に更新する。
  */
 package com.app.myblogpusher.service.Article;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.app.myblogpusher.entity.UserRepositoryEntity;
 import com.app.myblogpusher.entity.Article.Article;
 import com.app.myblogpusher.entity.Article.ArticleWork;
+import com.app.myblogpusher.facade.GitHubFacadeService;
 import com.app.myblogpusher.service.ApplicationErrorLogService;
-import com.app.myblogpusher.service.Facade.GitHubFacadeService;
 import com.app.myblogpusher.service.Github.GitHubActionsService;
 
 @Service

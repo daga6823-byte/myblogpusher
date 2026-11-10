@@ -6,7 +6,7 @@
  *
  * GitHub APIによる記事取得そのものはGitHubArticleServiceが担当する。
  */
-package com.app.myblogpusher.service;
+package com.app.myblogpusher.service.Publish;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -23,6 +23,7 @@ import com.app.myblogpusher.dto.Publish.PublishedArticleSummaryDto;
 import com.app.myblogpusher.entity.UserRepositoryEntity;
 import com.app.myblogpusher.entity.Article.Article;
 import com.app.myblogpusher.repository.Article.ArticleRepository;
+import com.app.myblogpusher.service.ApplicationErrorLogService;
 import com.app.myblogpusher.service.Article.ArticleService;
 import com.app.myblogpusher.service.Github.GitHubApiService;
 import com.app.myblogpusher.service.Github.GitHubArticleService;

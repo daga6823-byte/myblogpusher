@@ -6,7 +6,7 @@
  * サムネイルおよびリポジトリ情報の設定を担当する。
  * 記事の保存やGitHubへの投稿処理は担当しない。
  */
-package com.app.myblogpusher.service;
+package com.app.myblogpusher.service.Publish;
 
 import java.util.List;
 
