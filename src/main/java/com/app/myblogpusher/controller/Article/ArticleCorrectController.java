@@ -92,6 +92,7 @@ public class ArticleCorrectController {
 		String categoryPath = work.getHugoPath();
 
 		// 添削・誤字チェック用カテゴリーIDはArticleWorkから取得する。
+		// カテゴリー未設定（汎用）の場合はnullになる。
 		Long categoryId = work.getTypoCategoryId();
 
 		List<TypoCorrectionService.TypoMatch> matches = typoCorrectionService.findMatches(categoryId, content);
@@ -104,9 +105,15 @@ public class ArticleCorrectController {
 		model.addAttribute("typoMatches", matches);
 		model.addAttribute("categoryId", categoryId);
 
-		String categoryName = articleCategoryService.findById(categoryId)
-				.map(ArticleCategory::getCategoryName)
-				.orElse("");
+		// カテゴリー未設定（汎用）の場合はfindByIdを呼ばず、カテゴリー名を空にする。
+		String categoryName = "";
+
+		if (categoryId != null) {
+			categoryName = articleCategoryService.findById(categoryId)
+					.map(ArticleCategory::getCategoryName)
+					.orElse("");
+		}
+
 		model.addAttribute("categoryName", categoryName);
 
 		return "article/article_correct";
