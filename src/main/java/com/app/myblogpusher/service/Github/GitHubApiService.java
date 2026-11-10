@@ -1,12 +1,12 @@
 /**
-
-* GitHub APIとの通信を担当するサービス
-*
-* GitHubリポジトリの情報取得、Git Trees APIによるファイル一覧取得、
-* Contents APIによるMarkdown本文取得など、GitHub APIへのアクセス処理を担当する。
-*
-* 取得した記事のDTO変換やDBへの同期処理は担当しない。
-  */
+ * GitHub APIとの通信を担当するサービス
+ *
+ * GitHubリポジトリの情報取得、Git Trees APIによるファイル一覧取得、
+ * Contents APIによるMarkdown本文取得・削除など、GitHub APIへのアクセス処理を担当する。
+ * 日本語を含むファイルパスは、リクエスト前にURLエンコードする。
+ *
+ * 取得した記事のDTO変換やDBへの同期処理は担当しない。
+ */
 package com.app.myblogpusher.service.Github;
 
 import java.io.IOException;
@@ -162,14 +162,17 @@ public class GitHubApiService {
 
 	/**
 	 * GitHub Contents APIからMarkdown本文を取得する。
+	 *
+	 * URLに日本語や空白が含まれていてもリクエストできるよう、
+	 * 送信前にエンコードする。
 	 */
 	public String fetchContentViaApi(
 			String url,
 			String token)
 			throws IOException {
 
-		// URLパスに含まれる空白をエンコードする
-		String encodedUrl = url.replace(" ", "%20");
+		// URLに含まれる日本語・空白をエンコードする
+		String encodedUrl = encodeUrl(url);
 
 		HttpURLConnection conn = (HttpURLConnection) new URL(encodedUrl).openConnection();
 		conn.setRequestProperty(
@@ -218,7 +221,8 @@ public class GitHubApiService {
 				+ hugoPath
 				+ ".md";
 
-		HttpURLConnection conn = (HttpURLConnection) new URL(apiUrl).openConnection();
+		// URLに含まれる日本語・空白をエンコードする
+		HttpURLConnection conn = (HttpURLConnection) new URL(encodeUrl(apiUrl)).openConnection();
 
 		conn.setRequestMethod("DELETE");
 
@@ -253,5 +257,28 @@ public class GitHubApiService {
 					"GitHub上の記事削除に失敗しました。HTTP status: "
 							+ responseCode);
 		}
+	}
+
+	/**
+	 * URLに含まれる日本語などの非ASCII文字と空白を、UTF-8のパーセントエンコードに変換する。
+	 *
+	 * ASCII文字(スラッシュ、パーセント、クエリの記号など)は変換しないため、
+	 * エンコード済みのURLを渡しても二重エンコードにはならない。
+	 */
+	private String encodeUrl(String url) {
+
+		StringBuilder encoded = new StringBuilder();
+
+		for (byte b : url.getBytes(StandardCharsets.UTF_8)) {
+			int c = b & 0xFF;
+
+			if (c > 0x7F || c == ' ') {
+				encoded.append('%').append(String.format("%02X", c));
+			} else {
+				encoded.append((char) c);
+			}
+		}
+
+		return encoded.toString();
 	}
 }
