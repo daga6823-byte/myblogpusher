@@ -129,6 +129,10 @@ public class EnglishDictionaryController {
 		}
 
 		Long userId = loginUser.getUserId();
+		
+		System.out.println(
+		        "[EnglishDictionary] japanese=[" + form.getJapanese()
+		        + "], english=[" + form.getEnglish() + "]");
 
 		// 辞典の保存完了まで同期的に実行する。
 		englishDictionaryService.save(form, userId);
