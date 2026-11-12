@@ -29,6 +29,8 @@ function getCsrfToken() {
 
 function registerWord(btn) {
 	const form = btn.closest('.dictionary-register-form');
+	
+	console.log('[Dictionary] FormData english:', formData.get('english'));
 
 	if (!form) {
 		alert('辞書登録フォームを取得できません。');
@@ -163,16 +165,16 @@ function publishSubmit() {
  */
 function syncEnglish(btn) {
     const reading = btn.getAttribute('data-reading');
-    const convertedInput =
-        document.getElementById('converted_' + reading);
-    const hiddenInput =
-        document.getElementById('hidden_' + reading);
+    const convertedInput = document.getElementById('converted_' + reading);
+    const hiddenInput = document.getElementById('hidden_' + reading);
 
-    if (!convertedInput || !hiddenInput) {
-        throw new Error('英語変換欄を取得できません。');
-    }
+    console.log('[Dictionary] reading:', reading);
+    console.log('[Dictionary] visible value:', convertedInput?.value);
+    console.log('[Dictionary] hidden before:', hiddenInput?.value);
 
-    hiddenInput.value = convertedInput.value.trim();
+    hiddenInput.value = convertedInput.value;
+
+    console.log('[Dictionary] hidden after:', hiddenInput.value);
 }
 
 /**
