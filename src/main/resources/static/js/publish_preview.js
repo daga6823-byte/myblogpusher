@@ -92,12 +92,15 @@ function registerWord(btn) {
 		.then(data => {
 			document.getElementById('slugInput').value = data.slug;
 			document.getElementById('slugHidden').value = data.slug;
+
+			// 登録済みの単語を変換候補一覧から削除する
+			const row = btn.closest('tr');
+			if (row) {
+				row.remove();
+			}
+
 			alert('辞書を登録しました。');
 		})
-		.catch(error => {
-			console.error(error);
-			alert(error.message);
-		});
 }
 
 /**
@@ -162,10 +165,10 @@ function publishSubmit() {
  * 辞書登録フォーム送信用hiddenへ反映する。
  */
 function syncEnglish(btn) {
-    const row = btn.closest('tr');
-    const convertedInput = row.querySelector('input[id^="converted_"]');
+	const row = btn.closest('tr');
+	const convertedInput = row.querySelector('input[id^="converted_"]');
 
-    row.querySelector('input[name="english"]').value = convertedInput.value;
+	row.querySelector('input[name="english"]').value = convertedInput.value;
 }
 
 /**
