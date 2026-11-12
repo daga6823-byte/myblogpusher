@@ -87,7 +87,6 @@ function registerWord(btn) {
 			document.getElementById('slugInput').value = data.slug;
 			document.getElementById('slugHidden').value = data.slug;
 			alert('辞書を登録しました。');
-			location.reload();
 		})
 		.catch(error => {
 			console.error(error);
