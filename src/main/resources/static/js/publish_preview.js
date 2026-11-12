@@ -29,8 +29,6 @@ function getCsrfToken() {
 
 function registerWord(btn) {
 	const form = btn.closest('.dictionary-register-form');
-	
-	console.log('[Dictionary] FormData english:', formData.get('english'));
 
 	if (!form) {
 		alert('辞書登録フォームを取得できません。');
@@ -41,6 +39,8 @@ function registerWord(btn) {
 	syncEnglish(btn);
 
 	const formData = new URLSearchParams(new FormData(form));
+
+	console.log('[Dictionary] FormData english:', formData.get('english'));
 
 	fetch(form.action, {
 		method: 'POST',
@@ -164,17 +164,17 @@ function publishSubmit() {
  * 辞書登録フォーム送信用hiddenへ反映する。
  */
 function syncEnglish(btn) {
-    const reading = btn.getAttribute('data-reading');
-    const convertedInput = document.getElementById('converted_' + reading);
-    const hiddenInput = document.getElementById('hidden_' + reading);
+	const reading = btn.getAttribute('data-reading');
+	const convertedInput = document.getElementById('converted_' + reading);
+	const hiddenInput = document.getElementById('hidden_' + reading);
 
-    console.log('[Dictionary] reading:', reading);
-    console.log('[Dictionary] visible value:', convertedInput?.value);
-    console.log('[Dictionary] hidden before:', hiddenInput?.value);
+	console.log('[Dictionary] reading:', reading);
+	console.log('[Dictionary] visible value:', convertedInput?.value);
+	console.log('[Dictionary] hidden before:', hiddenInput?.value);
 
-    hiddenInput.value = convertedInput.value;
+	hiddenInput.value = convertedInput.value;
 
-    console.log('[Dictionary] hidden after:', hiddenInput.value);
+	console.log('[Dictionary] hidden after:', hiddenInput.value);
 }
 
 /**
