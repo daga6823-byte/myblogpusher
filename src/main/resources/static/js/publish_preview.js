@@ -162,14 +162,17 @@ function publishSubmit() {
  * 辞書登録フォーム送信用hiddenへ反映する。
  */
 function syncEnglish(btn) {
+    const reading = btn.getAttribute('data-reading');
+    const convertedInput =
+        document.getElementById('converted_' + reading);
+    const hiddenInput =
+        document.getElementById('hidden_' + reading);
 
-	const reading = btn.getAttribute('data-reading');
+    if (!convertedInput || !hiddenInput) {
+        throw new Error('英語変換欄を取得できません。');
+    }
 
-	const converted =
-		document.getElementById('converted_' + reading).value;
-
-	document.getElementById('hidden_' + reading).value =
-		converted;
+    hiddenInput.value = convertedInput.value.trim();
 }
 
 /**
