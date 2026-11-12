@@ -7,9 +7,7 @@
 package com.app.myblogpusher.service;
 
 import java.time.LocalDateTime;
-import java.util.concurrent.CompletableFuture;
 
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,14 +28,24 @@ public class EnglishDictionaryService {
 	/**
 	 * 英単語辞典を新規登録または更新する。
 	 *
+	 * 英語欄は英字のみを許可し、不正な文字が含まれる場合は登録しない。
+	 *
 	 * @param form 登録・更新する辞典情報
 	 * @param userId 操作ユーザーID
-	 * @return 保存処理の完了を通知するFuture
 	 */
-	@Async
 	@Transactional
-	public CompletableFuture<Void> saveAsync(
-			EnglishDictionaryForm form, Long userId) {
+	public void save(EnglishDictionaryForm form, Long userId) {
+
+		// 英語欄の入力値を検証する。
+		String english = form.getEnglish();
+
+		if (english == null
+				|| !english.trim().matches("[A-Za-z]+(?:[ '-][A-Za-z]+)*")) {
+			throw new IllegalArgumentException(
+					"英語欄には英字のみ入力してください");
+		}
+
+		english = english.trim();
 
 		LocalDateTime now = LocalDateTime.now();
 		EnglishDictionary dictionary;
@@ -48,14 +56,14 @@ public class EnglishDictionaryService {
 					.orElseThrow();
 
 			dictionary.setJapanese(form.getJapanese());
-			dictionary.setEnglish(form.getEnglish());
+			dictionary.setEnglish(english);
 			dictionary.setUpdateDate(now);
 			dictionary.setUpdateUser(userId);
 		} else {
 			dictionary = new EnglishDictionary();
 			dictionary.setUserId(null);
 			dictionary.setJapanese(form.getJapanese());
-			dictionary.setEnglish(form.getEnglish());
+			dictionary.setEnglish(english);
 			dictionary.setCreateDate(now);
 			dictionary.setCreateUser(userId);
 			dictionary.setUpdateDate(now);
@@ -63,7 +71,5 @@ public class EnglishDictionaryService {
 		}
 
 		englishDictionaryRepository.save(dictionary);
-
-		return CompletableFuture.completedFuture(null);
 	}
 }

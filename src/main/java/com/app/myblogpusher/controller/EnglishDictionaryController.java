@@ -8,7 +8,6 @@
 package com.app.myblogpusher.controller;
 
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -114,7 +113,7 @@ public class EnglishDictionaryController {
 	 * @return 登録元画面または辞典一覧画面へのリダイレクト
 	 */
 	@PostMapping("/english-dictionary/save")
-	public CompletableFuture<ResponseEntity<Void>> save(
+	public ResponseEntity<Void> save(
 			@ModelAttribute("form") EnglishDictionaryForm form,
 			@RequestParam(required = false) String returnTo,
 			@RequestHeader(value = "X-Requested-With", required = false) String requestedWith,
@@ -124,35 +123,34 @@ public class EnglishDictionaryController {
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 		if (loginUser == null || loginUser.getRole() == null
 				|| loginUser.getRole() < 1) {
-			return CompletableFuture.completedFuture(
-					ResponseEntity.status(302)
-							.header("Location", "/english-dictionary/list")
-							.build());
+			return ResponseEntity.status(302)
+					.header("Location", "/english-dictionary/list")
+					.build();
 		}
 
 		Long userId = loginUser.getUserId();
 
-		return englishDictionaryService.saveAsync(form, userId)
-				.thenApply(result -> {
-					String savedReturnTo = (String) session.getAttribute("dictionaryReturnTo");
+		// 辞典の保存完了まで同期的に実行する。
+		englishDictionaryService.save(form, userId);
 
-					if ("XMLHttpRequest".equalsIgnoreCase(requestedWith)) {
-						session.removeAttribute("dictionaryReturnTo");
-						return ResponseEntity.ok().build();
-					}
+		String savedReturnTo = (String) session.getAttribute("dictionaryReturnTo");
 
-					if ("publish_preview".equals(returnTo)
-							|| "publish_preview".equals(savedReturnTo)) {
-						session.removeAttribute("dictionaryReturnTo");
-						return ResponseEntity.status(302)
-								.header("Location", "/publish/preview/back")
-								.build();
-					}
+		if ("XMLHttpRequest".equalsIgnoreCase(requestedWith)) {
+			session.removeAttribute("dictionaryReturnTo");
+			return ResponseEntity.ok().build();
+		}
 
-					return ResponseEntity.status(302)
-							.header("Location", "/english-dictionary/list?saved")
-							.build();
-				});
+		if ("publish_preview".equals(returnTo)
+				|| "publish_preview".equals(savedReturnTo)) {
+			session.removeAttribute("dictionaryReturnTo");
+			return ResponseEntity.status(302)
+					.header("Location", "/publish/preview/back")
+					.build();
+		}
+
+		return ResponseEntity.status(302)
+				.header("Location", "/english-dictionary/list?saved")
+				.build();
 	}
 
 	/**
