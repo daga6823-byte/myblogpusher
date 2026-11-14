@@ -148,20 +148,29 @@ public class CsrfProtectionFilter extends OncePerRequestFilter {
 							+ isValidToken(cookieToken, submittedToken));
 
 			if (!isValidToken(expectedToken, submittedToken)) {
-			    response.sendError(
-			            HttpServletResponse.SC_FORBIDDEN,
-			            "Invalid CSRF token");
+				response.sendError(
+						HttpServletResponse.SC_FORBIDDEN,
+						"Invalid CSRF token");
 
-			    // トークン値は記録せず、検証結果だけを記録する。
-			    applicationErrorLogService.recordSecurityRejection(
-			            "Invalid CSRF token; source=" + tokenSource,
-			            request);
+				// トークン値は記録せず、検証結果だけを記録する。
+				applicationErrorLogService.recordSecurityRejection(
+						"Invalid CSRF token"
+								+ "; source=" + tokenSource
+								+ "; sessionExists=" + (session != null)
+								+ "; sessionTokenExists=" + (expectedToken != null)
+								+ "; submittedTokenExists="
+								+ (submittedToken != null && !submittedToken.isBlank())
+								+ "; cookieMatchesSession="
+								+ isValidToken(expectedToken, cookieToken)
+								+ "; submittedMatchesCookie="
+								+ isValidToken(cookieToken, submittedToken),
+						request);
 
-			    logRequest(
-			            "REJECTED: invalid CSRF token; source="
-			                    + tokenSource,
-			            method, uri, response);
-			    return;
+				logRequest(
+						"REJECTED: invalid CSRF token; source="
+								+ tokenSource,
+						method, uri, response);
+				return;
 			}
 
 			logRequest(
@@ -170,13 +179,13 @@ public class CsrfProtectionFilter extends OncePerRequestFilter {
 		}
 
 		try {
-		    filterChain.doFilter(request, response);
+			filterChain.doFilter(request, response);
 		} catch (Exception e) {
-		    applicationErrorLogService.record(e, request);
-		    throw e;
+			applicationErrorLogService.record(e, request);
+			throw e;
 		} finally {
-		    // コントローラーやインターセプターの処理後の状態を記録する。
-		    logRequest("RESPONSE", method, uri, response);
+			// コントローラーやインターセプターの処理後の状態を記録する。
+			logRequest("RESPONSE", method, uri, response);
 		}
 	}
 
