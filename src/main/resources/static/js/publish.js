@@ -44,6 +44,10 @@ document.getElementById('publishButton').addEventListener('click', function() {
 	)?.value;
 
 	console.log('[Publish] CSRF token exists:', !!csrfToken);
+	console.log('[Publish] CSRF token value:', csrfToken);
+	console.log('[Publish] CSRF cookie:', document.cookie
+		.split('; ')
+		.find(row => row.startsWith('XSRF-TOKEN=')));
 
 	const csrfInput = document.createElement('input');
 
