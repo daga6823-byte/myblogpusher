@@ -16,7 +16,7 @@ import com.app.myblogpusher.service.ApplicationErrorLogService;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
-	
+
 	@Autowired
 	private ApiRateLimitInterceptor apiRateLimitInterceptor;
 
@@ -48,7 +48,9 @@ public class WebConfig implements WebMvcConfigurer {
 
 		// APIのレート制限
 		registry.addInterceptor(apiRateLimitInterceptor)
-				.addPathPatterns("/**");
+				.addPathPatterns("/**")
+				.excludePathPatterns(
+						"/article/workspace/save");
 	}
 
 	/**
