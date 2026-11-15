@@ -1,10 +1,10 @@
 package com.app.myblogpusher.service.Article;
-
 import java.time.LocalDateTime;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.app.myblogpusher.entity.Article.ArticleWorkspace;
 import com.app.myblogpusher.repository.Article.ArticleWorkspaceRepository;
@@ -12,6 +12,7 @@ import com.app.myblogpusher.repository.Article.ArticleWorkspaceRepository;
 import jakarta.persistence.EntityManager;
 
 @Service
+@Transactional
 public class ArticleWorkspaceService {
 
 	@Autowired
