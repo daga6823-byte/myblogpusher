@@ -120,23 +120,16 @@ public class CategoryRelationService {
 			return;
 		}
 
-		// 指定された親カテゴリーごとに完全な経路を登録する。
+		// 指定された親カテゴリーごとに直接の親子関係を登録する。
 		for (Long parentCategoryId : parentCategoryIds) {
 
 			ArticleCategory parentCategory = articleCategoryRepository
 					.findById(parentCategoryId)
 					.orElseThrow();
 
-			List<CategoryRelation> parentRelations = categoryRelationRepository
-					.findByCategoryId(parentCategoryId);
-
-			String parentPath = parentRelations.stream()
-					.map(CategoryRelation::getCategoryPath)
-					.filter(path -> path != null && !path.isBlank())
-					.findFirst()
-					.orElse(parentCategory.getCategoryName());
-
-			String categoryPath = parentPath + "/" + category.getCategoryName();
+			String categoryPath = parentCategory.getCategoryName()
+		            + "/"
+		            + category.getCategoryName();
 
 			addRelation(
 					categoryId,
@@ -217,17 +210,9 @@ public class CategoryRelationService {
 					.findById(parentCategoryId)
 					.orElseThrow();
 
-			String parentPath = categoryRelationRepository
-					.findByCategoryId(parentCategoryId)
-					.stream()
-					.map(CategoryRelation::getCategoryPath)
-					.filter(path -> path != null && !path.isBlank())
-					.findFirst()
-					.orElse(parentCategory.getCategoryName());
-
-			String categoryPath = parentPath
-					+ "/"
-					+ category.getCategoryName();
+			String categoryPath = parentCategory.getCategoryName()
+			        + "/"
+			        + category.getCategoryName();
 
 			updateOrCreateRelation(
 					categoryId,
