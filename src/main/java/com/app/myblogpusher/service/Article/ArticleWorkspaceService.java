@@ -1,4 +1,5 @@
 package com.app.myblogpusher.service.Article;
+
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -33,7 +34,6 @@ public class ArticleWorkspaceService {
 		} else {
 			workspace = new ArticleWorkspace();
 			workspace.setUserId(userId);
-			entityManager.persist(workspace);
 		}
 
 		workspace.setCategoryGroupId(categoryGroupId);
@@ -41,6 +41,10 @@ public class ArticleWorkspaceService {
 		workspace.setTitle(title);
 		workspace.setContent(content);
 		workspace.setUpdateDate(LocalDateTime.now());
+
+		if (existingWorkspace.isEmpty()) {
+			entityManager.persist(workspace);
+		}
 	}
 
 	public Optional<ArticleWorkspace> find(Long userId) {
