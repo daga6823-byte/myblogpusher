@@ -141,7 +141,6 @@ public class TypoCorrectionService {
 		typo.setWrongWord(wrongWord);
 		typo.setCorrectWord(correctWord);
 		typo.setCreateDate(LocalDateTime.now());
-		typo.setUpdateDate(LocalDateTime.now());
 		typo.setCreateUser(userId);
 		typo.setUpdateUser(userId);
 
@@ -192,7 +191,6 @@ public class TypoCorrectionService {
 		typo.setWrongWord(wrongWord);
 		typo.setCorrectWord(correctWord);
 		typo.setUpdateUser(userId);
-		typo.setUpdateDate(LocalDateTime.now());
 
 		typoCorrectionRepository.save(typo);
 	}
@@ -237,7 +235,6 @@ public class TypoCorrectionService {
 		for (TypoCorrection typo : typos) {
 			typo.setCategoryId(categoryId);
 			typo.setUpdateUser(userId);
-			typo.setUpdateDate(LocalDateTime.now());
 		}
 
 		typoCorrectionRepository.saveAll(typos);

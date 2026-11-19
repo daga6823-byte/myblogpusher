@@ -129,7 +129,6 @@ public class ArticleService {
 		LocalDateTime now = LocalDateTime.now();
 
 		article.setCreateDate(now);
-		article.setUpdateDate(now);
 		article.setPublishDate(now);
 
 		article.setCreateUser(work.getCreateUser());
@@ -158,8 +157,6 @@ public class ArticleService {
 		article.setContent(work.getContent());
 
 		article.setThumbnailUrl(thumbnailUrl);
-
-		article.setUpdateDate(LocalDateTime.now());
 		article.setUpdateUser(work.getUpdateUser());
 
 		article.setStatus(ArticleStatus.PUBLISHING);
@@ -221,7 +218,6 @@ public class ArticleService {
 
 		// GitHub記事側の日時を使用
 		article.setPublishDate(articleDate);
-		article.setUpdateDate(articleDate);
 
 		article.setUpdateUser(userId);
 

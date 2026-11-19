@@ -65,7 +65,6 @@ public class CategoryRelationService {
 		relation.setCategoryPath(categoryPath);
 
 		relation.setCreateDate(now);
-		relation.setUpdateDate(now);
 		relation.setCreateUser(userId);
 		relation.setUpdateUser(userId);
 
@@ -250,7 +249,6 @@ public class CategoryRelationService {
 		if (existing != null) {
 
 			existing.setCategoryPath(categoryPath);
-			existing.setUpdateDate(LocalDateTime.now());
 			existing.setUpdateUser(userId);
 
 			categoryRelationRepository.save(existing);
@@ -264,7 +262,6 @@ public class CategoryRelationService {
 		relation.setParentCategoryId(parentCategoryId);
 		relation.setCategoryPath(categoryPath);
 		relation.setCreateDate(LocalDateTime.now());
-		relation.setUpdateDate(LocalDateTime.now());
 		relation.setCreateUser(userId);
 		relation.setUpdateUser(userId);
 

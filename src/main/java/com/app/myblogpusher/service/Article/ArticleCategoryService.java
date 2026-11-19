@@ -59,7 +59,6 @@ public class ArticleCategoryService {
 		newCategory.setUserId(userId);
 		newCategory.setCategoryName(categoryName);
 		newCategory.setCreateDate(LocalDateTime.now());
-		newCategory.setUpdateDate(LocalDateTime.now());
 		newCategory.setCreateUser(userId);
 		newCategory.setUpdateUser(userId);
 
@@ -128,7 +127,6 @@ public class ArticleCategoryService {
 
 		category.setDisplayName(displayName);
 		category.setUpdateUser(userId);
-		category.setUpdateDate(LocalDateTime.now());
 
 		articleCategoryRepository.save(category);
 

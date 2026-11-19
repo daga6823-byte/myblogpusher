@@ -57,7 +57,6 @@ public class EnglishDictionaryService {
 
 			dictionary.setJapanese(form.getJapanese());
 			dictionary.setEnglish(english);
-			dictionary.setUpdateDate(now);
 			dictionary.setUpdateUser(userId);
 		} else {
 			dictionary = new EnglishDictionary();
@@ -66,7 +65,6 @@ public class EnglishDictionaryService {
 			dictionary.setEnglish(english);
 			dictionary.setCreateDate(now);
 			dictionary.setCreateUser(userId);
-			dictionary.setUpdateDate(now);
 			dictionary.setUpdateUser(userId);
 		}
 

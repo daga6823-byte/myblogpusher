@@ -5,7 +5,6 @@
  */
 package com.app.myblogpusher.service.Index;
 
-import java.time.LocalDateTime;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,7 +36,6 @@ public class IndexWorkspaceService {
 		workspace.setHugoPath(hugoPath);
 		workspace.setTitle(title);
 		workspace.setContent(content);
-		workspace.setUpdateDate(LocalDateTime.now());
 
 		repository.save(workspace);
 	}

@@ -116,7 +116,6 @@ public class RepositorySettingController {
 			entity.setCreateDate(now);
 			entity.setCreateUser(userId);
 		}
-		entity.setUpdateDate(now);
 		entity.setUpdateUser(userId);
 
 		userRepositoryRepository.save(entity);

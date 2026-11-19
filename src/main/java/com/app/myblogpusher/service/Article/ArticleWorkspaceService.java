@@ -1,6 +1,5 @@
 package com.app.myblogpusher.service.Article;
 
-import java.time.LocalDateTime;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,7 +39,6 @@ public class ArticleWorkspaceService {
 		workspace.setHugoPath(hugoPath);
 		workspace.setTitle(title);
 		workspace.setContent(content);
-		workspace.setUpdateDate(LocalDateTime.now());
 
 		if (existingWorkspace.isEmpty()) {
 			entityManager.persist(workspace);

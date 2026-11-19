@@ -108,7 +108,6 @@ public class ImageAssetWriteService {
 		asset.setCreateUser(userId);
 		asset.setUpdateUser(userId);
 		asset.setCreateDate(LocalDateTime.now());
-		asset.setUpdateDate(LocalDateTime.now());
 
 		imageAssetRepository.save(asset);
 
@@ -231,7 +230,6 @@ public class ImageAssetWriteService {
 		}
 
 		asset.setUpdateUser(userId);
-		asset.setUpdateDate(LocalDateTime.now());
 
 		imageAssetRepository.save(asset);
 
@@ -323,7 +321,6 @@ public class ImageAssetWriteService {
 				asset.setFolderName(newFolderName);
 				asset.setStoragePath(newStoragePath);
 				asset.setUpdateUser(userId);
-				asset.setUpdateDate(now);
 			}
 
 			imageAssetRepository.saveAll(assets);

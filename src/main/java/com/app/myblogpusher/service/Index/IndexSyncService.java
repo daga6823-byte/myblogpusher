@@ -140,7 +140,6 @@ public class IndexSyncService {
 	                        extractFrontMatterValue(markdown, "title"));
 	                index.setContent(markdown);
 	                index.setUpdateUser(userId);
-	                index.setUpdateDate(LocalDateTime.now());
 
 	                indexRepository.save(index);
 

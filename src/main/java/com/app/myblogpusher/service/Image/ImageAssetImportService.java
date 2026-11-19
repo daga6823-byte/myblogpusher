@@ -70,7 +70,6 @@ public class ImageAssetImportService {
 			asset.setCreateUser(userId);
 			asset.setUpdateUser(userId);
 			asset.setCreateDate(LocalDateTime.now());
-			asset.setUpdateDate(LocalDateTime.now());
 
 			imageAssetRepository.save(asset);
 			importedCount++;

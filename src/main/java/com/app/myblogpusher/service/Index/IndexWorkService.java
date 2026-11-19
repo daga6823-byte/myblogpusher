@@ -70,7 +70,6 @@ public class IndexWorkService {
 		work.setTitle(title);
 		work.setContent(content);
 		work.setUpdateUser(userId);
-		work.setUpdateDate(now);
 		work.setStatus(0);
 
 		return indexWorkRepository.save(work);
@@ -88,7 +87,6 @@ public class IndexWorkService {
 				.orElseThrow();
 
 		work.setStatus(status);
-		work.setUpdateDate(LocalDateTime.now());
 
 		indexWorkRepository.save(work);
 	}
@@ -105,7 +103,6 @@ public class IndexWorkService {
 				.orElseThrow();
 
 		work.setStatus(status);
-		work.setUpdateDate(LocalDateTime.now());
 
 		indexWorkRepository.save(work);
 	}

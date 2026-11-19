@@ -117,7 +117,6 @@ public class IndexPublishService {
 					thumbnailUrl));
 			index.setThumbnailUrl(thumbnailUrl);
 			index.setUpdateUser(userId);
-			index.setUpdateDate(LocalDateTime.now());
 
 			indexRepository.save(index);
 

@@ -42,8 +42,6 @@ public class ArticleMapper {
 		article.setCreateUser(work.getCreateUser());
 		article.setUpdateUser(work.getUpdateUser());
 
-		article.setUpdateDate(LocalDateTime.now());
-
 		article.setStatus(ArticleStatus.PUBLISHING);
 	}
 

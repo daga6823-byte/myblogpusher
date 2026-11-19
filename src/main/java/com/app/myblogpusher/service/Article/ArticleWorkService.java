@@ -68,7 +68,6 @@ public class ArticleWorkService {
 		// 投稿前
 		work.setStatus(0);
 		work.setCreateDate(now);
-		work.setUpdateDate(now);
 
 		articleWorkRepository.save(work);
 
@@ -99,7 +98,6 @@ public class ArticleWorkService {
 		work.setContent(content);
 		work.setSlug(slug);
 		work.setUpdateUser(userId);
-		work.setUpdateDate(LocalDateTime.now());
 
 		articleWorkRepository.save(work);
 	}
@@ -132,7 +130,6 @@ public class ArticleWorkService {
 
 		work.setStatus(status);
 		work.setUpdateUser(userId);
-		work.setUpdateDate(LocalDateTime.now());
 
 		articleWorkRepository.save(work);
 	}
@@ -163,7 +160,6 @@ public class ArticleWorkService {
 		work.setStatus(status);
 		work.setErrorCode(errorCode);
 		work.setUpdateUser(userId);
-		work.setUpdateDate(LocalDateTime.now());
 
 		articleWorkRepository.save(work);
 	}
@@ -248,7 +244,6 @@ public class ArticleWorkService {
 
 		work.setSlug(slug);
 		work.setUpdateUser(userId);
-		work.setUpdateDate(LocalDateTime.now());
 
 		articleWorkRepository.save(work);
 	}
@@ -267,7 +262,6 @@ public class ArticleWorkService {
 
 		work.setThumbnailUrl(thumbnailUrl);
 		work.setUpdateUser(userId);
-		work.setUpdateDate(LocalDateTime.now());
 
 		articleWorkRepository.save(work);
 	}
@@ -286,7 +280,6 @@ public class ArticleWorkService {
 
 		work.setSlug(slug);
 		work.setUpdateUser(userId);
-		work.setUpdateDate(LocalDateTime.now());
 
 		articleWorkRepository.save(work);
 	}
@@ -305,7 +298,6 @@ public class ArticleWorkService {
 				.orElseThrow();
 
 		work.setHugoPath(hugoPath);
-		work.setUpdateDate(LocalDateTime.now());
 		work.setUpdateUser(userId);
 
 		articleWorkRepository.save(work);

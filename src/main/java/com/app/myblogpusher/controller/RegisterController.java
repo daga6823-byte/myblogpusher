@@ -74,7 +74,6 @@ public class RegisterController {
 		user.setLoginFailedCount(0);
 
 		user.setCreateDate(LocalDateTime.now());
-		user.setUpdateDate(LocalDateTime.now());
 
 		userMasterRepository.save(user);
 

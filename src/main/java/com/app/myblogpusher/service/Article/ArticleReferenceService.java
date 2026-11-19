@@ -67,7 +67,6 @@ public class ArticleReferenceService {
 		reference.setReferenceName(referenceName);
 		reference.setUrl(url);
 		reference.setCreateDate(LocalDateTime.now());
-		reference.setUpdateDate(LocalDateTime.now());
 
 		return articleReferenceRepository.save(reference);
 	}
