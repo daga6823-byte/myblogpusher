@@ -16,11 +16,7 @@ const REPEAT_START_DELAY = 400;
 // オートリピート中の移動間隔（ms）
 const REPEAT_INTERVAL = 80;
 
-// 操作終了からキーボードを復帰させるまでの待機時間（ms）
-const KEYBOARD_RESUME_DELAY = 250;
-
 let isPadActive = false;
-let keyboardResumeTimeoutId = null;
 
 /**
  * 十字キー操作を開始する。
@@ -29,11 +25,6 @@ let keyboardResumeTimeoutId = null;
  * 選択範囲の操作だけ行えるようにする。
  */
 function beginPadInteraction() {
-
-	if (keyboardResumeTimeoutId !== null) {
-		clearTimeout(keyboardResumeTimeoutId);
-		keyboardResumeTimeoutId = null;
-	}
 
 	if (!isPadActive) {
 
@@ -55,21 +46,21 @@ function beginPadInteraction() {
  */
 function endPadInteraction() {
 
-	if (keyboardResumeTimeoutId !== null) {
-		clearTimeout(keyboardResumeTimeoutId);
+	if (!isPadActive) {
+
+		return;
+
 	}
 
-	keyboardResumeTimeoutId = setTimeout(() => {
+	isPadActive = false;
 
-		isPadActive = false;
+	// フォーカスを一度解除し、編集可能な状態に戻してから復帰する。
+	cursorPadTextarea.blur();
 
-		cursorPadTextarea.readOnly = false;
+	cursorPadTextarea.readOnly = false;
 
-		cursorPadTextarea.focus();
-
-		keyboardResumeTimeoutId = null;
-
-	}, KEYBOARD_RESUME_DELAY);
+	// ボタンを離したユーザー操作の中でフォーカスを復帰させる。
+	cursorPadTextarea.focus();
 
 }
 
