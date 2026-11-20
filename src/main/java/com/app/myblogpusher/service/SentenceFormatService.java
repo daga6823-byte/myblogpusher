@@ -65,6 +65,25 @@ public class SentenceFormatService {
 					j++;
 				}
 
+				// 句点の後ろに続く脚注記法 [数字] を含める
+				while (j < normalized.length() && normalized.charAt(j) == '[') {
+
+					int closingBracket = normalized.indexOf(']', j + 1);
+
+					if (closingBracket < 0) {
+						break;
+					}
+
+					String footnoteNumber = normalized.substring(j + 1, closingBracket);
+
+					if (!footnoteNumber.matches("\\d+")) {
+						break;
+					}
+
+					currentSentence.append(normalized, j, closingBracket + 1);
+					j = closingBracket + 1;
+				}
+
 				appendSentence(result, currentSentence.toString());
 
 				currentSentence.setLength(0);
