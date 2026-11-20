@@ -92,8 +92,16 @@ const keepAliveTimer = setInterval(async () => {
 
 	try {
 
+		const csrfToken = document.cookie
+			.split('; ')
+			.find(row => row.startsWith('XSRF-TOKEN='))
+			?.split('=')[1];
+
 		const response = await fetch('/article/session/keepalive', {
-			method: 'POST'
+			method: 'POST',
+			headers: {
+				'X-CSRF-TOKEN': decodeURIComponent(csrfToken || '')
+			}
 		});
 
 		if (response.status === 401) {
