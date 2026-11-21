@@ -103,15 +103,11 @@ public class CsrfProtectionFilter extends OncePerRequestFilter {
 
 		if (!safeMethod) {
 			if (session == null) {
-				response.sendError(
-						HttpServletResponse.SC_FORBIDDEN,
-						"CSRF token is missing");
 
-				applicationErrorLogService.recordSecurityRejection(
-						"CSRF token missing: no session",
-						request);
+				// セッション切れとしてログイン画面へ誘導する
+				response.sendRedirect(request.getContextPath() + "/login");
 
-				logRequest("REJECTED: no session", method, uri, response);
+				logRequest("REDIRECT: session expired", method, uri, response);
 				return;
 			}
 
