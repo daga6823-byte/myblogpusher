@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import com.app.myblogpusher.entity.UserMaster;
 import com.app.myblogpusher.repository.UserMasterRepository;
+import com.app.myblogpusher.service.TokenCipherService;
 import com.app.myblogpusher.service.Login.TwoFactorService;
 
 @Controller
@@ -32,6 +33,9 @@ public class RegisterController {
 
 	@Autowired
 	private TwoFactorService twoFactorService;
+
+	@Autowired
+	private TokenCipherService tokenCipherService;
 
 	@GetMapping("/register")
 	public String registerForm() {
@@ -70,6 +74,10 @@ public class RegisterController {
 
 		// 2FA認証はまだ成功していないため、認証日時は未設定にする。
 		user.setTwoFactorAuthenticatedAt(null);
+		
+		// ユーザー固有の暗号鍵を生成して設定する。
+		// DBのcipher_keyはNOT NULLのため、登録時に必ず設定する。
+		user.setCipherKey(tokenCipherService.generateNewKey());
 
 		user.setLoginFailedCount(0);
 
