@@ -33,8 +33,9 @@
 		</p>
 
 		<form th:action="@{/login/2fa/setup}" method="post">
+			<input type="hidden" name="_csrf" th:value="${_csrf}">
 
-			<label for="code">認証コード</label>
+			<label for="code">認証コード</label>form th:action="@{/login/2fa/setup}" method="post">
 
 			<input type="text" id="code" name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6"
 				autocomplete="one-time-code" required>
