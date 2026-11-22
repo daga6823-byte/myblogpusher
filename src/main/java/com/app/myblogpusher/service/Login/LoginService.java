@@ -38,6 +38,10 @@ public class LoginService {
 		}
 
 		UserMaster user = userOpt.get();
+		
+		System.out.println("[LoginDebug] DB検索成功 loginId=" + user.getLoginId());
+		System.out.println("[LoginDebug] userStatus=" + user.getUserStatus());
+		System.out.println("[LoginDebug] role=" + user.getRole());
 
 		// BANされたユーザーはログインを拒否する。
 		// 未承認ユーザーはパスワード照合後、LoginControllerで
