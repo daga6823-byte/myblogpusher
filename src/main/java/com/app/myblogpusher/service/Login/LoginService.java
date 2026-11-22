@@ -39,15 +39,12 @@ public class LoginService {
 
 		UserMaster user = userOpt.get();
 
-		// BANされたユーザー、承認待ちユーザーはログインを拒否する。
-		// role 0は未承認、role 1以上は承認済みとする。
-		if ("BANNED".equals(user.getUserStatus())
-				|| user.getRole() == null
-				|| user.getRole() < 1
-				|| "PENDING".equals(user.getUserStatus())) {
-
-			logElapsed("認証処理全体", totalStart);
-			return Optional.empty();
+		// BANされたユーザーはログインを拒否する。
+		// 未承認ユーザーはパスワード照合後、LoginControllerで
+		// register_done画面へ遷移させる。
+		if ("BANNED".equals(user.getUserStatus())) {
+		    logElapsed("認証処理全体", totalStart);
+		    return Optional.empty();
 		}
 
 		stepStart = System.nanoTime();

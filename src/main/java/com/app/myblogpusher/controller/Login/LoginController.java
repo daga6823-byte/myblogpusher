@@ -74,6 +74,13 @@ public class LoginController {
 		if (userOpt.isPresent()) {
 		    UserMaster user = userOpt.get();
 
+		    // パスワード認証済みでも、未承認ユーザーはログインさせない。
+		    if (user.getRole() == null
+		            || user.getRole() < 1
+		            || "PENDING".equals(user.getUserStatus())) {
+		        return "redirect:/register_done";
+		    }
+
 		    // 認証成功時にセッションIDを変更し、セッション固定攻撃を防止する。
 		    request.changeSessionId();
 		    
