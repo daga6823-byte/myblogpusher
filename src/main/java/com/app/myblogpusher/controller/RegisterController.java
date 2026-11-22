@@ -42,6 +42,21 @@ public class RegisterController {
 		return "register";
 	}
 
+	/**
+	 * 登録完了・管理者承認待ち画面を表示する。
+	 *
+	 * 登録直後だけでなく、未承認ユーザーがログインを試みた場合にも使用する。
+	 */
+	@GetMapping("/register_done")
+	public String registerDone(Model model) {
+
+		model.addAttribute(
+				"message",
+				"登録が完了しました。管理者の承認をお待ちください。");
+
+		return "register_done";
+	}
+
 	@PostMapping("/register")
 	public String register(
 			@RequestParam String loginId,
@@ -74,7 +89,7 @@ public class RegisterController {
 
 		// 2FA認証はまだ成功していないため、認証日時は未設定にする。
 		user.setTwoFactorAuthenticatedAt(null);
-		
+
 		// ユーザー固有の暗号鍵を生成して設定する。
 		// DBのcipher_keyはNOT NULLのため、登録時に必ず設定する。
 		user.setCipherKey(tokenCipherService.generateNewKey());
