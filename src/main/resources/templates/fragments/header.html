@@ -31,6 +31,7 @@
 				ユーザー名
 			</span>
 			<form th:action="@{/logout}" method="post">
+				<input type="hidden" name="_csrf" th:value="${_csrf}">
 				<button type="submit" class="header-logout">
 					ログアウト
 				</button>

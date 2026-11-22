@@ -40,4 +40,14 @@ public interface UserMasterRepository extends JpaRepository<UserMaster, Long> {
 	 * @return 暗号化キーが未設定のユーザー一覧
 	 */
 	List<UserMaster> findByCipherKeyIsNull();
+
+	/**
+	 * 承認待ちのユーザーを登録日時順に取得する。
+	 *
+	 * 管理者によるユーザー承認画面で使用する。
+	 *
+	 * @param userStatus ユーザー状態（PENDING）
+	 * @return 承認待ちユーザー一覧
+	 */
+	List<UserMaster> findByUserStatusOrderByCreateDateAsc(String userStatus);
 }

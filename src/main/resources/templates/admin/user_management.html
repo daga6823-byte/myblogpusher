@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8">
+	<title>ユーザー管理</title>
+
+	<link rel="stylesheet" th:href="@{/css/category_list.css}">
+	<link rel="stylesheet" th:href="@{/css/home.css}">
+	<link rel="stylesheet" th:href="@{/css/common.css}">
+
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+<body>
+
+	<!-- 共通ヘッダー -->
+	<div th:replace="~{fragments/header :: header}"></div>
+
+	<div class="home-header">
+		<h1>ユーザー管理</h1>
+	</div>
+
+	<!-- 更新成功メッセージ -->
+	<div th:if="${message != null}" th:text="${message}" style="color: #1a7f37; margin-bottom: 10px;">
+	</div>
+
+	<!-- エラーメッセージ -->
+	<div th:if="${errorMessage != null}" class="error-message" th:text="${errorMessage}">
+	</div>
+
+	<table>
+		<thead>
+			<tr>
+				<th>ユーザーID</th>
+				<th>ログインID</th>
+				<th>ユーザー名</th>
+				<th>メールアドレス</th>
+				<th>ロール</th>
+				<th>ユーザー状態</th>
+				<th>権限変更</th>
+			</tr>
+		</thead>
+
+		<tbody>
+			<tr th:each="user : ${users}">
+
+				<td th:text="${user.userId}"></td>
+
+				<td th:text="${user.loginId}"></td>
+
+				<td th:text="${user.userName}"></td>
+
+				<td th:text="${user.email}"></td>
+
+				<td>
+					<span th:if="${user.role == 0}">承認待ち</span>
+					<span th:if="${user.role == 1}">一般ユーザー</span>
+					<span th:if="${user.role == 2}">管理者</span>
+				</td>
+
+				<td th:text="${user.userStatus}"></td>
+
+				<td>
+					<form th:if="${session.loginUser.role >= 2}"
+						th:action="@{/admin/users/{userId}/role(userId=${user.userId})}" method="post">
+
+						<!-- CSRFトークン -->
+						<input type="hidden" name="_csrf" th:value="${_csrf}">
+
+						<select name="role" required>
+							<option value="0" th:selected="${user.role == 0}">
+								承認待ち
+							</option>
+
+							<option value="1" th:selected="${user.role == 1}">
+								一般ユーザー
+							</option>
+
+							<option value="2" th:selected="${user.role == 2}">
+								管理者
+							</option>
+						</select>
+
+						<button type="submit" class="btn-correct">
+							変更
+						</button>
+					</form>
+				</td>
+
+			</tr>
+
+			<tr th:if="${#lists.isEmpty(users)}">
+				<td colspan="7">
+					管理対象のユーザーはいません。
+				</td>
+			</tr>
+		</tbody>
+	</table>
+
+	<button type="button" id="backButton" class="btn-back">
+		戻る
+	</button>
+
+	<script th:src="@{/js/common.js}"></script>
+
+</body>
+
+</html>
