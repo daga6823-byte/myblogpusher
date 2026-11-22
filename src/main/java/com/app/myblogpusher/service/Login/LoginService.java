@@ -1,5 +1,6 @@
 package com.app.myblogpusher.service.Login;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,10 +39,6 @@ public class LoginService {
 		}
 
 		UserMaster user = userOpt.get();
-		
-		System.out.println("[LoginDebug] DB検索成功 loginId=" + user.getLoginId());
-		System.out.println("[LoginDebug] userStatus=" + user.getUserStatus());
-		System.out.println("[LoginDebug] role=" + user.getRole());
 
 		// BANされたユーザーはログインを拒否する。
 		// 未承認ユーザーはパスワード照合後、LoginControllerで
@@ -171,6 +168,6 @@ public class LoginService {
 
 		return !user.getTwoFactorAuthenticatedAt()
 				.plusMonths(1)
-				.isAfter(java.time.LocalDateTime.now());
+				.isAfter(LocalDateTime.now());
 	}
 }

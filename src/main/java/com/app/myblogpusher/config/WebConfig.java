@@ -41,6 +41,7 @@ public class WebConfig implements WebMvcConfigurer {
 						"/login/forgot",
 						"/login/reset",
 						"/register",
+						"/register_done",
 						"/health",
 						"/css/**",
 						"/js/**",
