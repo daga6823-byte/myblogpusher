@@ -25,6 +25,9 @@ public class MenuMaster {
     @Column(name = "min_role", nullable = false)
     private Integer minRole;
     
+    @Column(name = "display_order", nullable = false)
+    private Integer displayOrder;
+    
     @Column(name = "create_date")
     private LocalDateTime createDate;
 

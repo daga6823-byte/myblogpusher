@@ -57,7 +57,7 @@ public class TemplateController {
 	 */
 	@GetMapping("/template")
 	public String templateHome() {
-		return "template";
+		return "template/template";
 	}
 
 	/**
@@ -76,7 +76,7 @@ public class TemplateController {
 				"templates",
 				templateService.getTemplates(userId));
 
-		return "template/template_list";
+		return "template/template/template_list";
 	}
 
 	/**
@@ -87,7 +87,7 @@ public class TemplateController {
 
 		model.addAttribute("template", new Template());
 
-		return "template/template_edit";
+		return "template/template/template_edit";
 	}
 
 	/**
@@ -175,7 +175,7 @@ public class TemplateController {
 				"colors",
 				templateColorService.getColors(userId));
 
-		return "template/template_edit";
+		return "template/template/template_edit";
 	}
 
 	/**

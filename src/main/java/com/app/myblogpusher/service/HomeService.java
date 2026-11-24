@@ -15,6 +15,6 @@ public class HomeService {
     private MenuMasterRepository menuMasterRepository;
 
     public List<MenuMaster> findVisibleMenus(Integer role) {
-        return menuMasterRepository.findByMinRoleLessThanEqualOrderByMinRoleAsc(role);
+        return menuMasterRepository.findByMinRoleLessThanEqualOrderByDisplayOrderAsc(role);
     }
 }

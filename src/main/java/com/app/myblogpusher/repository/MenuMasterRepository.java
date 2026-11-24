@@ -7,5 +7,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import com.app.myblogpusher.entity.MenuMaster;
 
 public interface MenuMasterRepository extends JpaRepository<MenuMaster, String> {
-    List<MenuMaster> findByMinRoleLessThanEqualOrderByMinRoleAsc(Integer role);
+	List<MenuMaster> findByMinRoleLessThanEqualOrderByDisplayOrderAsc(Integer role);
 }
