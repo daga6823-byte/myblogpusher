@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8">
+	<title>テンプレート管理</title>
+
+	<link rel="stylesheet" th:href="@{/css/common.css}">
+	<link rel="stylesheet" th:href="@{/css/template_list.css}">
+
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+<body>
+
+	<div th:replace="~{fragments/header :: header}"></div>
+
+	<div class="home-header">
+		<h1>テンプレート管理</h1>
+	</div>
+
+	<div class="box">
+
+		<div class="modal-footer">
+			<button type="button" id="addTemplateButton" class="btn-save">
+				テンプレート追加
+			</button>
+		</div>
+
+		<table>
+			<thead>
+				<tr>
+					<th>テンプレート名</th>
+					<th>識別名</th>
+					<th>説明</th>
+					<th>操作</th>
+				</tr>
+			</thead>
+
+			<tbody>
+				<tr th:each="template : ${templates}">
+					<td th:text="${template.templateName}"></td>
+					<td th:text="${template.templateKey}"></td>
+					<td th:text="${template.templateDescription}"></td>
+					<td>
+						<button type="button" class="editTemplateButton" th:attr="
+								data-id=${template.templateId},
+								data-name=${template.templateName},
+								data-key=${template.templateKey},
+								data-description=${template.templateDescription}">
+							編集
+						</button>
+
+						<button type="button" class="deleteTemplateButton" th:attr="data-id=${template.templateId}">
+							削除
+						</button>
+					</td>
+				</tr>
+
+				<tr th:if="${#lists.isEmpty(templates)}">
+					<td colspan="4">テンプレートは登録されていません。</td>
+				</tr>
+			</tbody>
+		</table>
+
+	</div>
+
+	<div th:replace="~{fragments/template_modal :: templateModal}"></div>
+
+	<button type="button" id="backButton" class="btn-back">戻る</button>
+
+	<script th:src="@{/js/common.js}"></script>
+	<script th:src="@{/js/template/template_list.js}"></script>
+
+</body>
+
+</html>

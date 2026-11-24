@@ -5,6 +5,7 @@
 package com.app.myblogpusher.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -41,5 +42,12 @@ public interface ImageAssetRepository extends JpaRepository<ImageAsset, Long> {
 	List<ImageAsset> findByUserIdAndFolderName(
 			Long userId,
 			String folderName);
+
+	/**
+	 * ログインユーザーが所有する画像を画像IDで取得する。
+	 */
+	Optional<ImageAsset> findByImageIdAndUserId(
+			Long imageId,
+			Long userId);
 
 }

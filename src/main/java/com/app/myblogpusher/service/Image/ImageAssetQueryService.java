@@ -143,7 +143,21 @@ public class ImageAssetQueryService {
 
 		return listImages(userId, folderName);
 	}
-	
+
+	/**
+	 * 画像IDからログインユーザー本人の画像URLを取得する。
+	 *
+	 * 他ユーザーが所有する画像は取得できない。
+	 */
+	public String getImageUrl(Long userId, Long imageId) {
+
+		ImageAsset asset = imageAssetRepository
+				.findByImageIdAndUserId(imageId, userId)
+				.orElseThrow(() -> new IllegalArgumentException("対象の画像が見つかりません。"));
+
+		return supabaseStorageService.getImageUrl(asset.getStoragePath());
+	}
+
 	/**
 	 * 画像情報を画面表示用DTOへ変換する。
 	 */

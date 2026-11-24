@@ -1,0 +1,118 @@
+/*
+ * テンプレート編集画面のレイアウトと装飾を担当するCSS
+ */
+
+.template-editor {
+	max-width: 1200px;
+	margin: 0 auto;
+	padding: 24px;
+}
+
+.template-editor-header,
+.template-editor-footer,
+.template-editor-toolbar {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	margin-bottom: 20px;
+}
+
+.template-editor-header {
+	justify-content: space-between;
+}
+
+.template-basic-info {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 16px;
+	margin-bottom: 24px;
+}
+
+.form-group {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.form-group label {
+	font-weight: bold;
+}
+
+.form-group input,
+.form-group textarea {
+	box-sizing: border-box;
+	width: 100%;
+	padding: 8px;
+}
+
+.form-group textarea {
+	min-height: 80px;
+	resize: vertical;
+}
+
+.template-editor-toolbar {
+	flex-wrap: wrap;
+}
+
+.template-editor-toolbar button,
+.template-editor-footer button {
+	padding: 8px 16px;
+	cursor: pointer;
+}
+
+.template-layout-editor {
+	margin-top: 32px;
+}
+
+.template-grid {
+	display: grid;
+	grid-template-columns: repeat(var(--column-count, 1), minmax(80px, 1fr));
+	gap: 2px;
+	min-height: 120px;
+	padding: 8px;
+	border: 1px solid #888;
+	overflow-x: auto;
+}
+
+.template-cell {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 0;
+	min-height: 80px;
+	padding: 8px;
+	border: 1px solid #777;
+	background-color: #fff;
+	cursor: pointer;
+	overflow-wrap: anywhere;
+	text-align: center;
+}
+
+.template-cell.selected {
+	outline: 3px solid #4285f4;
+	outline-offset: -3px;
+}
+
+.template-cell.empty {
+	background-color: #f2f2f2;
+}
+
+.template-cell.variable {
+	color: #245a9b;
+	font-weight: bold;
+}
+
+.template-cell.image {
+	color: #666;
+	background-color: #eee;
+}
+
+@media (max-width: 700px) {
+	.template-basic-info {
+		grid-template-columns: 1fr;
+	}
+
+	.template-editor {
+		padding: 12px;
+	}
+}

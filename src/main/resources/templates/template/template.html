@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8">
+	<title>テンプレート管理</title>
+	<link rel="stylesheet" th:href="@{/css/common.css}">
+</head>
+
+<body>
+
+	<div th:replace="~{fragments/header :: header}"></div>
+
+	<main class="container">
+
+		<h1>テンプレート管理</h1>
+
+		<div class="menu-list">
+
+			<div class="menu-item">
+				<a th:href="@{/template/list}">テンプレート一覧</a>
+			</div>
+
+			<div class="menu-item">
+				<a th:href="@{/template/new}">テンプレート新規作成</a>
+			</div>
+
+		</div>
+
+	</main>
+
+</body>
+
+</html>

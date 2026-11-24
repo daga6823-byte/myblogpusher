@@ -1,0 +1,45 @@
+<!-- テンプレート追加・編集モーダル -->
+
+<div th:fragment="templateModal">
+
+	<div id="templateModal" class="modal" style="display:none;">
+
+		<div class="modal-content">
+
+			<h2 id="templateModalTitle">テンプレート編集</h2>
+
+			<input type="hidden" id="templateId">
+
+			<div class="form-group">
+
+				<label for="templateName">テンプレート名</label>
+				<input type="text" id="templateName">
+
+			</div>
+
+			<div class="form-group">
+
+				<label for="templateKey">テンプレート識別名</label>
+				<input type="text" id="templateKey">
+
+			</div>
+
+			<div class="form-group">
+
+				<label for="templateDescription">説明</label>
+				<textarea id="templateDescription"></textarea>
+
+			</div>
+
+			<div class="modal-footer">
+
+				<button type="button" id="saveTemplateButton" class="btn-correct">保存</button>
+				<button type="button" id="cancelTemplateButton" class="btn-delete">キャンセル</button>
+
+			</div>
+
+		</div>
+
+	</div>
+
+</div>

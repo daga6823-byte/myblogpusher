@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<body>
+
+	<!--
+		テンプレート選択モーダル
+
+		登録済みテンプレートの一覧表示と選択を担当する。
+		一覧取得と記事本文への挿入処理はJavaScript側で管理する。
+	-->
+	<div th:fragment="templateSelectModal">
+
+		<div id="templateSelectModal" class="modal" style="display:none;">
+
+			<div class="modal-content">
+
+				<h2>テンプレート選択</h2>
+
+				<!-- テンプレート一覧 -->
+				<div id="templateSelectList">
+					<p>テンプレートを読み込んでください。</p>
+				</div>
+
+				<div class="modal-buttons">
+					<button type="button" id="insertTemplateButton" disabled>
+						挿入
+					</button>
+
+					<button type="button" id="closeTemplateModalButton">
+						キャンセル
+					</button>
+				</div>
+
+			</div>
+
+		</div>
+
+	</div>
+
+</body>
+
+</html>

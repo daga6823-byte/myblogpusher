@@ -1,0 +1,25 @@
+/**
+ * テンプレートの色履歴のDB操作を担当するRepository
+ *
+ * ユーザーごとに使用したカラーコードを管理する。
+ */
+package com.app.myblogpusher.repository.Template;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.app.myblogpusher.entity.Template.TemplateColor;
+
+public interface TemplateColorRepository extends JpaRepository<TemplateColor, Long> {
+
+	/**
+	 * ユーザーの色履歴を登録日時の降順で取得する。
+	 */
+	List<TemplateColor> findByUserIdOrderByCreateDateDesc(Long userId);
+
+	/**
+	 * ユーザーが同じカラーコードを既に登録しているか確認する。
+	 */
+	boolean existsByUserIdAndColorCode(Long userId, String colorCode);
+}

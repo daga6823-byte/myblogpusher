@@ -8,6 +8,28 @@
 import { imageState } from './image_state.js';
 import { loadImageFolders, loadImageCategories } from './image_folders.js';
 
+/**
+ * テンプレート編集画面からの画像選択コールバック
+ */
+let imageSelectionCallback = null;
+
+/**
+ * テンプレート編集画面から画像選択モーダルを開く。
+ */
+export function openImageSelector(onSelect) {
+	imageSelectionCallback = onSelect;
+
+	const modal = document.getElementById("imageModal");
+
+	if (!modal) {
+		imageSelectionCallback = null;
+		throw new Error("画像選択モーダルが見つかりません。");
+	}
+
+	modal.style.display = "block";
+	loadImageList();
+}
+
 // 画像一覧を表示する
 export function loadImageList() {
 
@@ -194,6 +216,22 @@ export function loadImageList() {
 						return;
 					}
 
+					// テンプレート編集画面からの画像選択
+					if (imageSelectionCallback) {
+						const callback = imageSelectionCallback;
+						imageSelectionCallback = null;
+
+						callback({
+							imageId: img.imageId,
+							url: img.url,
+							fileName: img.fileName
+						});
+
+						document.getElementById("imageModal").style.display = "none";
+						return;
+					}
+
+					// 通常の記事本文への画像挿入
 					insertImage(img.url);
 				});
 

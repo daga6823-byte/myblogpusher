@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8">
+	<title>テンプレート編集</title>
+	<link rel="stylesheet" th:href="@{/css/common.css}">
+	<link rel="stylesheet" th:href="@{/css/template_edit.css}">
+
+	<!-- テンプレート編集画面の操作処理 -->
+	<script type="module" th:src="@{/js/facede/template_facade.js}"></script>
+</head>
+
+<body>
+
+	<div th:replace="~{fragments/header :: header}"></div>
+
+	<main class="template-editor">
+
+		<!-- 画面タイトル -->
+		<div class="template-editor-header">
+			<h1>テンプレート編集</h1>
+			<a th:href="@{/template/list}">一覧へ戻る</a>
+		</div>
+
+		<!-- テンプレート基本情報 -->
+		<form id="templateForm" th:action="@{/template/save}" th:object="${template}" method="post">
+
+			<input type="hidden" th:field="*{templateId}">
+
+			<div class="template-basic-info">
+
+				<div class="form-group">
+					<label for="templateName">テンプレート名</label>
+					<input type="text" id="templateName" th:field="*{templateName}" maxlength="255" required>
+				</div>
+
+				<div class="form-group">
+					<label for="templateKey">テンプレート識別キー</label>
+					<input type="text" id="templateKey" th:field="*{templateKey}" maxlength="100" required>
+				</div>
+
+				<div class="form-group">
+					<label for="templateDescription">説明</label>
+					<textarea id="templateDescription" th:field="*{templateDescription}"></textarea>
+				</div>
+
+				<div class="form-group">
+					<label for="backgroundColor">全体背景色</label>
+					<input type="color" id="backgroundColor" name="backgroundColor" th:value="${template.backgroundColor != null
+								? template.backgroundColor : '#FFFFFF'}">
+				</div>
+
+			</div>
+
+			<div class="template-editor-toolbar">
+				<button type="button" id="addRowButton">行を追加</button>
+				<button type="button" id="addColumnButton">列を追加</button>
+				<button type="button" id="addTextCellButton">テキストセル</button>
+				<button type="button" id="addVariableCellButton">変数セル</button>
+				<button type="button" id="addEmptyCellButton">空白セル</button>
+				<button type="button" id="addImageCellButton">画像セル</button>
+			</div>
+
+			<!-- レイアウト編集領域 -->
+			<section class="template-layout-editor">
+				<h2>レイアウト</h2>
+
+				<div id="templateGrid" class="template-grid" th:style="'background-color: '
+		+ (${template.backgroundColor != null
+			? template.backgroundColor : '#FFFFFF'})" th:data-rows="${rowsJson}" th:data-columns="${columnsJson}"
+					th:data-cells="${cellsJson}">
+
+					<p th:if="${#lists.isEmpty(rows) and #lists.isEmpty(columns)}">
+						まだレイアウトがありません。行・列を追加してください。
+					</p>
+
+					<!-- 既存の画像選択モーダル -->
+					<div th:replace="~{fragments/image_modal :: imageModal}"></div>
+			</section>
+
+			<div class="template-editor-footer">
+				<button type="submit">テンプレート情報を保存</button>
+			</div>
+
+		</form>
+
+	</main>
+
+</body>
+
+</html>

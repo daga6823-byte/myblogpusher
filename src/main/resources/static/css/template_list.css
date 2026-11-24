@@ -1,0 +1,27 @@
+/* テンプレート一覧 */
+
+table {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+/* スマートフォン表示 */
+@media (max-width: 600px) {
+
+	table {
+		display: block;
+		overflow-x: auto;
+		white-space: nowrap;
+		-webkit-overflow-scrolling: touch;
+	}
+
+	table th,
+	table td {
+		min-width: 120px;
+	}
+
+	table th:last-child,
+	table td:last-child {
+		min-width: 100px;
+	}
+}
