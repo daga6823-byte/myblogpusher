@@ -12,7 +12,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.app.myblogpusher.entity.Template.TemplateColor;
+import com.app.myblogpusher.entity.Template.TemplateColorEntity;
 import com.app.myblogpusher.repository.Template.TemplateColorRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -28,7 +28,7 @@ public class TemplateColorService {
 	 * ユーザーの色履歴を新しい順に取得する。
 	 */
 	@Transactional(readOnly = true)
-	public List<TemplateColor> getColors(Long userId) {
+	public List<TemplateColorEntity> getColors(Long userId) {
 		return templateColorRepository.findByUserIdOrderByCreateDateDesc(userId);
 	}
 
@@ -41,7 +41,7 @@ public class TemplateColorService {
 			return;
 		}
 
-		TemplateColor color = new TemplateColor();
+		TemplateColorEntity color = new TemplateColorEntity();
 		color.setUserId(userId);
 		color.setColorCode(colorCode);
 		color.setCreateDate(LocalDateTime.now());

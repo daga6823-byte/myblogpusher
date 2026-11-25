@@ -1,23 +1,12 @@
-/**
- * template_cell.js
- *
- * セル選択、セル種類の変更、セル内容の保存を担当する。
- */
 
+/**
+ * テンプレートセルの種類と内容の管理を担当する。
+ *
+ * TEXT・VARIABLE・EMPTY・IMAGE の設定とDB保存、
+ * 保存後のセル表示更新を行う。
+ */
 import { templateState } from "./template_state.js";
 import { callLayoutApi } from "./template_api.js";
-
-/**
- * 選択セルを切り替える。
- */
-export function selectCell(cell) {
-	if (templateState.selectedCell) {
-		templateState.selectedCell.classList.remove("selected");
-	}
-
-	templateState.selectedCell = cell;
-	cell.classList.add("selected");
-}
 
 /**
  * セル表示を更新する。
@@ -56,13 +45,13 @@ function updateCellDisplay(
  * セル種類と内容をDBへ保存する。
  */
 export async function changeCellType(cellType, values = {}) {
+
 	if (!templateState.selectedCell) {
 		alert("編集するセルを選択してください。");
 		return;
 	}
 
 	const cell = templateState.selectedCell;
-
 	const rowNumber = Number(cell.dataset.row) + 1;
 	const columnNumber = Number(cell.dataset.column) + 1;
 
@@ -79,6 +68,7 @@ export async function changeCellType(cellType, values = {}) {
 	}
 
 	if (cellType === "IMAGE") {
+
 		if (!values.imageAssetId) {
 			alert("画像を選択してください。");
 			return;
@@ -90,9 +80,11 @@ export async function changeCellType(cellType, values = {}) {
 	}
 
 	try {
+
 		let result;
 
 		if (cell.dataset.cellId) {
+
 			result = await callLayoutApi(
 				"/template/api/layout/cell/save",
 				{
@@ -100,12 +92,14 @@ export async function changeCellType(cellType, values = {}) {
 					...params
 				}
 			);
+
 		} else {
+
 			result = await callLayoutApi(
 				"/template/api/layout/cell/create",
 				{
-					rowNumber: rowNumber,
-					columnNumber: columnNumber,
+					rowNumber,
+					columnNumber,
 					...params
 				}
 			);
@@ -149,6 +143,7 @@ export async function changeCellType(cellType, values = {}) {
  * 固定テキストセルを設定する。
  */
 function setTextCell() {
+
 	if (!templateState.selectedCell) {
 		alert("編集するセルを選択してください。");
 		return;
@@ -169,6 +164,7 @@ function setTextCell() {
  * 変数セルを設定する。
  */
 function setVariableCell() {
+
 	if (!templateState.selectedCell) {
 		alert("編集するセルを選択してください。");
 		return;
@@ -186,7 +182,7 @@ function setVariableCell() {
 	}
 
 	changeCellType("VARIABLE", {
-		variableName: variableName
+		variableName
 	});
 }
 
@@ -197,7 +193,11 @@ function setEmptyCell() {
 	changeCellType("EMPTY");
 }
 
+/**
+ * セル種類変更ボタンを登録する。
+ */
 document.addEventListener("DOMContentLoaded", () => {
+
 	document.getElementById("addTextCellButton")
 		?.addEventListener("click", setTextCell);
 

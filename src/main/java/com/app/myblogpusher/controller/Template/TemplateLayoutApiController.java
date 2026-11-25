@@ -31,7 +31,7 @@ import jakarta.servlet.http.HttpSession;
 public class TemplateLayoutApiController {
 
 	@Autowired
-	private TemplateLayoutFacadeService  templateLayoutFacadeService;
+	private TemplateLayoutFacadeService templateLayoutFacadeService;
 
 	@Autowired
 	private TemplateService templateService;
@@ -205,12 +205,16 @@ public class TemplateLayoutApiController {
 	public ResponseEntity<TemplateCell> saveCell(
 			@RequestParam Long templateId,
 			@RequestParam Long cellId,
-			@RequestParam String cellType,
+			@RequestParam(required = false) String cellType,
 			@RequestParam(required = false) String cellContent,
 			@RequestParam(required = false) String variableName,
 			@RequestParam(required = false) Long imageAssetId,
 			@RequestParam(required = false) BigDecimal imageWidth,
 			@RequestParam(required = false) BigDecimal imageHeight,
+			@RequestParam(required = false) String textColor,
+			@RequestParam(required = false) String backgroundColor,
+			@RequestParam(required = false) BigDecimal fontSize,
+			@RequestParam(required = false) String fontWeight,
 			HttpSession session) {
 
 		getOwnedTemplate(templateId, session);
@@ -222,36 +226,64 @@ public class TemplateLayoutApiController {
 				.findFirst()
 				.orElseThrow(() -> new IllegalArgumentException("対象のセルが見つかりません。"));
 
-		// セルの種類を更新する。
-		cell.setCellType(cellType);
+		// セル種類が指定された場合だけ、種類と内容を更新する。
+		if (cellType != null) {
 
-		// セル種類に応じて保存項目を切り替える。
-		cell.setCellContent(null);
-		cell.setVariableName(null);
-		cell.setImageAssetId(null);
-		cell.setImageWidth(null);
-		cell.setImageHeight(null);
+			cell.setCellType(cellType);
 
-		switch (cellType) {
-		case "TEXT":
-			cell.setCellContent(cellContent);
-			break;
+			switch (cellType) {
+			case "TEXT":
+				cell.setCellContent(cellContent);
+				cell.setVariableName(null);
+				cell.setImageAssetId(null);
+				cell.setImageWidth(null);
+				cell.setImageHeight(null);
+				break;
 
-		case "VARIABLE":
-			cell.setVariableName(variableName);
-			break;
+			case "VARIABLE":
+				cell.setCellContent(null);
+				cell.setVariableName(variableName);
+				cell.setImageAssetId(null);
+				cell.setImageWidth(null);
+				cell.setImageHeight(null);
+				break;
 
-		case "IMAGE":
-			cell.setImageAssetId(imageAssetId);
-			cell.setImageWidth(imageWidth);
-			cell.setImageHeight(imageHeight);
-			break;
+			case "IMAGE":
+				cell.setCellContent(null);
+				cell.setVariableName(null);
+				cell.setImageAssetId(imageAssetId);
+				cell.setImageWidth(imageWidth);
+				cell.setImageHeight(imageHeight);
+				break;
 
-		case "EMPTY":
-			break;
+			case "EMPTY":
+				cell.setCellContent(null);
+				cell.setVariableName(null);
+				cell.setImageAssetId(null);
+				cell.setImageWidth(null);
+				cell.setImageHeight(null);
+				break;
 
-		default:
-			throw new IllegalArgumentException("不正なセル種類です。");
+			default:
+				throw new IllegalArgumentException("不正なセル種類です。");
+			}
+		}
+
+		// 装飾項目は指定されたものだけ更新する。
+		if (textColor != null) {
+			cell.setTextColor(textColor);
+		}
+
+		if (backgroundColor != null) {
+			cell.setBackgroundColor(backgroundColor);
+		}
+
+		if (fontSize != null) {
+			cell.setFontSize(fontSize);
+		}
+
+		if (fontWeight != null) {
+			cell.setFontWeight(fontWeight);
 		}
 
 		// 既存のレイアウト保存処理を利用する。

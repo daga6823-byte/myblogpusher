@@ -6,7 +6,7 @@
 
 import { templateState } from "./template_state.js";
 import { callLayoutApi } from "./template_api.js";
-import { selectCell } from "./template_cell.js";
+import { selectCell } from "../facade/template_cell_facade.js";
 
 /**
  * セル要素を生成する。
@@ -23,8 +23,8 @@ export function createCell(row, column) {
 	cell.style.gridColumn = `${column + 1}`;
 	cell.textContent = "空白";
 
-	cell.addEventListener("click", () => {
-		selectCell(cell);
+	cell.addEventListener("click", (event) => {
+		selectCell(cell, event);
 	});
 
 	return cell;
@@ -52,6 +52,7 @@ export function restoreGrid() {
 	templateState.rowCount = rows.length;
 	templateState.columnCount = columns.length;
 	templateState.selectedCell = null;
+	templateState.selectedCells = [];
 
 	grid.replaceChildren();
 
@@ -232,8 +233,70 @@ document.addEventListener("DOMContentLoaded", () => {
 	document.getElementById("addRowButton")
 		?.addEventListener("click", addRow);
 
+	document.getElementById("deleteRowButton")
+		?.addEventListener("click", deleteRow);
+
 	document.getElementById("addColumnButton")
 		?.addEventListener("click", addColumn);
 
+	document.getElementById("deleteColumnButton")
+		?.addEventListener("click", deleteColumn);
+
 	restoreGrid();
 });
+
+/**
+ * 選択セルが属する行を削除する。
+ */
+async function deleteRow() {
+	const selectedCell = templateState.selectedCell;
+
+	if (!selectedCell) {
+		alert("削除する行のセルを選択してください。");
+		return;
+	}
+
+	const rowNumber = Number(selectedCell.dataset.row) + 1;
+
+	if (!confirm(`${rowNumber}行目を削除しますか？`)) {
+		return;
+	}
+
+	try {
+		await callLayoutApi(
+			"/template/api/layout/row/delete",
+			{ rowNumber },
+			true
+		);
+	} catch (error) {
+		alert(error.message);
+	}
+}
+
+/**
+ * 選択セルが属する列を削除する。
+ */
+async function deleteColumn() {
+	const selectedCell = templateState.selectedCell;
+
+	if (!selectedCell) {
+		alert("削除する列のセルを選択してください。");
+		return;
+	}
+
+	const columnNumber = Number(selectedCell.dataset.column) + 1;
+
+	if (!confirm(`${columnNumber}列目を削除しますか？`)) {
+		return;
+	}
+
+	try {
+		await callLayoutApi(
+			"/template/api/layout/column/delete",
+			{ columnNumber },
+			true
+		);
+	} catch (error) {
+		alert(error.message);
+	}
+}

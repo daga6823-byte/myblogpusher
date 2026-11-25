@@ -9,14 +9,14 @@ import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.app.myblogpusher.entity.Template.TemplateColor;
+import com.app.myblogpusher.entity.Template.TemplateColorEntity;
 
-public interface TemplateColorRepository extends JpaRepository<TemplateColor, Long> {
+public interface TemplateColorRepository extends JpaRepository<TemplateColorEntity, Long> {
 
 	/**
 	 * ユーザーの色履歴を登録日時の降順で取得する。
 	 */
-	List<TemplateColor> findByUserIdOrderByCreateDateDesc(Long userId);
+	List<TemplateColorEntity> findByUserIdOrderByCreateDateDesc(Long userId);
 
 	/**
 	 * ユーザーが同じカラーコードを既に登録しているか確認する。

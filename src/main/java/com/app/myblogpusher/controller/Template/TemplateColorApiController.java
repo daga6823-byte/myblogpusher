@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.app.myblogpusher.entity.UserMaster;
-import com.app.myblogpusher.entity.Template.TemplateColor;
+import com.app.myblogpusher.entity.Template.TemplateColorEntity;
 import com.app.myblogpusher.service.Template.TemplateColorService;
 import com.app.myblogpusher.util.LoginUserUtil;
 
@@ -40,7 +40,7 @@ public class TemplateColorApiController {
 	 * ログインユーザーの最近使用した色を取得する。
 	 */
 	@GetMapping("/template/color/history")
-	public ResponseEntity<List<TemplateColor>> getColorHistory(
+	public ResponseEntity<List<TemplateColorEntity>> getColorHistory(
 			HttpSession session) {
 
 		UserMaster loginUser = LoginUserUtil.getLoginUser(session);
@@ -49,7 +49,7 @@ public class TemplateColorApiController {
 			return ResponseEntity.status(401).build();
 		}
 
-		List<TemplateColor> colors = templateColorService.getColors(
+		List<TemplateColorEntity> colors = templateColorService.getColors(
 				loginUser.getUserId());
 
 		return ResponseEntity.ok(colors);

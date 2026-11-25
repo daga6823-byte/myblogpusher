@@ -156,3 +156,37 @@
 		padding: 12px;
 	}
 }
+
+/* 色履歴の表示領域 */
+#templateColorHistory {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+	margin-top: 8px;
+}
+
+/* 色履歴ボタン */
+#templateColorHistory .template-color-history-item {
+	box-sizing: border-box;
+	width: 32px;
+	height: 32px;
+	min-width: 32px;
+	padding: 0;
+	border: 2px solid #888;
+	border-radius: 5px;
+	cursor: pointer;
+	transition: transform 0.15s, border-color 0.15s;
+}
+
+/* ホバー時 */
+#templateColorHistory .template-color-history-item:hover {
+	transform: scale(1.15);
+	border-color: #222;
+}
+
+/* キーボード選択時 */
+#templateColorHistory .template-color-history-item:focus-visible {
+	outline: 3px solid #4285f4;
+	outline-offset: 2px;
+}

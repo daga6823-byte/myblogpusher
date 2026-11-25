@@ -21,7 +21,7 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(name = "template_color")
-public class TemplateColor {
+public class TemplateColorEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -7,5 +7,6 @@ export const templateState = {
 	grid: null,
 	rowCount: 1,
 	columnCount: 1,
-	selectedCell: null
+	selectedCell: null,
+	selectedCells: []
 };

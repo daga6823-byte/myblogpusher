@@ -8,7 +8,7 @@
  * 配置枠と表示サイズを保存する。
  */
 
-import { changeCellType } from "./template_cell.js";
+import { changeCellType } from "../facade/template_cell_facade.js";
 
 /**
  * 画像配置用のセルを設定する。

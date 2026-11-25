@@ -26,6 +26,8 @@
 		<!-- テンプレート基本情報 -->
 		<form id="templateForm" th:action="@{/template/save}" th:object="${template}" method="post">
 
+			<input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
 			<input type="hidden" th:field="*{templateId}">
 
 			<div class="template-basic-info">
@@ -54,12 +56,67 @@
 			</div>
 
 			<div class="template-editor-toolbar">
-				<button type="button" id="addRowButton">行を追加</button>
-				<button type="button" id="addColumnButton">列を追加</button>
-				<button type="button" id="addTextCellButton">テキストセル</button>
-				<button type="button" id="addVariableCellButton">変数セル</button>
-				<button type="button" id="addEmptyCellButton">空白セル</button>
-				<button type="button" id="addImageCellButton">画像セル</button>
+
+				<!-- 行・列操作 -->
+				<div class="toolbar-group">
+					<button type="button" id="addRowButton">行を追加</button>
+					<button type="button" id="deleteRowButton">選択行を削除</button>
+					<button type="button" id="addColumnButton">列を追加</button>
+					<button type="button" id="deleteColumnButton">選択列を削除</button>
+				</div>
+
+				<!-- セル追加 -->
+				<div class="toolbar-group">
+					<button type="button" id="addTextCellButton">テキストセル</button>
+					<button type="button" id="addVariableCellButton">変数セル</button>
+					<button type="button" id="addEmptyCellButton">空白セル</button>
+					<button type="button" id="addImageCellButton">画像セル</button>
+				</div>
+
+				<!-- セル結合 -->
+				<div class="toolbar-group">
+					<button type="button" id="mergeCellsButton">セルを結合</button>
+					<button type="button" id="splitCellButton">結合を解除</button>
+				</div>
+
+				<!-- 文字装飾 -->
+				<div class="toolbar-group">
+					<label for="cellTextColor">文字色</label>
+					<input type="color" id="cellTextColor" value="#000000">
+
+					<label for="cellFontSize">文字サイズ</label>
+					<select id="cellFontSize">
+						<option value="12">12px</option>
+						<option value="14">14px</option>
+						<option value="16" selected>16px</option>
+						<option value="18">18px</option>
+						<option value="20">20px</option>
+						<option value="24">24px</option>
+						<option value="28">28px</option>
+						<option value="32">32px</option>
+						<option value="36">36px</option>
+						<option value="48">48px</option>
+					</select>
+
+					<label for="cellFontWeight">文字の太さ</label>
+					<select id="cellFontWeight">
+						<option value="normal">標準</option>
+						<option value="bold">太字</option>
+					</select>
+				</div>
+
+				<!-- セル背景色 -->
+				<div class="toolbar-group">
+					<label for="cellBackgroundColor">セル背景色</label>
+					<input type="color" id="cellBackgroundColor" value="#FFFFFF">
+				</div>
+
+				<!-- 使用色履歴 -->
+				<div class="toolbar-group">
+					<label>使用した色</label>
+					<div id="templateColorHistory" class="template-color-history"></div>
+				</div>
+
 			</div>
 
 			<!-- レイアウト編集領域 -->
