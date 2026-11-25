@@ -9,7 +9,7 @@
 export { selectCell } from "../template/template_cell_selection.js";
 
 // セル種類変更機能
-import "../template/template_cell_type.js";
+export { changeCellType } from "../template/template_cell_type.js";
 
 // セル装飾・色履歴機能
 import "../template/template_cell_style.js";
