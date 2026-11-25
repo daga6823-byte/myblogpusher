@@ -17,11 +17,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.app.myblogpusher.entity.UserMaster;
-import com.app.myblogpusher.entity.Template.TemplateEntity;
 import com.app.myblogpusher.entity.Template.TemplateCell;
 import com.app.myblogpusher.entity.Template.TemplateColumn;
+import com.app.myblogpusher.entity.Template.TemplateEntity;
 import com.app.myblogpusher.entity.Template.TemplateRow;
-import com.app.myblogpusher.service.Template.TemplateLayoutService;
+import com.app.myblogpusher.facade.TemplateLayoutFacadeService;
 import com.app.myblogpusher.service.Template.TemplateService;
 
 import jakarta.servlet.http.HttpSession;
@@ -31,7 +31,7 @@ import jakarta.servlet.http.HttpSession;
 public class TemplateLayoutApiController {
 
 	@Autowired
-	private TemplateLayoutService templateLayoutService;
+	private TemplateLayoutFacadeService  templateLayoutFacadeService;
 
 	@Autowired
 	private TemplateService templateService;
@@ -66,7 +66,7 @@ public class TemplateLayoutApiController {
 
 		getOwnedTemplate(templateId, session);
 
-		TemplateRow row = templateLayoutService.insertRow(templateId, rowNumber);
+		TemplateRow row = templateLayoutFacadeService.insertRow(templateId, rowNumber);
 
 		return ResponseEntity.ok(row);
 	}
@@ -82,7 +82,7 @@ public class TemplateLayoutApiController {
 
 		getOwnedTemplate(templateId, session);
 
-		templateLayoutService.deleteRow(templateId, rowNumber);
+		templateLayoutFacadeService.deleteRow(templateId, rowNumber);
 
 		return ResponseEntity.ok().build();
 	}
@@ -98,7 +98,7 @@ public class TemplateLayoutApiController {
 
 		getOwnedTemplate(templateId, session);
 
-		TemplateColumn column = templateLayoutService.insertColumn(templateId, columnNumber);
+		TemplateColumn column = templateLayoutFacadeService.insertColumn(templateId, columnNumber);
 
 		return ResponseEntity.ok(column);
 	}
@@ -114,7 +114,7 @@ public class TemplateLayoutApiController {
 
 		getOwnedTemplate(templateId, session);
 
-		templateLayoutService.deleteColumn(templateId, columnNumber);
+		templateLayoutFacadeService.deleteColumn(templateId, columnNumber);
 
 		return ResponseEntity.ok().build();
 	}
@@ -134,7 +134,7 @@ public class TemplateLayoutApiController {
 		getOwnedTemplate(templateId, session);
 
 		return ResponseEntity.ok(
-				templateLayoutService.mergeCells(
+				templateLayoutFacadeService.mergeCells(
 						templateId,
 						startRow,
 						startColumn,
@@ -153,7 +153,7 @@ public class TemplateLayoutApiController {
 
 		getOwnedTemplate(templateId, session);
 
-		templateLayoutService.splitCell(templateId, cellId);
+		templateLayoutFacadeService.splitCell(templateId, cellId);
 
 		return ResponseEntity.ok().build();
 	}
@@ -191,7 +191,7 @@ public class TemplateLayoutApiController {
 		cell.setImageWidth(imageWidth);
 		cell.setImageHeight(imageHeight);
 
-		templateLayoutService.saveCell(cell);
+		templateLayoutFacadeService.saveCell(cell);
 
 		return ResponseEntity.ok(cell);
 	}
@@ -216,7 +216,7 @@ public class TemplateLayoutApiController {
 		getOwnedTemplate(templateId, session);
 
 		// 指定テンプレート内から対象セルを取得する。
-		TemplateCell cell = templateLayoutService.getCells(templateId)
+		TemplateCell cell = templateLayoutFacadeService.getCells(templateId)
 				.stream()
 				.filter(item -> item.getCellId().equals(cellId))
 				.findFirst()
@@ -255,7 +255,7 @@ public class TemplateLayoutApiController {
 		}
 
 		// 既存のレイアウト保存処理を利用する。
-		templateLayoutService.saveCell(cell);
+		templateLayoutFacadeService.saveCell(cell);
 
 		return ResponseEntity.ok(cell);
 	}

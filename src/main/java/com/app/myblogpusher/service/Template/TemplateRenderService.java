@@ -21,6 +21,7 @@ import com.app.myblogpusher.entity.Template.TemplateCell;
 import com.app.myblogpusher.entity.Template.TemplateColumn;
 import com.app.myblogpusher.entity.Template.TemplateEntity;
 import com.app.myblogpusher.entity.Template.TemplateRow;
+import com.app.myblogpusher.facade.TemplateLayoutFacadeService;
 import com.app.myblogpusher.service.Image.ImageAssetQueryService;
 
 import lombok.RequiredArgsConstructor;
@@ -31,7 +32,7 @@ import lombok.RequiredArgsConstructor;
 public class TemplateRenderService {
 
 	private final TemplateService templateService;
-	private final TemplateLayoutService templateLayoutService;
+	private final TemplateLayoutFacadeService templateLayoutFacadeService;
 	private final ImageAssetQueryService imageAssetQueryService;
 
 	/**
@@ -45,9 +46,9 @@ public class TemplateRenderService {
 
 		TemplateEntity template = templateService.getTemplate(userId, templateId);
 
-		List<TemplateRow> rows = templateLayoutService.getRows(templateId);
-		List<TemplateColumn> columns = templateLayoutService.getColumns(templateId);
-		List<TemplateCell> cells = templateLayoutService.getCells(templateId);
+		List<TemplateRow> rows = templateLayoutFacadeService.getRows(templateId);
+		List<TemplateColumn> columns = templateLayoutFacadeService.getColumns(templateId);
+		List<TemplateCell> cells = templateLayoutFacadeService.getCells(templateId);
 
 		Map<Long, String> imageUrlCache = new HashMap<>();
 

@@ -18,6 +18,7 @@ import com.app.myblogpusher.entity.Template.TemplateCell;
 import com.app.myblogpusher.entity.Template.TemplateColumn;
 import com.app.myblogpusher.entity.Template.TemplateEntity;
 import com.app.myblogpusher.entity.Template.TemplateRow;
+import com.app.myblogpusher.facade.TemplateLayoutFacadeService;
 import com.app.myblogpusher.service.Image.ImageAssetQueryService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -33,7 +34,7 @@ import lombok.RequiredArgsConstructor;
 public class TemplateEditService {
 
 	private final TemplateService templateService;
-	private final TemplateLayoutService templateLayoutService;
+	private final TemplateLayoutFacadeService templateLayoutFacadeService;
 	private final TemplateColorService templateColorService;
 	private final ImageAssetQueryService imageAssetQueryService;
 	private final ObjectMapper objectMapper;
@@ -96,11 +97,11 @@ public class TemplateEditService {
 				userId,
 				templateId);
 
-		List<TemplateRow> rows = templateLayoutService.getRows(templateId);
+		List<TemplateRow> rows = templateLayoutFacadeService.getRows(templateId);
 
-		List<TemplateColumn> columns = templateLayoutService.getColumns(templateId);
+		List<TemplateColumn> columns = templateLayoutFacadeService.getColumns(templateId);
 
-		List<TemplateCell> cells = templateLayoutService.getCells(templateId);
+		List<TemplateCell> cells = templateLayoutFacadeService.getCells(templateId);
 
 		return createEditModel(
 				userId,

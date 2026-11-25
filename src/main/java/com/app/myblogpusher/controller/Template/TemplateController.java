@@ -20,8 +20,8 @@ import com.app.myblogpusher.entity.Template.TemplateCell;
 import com.app.myblogpusher.entity.Template.TemplateColumn;
 import com.app.myblogpusher.entity.Template.TemplateEntity;
 import com.app.myblogpusher.entity.Template.TemplateRow;
+import com.app.myblogpusher.facade.TemplateLayoutFacadeService;
 import com.app.myblogpusher.service.Template.TemplateEditService;
-import com.app.myblogpusher.service.Template.TemplateLayoutService;
 import com.app.myblogpusher.service.Template.TemplateService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
@@ -34,7 +34,7 @@ public class TemplateController {
 	private TemplateService templateService;
 
 	@Autowired
-	private TemplateLayoutService templateLayoutService;
+	private TemplateLayoutFacadeService templateLayoutFacadeService;
 
 	@Autowired
 	private TemplateEditService templateEditService;
@@ -133,14 +133,14 @@ public class TemplateController {
 			row.setTemplateId(templateId);
 			row.setRowNumber(1);
 			row.setHeightUnit("auto");
-			templateLayoutService.saveRow(row);
+			templateLayoutFacadeService.saveRow(row);
 
 			// 初期列を登録する。
 			TemplateColumn column = new TemplateColumn();
 			column.setTemplateId(templateId);
 			column.setColumnNumber(1);
 			column.setWidthUnit("fr");
-			templateLayoutService.saveColumn(column);
+			templateLayoutFacadeService.saveColumn(column);
 
 			// 初期セルを登録する。
 			TemplateCell cell = new TemplateCell();
@@ -150,7 +150,7 @@ public class TemplateController {
 			cell.setRowSpan(1);
 			cell.setColumnSpan(1);
 			cell.setCellType("EMPTY");
-			templateLayoutService.saveCell(cell);
+			templateLayoutFacadeService.saveCell(cell);
 
 			return "redirect:/template/edit?templateId="
 					+ templateId;
