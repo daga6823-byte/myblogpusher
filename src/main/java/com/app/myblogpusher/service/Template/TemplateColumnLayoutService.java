@@ -12,7 +12,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.app.myblogpusher.entity.Template.TemplateCell;
+import com.app.myblogpusher.entity.Template.TemplateCellEntity;
 import com.app.myblogpusher.entity.Template.TemplateColumn;
 import com.app.myblogpusher.repository.Template.TemplateCellRepository;
 import com.app.myblogpusher.repository.Template.TemplateColumnRepository;
@@ -70,10 +70,10 @@ public class TemplateColumnLayoutService {
 			throw new IllegalArgumentException("最後の1列は削除できません。");
 		}
 
-		List<TemplateCell> cells = templateCellRepository.findByTemplateIdOrderByRowNumberAscColumnNumberAsc(
+		List<TemplateCellEntity> cells = templateCellRepository.findByTemplateIdOrderByRowNumberAscColumnNumberAsc(
 				templateId);
 
-		for (TemplateCell cell : cells) {
+		for (TemplateCellEntity cell : cells) {
 
 			int startColumn = cell.getColumnNumber();
 			int endColumn = startColumn + cell.getColumnSpan() - 1;
@@ -142,10 +142,10 @@ public class TemplateColumnLayoutService {
 		}
 
 		// セルの配置と結合範囲を調整する。
-		List<TemplateCell> cells = templateCellRepository.findByTemplateIdOrderByRowNumberAscColumnNumberAsc(
+		List<TemplateCellEntity> cells = templateCellRepository.findByTemplateIdOrderByRowNumberAscColumnNumberAsc(
 				templateId);
 
-		for (TemplateCell cell : cells) {
+		for (TemplateCellEntity cell : cells) {
 
 			int startColumn = cell.getColumnNumber();
 			int endColumn = startColumn + cell.getColumnSpan() - 1;

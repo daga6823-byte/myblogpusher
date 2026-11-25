@@ -17,7 +17,7 @@ import java.util.Map;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.app.myblogpusher.entity.Template.TemplateCell;
+import com.app.myblogpusher.entity.Template.TemplateCellEntity;
 import com.app.myblogpusher.entity.Template.TemplateColumn;
 import com.app.myblogpusher.entity.Template.TemplateEntity;
 import com.app.myblogpusher.entity.Template.TemplateRow;
@@ -46,7 +46,7 @@ public class TemplateRenderService {
 
 		List<TemplateRow> rows = templateLayoutFacadeService.getRows(templateId);
 		List<TemplateColumn> columns = templateLayoutFacadeService.getColumns(templateId);
-		List<TemplateCell> cells = templateLayoutFacadeService.getCells(templateId);
+		List<TemplateCellEntity> cells = templateLayoutFacadeService.getCells(templateId);
 
 		String cssClass = "mbp-template-" + templateId;
 
@@ -67,7 +67,7 @@ public class TemplateRenderService {
 	 * プレースホルダーとして出力する。
 	 */
 	private String generateHtml(
-			List<TemplateCell> cells,
+			List<TemplateCellEntity> cells,
 			String cssClass) {
 
 		StringBuilder html = new StringBuilder();
@@ -81,7 +81,7 @@ public class TemplateRenderService {
 				.append(cssClass)
 				.append("\">");
 
-		for (TemplateCell cell : cells) {
+		for (TemplateCellEntity cell : cells) {
 
 			html.append("<div class=\"mbp-template-cell mbp-cell-")
 					.append(cell.getCellId())
@@ -126,7 +126,7 @@ public class TemplateRenderService {
 			TemplateEntity template,
 			List<TemplateRow> rows,
 			List<TemplateColumn> columns,
-			List<TemplateCell> cells,
+			List<TemplateCellEntity> cells,
 			String cssClass) {
 
 		StringBuilder css = new StringBuilder();
@@ -174,7 +174,7 @@ public class TemplateRenderService {
 		css.append("object-fit: contain;");
 		css.append("}\n");
 
-		for (TemplateCell cell : cells) {
+		for (TemplateCellEntity cell : cells) {
 			css.append(".").append(cssClass)
 					.append(" .mbp-cell-")
 					.append(cell.getCellId())

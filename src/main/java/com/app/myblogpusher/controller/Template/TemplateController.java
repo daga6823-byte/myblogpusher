@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.app.myblogpusher.entity.UserMaster;
-import com.app.myblogpusher.entity.Template.TemplateCell;
+import com.app.myblogpusher.entity.Template.TemplateCellEntity;
 import com.app.myblogpusher.entity.Template.TemplateColumn;
 import com.app.myblogpusher.entity.Template.TemplateEntity;
 import com.app.myblogpusher.entity.Template.TemplateRow;
@@ -143,7 +143,7 @@ public class TemplateController {
 			templateLayoutFacadeService.saveColumn(column);
 
 			// 初期セルを登録する。
-			TemplateCell cell = new TemplateCell();
+			TemplateCellEntity cell = new TemplateCellEntity();
 			cell.setTemplateId(templateId);
 			cell.setRowNumber(1);
 			cell.setColumnNumber(1);

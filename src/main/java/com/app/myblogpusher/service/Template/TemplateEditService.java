@@ -14,7 +14,7 @@ import java.util.Map;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.app.myblogpusher.entity.Template.TemplateCell;
+import com.app.myblogpusher.entity.Template.TemplateCellEntity;
 import com.app.myblogpusher.entity.Template.TemplateColumn;
 import com.app.myblogpusher.entity.Template.TemplateEntity;
 import com.app.myblogpusher.entity.Template.TemplateRow;
@@ -60,7 +60,7 @@ public class TemplateEditService {
 		column.setColumnNumber(1);
 		column.setWidthUnit("fr");
 
-		TemplateCell cell = new TemplateCell();
+		TemplateCellEntity cell = new TemplateCellEntity();
 		cell.setRowNumber(1);
 		cell.setColumnNumber(1);
 		cell.setRowSpan(1);
@@ -69,7 +69,7 @@ public class TemplateEditService {
 
 		List<TemplateRow> rows = List.of(row);
 		List<TemplateColumn> columns = List.of(column);
-		List<TemplateCell> cells = List.of(cell);
+		List<TemplateCellEntity> cells = List.of(cell);
 
 		return createEditModel(
 				userId,
@@ -101,7 +101,7 @@ public class TemplateEditService {
 
 		List<TemplateColumn> columns = templateLayoutFacadeService.getColumns(templateId);
 
-		List<TemplateCell> cells = templateLayoutFacadeService.getCells(templateId);
+		List<TemplateCellEntity> cells = templateLayoutFacadeService.getCells(templateId);
 
 		return createEditModel(
 				userId,
@@ -121,7 +121,7 @@ public class TemplateEditService {
 			TemplateEntity template,
 			List<TemplateRow> rows,
 			List<TemplateColumn> columns,
-			List<TemplateCell> cells) throws JsonProcessingException {
+			List<TemplateCellEntity> cells) throws JsonProcessingException {
 
 		Map<String, Object> model = new LinkedHashMap<>();
 

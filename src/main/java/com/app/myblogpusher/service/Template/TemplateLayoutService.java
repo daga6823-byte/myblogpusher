@@ -12,7 +12,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.app.myblogpusher.entity.Template.TemplateCell;
+import com.app.myblogpusher.entity.Template.TemplateCellEntity;
 import com.app.myblogpusher.entity.Template.TemplateColumn;
 import com.app.myblogpusher.entity.Template.TemplateRow;
 import com.app.myblogpusher.repository.Template.TemplateCellRepository;
@@ -50,7 +50,7 @@ public class TemplateLayoutService {
 	 * テンプレートのセル情報を取得する。
 	 */
 	@Transactional(readOnly = true)
-	public List<TemplateCell> getCells(Long templateId) {
+	public List<TemplateCellEntity> getCells(Long templateId) {
 		return templateCellRepository
 				.findByTemplateIdOrderByRowNumberAscColumnNumberAsc(templateId);
 	}
@@ -90,7 +90,7 @@ public class TemplateLayoutService {
 	 *
 	 * 配置位置、結合範囲、既存セルとの重複を検証してから保存する。
 	 */
-	public TemplateCell saveCell(TemplateCell cell) {
+	public TemplateCellEntity saveCell(TemplateCellEntity cell) {
 
 		if (cell.getTemplateId() == null
 				|| cell.getRowNumber() == null
@@ -133,9 +133,9 @@ public class TemplateLayoutService {
 		}
 
 		// 既存セルと結合範囲が重複していないことを確認する。
-		List<TemplateCell> existingCells = getCells(cell.getTemplateId());
+		List<TemplateCellEntity> existingCells = getCells(cell.getTemplateId());
 
-		for (TemplateCell existing : existingCells) {
+		for (TemplateCellEntity existing : existingCells) {
 
 			// 更新対象自身は重複判定から除外する。
 			if (cell.getCellId() != null
@@ -183,9 +183,9 @@ public class TemplateLayoutService {
 			throw new IllegalArgumentException("最後の1行は削除できません。");
 		}
 
-		List<TemplateCell> cells = getCells(templateId);
+		List<TemplateCellEntity> cells = getCells(templateId);
 
-		for (TemplateCell cell : cells) {
+		for (TemplateCellEntity cell : cells) {
 
 			int startRow = cell.getRowNumber();
 			int endRow = startRow + cell.getRowSpan() - 1;
@@ -256,9 +256,9 @@ public class TemplateLayoutService {
 			throw new IllegalArgumentException("最後の1列は削除できません。");
 		}
 
-		List<TemplateCell> cells = getCells(templateId);
+		List<TemplateCellEntity> cells = getCells(templateId);
 
-		for (TemplateCell cell : cells) {
+		for (TemplateCellEntity cell : cells) {
 
 			int startColumn = cell.getColumnNumber();
 			int endColumn = startColumn + cell.getColumnSpan() - 1;
@@ -321,7 +321,7 @@ public class TemplateLayoutService {
 	 * @param columnSpan 結合する列数
 	 * @return 結合後のセル
 	 */
-	public TemplateCell mergeCells(
+	public TemplateCellEntity mergeCells(
 			Long templateId,
 			Integer startRow,
 			Integer startColumn,
@@ -345,12 +345,12 @@ public class TemplateLayoutService {
 			throw new IllegalArgumentException("結合範囲がレイアウトの範囲外です。");
 		}
 
-		List<TemplateCell> cells = getCells(templateId);
+		List<TemplateCellEntity> cells = getCells(templateId);
 
-		TemplateCell baseCell = null;
+		TemplateCellEntity baseCell = null;
 
 		// 結合範囲内のセルを確認する。
-		for (TemplateCell cell : cells) {
+		for (TemplateCellEntity cell : cells) {
 
 			int cellEndRow = cell.getRowNumber() + cell.getRowSpan() - 1;
 			int cellEndColumn = cell.getColumnNumber() + cell.getColumnSpan() - 1;
@@ -378,7 +378,7 @@ public class TemplateLayoutService {
 
 		// 左上セルが存在しない場合は空白セルを作成する。
 		if (baseCell == null) {
-			baseCell = new TemplateCell();
+			baseCell = new TemplateCellEntity();
 			baseCell.setTemplateId(templateId);
 			baseCell.setRowNumber(startRow);
 			baseCell.setColumnNumber(startColumn);
@@ -388,7 +388,7 @@ public class TemplateLayoutService {
 		}
 
 		// 左上以外のセルを削除する。
-		for (TemplateCell cell : cells) {
+		for (TemplateCellEntity cell : cells) {
 
 			if (cell.getCellId() == null
 					|| cell.getCellId().equals(baseCell.getCellId())) {
@@ -428,7 +428,7 @@ public class TemplateLayoutService {
 			throw new IllegalArgumentException("セルの指定が不正です。");
 		}
 
-		TemplateCell targetCell = getCells(templateId).stream()
+		TemplateCellEntity targetCell = getCells(templateId).stream()
 				.filter(cell -> cellId.equals(cell.getCellId()))
 				.findFirst()
 				.orElseThrow(() -> new IllegalArgumentException("対象セルが存在しません。"));
@@ -456,7 +456,7 @@ public class TemplateLayoutService {
 					continue;
 				}
 
-				TemplateCell emptyCell = new TemplateCell();
+				TemplateCellEntity emptyCell = new TemplateCellEntity();
 				emptyCell.setTemplateId(templateId);
 				emptyCell.setRowNumber(row);
 				emptyCell.setColumnNumber(column);
@@ -507,16 +507,16 @@ public class TemplateLayoutService {
 		}
 
 		// セルの配置と結合範囲を調整する。
-		List<TemplateCell> cells = getCells(templateId);
+		List<TemplateCellEntity> cells = getCells(templateId);
 
 		cells.sort(
-				Comparator.comparing(TemplateCell::getRowNumber)
+				Comparator.comparing(TemplateCellEntity::getRowNumber)
 						.reversed()
 						.thenComparing(
-								TemplateCell::getColumnNumber,
+								TemplateCellEntity::getColumnNumber,
 								Comparator.reverseOrder()));
 
-		for (TemplateCell cell : cells) {
+		for (TemplateCellEntity cell : cells) {
 
 			int startRow = cell.getRowNumber();
 			int endRow = startRow + cell.getRowSpan() - 1;
@@ -575,16 +575,16 @@ public class TemplateLayoutService {
 		}
 
 		// セルの配置と結合範囲を調整する。
-		List<TemplateCell> cells = getCells(templateId);
+		List<TemplateCellEntity> cells = getCells(templateId);
 
 		cells.sort(
-				Comparator.comparing(TemplateCell::getColumnNumber)
+				Comparator.comparing(TemplateCellEntity::getColumnNumber)
 						.reversed()
 						.thenComparing(
-								TemplateCell::getRowNumber,
+								TemplateCellEntity::getRowNumber,
 								Comparator.reverseOrder()));
 
-		for (TemplateCell cell : cells) {
+		for (TemplateCellEntity cell : cells) {
 
 			int startColumn = cell.getColumnNumber();
 			int endColumn = startColumn + cell.getColumnSpan() - 1;

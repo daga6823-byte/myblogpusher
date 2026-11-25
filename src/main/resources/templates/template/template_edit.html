@@ -81,8 +81,10 @@
 
 				<!-- 文字装飾 -->
 				<div class="toolbar-group">
-					<label for="cellTextColor">文字色</label>
-					<input type="color" id="cellTextColor" value="#000000">
+					<label for="cellBackgroundColor">セル背景色</label>
+					<input type="color" id="cellBackgroundColor" value="#FFFFFF">
+					<input type="text" id="cellBackgroundColorCode" value="#FFFFFF" maxlength="7"
+						pattern="#[0-9A-Fa-f]{6}" placeholder="#FFFFFF" title="カラーコード（例：#FFFFFF）">
 
 					<label for="cellFontSize">文字サイズ</label>
 					<select id="cellFontSize">

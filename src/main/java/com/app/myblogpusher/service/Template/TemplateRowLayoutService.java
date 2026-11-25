@@ -13,7 +13,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.app.myblogpusher.entity.Template.TemplateCell;
+import com.app.myblogpusher.entity.Template.TemplateCellEntity;
 import com.app.myblogpusher.entity.Template.TemplateRow;
 import com.app.myblogpusher.repository.Template.TemplateCellRepository;
 import com.app.myblogpusher.repository.Template.TemplateRowRepository;
@@ -71,16 +71,16 @@ public class TemplateRowLayoutService {
 			throw new IllegalArgumentException("最後の1行は削除できません。");
 		}
 
-		List<TemplateCell> cells = templateCellRepository
+		List<TemplateCellEntity> cells = templateCellRepository
 				.findByTemplateIdOrderByRowNumberAscColumnNumberAsc(templateId);
 
 		// 移動先との一意制約の衝突を防ぐため、後方のセルから更新する
 		cells.sort(
-				Comparator.comparingInt(TemplateCell::getColumnNumber)
-						.thenComparingInt(TemplateCell::getRowNumber)
+				Comparator.comparingInt(TemplateCellEntity::getColumnNumber)
+						.thenComparingInt(TemplateCellEntity::getRowNumber)
 						.reversed());
 
-		for (TemplateCell cell : cells) {
+		for (TemplateCellEntity cell : cells) {
 
 			int startRow = cell.getRowNumber();
 			int endRow = startRow + cell.getRowSpan() - 1;
@@ -149,16 +149,16 @@ public class TemplateRowLayoutService {
 		}
 
 		// セルの配置と結合範囲を調整する。
-		List<TemplateCell> cells = templateCellRepository
+		List<TemplateCellEntity> cells = templateCellRepository
 				.findByTemplateIdOrderByRowNumberAscColumnNumberAsc(templateId);
 
 		// 移動先との一意制約の衝突を防ぐため、後方のセルから更新する
 		cells.sort(
-				Comparator.comparingInt(TemplateCell::getRowNumber)
-						.thenComparingInt(TemplateCell::getColumnNumber)
+				Comparator.comparingInt(TemplateCellEntity::getRowNumber)
+						.thenComparingInt(TemplateCellEntity::getColumnNumber)
 						.reversed());
 
-		for (TemplateCell cell : cells) {
+		for (TemplateCellEntity cell : cells) {
 
 			int startRow = cell.getRowNumber();
 			int endRow = startRow + cell.getRowSpan() - 1;

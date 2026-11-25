@@ -11,7 +11,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.app.myblogpusher.entity.Template.TemplateCell;
+import com.app.myblogpusher.entity.Template.TemplateCellEntity;
 import com.app.myblogpusher.entity.Template.TemplateColumn;
 import com.app.myblogpusher.entity.Template.TemplateRow;
 import com.app.myblogpusher.service.Template.TemplateCellLayoutService;
@@ -49,7 +49,7 @@ public class TemplateLayoutFacadeService {
 	 * セル情報を取得する。
 	 */
 	@Transactional(readOnly = true)
-	public List<TemplateCell> getCells(Long templateId) {
+	public List<TemplateCellEntity> getCells(Long templateId) {
 		return templateCellLayoutService.getCells(templateId);
 	}
 
@@ -70,7 +70,7 @@ public class TemplateLayoutFacadeService {
 	/**
 	 * セル情報を保存する。
 	 */
-	public TemplateCell saveCell(TemplateCell cell) {
+	public TemplateCellEntity saveCell(TemplateCellEntity cell) {
 		return templateCellLayoutService.saveCell(cell);
 	}
 
@@ -91,7 +91,7 @@ public class TemplateLayoutFacadeService {
 	/**
 	 * セルを結合する。
 	 */
-	public TemplateCell mergeCells(
+	public TemplateCellEntity mergeCells(
 			Long templateId,
 			Integer startRow,
 			Integer startColumn,

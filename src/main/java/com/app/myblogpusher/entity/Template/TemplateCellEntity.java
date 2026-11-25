@@ -23,7 +23,7 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(name = "template_cell")
-public class TemplateCell {
+public class TemplateCellEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.app.myblogpusher.entity.UserMaster;
-import com.app.myblogpusher.entity.Template.TemplateCell;
+import com.app.myblogpusher.entity.Template.TemplateCellEntity;
 import com.app.myblogpusher.entity.Template.TemplateColumn;
 import com.app.myblogpusher.entity.Template.TemplateEntity;
 import com.app.myblogpusher.entity.Template.TemplateRow;
@@ -164,7 +164,7 @@ public class TemplateLayoutApiController {
 	 * 指定位置とセル種類を受け取り、テンプレートに登録する。
 	 */
 	@PostMapping("/cell/create")
-	public ResponseEntity<TemplateCell> createCell(
+	public ResponseEntity<TemplateCellEntity> createCell(
 			@RequestParam Long templateId,
 			@RequestParam Integer rowNumber,
 			@RequestParam Integer columnNumber,
@@ -178,7 +178,7 @@ public class TemplateLayoutApiController {
 
 		getOwnedTemplate(templateId, session);
 
-		TemplateCell cell = new TemplateCell();
+		TemplateCellEntity cell = new TemplateCellEntity();
 		cell.setTemplateId(templateId);
 		cell.setRowNumber(rowNumber);
 		cell.setColumnNumber(columnNumber);
@@ -202,7 +202,7 @@ public class TemplateLayoutApiController {
 	 * 操作対象のセルが指定テンプレートに属していることを確認する。
 	 */
 	@PostMapping("/cell/save")
-	public ResponseEntity<TemplateCell> saveCell(
+	public ResponseEntity<TemplateCellEntity> saveCell(
 			@RequestParam Long templateId,
 			@RequestParam Long cellId,
 			@RequestParam(required = false) String cellType,
@@ -220,7 +220,7 @@ public class TemplateLayoutApiController {
 		getOwnedTemplate(templateId, session);
 
 		// 指定テンプレート内から対象セルを取得する。
-		TemplateCell cell = templateLayoutFacadeService.getCells(templateId)
+		TemplateCellEntity cell = templateLayoutFacadeService.getCells(templateId)
 				.stream()
 				.filter(item -> item.getCellId().equals(cellId))
 				.findFirst()

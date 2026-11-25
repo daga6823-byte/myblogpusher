@@ -9,14 +9,14 @@ import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.app.myblogpusher.entity.Template.TemplateCell;
+import com.app.myblogpusher.entity.Template.TemplateCellEntity;
 
-public interface TemplateCellRepository extends JpaRepository<TemplateCell, Long> {
+public interface TemplateCellRepository extends JpaRepository<TemplateCellEntity, Long> {
 
 	/**
 	 * テンプレートのセル情報を行番号・列番号の昇順で取得する。
 	 */
-	List<TemplateCell> findByTemplateIdOrderByRowNumberAscColumnNumberAsc(Long templateId);
+	List<TemplateCellEntity> findByTemplateIdOrderByRowNumberAscColumnNumberAsc(Long templateId);
 
 	/**
 	 * テンプレートに属するセル情報をすべて削除する。
@@ -26,12 +26,12 @@ public interface TemplateCellRepository extends JpaRepository<TemplateCell, Long
 	/**
 	 * 指定した行番号以降に配置されているセルを取得する。
 	 */
-	List<TemplateCell> findByTemplateIdAndRowNumberGreaterThanEqual(
+	List<TemplateCellEntity> findByTemplateIdAndRowNumberGreaterThanEqual(
 			Long templateId, Integer rowNumber);
 
 	/**
 	 * 指定した列番号以降に配置されているセルを取得する。
 	 */
-	List<TemplateCell> findByTemplateIdAndColumnNumberGreaterThanEqual(
+	List<TemplateCellEntity> findByTemplateIdAndColumnNumberGreaterThanEqual(
 			Long templateId, Integer columnNumber);
 }
