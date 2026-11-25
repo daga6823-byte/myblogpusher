@@ -8,6 +8,8 @@ package com.app.myblogpusher.entity.Template;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import org.hibernate.annotations.ColumnTransformer;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -86,6 +88,7 @@ public class TemplateCell {
 	private String paddingUnit;
 
 	@Column(name = "border_config")
+	@ColumnTransformer(read = "border_config::text", write = "?::jsonb")
 	private String borderConfig;
 
 	@Column(name = "create_date")
