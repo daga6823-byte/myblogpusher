@@ -81,10 +81,19 @@
 
 				<!-- 文字装飾 -->
 				<div class="toolbar-group">
-					<label for="cellBackgroundColor">セル背景色</label>
-					<input type="color" id="cellBackgroundColor" value="#FFFFFF">
-					<input type="text" id="cellBackgroundColorCode" value="#FFFFFF" maxlength="7"
-						pattern="#[0-9A-Fa-f]{6}" placeholder="#FFFFFF" title="カラーコード（例：#FFFFFF）">
+					<label for="cellTextColor">文字色</label>
+					<input type="color" id="cellTextColor" value="#000000">
+					<input type="text" id="cellTextColorCode" value="#000000" maxlength="7" pattern="#[0-9A-Fa-f]{6}"
+						placeholder="#000000" title="カラーコード（例：#000000）">
+
+					<label for="cellTextStrokeColor">文字の縁取り色</label>
+					<input type="color" id="cellTextStrokeColor" value="#000000">
+					<input type="text" id="cellTextStrokeColorCode" value="#000000" maxlength="7"
+						pattern="#[0-9A-Fa-f]{6}" placeholder="#000000" title="縁取り色（例：#000000）">
+
+					<label for="cellTextStrokeWidth">縁取りの太さ</label>
+					<input type="number" id="cellTextStrokeWidth" min="0" max="3" step="0.5" value="0">
+					<span>px</span>
 
 					<label for="cellFontSize">文字サイズ</label>
 					<select id="cellFontSize">
@@ -105,12 +114,27 @@
 						<option value="normal">標準</option>
 						<option value="bold">太字</option>
 					</select>
+
+					<label for="cellTextAlign">文字配置</label>
+					<select id="cellTextAlign">
+						<option value="left">左揃え</option>
+						<option value="center">中央揃え</option>
+						<option value="right">右揃え</option>
+					</select>
 				</div>
 
 				<!-- セル背景色 -->
 				<div class="toolbar-group">
 					<label for="cellBackgroundColor">セル背景色</label>
 					<input type="color" id="cellBackgroundColor" value="#FFFFFF">
+					<input type="text" id="cellBackgroundColorCode" value="#FFFFFF" maxlength="7"
+						pattern="#[0-9A-Fa-f]{6}" placeholder="#FFFFFF" title="カラーコード（例：#FFFFFF）">
+				</div>
+
+				<!-- 使用色履歴 -->
+				<div class="toolbar-group">
+					<label>使用した色</label>
+					<div id="templateColorHistory" class="template-color-history"></div>
 				</div>
 
 				<!-- 使用色履歴 -->

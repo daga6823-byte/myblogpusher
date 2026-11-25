@@ -6,6 +6,7 @@
  * Ctrl / Commandクリックによる複数選択を管理する。
  */
 import { templateState } from "./template_state.js";
+import { restoreCellStyle } from "./template_cell_style.js";
 
 /**
  * セル選択を切り替える。
@@ -52,4 +53,7 @@ export function selectCell(cell, event = null) {
 		templateState.selectedCells[
 		templateState.selectedCells.length - 1
 		] ?? null;
+
+	// 最後に選択したセルの装飾値をツールバーへ反映する。
+	restoreCellStyle(templateState.selectedCell);
 }

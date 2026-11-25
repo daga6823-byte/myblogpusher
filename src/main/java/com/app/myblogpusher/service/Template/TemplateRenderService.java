@@ -197,6 +197,21 @@ public class TemplateRenderService {
 			appendCssProperty(css, "font-weight", cell.getFontWeight());
 			appendCssProperty(css, "text-align", cell.getTextAlign());
 
+			// 文字の縁取り
+			appendCssProperty(css, "-webkit-text-stroke-color",
+					cell.getTextStrokeColor());
+
+			if (cell.getTextStrokeWidth() != null
+					&& cell.getTextStrokeWidth().compareTo(BigDecimal.ZERO) > 0
+					&& cell.getTextStrokeWidth().compareTo(new BigDecimal("3.0")) <= 0) {
+
+				css.append("-webkit-text-stroke-width:")
+						.append(cell.getTextStrokeWidth().toPlainString())
+						.append("px;");
+
+				css.append("paint-order:stroke fill;");
+			}
+
 			if (cell.getFontSize() != null) {
 				css.append("font-size:")
 						.append(cell.getFontSize().toPlainString())

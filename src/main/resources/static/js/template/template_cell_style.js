@@ -110,7 +110,14 @@ async function saveCellStyle(property, value) {
 				case "textColor":
 					cell.style.color = value;
 					break;
-
+				case "textStrokeColor":
+					cell.style.webkitTextStrokeColor = value;
+					cell.style.paintOrder = "stroke fill";
+					break;
+				case "textStrokeWidth":
+					cell.style.webkitTextStrokeWidth = `${value}px`;
+					cell.style.paintOrder = "stroke fill";
+					break;
 				case "backgroundColor":
 					cell.style.backgroundColor = value;
 					break;
@@ -140,15 +147,29 @@ async function saveCellStyle(property, value) {
  * 色コード入力欄とカラーピッカーを同期する。
  */
 function syncColorInputs(property, colorCode) {
-	const isTextColor = property === "textColor";
+	const inputIds = {
+		textColor: {
+			picker: "cellTextColor",
+			code: "cellTextColorCode"
+		},
+		backgroundColor: {
+			picker: "cellBackgroundColor",
+			code: "cellBackgroundColorCode"
+		},
+		textStrokeColor: {
+			picker: "cellTextStrokeColor",
+			code: "cellTextStrokeColorCode"
+		}
+	};
 
-	const picker = document.getElementById(
-		isTextColor ? "cellTextColor" : "cellBackgroundColor"
-	);
+	const ids = inputIds[property];
 
-	const codeInput = document.getElementById(
-		isTextColor ? "cellTextColorCode" : "cellBackgroundColorCode"
-	);
+	if (!ids) {
+		return;
+	}
+
+	const picker = document.getElementById(ids.picker);
+	const codeInput = document.getElementById(ids.code);
 
 	if (picker) {
 		picker.value = colorCode;
@@ -157,6 +178,99 @@ function syncColorInputs(property, colorCode) {
 	if (codeInput) {
 		codeInput.value = colorCode.toUpperCase();
 	}
+}
+
+/**
+ * 選択セルの装飾値をツールバーへ反映する。
+ *
+ * 複数選択時は最後に選択したセルの値を表示する。
+ */
+export function restoreCellStyle(cell) {
+
+	if (!cell) {
+		return;
+	}
+
+	const computedStyle = window.getComputedStyle(cell);
+
+	// 文字色
+	syncColorInputs(
+		"textColor",
+		toHexColor(computedStyle.color)
+	);
+
+	// 背景色
+	syncColorInputs(
+		"backgroundColor",
+		toHexColor(computedStyle.backgroundColor)
+	);
+
+	// 文字の縁取り色
+	const strokeColor = computedStyle.webkitTextStrokeColor;
+
+	if (strokeColor) {
+		syncColorInputs(
+			"textStrokeColor",
+			toHexColor(strokeColor)
+		);
+	}
+
+	// 文字の縁取りの太さ
+	const strokeWidth = parseFloat(
+		computedStyle.webkitTextStrokeWidth
+	);
+
+	const strokeWidthInput =
+		document.getElementById("cellTextStrokeWidth");
+
+	if (strokeWidthInput && Number.isFinite(strokeWidth)) {
+		strokeWidthInput.value = String(strokeWidth);
+	}
+
+	// 文字サイズ
+	const fontSizeInput = document.getElementById("cellFontSize");
+
+	if (fontSizeInput) {
+		fontSizeInput.value = String(
+			parseFloat(computedStyle.fontSize)
+		);
+	}
+
+	// 文字の太さ
+	const fontWeightInput = document.getElementById("cellFontWeight");
+
+	if (fontWeightInput) {
+		fontWeightInput.value =
+			Number(computedStyle.fontWeight) >= 600
+				? "bold"
+				: "normal";
+	}
+
+	// 文字配置
+	const textAlignInput = document.getElementById("cellTextAlign");
+
+	if (textAlignInput) {
+		textAlignInput.value = computedStyle.textAlign;
+	}
+}
+
+/**
+ * CSSの色表現を #RRGGBB に変換する。
+ */
+function toHexColor(color) {
+
+	const match = color.match(
+		/^rgba?\((\d+),\s*(\d+),\s*(\d+)/
+	);
+
+	if (!match) {
+		return "#000000";
+	}
+
+	return "#" + match.slice(1, 4)
+		.map(value => Number(value).toString(16).padStart(2, "0"))
+		.join("")
+		.toUpperCase();
 }
 
 /**
@@ -199,6 +313,10 @@ document.addEventListener("DOMContentLoaded", () => {
 	const backgroundColorInput = document.getElementById("cellBackgroundColor");
 	const backgroundColorCodeInput = document.getElementById("cellBackgroundColorCode");
 
+	const textStrokeColorInput = document.getElementById("cellTextStrokeColor");
+	const textStrokeColorCodeInput = document.getElementById("cellTextStrokeColorCode");
+	const textStrokeWidthInput = document.getElementById("cellTextStrokeWidth");
+
 	const fontSizeInput = document.getElementById("cellFontSize");
 	const fontWeightInput = document.getElementById("cellFontWeight");
 	const textAlignInput = document.getElementById("cellTextAlign");
@@ -233,15 +351,83 @@ document.addEventListener("DOMContentLoaded", () => {
 	});
 
 	// 背景色のカラーコード入力
+
 	backgroundColorCodeInput?.addEventListener("focus", () => {
+
 		activeColorProperty = "backgroundColor";
+
 	});
 
 	backgroundColorCodeInput?.addEventListener("change", async () => {
+
 		await applyColor(
+
 			"backgroundColor",
+
 			backgroundColorCodeInput.value.trim()
+
 		);
+
+	});
+
+	// 文字の縁取り色：カラーピッカー
+
+	textStrokeColorInput?.addEventListener("focus", () => {
+
+		activeColorProperty = "textStrokeColor";
+
+	});
+
+	textStrokeColorInput?.addEventListener("change", async () => {
+
+		await applyColor(
+
+			"textStrokeColor",
+
+			textStrokeColorInput.value
+
+		);
+
+	});
+
+	// 文字の縁取り色：カラーコード
+
+	textStrokeColorCodeInput?.addEventListener("focus", () => {
+
+		activeColorProperty = "textStrokeColor";
+
+	});
+
+	textStrokeColorCodeInput?.addEventListener("change", async () => {
+
+		await applyColor(
+
+			"textStrokeColor",
+
+			textStrokeColorCodeInput.value.trim()
+
+		);
+
+	});
+
+	// 文字の縁取りの太さ
+
+	textStrokeWidthInput?.addEventListener("change", () => {
+
+		const width = Number(textStrokeWidthInput.value);
+
+		if (!Number.isFinite(width) || width < 0 || width > 3) {
+
+			alert("縁取りの太さは0～3pxで指定してください。");
+
+			textStrokeWidthInput.value = "0";
+
+			return;
+
+		}
+
+		saveCellStyle("textStrokeWidth", width);
+
 	});
 
 	// 文字サイズ

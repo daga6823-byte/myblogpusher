@@ -69,6 +69,12 @@ public class TemplateCellEntity {
 	@Column(name = "text_color")
 	private String textColor;
 
+	@Column(name = "text_stroke_color")
+	private String textStrokeColor;
+
+	@Column(name = "text_stroke_width")
+	private BigDecimal textStrokeWidth;
+
 	@Column(name = "font_size")
 	private BigDecimal fontSize;
 

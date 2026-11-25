@@ -215,6 +215,8 @@ public class TemplateLayoutApiController {
 			@RequestParam(required = false) String backgroundColor,
 			@RequestParam(required = false) BigDecimal fontSize,
 			@RequestParam(required = false) String fontWeight,
+			@RequestParam(required = false) String textStrokeColor,
+			@RequestParam(required = false) BigDecimal textStrokeWidth,
 			HttpSession session) {
 
 		getOwnedTemplate(templateId, session);
@@ -284,6 +286,14 @@ public class TemplateLayoutApiController {
 
 		if (fontWeight != null) {
 			cell.setFontWeight(fontWeight);
+		}
+		
+		if (textStrokeColor != null) {
+		    cell.setTextStrokeColor(textStrokeColor);
+		}
+
+		if (textStrokeWidth != null) {
+		    cell.setTextStrokeWidth(textStrokeWidth);
 		}
 
 		// 既存のレイアウト保存処理を利用する。

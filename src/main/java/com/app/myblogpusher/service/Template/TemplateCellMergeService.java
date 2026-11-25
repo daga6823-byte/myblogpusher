@@ -1,10 +1,8 @@
 
 /**
- * テンプレートのセルレイアウト管理を担当するサービス
+ * テンプレートのセル結合・分割を担当するサービス
  *
- * セルの取得・保存・結合・分割を行う。
- * セルの配置位置、結合範囲、既存セルとの重複を検証する。
- * テンプレートのレイアウト全体の削除も担当する。
+ * 指定範囲のセル結合と、結合セルの分割を行う。
  */
 package com.app.myblogpusher.service.Template;
 
@@ -25,102 +23,12 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class TemplateCellLayoutService {
+public class TemplateCellMergeService {
 
 	private final TemplateCellRepository templateCellRepository;
 	private final TemplateRowRepository templateRowRepository;
 	private final TemplateColumnRepository templateColumnRepository;
-
-	/**
-	 * テンプレートのセル情報を取得する。
-	 */
-	@Transactional(readOnly = true)
-	public List<TemplateCellEntity> getCells(Long templateId) {
-		return templateCellRepository
-				.findByTemplateIdOrderByRowNumberAscColumnNumberAsc(templateId);
-	}
-
-	/**
-	 * セル情報を保存する。
-	 *
-	 * 配置位置、結合範囲、既存セルとの重複を検証してから保存する。
-	 */
-	public TemplateCellEntity saveCell(TemplateCellEntity cell) {
-
-		if (cell.getTemplateId() == null
-				|| cell.getRowNumber() == null
-				|| cell.getColumnNumber() == null
-				|| cell.getRowSpan() == null
-				|| cell.getColumnSpan() == null
-				|| cell.getRowNumber() < 1
-				|| cell.getColumnNumber() < 1
-				|| cell.getRowSpan() < 1
-				|| cell.getColumnSpan() < 1) {
-			throw new IllegalArgumentException("セルの配置情報が不正です。");
-		}
-
-		List<TemplateRow> rows = templateRowRepository
-				.findByTemplateIdOrderByRowNumberAsc(cell.getTemplateId());
-
-		List<TemplateColumn> columns = templateColumnRepository
-				.findByTemplateIdOrderByColumnNumberAsc(cell.getTemplateId());
-
-		int endRow = cell.getRowNumber() + cell.getRowSpan() - 1;
-		int endColumn = cell.getColumnNumber() + cell.getColumnSpan() - 1;
-
-		if (endRow > rows.size() || endColumn > columns.size()) {
-			throw new IllegalArgumentException("セルの結合範囲がレイアウトの範囲外です。");
-		}
-
-		// 結合範囲内の行番号が実際に存在することを確認する。
-		for (int rowNumber = cell.getRowNumber(); rowNumber <= endRow; rowNumber++) {
-
-			final int targetRow = rowNumber;
-
-			if (rows.stream().noneMatch(row -> row.getRowNumber() == targetRow)) {
-				throw new IllegalArgumentException("セルの配置先の行が存在しません。");
-			}
-		}
-
-		// 結合範囲内の列番号が実際に存在することを確認する。
-		for (int columnNumber = cell.getColumnNumber(); columnNumber <= endColumn; columnNumber++) {
-
-			final int targetColumn = columnNumber;
-
-			if (columns.stream().noneMatch(
-					column -> column.getColumnNumber() == targetColumn)) {
-				throw new IllegalArgumentException("セルの配置先の列が存在しません。");
-			}
-		}
-
-		// 既存セルと結合範囲が重複していないことを確認する。
-		List<TemplateCellEntity> existingCells = getCells(cell.getTemplateId());
-
-		for (TemplateCellEntity existing : existingCells) {
-
-			// 更新対象自身は重複判定から除外する。
-			if (cell.getCellId() != null
-					&& cell.getCellId().equals(existing.getCellId())) {
-				continue;
-			}
-
-			int existingEndRow = existing.getRowNumber() + existing.getRowSpan() - 1;
-
-			int existingEndColumn = existing.getColumnNumber() + existing.getColumnSpan() - 1;
-
-			boolean rowOverlap = cell.getRowNumber() <= existingEndRow
-					&& endRow >= existing.getRowNumber();
-
-			boolean columnOverlap = cell.getColumnNumber() <= existingEndColumn
-					&& endColumn >= existing.getColumnNumber();
-
-			if (rowOverlap && columnOverlap) {
-				throw new IllegalArgumentException("既存のセルと配置範囲が重複しています。");
-			}
-		}
-
-		return templateCellRepository.save(cell);
-	}
+	private final TemplateCellQueryService templateCellQueryService;
 
 	/**
 	 * 指定範囲のセルを結合する。
@@ -155,7 +63,7 @@ public class TemplateCellLayoutService {
 			throw new IllegalArgumentException("結合範囲がレイアウトの範囲外です。");
 		}
 
-		// 結合範囲内の行番号が連続して存在することを確認する
+		// 結合範囲内の行番号が連続して存在することを確認する。
 		for (int rowNumber = startRow; rowNumber <= endRow; rowNumber++) {
 			final int targetRow = rowNumber;
 
@@ -164,7 +72,7 @@ public class TemplateCellLayoutService {
 			}
 		}
 
-		// 結合範囲内の列番号が連続して存在することを確認する
+		// 結合範囲内の列番号が連続して存在することを確認する。
 		for (int columnNumber = startColumn; columnNumber <= endColumn; columnNumber++) {
 			final int targetColumn = columnNumber;
 
@@ -173,7 +81,7 @@ public class TemplateCellLayoutService {
 			}
 		}
 
-		List<TemplateCellEntity> cells = getCells(templateId);
+		List<TemplateCellEntity> cells = templateCellQueryService.getCells(templateId);
 
 		TemplateCellEntity baseCell = null;
 
@@ -181,12 +89,13 @@ public class TemplateCellLayoutService {
 		for (TemplateCellEntity cell : cells) {
 
 			int cellEndRow = cell.getRowNumber() + cell.getRowSpan() - 1;
-
 			int cellEndColumn = cell.getColumnNumber() + cell.getColumnSpan() - 1;
 
-			boolean rowOverlap = startRow <= cellEndRow && endRow >= cell.getRowNumber();
+			boolean rowOverlap = startRow <= cellEndRow
+					&& endRow >= cell.getRowNumber();
 
-			boolean columnOverlap = startColumn <= cellEndColumn && endColumn >= cell.getColumnNumber();
+			boolean columnOverlap = startColumn <= cellEndColumn
+					&& endColumn >= cell.getColumnNumber();
 
 			if (!rowOverlap || !columnOverlap) {
 				continue;
@@ -206,7 +115,6 @@ public class TemplateCellLayoutService {
 
 		// 左上セルが存在しない場合は空白セルを作成する。
 		if (baseCell == null) {
-
 			baseCell = new TemplateCellEntity();
 			baseCell.setTemplateId(templateId);
 			baseCell.setRowNumber(startRow);
@@ -225,10 +133,10 @@ public class TemplateCellLayoutService {
 			}
 
 			int cellEndRow = cell.getRowNumber() + cell.getRowSpan() - 1;
-
 			int cellEndColumn = cell.getColumnNumber() + cell.getColumnSpan() - 1;
 
-			boolean rowOverlap = startRow <= cellEndRow && endRow >= cell.getRowNumber();
+			boolean rowOverlap = startRow <= cellEndRow
+					&& endRow >= cell.getRowNumber();
 
 			boolean columnOverlap = startColumn <= cellEndColumn
 					&& endColumn >= cell.getColumnNumber();
@@ -255,7 +163,8 @@ public class TemplateCellLayoutService {
 			throw new IllegalArgumentException("セルの指定が不正です。");
 		}
 
-		TemplateCellEntity targetCell = getCells(templateId).stream()
+		TemplateCellEntity targetCell = templateCellQueryService
+				.getCells(templateId).stream()
 				.filter(cell -> cellId.equals(cell.getCellId()))
 				.findFirst()
 				.orElseThrow(() -> new IllegalArgumentException("対象セルが存在しません。"));
@@ -276,7 +185,6 @@ public class TemplateCellLayoutService {
 
 		// 分割によって空いた位置に空白セルを作成する。
 		for (int row = startRow; row < startRow + rowSpan; row++) {
-
 			for (int column = startColumn; column < startColumn + columnSpan; column++) {
 
 				if (row == startRow && column == startColumn) {
@@ -294,15 +202,5 @@ public class TemplateCellLayoutService {
 				templateCellRepository.save(emptyCell);
 			}
 		}
-	}
-
-	/**
-	 * テンプレートのレイアウト情報をすべて削除する。
-	 */
-	public void deleteLayout(Long templateId) {
-
-		templateCellRepository.deleteByTemplateId(templateId);
-		templateRowRepository.deleteByTemplateId(templateId);
-		templateColumnRepository.deleteByTemplateId(templateId);
 	}
 }

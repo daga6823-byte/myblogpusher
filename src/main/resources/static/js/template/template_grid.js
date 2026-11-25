@@ -108,11 +108,32 @@ export function restoreGrid() {
 		}
 
 		if (cellData.textColor) {
+
 			cell.style.color = cellData.textColor;
+
+		}
+
+		// 文字の縁取り色
+		if (cellData.textStrokeColor) {
+
+			cell.style.webkitTextStrokeColor = cellData.textStrokeColor;
+
+		}
+
+		// 文字の縁取りの太さ
+		if (cellData.textStrokeWidth != null) {
+
+			cell.style.webkitTextStrokeWidth =
+				`${cellData.textStrokeWidth}px`;
+
+			cell.style.paintOrder = "stroke fill";
+
 		}
 
 		if (cellData.fontSize) {
+
 			cell.style.fontSize = `${cellData.fontSize}px`;
+
 		}
 
 		if (cellData.fontWeight) {

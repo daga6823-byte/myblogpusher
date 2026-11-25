@@ -14,8 +14,11 @@ import org.springframework.transaction.annotation.Transactional;
 import com.app.myblogpusher.entity.Template.TemplateCellEntity;
 import com.app.myblogpusher.entity.Template.TemplateColumn;
 import com.app.myblogpusher.entity.Template.TemplateRow;
-import com.app.myblogpusher.service.Template.TemplateCellLayoutService;
+import com.app.myblogpusher.service.Template.TemplateCellMergeService;
+import com.app.myblogpusher.service.Template.TemplateCellQueryService;
+import com.app.myblogpusher.service.Template.TemplateCellSaveService;
 import com.app.myblogpusher.service.Template.TemplateColumnLayoutService;
+import com.app.myblogpusher.service.Template.TemplateLayoutDeleteService;
 import com.app.myblogpusher.service.Template.TemplateRowLayoutService;
 
 import lombok.RequiredArgsConstructor;
@@ -27,7 +30,10 @@ public class TemplateLayoutFacadeService {
 
 	private final TemplateRowLayoutService templateRowLayoutService;
 	private final TemplateColumnLayoutService templateColumnLayoutService;
-	private final TemplateCellLayoutService templateCellLayoutService;
+	private final TemplateCellQueryService templateCellQueryService;
+	private final TemplateCellSaveService templateCellSaveService;
+	private final TemplateCellMergeService templateCellMergeService;
+	private final TemplateLayoutDeleteService templateLayoutDeleteService;
 
 	/**
 	 * 行情報を取得する。
@@ -50,7 +56,7 @@ public class TemplateLayoutFacadeService {
 	 */
 	@Transactional(readOnly = true)
 	public List<TemplateCellEntity> getCells(Long templateId) {
-		return templateCellLayoutService.getCells(templateId);
+		return templateCellQueryService.getCells(templateId);
 	}
 
 	/**
@@ -71,7 +77,7 @@ public class TemplateLayoutFacadeService {
 	 * セル情報を保存する。
 	 */
 	public TemplateCellEntity saveCell(TemplateCellEntity cell) {
-		return templateCellLayoutService.saveCell(cell);
+	    return templateCellSaveService.saveCell(cell);
 	}
 
 	/**
@@ -98,22 +104,22 @@ public class TemplateLayoutFacadeService {
 			Integer rowSpan,
 			Integer columnSpan) {
 
-		return templateCellLayoutService.mergeCells(
-				templateId, startRow, startColumn, rowSpan, columnSpan);
+		return templateCellMergeService.mergeCells(
+		        templateId, startRow, startColumn, rowSpan, columnSpan);
 	}
 
 	/**
 	 * 結合セルを分割する。
 	 */
 	public void splitCell(Long templateId, Long cellId) {
-		templateCellLayoutService.splitCell(templateId, cellId);
+	    templateCellMergeService.splitCell(templateId, cellId);
 	}
 
 	/**
 	 * レイアウト情報をすべて削除する。
 	 */
 	public void deleteLayout(Long templateId) {
-		templateCellLayoutService.deleteLayout(templateId);
+	    templateLayoutDeleteService.deleteLayout(templateId);
 	}
 
 	/**
