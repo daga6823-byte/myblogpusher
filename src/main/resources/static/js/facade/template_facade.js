@@ -17,4 +17,4 @@ import "../template/template_grid.js";
 import "../template/template_cell.js";
 import "../template/template_image.js";
 
-import "../image/image_facade.js";
+import "./image_facade.js";

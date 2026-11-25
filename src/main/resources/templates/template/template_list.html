@@ -43,15 +43,15 @@
 					<td th:text="${template.templateKey}"></td>
 					<td th:text="${template.templateDescription}"></td>
 					<td>
-						<button type="button" class="editTemplateButton" th:attr="
-								data-id=${template.templateId},
-								data-name=${template.templateName},
-								data-key=${template.templateKey},
-								data-description=${template.templateDescription}">
+						<button type="button" class="btn-edit editTemplateButton" th:attr="
+        data-id=${template.templateId},
+        data-name=${template.templateName},
+        data-key=${template.templateKey},
+        data-description=${template.templateDescription}">
 							編集
 						</button>
-
-						<button type="button" class="deleteTemplateButton" th:attr="data-id=${template.templateId}">
+						<button type="button" class="btn-delete deleteTemplateButton"
+							th:attr="data-id=${template.templateId}">
 							削除
 						</button>
 					</td>
