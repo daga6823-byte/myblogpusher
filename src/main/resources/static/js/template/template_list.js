@@ -7,85 +7,17 @@
  */
 document.addEventListener("DOMContentLoaded", () => {
 
-	const modal = document.getElementById("templateModal");
-	const modalTitle = document.getElementById("templateModalTitle");
-	const templateId = document.getElementById("templateId");
-	const templateName = document.getElementById("templateName");
-	const templateKey = document.getElementById("templateKey");
-	const templateDescription = document.getElementById("templateDescription");
 	const addButton = document.getElementById("addTemplateButton");
-	const saveButton = document.getElementById("saveTemplateButton");
-	const cancelButton = document.getElementById("cancelTemplateButton");
 
-	// 新規テンプレート追加モーダルを開く
+	// 新規テンプレート編集画面を開く
 	addButton.addEventListener("click", () => {
-		templateId.value = "";
-		templateName.value = "";
-		templateKey.value = "";
-		templateDescription.value = "";
-		modalTitle.textContent = "テンプレート追加";
-		modal.style.display = "block";
+		location.href = "/template/new";
 	});
 
-	// モーダルを閉じる
-	cancelButton.addEventListener("click", () => {
-		modal.style.display = "none";
-	});
-
-	// テンプレートを登録・更新する
-	saveButton.addEventListener("click", async () => {
-
-		const id = templateId.value;
-
-		const data = {
-			templateName: templateName.value,
-			templateKey: templateKey.value,
-			templateDescription: templateDescription.value
-		};
-
-		if (!data.templateName.trim() || !data.templateKey.trim()) {
-			alert("テンプレート名と識別名を入力してください。");
-			return;
-		}
-
-		const url = id
-			? `/template/api/${id}`
-			: "/template/api";
-
-		const method = id ? "PUT" : "POST";
-
-		try {
-			const response = await fetch(url, {
-				method: method,
-				headers: {
-					"Content-Type": "application/json",
-					"X-CSRF-TOKEN": getCsrfToken()
-				},
-				body: JSON.stringify(data)
-			});
-
-			if (!response.ok) {
-				throw new Error("テンプレートの保存に失敗しました。");
-			}
-
-			location.reload();
-
-		} catch (error) {
-			alert(error.message);
-		}
-	});
-
-	// 編集ボタンからテンプレート情報をモーダルに設定する
+	// 編集ボタンからテンプレート編集画面を開く
 	document.querySelectorAll(".editTemplateButton").forEach(button => {
 		button.addEventListener("click", () => {
-
-			templateId.value = button.dataset.id;
-			templateName.value = button.dataset.name;
-			templateKey.value = button.dataset.key;
-			templateDescription.value = button.dataset.description || "";
-
-			modalTitle.textContent = "テンプレート編集";
-			modal.style.display = "block";
+			location.href = `/template/edit?templateId=${button.dataset.id}`;
 		});
 	});
 
