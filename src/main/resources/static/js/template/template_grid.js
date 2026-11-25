@@ -36,9 +36,18 @@ export function createCell(row, column) {
 export function restoreGrid() {
 	const grid = templateState.grid;
 
-	const rows = JSON.parse(grid.dataset.rows || "[]");
-	const columns = JSON.parse(grid.dataset.columns || "[]");
-	const cells = JSON.parse(grid.dataset.cells || "[]");
+	// Thymeleafから渡されるレイアウト情報を取得する
+	const rows = JSON.parse(
+		grid.dataset.rowsJson || grid.dataset.rows || "[]"
+	);
+
+	const columns = JSON.parse(
+		grid.dataset.columnsJson || grid.dataset.columns || "[]"
+	);
+
+	const cells = JSON.parse(
+		grid.dataset.cellsJson || grid.dataset.cells || "[]"
+	);
 
 	templateState.rowCount = rows.length;
 	templateState.columnCount = columns.length;
@@ -153,7 +162,9 @@ export function restoreGrid() {
 				break;
 
 			case "EMPTY":
-				cell.textContent = "";
+
+				cell.textContent = "空白";
+
 				break;
 		}
 

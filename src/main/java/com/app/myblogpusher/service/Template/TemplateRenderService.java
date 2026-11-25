@@ -22,7 +22,6 @@ import com.app.myblogpusher.entity.Template.TemplateColumn;
 import com.app.myblogpusher.entity.Template.TemplateEntity;
 import com.app.myblogpusher.entity.Template.TemplateRow;
 import com.app.myblogpusher.facade.TemplateLayoutFacadeService;
-import com.app.myblogpusher.service.Image.ImageAssetQueryService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -33,7 +32,6 @@ public class TemplateRenderService {
 
 	private final TemplateService templateService;
 	private final TemplateLayoutFacadeService templateLayoutFacadeService;
-	private final ImageAssetQueryService imageAssetQueryService;
 
 	/**
 	 * テンプレートのHTMLとCSSを生成する。
@@ -50,11 +48,9 @@ public class TemplateRenderService {
 		List<TemplateColumn> columns = templateLayoutFacadeService.getColumns(templateId);
 		List<TemplateCell> cells = templateLayoutFacadeService.getCells(templateId);
 
-		Map<Long, String> imageUrlCache = new HashMap<>();
-
 		String cssClass = "mbp-template-" + templateId;
 
-		String html = generateHtml(userId, cells, imageUrlCache, cssClass);
+		String html = generateHtml(cells, cssClass);
 		String css = generateCss(template, rows, columns, cells, cssClass);
 
 		Map<String, String> result = new HashMap<>();
@@ -66,25 +62,27 @@ public class TemplateRenderService {
 
 	/**
 	 * テンプレート全体とセルのHTMLを生成する。
+	 *
+	 * IMAGEセルは画像を固定せず、記事編集画面で画像を割り当てる
+	 * プレースホルダーとして出力する。
 	 */
 	private String generateHtml(
-			Long userId,
 			List<TemplateCell> cells,
-			Map<Long, String> imageUrlCache,
 			String cssClass) {
 
 		StringBuilder html = new StringBuilder();
 
 		// Hugoに配置したテンプレート専用CSSを読み込む。
 		html.append("<link rel=\"stylesheet\" href=\"/css/templates/template_")
-		        .append(cssClass.substring("mbp-template-".length()))
-		        .append(".css\">");
+				.append(cssClass.substring("mbp-template-".length()))
+				.append(".css\">");
 
 		html.append("<div class=\"mbp-template ")
-		        .append(cssClass)
-		        .append("\">");
+				.append(cssClass)
+				.append("\">");
 
 		for (TemplateCell cell : cells) {
+
 			html.append("<div class=\"mbp-template-cell mbp-cell-")
 					.append(cell.getCellId())
 					.append("\">");
@@ -92,9 +90,11 @@ public class TemplateRenderService {
 			String cellType = cell.getCellType();
 
 			if ("TEXT".equals(cellType)) {
+
 				html.append(escapeHtml(cell.getCellContent()));
 
 			} else if ("VARIABLE".equals(cellType)) {
+
 				html.append("<span data-template-variable=\"")
 						.append(escapeHtml(cell.getVariableName()))
 						.append("\">")
@@ -102,19 +102,13 @@ public class TemplateRenderService {
 						.append("</span>");
 
 			} else if ("IMAGE".equals(cellType)) {
-				Long imageAssetId = cell.getImageAssetId();
 
-				if (imageAssetId != null) {
-					String imageUrl = imageUrlCache.computeIfAbsent(
-							imageAssetId,
-							id -> imageAssetQueryService.getImageUrl(userId, id));
-
-					if (imageUrl != null && !imageUrl.isBlank()) {
-						html.append("<img src=\"")
-								.append(escapeHtml(imageUrl))
-								.append("\" alt=\"\" loading=\"lazy\">");
-					}
-				}
+				// 記事編集画面で画像選択ボタンを表示するための枠。
+				// 画像自体は記事ごとに設定する。
+				html.append("<div class=\"mbp-template-image-placeholder\"")
+						.append(" data-template-image-cell=\"")
+						.append(cell.getCellId())
+						.append("\"></div>");
 			}
 
 			html.append("</div>");
@@ -145,6 +139,7 @@ public class TemplateRenderService {
 		css.append("grid-template-rows: ")
 				.append(generateRowSizes(rows))
 				.append(";");
+		css.append("gap: 2px;");
 		css.append("box-sizing: border-box;");
 		appendCssProperty(css, "background-color", template.getBackgroundColor());
 		css.append("}\n");
@@ -155,6 +150,28 @@ public class TemplateRenderService {
 		css.append("min-width: 0;");
 		css.append("min-height: 0;");
 		css.append("overflow-wrap: anywhere;");
+		css.append("border: 1px solid #777;");
+		css.append("background-color: #fff;");
+		css.append("}\n");
+
+		// IMAGEセルの画像配置枠
+		css.append(".").append(cssClass)
+				.append(" .mbp-template-image-placeholder {");
+		css.append("width: 100%;");
+		css.append("min-height: 80px;");
+		css.append("box-sizing: border-box;");
+		css.append("display: flex;");
+		css.append("align-items: center;");
+		css.append("justify-content: center;");
+		css.append("border: 1px dashed #999;");
+		css.append("}\n");
+
+		// 記事に割り当てられた画像
+		css.append(".").append(cssClass)
+				.append(" .mbp-template-image-placeholder img {");
+		css.append("max-width: 100%;");
+		css.append("height: auto;");
+		css.append("object-fit: contain;");
 		css.append("}\n");
 
 		for (TemplateCell cell : cells) {
