@@ -12,25 +12,33 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.app.myblogpusher.entity.Article.Article;
 import com.app.myblogpusher.entity.Article.ArticleCategory;
 import com.app.myblogpusher.repository.CategoryRelationRepository;
 import com.app.myblogpusher.repository.Article.ArticleCategoryRepository;
+import com.app.myblogpusher.service.Template.TemplateRenderService;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class HugoArticleService {
 
-	@Autowired
 	private ArticleCategoryRepository articleCategoryRepository;
 
-	@Autowired
 	private CategoryRelationRepository categoryRelationRepository;
+
+	private final TemplateRenderService templateRenderService;
 
 	public void createArticle(
 			Git git,
@@ -42,18 +50,18 @@ public class HugoArticleService {
 		String categoryPath = article.getHugoPath();
 
 		createCategoryIndexesRecursively(
-		        git,
-		        repoPath,
-		        categoryPath,
-		        article.getUserId());
+				git,
+				repoPath,
+				categoryPath,
+				article.getUserId());
 
 		// カテゴリー経路とslugを結合して記事ファイルのパスを生成する。
 		String hugoPath = article.getHugoPath() + "/" + slug;
 
 		Path contentPath = Paths.get(
-		        repoPath,
-		        "content",
-		        hugoPath + ".md");
+				repoPath,
+				"content",
+				hugoPath + ".md");
 
 		contentPath.getParent().toFile().mkdirs();
 
@@ -61,9 +69,9 @@ public class HugoArticleService {
 				contentPath,
 				article.getContent().getBytes(StandardCharsets.UTF_8));
 
-		git.add()
-				.addFilepattern("content")
-				.call();
+		git.add().addFilepattern("content").call();
+
+		saveTemplateCss(git, repoPath, article);
 	}
 
 	private void createCategoryIndexesRecursively(
@@ -139,49 +147,95 @@ public class HugoArticleService {
 	 * 移動先はカテゴリー経路とslugを結合したフルパスを受け取る。
 	 */
 	public void moveArticle(
-	        Git git,
-	        String repoPath,
-	        String oldHugoPath,
-	        String newHugoPath)
-	        throws IOException, GitAPIException {
+			Git git,
+			String repoPath,
+			String oldHugoPath,
+			String newHugoPath)
+			throws IOException, GitAPIException {
 
-	    // 移動元と移動先が同じ場合は何もしない。
-	    if (oldHugoPath.equals(newHugoPath)) {
-	        return;
-	    }
+		// 移動元と移動先が同じ場合は何もしない。
+		if (oldHugoPath.equals(newHugoPath)) {
+			return;
+		}
 
-	    Path oldPath = Paths.get(
-	            repoPath,
-	            "content",
-	            oldHugoPath + ".md");
+		Path oldPath = Paths.get(
+				repoPath,
+				"content",
+				oldHugoPath + ".md");
 
-	    Path newPath = Paths.get(
-	            repoPath,
-	            "content",
-	            newHugoPath + ".md");
+		Path newPath = Paths.get(
+				repoPath,
+				"content",
+				newHugoPath + ".md");
 
-	    if (!Files.exists(oldPath)) {
-	        throw new IOException(
-	                "移動元の記事ファイルが存在しません: " + oldPath);
-	    }
+		if (!Files.exists(oldPath)) {
+			throw new IOException(
+					"移動元の記事ファイルが存在しません: " + oldPath);
+		}
 
-	    // 移動先に別の記事が存在する場合は誤上書きを防止する。
-	    if (Files.exists(newPath)) {
-	        throw new IOException(
-	                "移動先の記事ファイルが既に存在します: " + newPath);
-	    }
+		// 移動先に別の記事が存在する場合は誤上書きを防止する。
+		if (Files.exists(newPath)) {
+			throw new IOException(
+					"移動先の記事ファイルが既に存在します: " + newPath);
+		}
 
-	    Files.createDirectories(newPath.getParent());
+		Files.createDirectories(newPath.getParent());
 
-	    Files.move(oldPath, newPath);
+		Files.move(oldPath, newPath);
 
-	    // Gitインデックスに移動元の削除と移動先の追加を反映する。
-	    git.add()
-	            .addFilepattern("content/" + oldHugoPath + ".md")
-	            .call();
+		// Gitインデックスに移動元の削除と移動先の追加を反映する。
+		git.add()
+				.addFilepattern("content/" + oldHugoPath + ".md")
+				.call();
 
-	    git.add()
-	            .addFilepattern("content/" + newHugoPath + ".md")
-	            .call();
+		git.add()
+				.addFilepattern("content/" + newHugoPath + ".md")
+				.call();
+	}
+
+	/**
+	 * 記事で使用するテンプレートのCSSをHugoリポジトリへ保存する。
+	 *
+	 * 記事本文からテンプレートIDを抽出し、最新のテンプレート定義からCSSを生成する。
+	 * Gitへの追加のみ行い、コミットとPushは記事投稿処理に委譲する。
+	 */
+	private void saveTemplateCss(Git git, String repoPath, Article article)
+			throws IOException, GitAPIException {
+
+		Pattern pattern = Pattern.compile("mbp-template-(\\d+)");
+		Matcher matcher = pattern.matcher(article.getContent());
+
+		Set<Long> templateIds = new LinkedHashSet<>();
+
+		while (matcher.find()) {
+			templateIds.add(Long.valueOf(matcher.group(1)));
+		}
+
+		if (templateIds.isEmpty()) {
+			return;
+		}
+
+		Path cssDirectory = Paths.get(repoPath, "static", "css", "templates");
+		Files.createDirectories(cssDirectory);
+
+		for (Long templateId : templateIds) {
+
+			Map<String, String> rendered = templateRenderService.generate(article.getUserId(), templateId);
+
+			String css = rendered.get("css");
+
+			if (css == null || css.isBlank()) {
+				throw new IllegalStateException(
+						"テンプレートCSSを生成できませんでした。templateId=" + templateId);
+			}
+
+			Path cssPath = cssDirectory.resolve("template_" + templateId + ".css");
+
+			Files.writeString(cssPath, css, StandardCharsets.UTF_8);
+		}
+
+		git.add()
+				.addFilepattern("static/css/templates")
+				.call();
 	}
 }

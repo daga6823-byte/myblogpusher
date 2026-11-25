@@ -18,9 +18,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.app.myblogpusher.entity.UserMaster;
-import com.app.myblogpusher.entity.Template.Template;
 import com.app.myblogpusher.entity.Template.TemplateCell;
 import com.app.myblogpusher.entity.Template.TemplateColumn;
+import com.app.myblogpusher.entity.Template.TemplateEntity;
 import com.app.myblogpusher.entity.Template.TemplateRow;
 import com.app.myblogpusher.service.Image.ImageAssetQueryService;
 import com.app.myblogpusher.service.Template.TemplateColorService;
@@ -76,7 +76,7 @@ public class TemplateController {
 				"templates",
 				templateService.getTemplates(userId));
 
-		return "template/template/template_list";
+		return "template/template_list";
 	}
 
 	/**
@@ -85,9 +85,9 @@ public class TemplateController {
 	@GetMapping("/template/new")
 	public String newTemplate(Model model) {
 
-		model.addAttribute("template", new Template());
+		model.addAttribute("template", new TemplateEntity());
 
-		return "template/template/template_edit";
+		return "template/template_edit";
 	}
 
 	/**
@@ -106,7 +106,7 @@ public class TemplateController {
 
 		Long userId = loginUser.getUserId();
 
-		Template template = templateService.getTemplate(userId, templateId);
+		TemplateEntity template = templateService.getTemplate(userId, templateId);
 
 		model.addAttribute("template", template);
 
@@ -175,7 +175,7 @@ public class TemplateController {
 				"colors",
 				templateColorService.getColors(userId));
 
-		return "template/template/template_edit";
+		return "template/template_edit";
 	}
 
 	/**
@@ -186,7 +186,7 @@ public class TemplateController {
 	 */
 	@PostMapping("/template/save")
 	public String saveTemplate(
-			@ModelAttribute Template template,
+			@ModelAttribute TemplateEntity template,
 			HttpSession session) {
 
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
@@ -198,7 +198,7 @@ public class TemplateController {
 			template.setUserId(userId);
 
 			// テンプレート本体を新規登録する。
-			Template saved = templateService.createTemplate(template);
+			TemplateEntity saved = templateService.createTemplate(template);
 
 			Long templateId = saved.getTemplateId();
 

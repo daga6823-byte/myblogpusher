@@ -12,7 +12,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.app.myblogpusher.entity.Template.Template;
+import com.app.myblogpusher.entity.Template.TemplateEntity;
 import com.app.myblogpusher.repository.Template.TemplateRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -28,7 +28,7 @@ public class TemplateService {
 	 * ユーザーのテンプレート一覧を取得する。
 	 */
 	@Transactional(readOnly = true)
-	public List<Template> getTemplates(Long userId) {
+	public List<TemplateEntity> getTemplates(Long userId) {
 		return templateRepository.findByUserIdOrderByUpdateDateDesc(userId);
 	}
 
@@ -36,8 +36,8 @@ public class TemplateService {
 	 * ユーザーが所有するテンプレートを取得する。
 	 */
 	@Transactional(readOnly = true)
-	public Template getTemplate(Long userId, Long templateId) {
-		Template template = templateRepository.findById(templateId)
+	public TemplateEntity getTemplate(Long userId, Long templateId) {
+		TemplateEntity template = templateRepository.findById(templateId)
 				.orElseThrow(() -> new IllegalArgumentException("テンプレートが見つかりません。"));
 
 		if (!template.getUserId().equals(userId)) {
@@ -50,7 +50,7 @@ public class TemplateService {
 	/**
 	 * 新しいテンプレートを登録する。
 	 */
-	public Template createTemplate(Template template) {
+	public TemplateEntity createTemplate(TemplateEntity template) {
 
 		if (templateRepository.existsByUserIdAndTemplateKey(
 				template.getUserId(), template.getTemplateKey())) {
@@ -67,9 +67,9 @@ public class TemplateService {
 	/**
 	 * テンプレートの基本情報を更新する。
 	 */
-	public Template updateTemplate(Long userId, Template template) {
+	public TemplateEntity updateTemplate(Long userId, TemplateEntity template) {
 
-		Template existing = getTemplate(userId, template.getTemplateId());
+		TemplateEntity existing = getTemplate(userId, template.getTemplateId());
 
 		if (!existing.getTemplateKey().equals(template.getTemplateKey())
 				&& templateRepository.existsByUserIdAndTemplateKey(
@@ -90,7 +90,7 @@ public class TemplateService {
 	 * テンプレートを削除する。
 	 */
 	public void deleteTemplate(Long userId, Long templateId) {
-		Template template = getTemplate(userId, templateId);
+		TemplateEntity template = getTemplate(userId, templateId);
 		templateRepository.delete(template);
 	}
 }

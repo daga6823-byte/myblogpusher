@@ -21,7 +21,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.app.myblogpusher.entity.UserMaster;
-import com.app.myblogpusher.entity.Template.Template;
+import com.app.myblogpusher.entity.Template.TemplateEntity;
+import com.app.myblogpusher.service.Template.TemplateRenderService;
 import com.app.myblogpusher.service.Template.TemplateService;
 import com.app.myblogpusher.util.LoginUserUtil;
 
@@ -34,10 +35,11 @@ import lombok.RequiredArgsConstructor;
 public class TemplateApiController {
 
 	private final TemplateService templateService;
+	private final TemplateRenderService templateRenderService;
 
 	// テンプレートを新規登録する
 	@PostMapping
-	public ResponseEntity<?> create(@RequestBody Template template, HttpSession session) {
+	public ResponseEntity<?> create(@RequestBody TemplateEntity template, HttpSession session) {
 
 		UserMaster loginUser = LoginUserUtil.getLoginUser(session);
 
@@ -47,7 +49,7 @@ public class TemplateApiController {
 
 		template.setUserId(loginUser.getUserId());
 
-		Template saved = templateService.createTemplate(template);
+		TemplateEntity saved = templateService.createTemplate(template);
 
 		return ResponseEntity.ok(
 				Map.of("templateId", saved.getTemplateId()));
@@ -57,7 +59,7 @@ public class TemplateApiController {
 	@PutMapping("/{templateId}")
 	public ResponseEntity<?> update(
 			@PathVariable Long templateId,
-			@RequestBody Template template,
+			@RequestBody TemplateEntity template,
 			HttpSession session) {
 
 		UserMaster loginUser = LoginUserUtil.getLoginUser(session);
@@ -103,8 +105,31 @@ public class TemplateApiController {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 		}
 
-		List<Template> templates = templateService.getTemplates(loginUser.getUserId());
+		List<TemplateEntity> templates = templateService.getTemplates(loginUser.getUserId());
 
 		return ResponseEntity.ok(templates);
+	}
+
+	/**
+	 * テンプレートのHTML・CSSを生成する。
+	 *
+	 * ログインユーザー本人が所有するテンプレートのみ生成できる。
+	 */
+	@GetMapping("/{templateId}/render")
+	public ResponseEntity<?> generateTemplate(
+			@PathVariable Long templateId,
+			HttpSession session) {
+
+		UserMaster loginUser = LoginUserUtil.getLoginUser(session);
+
+		if (loginUser == null) {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+		}
+
+		Map<String, String> result = templateRenderService.generate(
+				loginUser.getUserId(),
+				templateId);
+
+		return ResponseEntity.ok(result);
 	}
 }

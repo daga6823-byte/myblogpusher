@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.app.myblogpusher.entity.UserMaster;
-import com.app.myblogpusher.entity.Template.Template;
+import com.app.myblogpusher.entity.Template.TemplateEntity;
 import com.app.myblogpusher.entity.Template.TemplateCell;
 import com.app.myblogpusher.entity.Template.TemplateColumn;
 import com.app.myblogpusher.entity.Template.TemplateRow;
@@ -43,7 +43,7 @@ public class TemplateLayoutApiController {
 	 * @param session HTTPセッション
 	 * @return 所有者確認済みのテンプレート
 	 */
-	private Template getOwnedTemplate(Long templateId, HttpSession session) {
+	private TemplateEntity getOwnedTemplate(Long templateId, HttpSession session) {
 
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 

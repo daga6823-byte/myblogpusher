@@ -9,14 +9,14 @@ import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.app.myblogpusher.entity.Template.Template;
+import com.app.myblogpusher.entity.Template.TemplateEntity;
 
-public interface TemplateRepository extends JpaRepository<Template, Long> {
+public interface TemplateRepository extends JpaRepository<TemplateEntity, Long> {
 
 	/**
 	 * ユーザーが所有するテンプレートを更新日時の降順で取得する。
 	 */
-	List<Template> findByUserIdOrderByUpdateDateDesc(Long userId);
+	List<TemplateEntity> findByUserIdOrderByUpdateDateDesc(Long userId);
 
 	/**
 	 * テンプレート識別キーがユーザー内で既に使用されているか確認する。
