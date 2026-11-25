@@ -28,8 +28,18 @@ export async function callLayoutApi(url, params, reloadAfterSave = false) {
 		throw new Error("先にテンプレート情報を保存してください。");
 	}
 
+	const formData = new URLSearchParams({
+		templateId: templateId
+	});
+
+	Object.entries(params).forEach(([key, value]) => {
+		if (value !== undefined && value !== null && value !== "") {
+			formData.set(key, value);
+		}
+	});
+
 	const headers = {
-		"Content-Type": "application/json"
+		"Content-Type": "application/x-www-form-urlencoded"
 	};
 
 	const csrfToken = getCsrfToken();
@@ -38,15 +48,10 @@ export async function callLayoutApi(url, params, reloadAfterSave = false) {
 		headers["X-CSRF-TOKEN"] = decodeURIComponent(csrfToken);
 	}
 
-	const requestBody = {
-		templateId: Number(templateId),
-		...params
-	};
-
 	const response = await fetch(url, {
 		method: "POST",
 		headers: headers,
-		body: JSON.stringify(requestBody)
+		body: formData
 	});
 
 	if (!response.ok) {
