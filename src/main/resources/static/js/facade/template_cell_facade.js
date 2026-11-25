@@ -6,13 +6,13 @@
  */
 
 // セル選択機能
-export { selectCell } from "./template_cell_selection.js";
+export { selectCell } from "../template/template_cell_selection.js";
 
 // セル種類変更機能
-import "./template_cell_type.js";
+import "../template/template_cell_type.js";
 
 // セル装飾・色履歴機能
-import "./template_cell_style.js";
+import "../template/template_cell_style.js";
 
 // セル結合・分割機能
-import "./template_cell_layout.js";
+import "../template/template_cell_layout.js";

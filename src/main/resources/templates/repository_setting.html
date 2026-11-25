@@ -16,6 +16,8 @@
 		<p th:if="${error}" class="error-message" th:text="${error}"></p>
 
 		<form th:action="@{/repository/setting}" th:object="${form}" method="post">
+			<input type="hidden" name="_csrf" th:value="${_csrf}">
+
 			<div class="form-group">
 				<label for="repoOwner">GitHubユーザー名（Organization）</label>
 				<input type="text" id="repoOwner" th:field="*{repoOwner}"
