@@ -7,8 +7,6 @@
  */
 package com.app.myblogpusher.controller.Template;
 
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -22,15 +20,10 @@ import com.app.myblogpusher.entity.Template.TemplateCell;
 import com.app.myblogpusher.entity.Template.TemplateColumn;
 import com.app.myblogpusher.entity.Template.TemplateEntity;
 import com.app.myblogpusher.entity.Template.TemplateRow;
-import com.app.myblogpusher.service.Image.ImageAssetQueryService;
-import com.app.myblogpusher.service.Template.TemplateColorService;
+import com.app.myblogpusher.service.Template.TemplateEditService;
 import com.app.myblogpusher.service.Template.TemplateLayoutService;
 import com.app.myblogpusher.service.Template.TemplateService;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import jakarta.servlet.http.HttpSession;
 
@@ -44,13 +37,7 @@ public class TemplateController {
 	private TemplateLayoutService templateLayoutService;
 
 	@Autowired
-	private TemplateColorService templateColorService;
-
-	@Autowired
-	private ObjectMapper objectMapper;
-
-	@Autowired
-	private ImageAssetQueryService imageAssetQueryService;
+	private TemplateEditService templateEditService;
 
 	/**
 	 * テンプレート管理トップ画面を表示する。
@@ -83,9 +70,14 @@ public class TemplateController {
 	 * テンプレート新規作成画面を表示する。
 	 */
 	@GetMapping("/template/new")
-	public String newTemplate(Model model) {
+	public String newTemplate(
+			HttpSession session,
+			Model model) throws JsonProcessingException {
 
-		model.addAttribute("template", new TemplateEntity());
+		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
+
+		model.addAllAttributes(
+				templateEditService.prepareNewTemplate(loginUser.getUserId()));
 
 		return "template/template_edit";
 	}
@@ -93,8 +85,8 @@ public class TemplateController {
 	/**
 	 * テンプレート編集画面を表示する。
 	 *
-	 * テンプレート本体と行・列・セル情報、
-	 * ユーザーの色履歴を画面に渡す。
+	 * テンプレート編集画面に必要なデータの準備は
+	 * TemplateEditServiceに委譲する。
 	 */
 	@GetMapping("/template/edit")
 	public String editTemplate(
@@ -104,76 +96,10 @@ public class TemplateController {
 
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 
-		Long userId = loginUser.getUserId();
-
-		TemplateEntity template = templateService.getTemplate(userId, templateId);
-
-		model.addAttribute("template", template);
-
-		model.addAttribute(
-				"rows",
-				templateLayoutService.getRows(templateId));
-
-		model.addAttribute(
-				"columns",
-				templateLayoutService.getColumns(templateId));
-
-		List<TemplateCell> cells = templateLayoutService.getCells(templateId);
-
-		model.addAttribute("cells", cells);
-
-		// JavaScriptでレイアウト情報を扱えるようJSON形式に変換する。
-		model.addAttribute(
-				"rowsJson",
-				objectMapper.writeValueAsString(
-						templateLayoutService.getRows(templateId)));
-
-		model.addAttribute(
-				"columnsJson",
-				objectMapper.writeValueAsString(
-						templateLayoutService.getColumns(templateId)));
-
-		// セル情報をJSON配列に変換する。
-		JsonNode cellsTree = objectMapper.valueToTree(cells);
-		ArrayNode cellsJson = (ArrayNode) cellsTree;
-
-		// IMAGEセルには、所有者確認済みの画像URLを追加する。
-		for (JsonNode node : cellsJson) {
-
-			if (!(node instanceof ObjectNode cellJson)) {
-				continue;
-			}
-
-			if (!"IMAGE".equals(cellJson.path("cellType").asText())) {
-				continue;
-			}
-
-			if (cellJson.path("imageAssetId").isNull()) {
-				continue;
-			}
-
-			Long imageAssetId = cellJson.path("imageAssetId").asLong();
-
-			try {
-				String imageUrl = imageAssetQueryService.getImageUrl(
-						userId,
-						imageAssetId);
-
-				cellJson.put("imageUrl", imageUrl);
-
-			} catch (IllegalArgumentException e) {
-				// 画像が削除済み、またはユーザーの所有物でない場合はURLを設定しない。
-				cellJson.putNull("imageUrl");
-			}
-		}
-
-		model.addAttribute(
-				"cellsJson",
-				objectMapper.writeValueAsString(cellsJson));
-
-		model.addAttribute(
-				"colors",
-				templateColorService.getColors(userId));
+		model.addAllAttributes(
+				templateEditService.prepareEditTemplate(
+						loginUser.getUserId(),
+						templateId));
 
 		return "template/template_edit";
 	}

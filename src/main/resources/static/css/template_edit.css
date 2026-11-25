@@ -56,8 +56,48 @@
 
 .template-editor-toolbar button,
 .template-editor-footer button {
-	padding: 8px 16px;
+
+	padding: 9px 16px;
+
+	border: none;
+
+	border-radius: 5px;
+
+	background-color: #4285f4;
+
+	color: #fff;
+
+	font-weight: bold;
+
 	cursor: pointer;
+
+	transition: background-color 0.2s;
+
+}
+
+.template-editor-toolbar button:hover,
+.template-editor-footer button:hover {
+
+	background-color: #2b6fcf;
+
+}
+
+.template-editor-toolbar button:active,
+.template-editor-footer button:active {
+
+	background-color: #1f5aa8;
+
+}
+
+.template-editor-toolbar button:disabled,
+.template-editor-footer button:disabled {
+
+	background-color: #aaa;
+
+	color: #fff;
+
+	cursor: not-allowed;
+
 }
 
 .template-layout-editor {
