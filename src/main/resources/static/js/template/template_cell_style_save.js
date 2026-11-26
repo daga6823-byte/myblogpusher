@@ -28,7 +28,11 @@ function applyStyleToCell(cell, property, value) {
 			cell.style.backgroundColor = value;
 			break;
 		case "fontSize":
-			cell.style.fontSize = `${value}px`;
+
+			cell.style.fontSize = value === null
+				? ""
+				: `${value}px`;
+
 			break;
 		case "fontWeight":
 			cell.style.fontWeight = value;
@@ -53,12 +57,19 @@ export async function saveCellStyle(property, value) {
 		return;
 	}
 
-	if (value === null || value === undefined || value === "") {
+	if (value === undefined || value === "") {
+
 		return;
+
 	}
 
 	const params = {};
-	params[property] = value;
+
+	if (property === "fontSize" && value === null) {
+		params.clearFontSize = true;
+	} else {
+		params[property] = value;
+	}
 
 	try {
 		for (const cell of cells) {

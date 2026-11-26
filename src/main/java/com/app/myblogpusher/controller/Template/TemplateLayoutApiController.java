@@ -214,6 +214,7 @@ public class TemplateLayoutApiController {
 			@RequestParam(required = false) String textColor,
 			@RequestParam(required = false) String backgroundColor,
 			@RequestParam(required = false) BigDecimal fontSize,
+			@RequestParam(required = false, defaultValue = "false") boolean clearFontSize,
 			@RequestParam(required = false) String fontWeight,
 			@RequestParam(required = false) String textStrokeColor,
 			@RequestParam(required = false) BigDecimal textStrokeWidth,
@@ -281,8 +282,10 @@ public class TemplateLayoutApiController {
 			cell.setBackgroundColor(backgroundColor);
 		}
 
-		if (fontSize != null) {
-			cell.setFontSize(fontSize);
+		if (clearFontSize) {
+		    cell.setFontSize(null);
+		} else if (fontSize != null) {
+		    cell.setFontSize(fontSize);
 		}
 
 		if (fontWeight != null) {

@@ -51,7 +51,7 @@ public class TemplateRenderService {
 		String cssClass = "mbp-template-" + templateId;
 		String cssFileName = generateCssFileName(template);
 
-		String html = generateHtml(cells, cssClass, cssFileName);
+		String html = generateHtml(cells, cssClass);
 		String css = generateCss(template, rows, columns, cells, cssClass);
 
 		Map<String, String> result = new HashMap<>();
@@ -90,20 +90,14 @@ public class TemplateRenderService {
 	 * プレースホルダーとして出力する。
 	 */
 	private String generateHtml(
-			List<TemplateCellEntity> cells,
-			String cssClass,
-			String cssFileName) {
+	        List<TemplateCellEntity> cells,
+	        String cssClass) {
 
-		StringBuilder html = new StringBuilder();
+	    StringBuilder html = new StringBuilder();
 
-		// Hugoに配置したテンプレート専用CSSを読み込む。
-		html.append("<link rel=\"stylesheet\" href=\"/css/templates/")
-				.append(cssFileName)
-				.append("\">");
-
-		html.append("<div class=\"mbp-template ")
-				.append(cssClass)
-				.append("\">");
+	    html.append("<div class=\"mbp-template ")
+	            .append(cssClass)
+	            .append("\">");
 
 		for (TemplateCellEntity cell : cells) {
 

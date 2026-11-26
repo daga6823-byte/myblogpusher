@@ -88,22 +88,29 @@ function bindTextStrokeWidth() {
  */
 function bindFontInputs() {
 	const fontSizeInput = document.getElementById("cellFontSize");
-	const fontWeightInput = document.getElementById("cellFontWeight");
 
 	// 文字サイズ
-	fontSizeInput?.addEventListener("change", () => {
-		saveCellStyle(
-			"fontSize",
-			fontSizeInput.value
-		);
-	});
 
-	// 文字の太さ
-	fontWeightInput?.addEventListener("change", () => {
-		saveCellStyle(
-			"fontWeight",
-			fontWeightInput.value
-		);
+	fontSizeInput?.addEventListener("change", async () => {
+
+		const value = fontSizeInput.value.trim();
+
+		// 未指定の場合は文字サイズの指定を解除する。
+		if (value === "") {
+			await saveCellStyle("fontSize", null);
+			return;
+		}
+
+		const fontSize = Number(value);
+
+		if (!Number.isFinite(fontSize) || fontSize <= 0) {
+			alert("文字サイズは1以上の数値で指定してください。");
+			fontSizeInput.value = "";
+			return;
+		}
+
+		await saveCellStyle("fontSize", fontSize);
+
 	});
 }
 

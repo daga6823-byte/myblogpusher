@@ -59,11 +59,11 @@ export function restoreCellStyle(cell) {
 
 	// 文字サイズ
 	const fontSizeInput = document.getElementById("cellFontSize");
-
 	if (fontSizeInput) {
-		fontSizeInput.value = String(
-			parseFloat(computedStyle.fontSize)
-		);
+		// セル自身に文字サイズが指定されていない場合は空欄にする。
+		fontSizeInput.value = cell.style.fontSize
+			? String(parseFloat(cell.style.fontSize))
+			: "";
 	}
 
 	// 文字の太さ
