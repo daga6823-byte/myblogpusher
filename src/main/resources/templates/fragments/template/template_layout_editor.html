@@ -1,0 +1,20 @@
+<!-- レイアウト編集領域 -->
+<section class="template-layout-editor">
+
+	<h2>レイアウト</h2>
+
+	<div id="templateGrid" class="template-grid" th:style="'background-color: '
+            + (${template.backgroundColor != null
+                ? template.backgroundColor : '#FFFFFF'})" th:data-rows="${rowsJson}" th:data-columns="${columnsJson}"
+		th:data-cells="${cellsJson}">
+
+		<p th:if="${#lists.isEmpty(rows) and #lists.isEmpty(columns)}">
+			まだレイアウトがありません。行・列を追加してください。
+		</p>
+
+	</div>
+
+	<!-- 既存の画像選択モーダル -->
+	<div th:replace="~{fragments/image_modal :: imageModal}"></div>
+
+</section>

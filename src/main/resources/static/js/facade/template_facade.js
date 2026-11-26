@@ -14,7 +14,7 @@
 import "../template/template_state.js";
 import "../template/template_api.js";
 import "../template/template_grid.js";
+import "../template/template_save.js";
 import "./template_cell_facade.js";
 import "../template/template_image.js";
-
 import "./image_facade.js";

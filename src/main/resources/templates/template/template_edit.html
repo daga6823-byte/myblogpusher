@@ -22,152 +22,27 @@
 			<h1>テンプレート編集</h1>
 			<a th:href="@{/template/list}">一覧へ戻る</a>
 		</div>
-
-		<!-- テンプレート基本情報 -->
+		<!-- テンプレート編集フォーム -->
 		<form id="templateForm" th:action="@{/template/save}" th:object="${template}" method="post">
 
 			<input type="hidden" name="_csrf" th:value="${_csrf}">
-
 			<input type="hidden" th:field="*{templateId}">
 
-			<div class="template-basic-info">
+			<!-- テンプレート基本情報 -->
+			<div th:replace="~{fragments/template/template_basic_info :: templateBasicInfo}"></div>
 
-				<div class="form-group">
-					<label for="templateName">テンプレート名</label>
-					<input type="text" id="templateName" th:field="*{templateName}" maxlength="255" required>
-				</div>
-
-				<div class="form-group">
-					<label for="templateKey">テンプレート識別キー</label>
-					<input type="text" id="templateKey" th:field="*{templateKey}" maxlength="100" required>
-				</div>
-
-				<div class="form-group">
-					<label for="templateDescription">説明</label>
-					<textarea id="templateDescription" th:field="*{templateDescription}"></textarea>
-				</div>
-
-				<div class="form-group">
-					<label for="backgroundColor">全体背景色</label>
-					<input type="color" id="backgroundColor" name="backgroundColor" th:value="${template.backgroundColor != null
-								? template.backgroundColor : '#FFFFFF'}">
-				</div>
-
-			</div>
-
-			<div class="template-editor-toolbar">
-
-				<!-- 行・列操作 -->
-				<div class="toolbar-group">
-					<button type="button" id="addRowButton">行を追加</button>
-					<button type="button" id="deleteRowButton">選択行を削除</button>
-					<button type="button" id="addColumnButton">列を追加</button>
-					<button type="button" id="deleteColumnButton">選択列を削除</button>
-				</div>
-
-				<!-- セル追加 -->
-				<div class="toolbar-group">
-					<button type="button" id="addTextCellButton">テキストセル</button>
-					<button type="button" id="addVariableCellButton">変数セル</button>
-					<button type="button" id="addEmptyCellButton">空白セル</button>
-					<button type="button" id="addImageCellButton">画像セル</button>
-				</div>
-
-				<!-- セル結合 -->
-				<div class="toolbar-group">
-					<button type="button" id="mergeCellsButton">セルを結合</button>
-					<button type="button" id="splitCellButton">結合を解除</button>
-				</div>
-
-				<!-- 文字装飾 -->
-				<div class="toolbar-group">
-					<label for="cellTextColor">文字色</label>
-					<input type="color" id="cellTextColor" value="#000000">
-					<input type="text" id="cellTextColorCode" value="#000000" maxlength="7" pattern="#[0-9A-Fa-f]{6}"
-						placeholder="#000000" title="カラーコード（例：#000000）">
-
-					<label for="cellTextStrokeColor">文字の縁取り色</label>
-					<input type="color" id="cellTextStrokeColor" value="#000000">
-					<input type="text" id="cellTextStrokeColorCode" value="#000000" maxlength="7"
-						pattern="#[0-9A-Fa-f]{6}" placeholder="#000000" title="縁取り色（例：#000000）">
-
-					<label for="cellTextStrokeWidth">縁取りの太さ</label>
-					<input type="number" id="cellTextStrokeWidth" min="0" max="3" step="0.5" value="0">
-					<span>px</span>
-
-					<label for="cellFontSize">文字サイズ</label>
-					<input type="number" id="cellFontSize" min="1" step="1" placeholder="自動">
-					<span>px</span>
-
-					<label for="cellFontWeight">文字の太さ</label>
-					<select id="cellFontWeight">
-						<option value="normal">標準</option>
-						<option value="bold">太字</option>
-					</select>
-
-					<label>文字配置</label>
-
-					<div id="cellTextAlignGroup" class="text-align-buttons">
-						<button type="button" class="text-align-button" data-align="left" title="左揃え" aria-label="左揃え"
-							aria-pressed="false">
-							<icon name="align-left" />
-						</button>
-
-						<button type="button" class="text-align-button" data-align="center" title="中央揃え"
-							aria-label="中央揃え" aria-pressed="false">
-							<icon name="align-center" />
-						</button>
-
-						<button type="button" class="text-align-button" data-align="right" title="右揃え" aria-label="右揃え"
-							aria-pressed="false">
-							<icon name="align-right" />
-						</button>
-					</div>
-				</div>
-
-				<!-- セル背景色 -->
-				<div class="toolbar-group">
-					<label for="cellBackgroundColor">セル背景色</label>
-					<input type="color" id="cellBackgroundColor" value="#FFFFFF">
-					<input type="text" id="cellBackgroundColorCode" value="#FFFFFF" maxlength="7"
-						pattern="#[0-9A-Fa-f]{6}" placeholder="#FFFFFF" title="カラーコード（例：#FFFFFF）">
-				</div>
-
-				<!-- 使用色履歴 -->
-				<div class="toolbar-group">
-					<label>使用した色</label>
-					<div id="templateColorHistory" class="template-color-history"></div>
-				</div>
-
-				<!-- 使用色履歴 -->
-				<div class="toolbar-group">
-					<label>使用した色</label>
-					<div id="templateColorHistory" class="template-color-history"></div>
-				</div>
-
-			</div>
+			<!-- 編集ツールバー -->
+			<div th:replace="~{fragments/template/template_editor_toolbar :: templateEditorToolbar}"></div>
 
 			<!-- レイアウト編集領域 -->
-			<section class="template-layout-editor">
-				<h2>レイアウト</h2>
+			<div th:replace="~{fragments/template/template_layout_editor :: templateLayoutEditor}"></div>
 
-				<div id="templateGrid" class="template-grid" th:style="'background-color: '
-		+ (${template.backgroundColor != null
-			? template.backgroundColor : '#FFFFFF'})" th:data-rows="${rowsJson}" th:data-columns="${columnsJson}"
-					th:data-cells="${cellsJson}">
-
-					<p th:if="${#lists.isEmpty(rows) and #lists.isEmpty(columns)}">
-						まだレイアウトがありません。行・列を追加してください。
-					</p>
-
-					<!-- 既存の画像選択モーダル -->
-					<div th:replace="~{fragments/image_modal :: imageModal}"></div>
-			</section>
-
+			<!-- 保存ボタン -->
 			<div class="template-editor-footer">
 				<button type="submit">テンプレート情報を保存</button>
 			</div>
 
+		</form>
 		</form>
 
 	</main>

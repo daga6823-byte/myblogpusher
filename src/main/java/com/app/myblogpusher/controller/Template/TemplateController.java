@@ -7,37 +7,34 @@
  */
 package com.app.myblogpusher.controller.Template;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import java.util.Map;
+
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.app.myblogpusher.entity.UserMaster;
-import com.app.myblogpusher.entity.Template.TemplateCellEntity;
-import com.app.myblogpusher.entity.Template.TemplateColumn;
 import com.app.myblogpusher.entity.Template.TemplateEntity;
-import com.app.myblogpusher.entity.Template.TemplateRow;
-import com.app.myblogpusher.facade.TemplateLayoutFacadeService;
 import com.app.myblogpusher.service.Template.TemplateEditService;
+import com.app.myblogpusher.service.Template.TemplateSaveService;
 import com.app.myblogpusher.service.Template.TemplateService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
 import jakarta.servlet.http.HttpSession;
+import lombok.RequiredArgsConstructor;
 
 @Controller
+@RequiredArgsConstructor
 public class TemplateController {
 
-	@Autowired
-	private TemplateService templateService;
-
-	@Autowired
-	private TemplateLayoutFacadeService templateLayoutFacadeService;
-
-	@Autowired
-	private TemplateEditService templateEditService;
+	private final TemplateService templateService;
+	private final TemplateEditService templateEditService;
+	private final TemplateSaveService templateSaveService;
 
 	/**
 	 * テンプレート管理トップ画面を表示する。
@@ -107,8 +104,7 @@ public class TemplateController {
 	/**
 	 * テンプレートを新規登録または更新する。
 	 *
-	 * ユーザーIDは画面から受け取らず、
-	 * ログインユーザーのIDを設定する。
+	 * 保存処理はTemplateSaveServiceに委譲する。
 	 */
 	@PostMapping("/template/save")
 	public String saveTemplate(
@@ -117,49 +113,37 @@ public class TemplateController {
 
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 
-		Long userId = loginUser.getUserId();
+		Long templateId = templateSaveService.saveTemplate(
+				loginUser.getUserId(),
+				template);
 
-		if (template.getTemplateId() == null) {
+		return "redirect:/template/edit?templateId=" + templateId;
+	}
 
-			template.setUserId(userId);
+	/**
+	 * JavaScriptからテンプレートを保存するAPI。
+	 *
+	 * 画面遷移せず、保存結果をJSONで返す。
+	 */
+	@PostMapping("/template/api/save")
+	@ResponseBody
+	public ResponseEntity<Map<String, Object>> saveTemplateApi(
+			@ModelAttribute TemplateEntity template,
+			HttpSession session) {
 
-			// テンプレート本体を新規登録する。
-			TemplateEntity saved = templateService.createTemplate(template);
+		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 
-			Long templateId = saved.getTemplateId();
-
-			// 初期行を登録する。
-			TemplateRow row = new TemplateRow();
-			row.setTemplateId(templateId);
-			row.setRowNumber(1);
-			row.setHeightUnit("auto");
-			templateLayoutFacadeService.saveRow(row);
-
-			// 初期列を登録する。
-			TemplateColumn column = new TemplateColumn();
-			column.setTemplateId(templateId);
-			column.setColumnNumber(1);
-			column.setWidthUnit("fr");
-			templateLayoutFacadeService.saveColumn(column);
-
-			// 初期セルを登録する。
-			TemplateCellEntity cell = new TemplateCellEntity();
-			cell.setTemplateId(templateId);
-			cell.setRowNumber(1);
-			cell.setColumnNumber(1);
-			cell.setRowSpan(1);
-			cell.setColumnSpan(1);
-			cell.setCellType("EMPTY");
-			templateLayoutFacadeService.saveCell(cell);
-
-			return "redirect:/template/edit?templateId="
-					+ templateId;
+		if (loginUser == null) {
+			return ResponseEntity.status(401).build();
 		}
 
-		templateService.updateTemplate(userId, template);
+		Long templateId = templateSaveService.saveTemplate(
+				loginUser.getUserId(),
+				template);
 
-		return "redirect:/template/edit?templateId="
-				+ template.getTemplateId();
+		return ResponseEntity.ok(Map.of(
+				"templateId", templateId,
+				"saved", true));
 	}
 
 	/**

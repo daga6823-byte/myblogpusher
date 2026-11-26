@@ -1,0 +1,88 @@
+<!-- テンプレート編集ツールバー -->
+<div class="template-editor-toolbar">
+
+	<!-- 行・列操作 -->
+	<div class="toolbar-group">
+		<button type="button" id="addRowButton">行を追加</button>
+		<button type="button" id="deleteRowButton">選択行を削除</button>
+		<button type="button" id="addColumnButton">列を追加</button>
+		<button type="button" id="deleteColumnButton">選択列を削除</button>
+	</div>
+
+	<!-- セル追加 -->
+	<div class="toolbar-group">
+		<button type="button" id="addTextCellButton">テキストセル</button>
+		<button type="button" id="addVariableCellButton">変数セル</button>
+		<button type="button" id="addEmptyCellButton">空白セル</button>
+		<button type="button" id="addImageCellButton">画像セル</button>
+	</div>
+
+	<!-- セル結合 -->
+	<div class="toolbar-group">
+		<button type="button" id="mergeCellsButton">セルを結合</button>
+		<button type="button" id="splitCellButton">結合を解除</button>
+	</div>
+
+	<!-- 文字装飾 -->
+	<div class="toolbar-group">
+
+		<label for="cellTextColor">文字色</label>
+		<input type="color" id="cellTextColor" value="#000000">
+		<input type="text" id="cellTextColorCode" value="#000000" maxlength="7" pattern="#[0-9A-Fa-f]{6}"
+			placeholder="#000000" title="カラーコード（例：#000000）">
+
+		<label for="cellTextStrokeColor">文字の縁取り色</label>
+		<input type="color" id="cellTextStrokeColor" value="#000000">
+		<input type="text" id="cellTextStrokeColorCode" value="#000000" maxlength="7" pattern="#[0-9A-Fa-f]{6}"
+			placeholder="#000000" title="縁取り色（例：#000000）">
+
+		<label for="cellTextStrokeWidth">縁取りの太さ</label>
+		<input type="number" id="cellTextStrokeWidth" min="0" max="3" step="0.5" value="0">
+		<span>px</span>
+
+		<label for="cellFontSize">文字サイズ</label>
+		<input type="number" id="cellFontSize" min="1" step="1" placeholder="自動">
+		<span>px</span>
+
+		<label for="cellFontWeight">文字の太さ</label>
+		<select id="cellFontWeight">
+			<option value="normal">標準</option>
+			<option value="bold">太字</option>
+		</select>
+
+		<label>文字配置</label>
+		<div id="cellTextAlignGroup" class="text-align-buttons">
+
+			<button type="button" class="text-align-button" data-align="left" title="左揃え" aria-label="左揃え"
+				aria-pressed="false">
+				<icon name="align-left" />
+			</button>
+
+			<button type="button" class="text-align-button" data-align="center" title="中央揃え" aria-label="中央揃え"
+				aria-pressed="false">
+				<icon name="align-center" />
+			</button>
+
+			<button type="button" class="text-align-button" data-align="right" title="右揃え" aria-label="右揃え"
+				aria-pressed="false">
+				<icon name="align-right" />
+			</button>
+
+		</div>
+	</div>
+
+	<!-- セル背景色 -->
+	<div class="toolbar-group">
+		<label for="cellBackgroundColor">セル背景色</label>
+		<input type="color" id="cellBackgroundColor" value="#FFFFFF">
+		<input type="text" id="cellBackgroundColorCode" value="#FFFFFF" maxlength="7" pattern="#[0-9A-Fa-f]{6}"
+			placeholder="#FFFFFF" title="カラーコード（例：#FFFFFF）">
+	</div>
+
+	<!-- 使用色履歴 -->
+	<div class="toolbar-group">
+		<label>使用した色</label>
+		<div id="templateColorHistory" class="template-color-history"></div>
+	</div>
+
+</div>

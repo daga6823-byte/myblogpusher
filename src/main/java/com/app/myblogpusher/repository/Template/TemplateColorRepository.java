@@ -20,6 +20,8 @@ public interface TemplateColorRepository extends JpaRepository<TemplateColorEnti
 
 	/**
 	 * ユーザーが同じカラーコードを既に登録しているか確認する。
+	 *
+	 * 大文字・小文字を区別しない。
 	 */
-	boolean existsByUserIdAndColorCode(Long userId, String colorCode);
+	boolean existsByUserIdAndColorCodeIgnoreCase(Long userId, String colorCode);
 }

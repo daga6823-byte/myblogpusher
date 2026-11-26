@@ -34,16 +34,26 @@ public class TemplateColorService {
 
 	/**
 	 * 使用したカラーコードを履歴に登録する。
+	 *
+	 * 色コードは大文字に統一し、同一ユーザーの重複登録を防ぐ。
 	 */
 	public void addColor(Long userId, String colorCode) {
 
-		if (templateColorRepository.existsByUserIdAndColorCode(userId, colorCode)) {
+		if (colorCode == null || colorCode.isBlank()) {
 			return;
 		}
 
+		String normalizedColorCode = colorCode.trim().toUpperCase();
+
+		if (templateColorRepository.existsByUserIdAndColorCodeIgnoreCase(
+		        userId, normalizedColorCode)) {
+		    return;
+		}
+
 		TemplateColorEntity color = new TemplateColorEntity();
+
 		color.setUserId(userId);
-		color.setColorCode(colorCode);
+		color.setColorCode(normalizedColorCode);
 		color.setCreateDate(LocalDateTime.now());
 
 		templateColorRepository.save(color);

@@ -1,0 +1,25 @@
+<!-- テンプレート基本情報 -->
+<div class="template-basic-info">
+
+	<div class="form-group">
+		<label for="templateName">テンプレート名</label>
+		<input type="text" id="templateName" th:field="*{templateName}" maxlength="255" required>
+	</div>
+
+	<div class="form-group">
+		<label for="templateKey">テンプレート識別キー</label>
+		<input type="text" id="templateKey" th:field="*{templateKey}" maxlength="100" required>
+	</div>
+
+	<div class="form-group">
+		<label for="templateDescription">説明</label>
+		<textarea id="templateDescription" th:field="*{templateDescription}"></textarea>
+	</div>
+
+	<div class="form-group">
+		<label for="backgroundColor">全体背景色</label>
+		<input type="color" id="backgroundColor" name="backgroundColor" th:value="${template.backgroundColor != null
+                ? template.backgroundColor : '#FFFFFF'}">
+	</div>
+
+</div>
