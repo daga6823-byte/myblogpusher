@@ -108,6 +108,7 @@ async function selectTemplate(template) {
 
 		renderTemplatePreview();
 
+
 		document.getElementById("insertTemplateButton").disabled = false;
 
 	} catch (error) {
@@ -119,20 +120,25 @@ async function selectTemplate(template) {
 
 /**
  * 選択テンプレートをプレビュー表示する。
+ *
+ * VARIABLEセルの入力欄とIMAGEセルの画像割り当て欄も生成する。
  */
 function renderTemplatePreview() {
 
 	const previewArea = document.getElementById("templatePreviewArea");
 	const preview = document.getElementById("templatePreview");
 	const assignments = document.getElementById("templateImageAssignments");
+	const variableInputs = document.getElementById("templateVariableInputs");
 
-	if (!previewArea || !preview || !assignments) {
+	if (!previewArea || !preview || !assignments || !variableInputs) {
 		console.error("テンプレートプレビュー領域が見つかりません。");
 		return;
 	}
 
 	preview.innerHTML = selectedTemplateHtml;
+
 	assignments.innerHTML = "";
+	variableInputs.innerHTML = "";
 
 	// プレビュー専用CSS
 	let style = document.getElementById("templatePreviewStyle");
@@ -145,6 +151,10 @@ function renderTemplatePreview() {
 
 	style.textContent = selectedTemplateCss;
 
+	// VARIABLEセルの入力欄を生成する。
+	renderVariableInputs(preview, variableInputs);
+
+	// IMAGEセルの画像割り当て
 	const placeholders = preview.querySelectorAll(
 		"[data-template-image-cell]"
 	);
@@ -154,7 +164,6 @@ function renderTemplatePreview() {
 		const cellId = placeholder.dataset.templateImageCell;
 
 		const button = document.createElement("button");
-
 		button.type = "button";
 		button.textContent = "画像を選択";
 
@@ -171,6 +180,77 @@ function renderTemplatePreview() {
 	});
 
 	previewArea.style.display = "block";
+}
+
+/**
+ * VARIABLEセルごとの入力欄を生成する。
+ *
+ * 同じ変数名が複数のセルに使用されている場合は、
+ * 入力欄を1つにまとめ、すべての該当セルに値を反映する。
+ */
+function renderVariableInputs(preview, variableInputs) {
+
+	const variableElements = preview.querySelectorAll(
+		"[data-template-variable]"
+	);
+
+	if (variableElements.length === 0) {
+		return;
+	}
+
+	const variableGroups = new Map();
+
+	variableElements.forEach(element => {
+
+		const variableName = element.dataset.templateVariable;
+
+		if (!variableName) {
+			return;
+		}
+
+		if (!variableGroups.has(variableName)) {
+			variableGroups.set(variableName, []);
+		}
+
+		variableGroups.get(variableName).push(element);
+	});
+
+	if (variableGroups.size === 0) {
+		return;
+	}
+
+	const heading = document.createElement("h3");
+	heading.textContent = "テンプレート変数の入力";
+
+	variableInputs.appendChild(heading);
+
+	variableGroups.forEach((elements, variableName) => {
+
+		const wrapper = document.createElement("div");
+		wrapper.className = "template-variable-input";
+
+		const label = document.createElement("label");
+		label.textContent = variableName;
+
+		const input = document.createElement("input");
+		input.type = "text";
+		input.name = "templateVariable_" + variableName;
+		input.placeholder = "「" + variableName + "」の値を入力";
+		input.value = elements[0].textContent;
+
+		label.appendChild(input);
+		wrapper.appendChild(label);
+
+		// 入力値をプレビュー内の該当する変数セルへ反映する。
+		input.addEventListener("input", () => {
+
+			elements.forEach(element => {
+				element.textContent = input.value;
+			});
+		});
+
+		variableInputs.appendChild(wrapper);
+	});
 }
 
 /**
