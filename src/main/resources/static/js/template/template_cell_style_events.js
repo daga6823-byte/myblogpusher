@@ -87,10 +87,11 @@ function bindTextStrokeWidth() {
  * 文字サイズ・文字の太さの入力イベントを登録する。
  */
 function bindFontInputs() {
+
 	const fontSizeInput = document.getElementById("cellFontSize");
+	const fontWeightInput = document.getElementById("cellFontWeight");
 
 	// 文字サイズ
-
 	fontSizeInput?.addEventListener("change", async () => {
 
 		const value = fontSizeInput.value.trim();
@@ -112,6 +113,12 @@ function bindFontInputs() {
 		await saveCellStyle("fontSize", fontSize);
 
 	});
+
+	// 文字の太さ
+	fontWeightInput?.addEventListener("change", async () => {
+		await saveCellStyle("fontWeight", fontWeightInput.value);
+	});
+
 }
 
 /**

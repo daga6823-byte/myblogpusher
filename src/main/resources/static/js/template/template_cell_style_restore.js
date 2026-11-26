@@ -71,7 +71,7 @@ export function restoreCellStyle(cell) {
 
 	if (fontWeightInput) {
 		fontWeightInput.value =
-			Number(computedStyle.fontWeight) >= 600
+			cell.style.fontWeight === "bold"
 				? "bold"
 				: "normal";
 	}

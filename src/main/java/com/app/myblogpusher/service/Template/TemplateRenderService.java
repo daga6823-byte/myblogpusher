@@ -90,14 +90,14 @@ public class TemplateRenderService {
 	 * プレースホルダーとして出力する。
 	 */
 	private String generateHtml(
-	        List<TemplateCellEntity> cells,
-	        String cssClass) {
+			List<TemplateCellEntity> cells,
+			String cssClass) {
 
-	    StringBuilder html = new StringBuilder();
+		StringBuilder html = new StringBuilder();
 
-	    html.append("<div class=\"mbp-template ")
-	            .append(cssClass)
-	            .append("\">");
+		html.append("<div class=\"mbp-template ")
+				.append(cssClass)
+				.append("\">");
 
 		for (TemplateCellEntity cell : cells) {
 
@@ -170,6 +170,8 @@ public class TemplateRenderService {
 		css.append("overflow-wrap: anywhere;");
 		css.append("border: 1px solid #777;");
 		css.append("background-color: #fff;");
+		css.append("font-size: 10px;");
+		css.append("font-weight: normal;");
 		css.append("}\n");
 
 		// IMAGEセルの画像配置枠

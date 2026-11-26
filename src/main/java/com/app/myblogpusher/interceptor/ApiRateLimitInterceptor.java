@@ -44,7 +44,8 @@ public class ApiRateLimitInterceptor implements HandlerInterceptor {
 	private static final Set<String> EXCLUDED_PATHS = Set.of(
 			"/health",
 			"/article/link/articles",
-			"/article/link/categories");
+			"/article/link/categories",
+			"/template/api/layout/cell/save");
 
 	/**
 	 * エラー記録サービス

@@ -49,17 +49,33 @@ export async function loadColorHistory() {
  * 使用した色を履歴に登録する。
  */
 export async function saveColorHistory(colorCode) {
+
 	if (!colorCode) {
 		return;
 	}
 
 	try {
+
+		const container = document.getElementById("templateColorHistory");
+
+		// 既に履歴に存在する色は登録しない。
+		const exists = Array.from(
+			container?.querySelectorAll(".template-color-history-item") ?? []
+		).some(button =>
+			button.dataset.color.toUpperCase() === colorCode.toUpperCase()
+		);
+
+		if (exists) {
+			return;
+		}
+
 		await callLayoutApi(
 			"/template/color/save",
 			{ colorValue: colorCode }
 		);
 
 		await loadColorHistory();
+
 	} catch (error) {
 		console.error("色履歴の登録に失敗しました。", error);
 	}
