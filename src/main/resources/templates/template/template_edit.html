@@ -115,12 +115,24 @@
 						<option value="bold">太字</option>
 					</select>
 
-					<label for="cellTextAlign">文字配置</label>
-					<select id="cellTextAlign">
-						<option value="left">左揃え</option>
-						<option value="center">中央揃え</option>
-						<option value="right">右揃え</option>
-					</select>
+					<label>文字配置</label>
+
+					<div id="cellTextAlignGroup" class="text-align-buttons">
+						<button type="button" class="text-align-button" data-align="left" title="左揃え" aria-label="左揃え"
+							aria-pressed="false">
+							<icon name="align-left" />
+						</button>
+
+						<button type="button" class="text-align-button" data-align="center" title="中央揃え"
+							aria-label="中央揃え" aria-pressed="false">
+							<icon name="align-center" />
+						</button>
+
+						<button type="button" class="text-align-button" data-align="right" title="右揃え" aria-label="右揃え"
+							aria-pressed="false">
+							<icon name="align-right" />
+						</button>
+					</div>
 				</div>
 
 				<!-- セル背景色 -->

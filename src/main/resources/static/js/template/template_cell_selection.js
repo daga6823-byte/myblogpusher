@@ -6,7 +6,7 @@
  * Ctrl / Commandクリックによる複数選択を管理する。
  */
 import { templateState } from "./template_state.js";
-import { restoreCellStyle } from "./template_cell_style.js";
+import { restoreCellStyle } from "../facade/template_cell_style_facade.js";
 
 /**
  * セル選択を切り替える。

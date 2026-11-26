@@ -12,7 +12,7 @@ export { selectCell } from "../template/template_cell_selection.js";
 export { changeCellType } from "../template/template_cell_type.js";
 
 // セル装飾・色履歴機能
-import "../template/template_cell_style.js";
+import "./template_cell_style_facade.js";
 
 // セル結合・分割機能
 import "../template/template_cell_layout.js";
