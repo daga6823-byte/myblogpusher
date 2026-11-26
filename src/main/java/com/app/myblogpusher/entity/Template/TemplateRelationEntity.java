@@ -20,7 +20,7 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(name = "template_relation")
-public class TemplateRelation {
+public class TemplateRelationEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)

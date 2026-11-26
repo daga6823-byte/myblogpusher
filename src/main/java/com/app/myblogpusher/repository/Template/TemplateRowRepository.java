@@ -9,21 +9,21 @@ import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.app.myblogpusher.entity.Template.TemplateRow;
+import com.app.myblogpusher.entity.Template.TemplateRowEntity;
 
-public interface TemplateRowRepository extends JpaRepository<TemplateRow, Long> {
+public interface TemplateRowRepository extends JpaRepository<TemplateRowEntity, Long> {
 
 	/**
 	 * テンプレートの行情報を行番号の昇順で取得する。
 	 */
-	List<TemplateRow> findByTemplateIdOrderByRowNumberAsc(Long templateId);
+	List<TemplateRowEntity> findByTemplateIdOrderByRowNumberAsc(Long templateId);
 
 	/**
 	 * 指定した行番号以降の行情報を行番号の降順で取得する。
 	 *
 	 * 途中挿入時に後方の行から番号を振り直すために使用する。
 	 */
-	List<TemplateRow> findByTemplateIdAndRowNumberGreaterThanEqualOrderByRowNumberDesc(
+	List<TemplateRowEntity> findByTemplateIdAndRowNumberGreaterThanEqualOrderByRowNumberDesc(
 			Long templateId, Integer rowNumber);
 
 	/**

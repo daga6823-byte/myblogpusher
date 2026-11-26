@@ -12,8 +12,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.app.myblogpusher.entity.Template.TemplateCellEntity;
-import com.app.myblogpusher.entity.Template.TemplateColumn;
-import com.app.myblogpusher.entity.Template.TemplateRow;
+import com.app.myblogpusher.entity.Template.TemplateColumnEntity;
+import com.app.myblogpusher.entity.Template.TemplateRowEntity;
 import com.app.myblogpusher.repository.Template.TemplateCellRepository;
 import com.app.myblogpusher.repository.Template.TemplateColumnRepository;
 import com.app.myblogpusher.repository.Template.TemplateRowRepository;
@@ -50,10 +50,10 @@ public class TemplateCellMergeService {
 			throw new IllegalArgumentException("セルの結合範囲が不正です。");
 		}
 
-		List<TemplateRow> rows = templateRowRepository
+		List<TemplateRowEntity> rows = templateRowRepository
 				.findByTemplateIdOrderByRowNumberAsc(templateId);
 
-		List<TemplateColumn> columns = templateColumnRepository
+		List<TemplateColumnEntity> columns = templateColumnRepository
 				.findByTemplateIdOrderByColumnNumberAsc(templateId);
 
 		int endRow = startRow + rowSpan - 1;

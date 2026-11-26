@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import com.app.myblogpusher.dto.ArticleErrorView;
 import com.app.myblogpusher.entity.ErrorMaster;
 import com.app.myblogpusher.entity.UserMaster;
-import com.app.myblogpusher.entity.Article.ArticleWork;
+import com.app.myblogpusher.entity.Article.ArticleWorkEntity;
 import com.app.myblogpusher.service.ErrorMasterService;
 import com.app.myblogpusher.service.Article.ArticleWorkService;
 
@@ -47,7 +47,7 @@ public class ArticleErrorController {
 			return "redirect:/login";
 		}
 
-		List<ArticleWork> errorWorks = articleWorkService.findError(
+		List<ArticleWorkEntity> errorWorks = articleWorkService.findError(
 				loginUser.getUserId());
 
 		List<ArticleErrorView> errorViews = errorWorks.stream()

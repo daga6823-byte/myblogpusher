@@ -12,7 +12,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import com.app.myblogpusher.entity.UserRepositoryEntity;
-import com.app.myblogpusher.entity.Article.ArticleWork;
+import com.app.myblogpusher.entity.Article.ArticleWorkEntity;
 import com.app.myblogpusher.service.ApplicationErrorLogService;
 
 @Service
@@ -51,7 +51,7 @@ public class ArticlePublishService {
 					"### ArticlePublishService START ### workId="
 							+ workId);
 
-			ArticleWork work = articleWorkService.findById(workId, userId);
+			ArticleWorkEntity work = articleWorkService.findById(workId, userId);
 
 			if (work.getStatus() == null || work.getStatus() != 1) {
 				return;

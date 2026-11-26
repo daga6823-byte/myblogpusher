@@ -15,7 +15,7 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import com.app.myblogpusher.entity.UserRepositoryEntity;
-import com.app.myblogpusher.entity.Article.ArticleWork;
+import com.app.myblogpusher.entity.Article.ArticleWorkEntity;
 import com.app.myblogpusher.repository.UserRepositoryRepository;
 import com.app.myblogpusher.service.Article.ArticlePublishService;
 import com.app.myblogpusher.service.Article.ArticleWorkService;
@@ -80,7 +80,7 @@ public class PublishExecutionService {
 		}
 
 		// 投稿対象のWorkを取得する。
-		ArticleWork work = articleWorkService.findById(workId, userId);
+		ArticleWorkEntity work = articleWorkService.findById(workId, userId);
 
 		// 確認画面で確定したスラッグを保存する。
 		articleWorkService.updateSlug(workId, slug, userId);

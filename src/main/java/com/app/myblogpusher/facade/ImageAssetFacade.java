@@ -19,7 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.app.myblogpusher.dto.ImageAssetView;
 import com.app.myblogpusher.dto.ImageCategoryDto;
-import com.app.myblogpusher.entity.ImageAsset;
+import com.app.myblogpusher.entity.ImageAssetEntity;
 import com.app.myblogpusher.service.Image.ImageAssetImportService;
 import com.app.myblogpusher.service.Image.ImageAssetQueryService;
 import com.app.myblogpusher.service.Image.ImageAssetWriteService;
@@ -36,7 +36,7 @@ public class ImageAssetFacade {
 	@Autowired
 	private ImageAssetImportService imageAssetImportService;
 
-	public ImageAsset uploadAndRegister(
+	public ImageAssetEntity uploadAndRegister(
 			MultipartFile file,
 			String folderName,
 			Long userId) throws IOException {

@@ -4,8 +4,8 @@ import java.time.LocalDateTime;
 
 import org.springframework.stereotype.Component;
 
-import com.app.myblogpusher.entity.Article.Article;
-import com.app.myblogpusher.entity.Article.ArticleWork;
+import com.app.myblogpusher.entity.Article.ArticleEntity;
+import com.app.myblogpusher.entity.Article.ArticleWorkEntity;
 import com.app.myblogpusher.enums.ArticleStatus;
 
 @Component
@@ -14,9 +14,9 @@ public class ArticleMapper {
 	/**
 	 * 下書きから投稿済み記事を生成する
 	 */
-	public Article toArticle(ArticleWork work) {
+	public ArticleEntity toArticle(ArticleWorkEntity work) {
 
-		Article article = new Article();
+		ArticleEntity article = new ArticleEntity();
 
 		copyWorkToArticle(work, article);
 
@@ -31,7 +31,7 @@ public class ArticleMapper {
 	/**
 	 * 下書き内容を投稿済み記事へ反映する
 	 */
-	public void copyWorkToArticle(ArticleWork work, Article article) {
+	public void copyWorkToArticle(ArticleWorkEntity work, ArticleEntity article) {
 
 		article.setUserId(work.getUserId());
 

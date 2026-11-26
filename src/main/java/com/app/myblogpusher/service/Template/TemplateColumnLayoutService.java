@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.app.myblogpusher.entity.Template.TemplateCellEntity;
-import com.app.myblogpusher.entity.Template.TemplateColumn;
+import com.app.myblogpusher.entity.Template.TemplateColumnEntity;
 import com.app.myblogpusher.repository.Template.TemplateCellRepository;
 import com.app.myblogpusher.repository.Template.TemplateColumnRepository;
 
@@ -31,14 +31,14 @@ public class TemplateColumnLayoutService {
 	 * テンプレートの列情報を取得する。
 	 */
 	@Transactional(readOnly = true)
-	public List<TemplateColumn> getColumns(Long templateId) {
+	public List<TemplateColumnEntity> getColumns(Long templateId) {
 		return templateColumnRepository.findByTemplateIdOrderByColumnNumberAsc(templateId);
 	}
 
 	/**
 	 * 列情報を保存する。
 	 */
-	public TemplateColumn saveColumn(TemplateColumn column) {
+	public TemplateColumnEntity saveColumn(TemplateColumnEntity column) {
 
 		if (column.getTemplateId() == null || column.getColumnNumber() == null
 				|| column.getColumnNumber() < 1) {
@@ -60,7 +60,7 @@ public class TemplateColumnLayoutService {
 			throw new IllegalArgumentException("列の削除位置が不正です。");
 		}
 
-		List<TemplateColumn> columns = getColumns(templateId);
+		List<TemplateColumnEntity> columns = getColumns(templateId);
 
 		if (columnNumber > columns.size()) {
 			throw new IllegalArgumentException("列の削除位置が不正です。");
@@ -102,9 +102,9 @@ public class TemplateColumnLayoutService {
 		templateColumnRepository.deleteByTemplateIdAndColumnNumber(
 				templateId, columnNumber);
 
-		List<TemplateColumn> targetColumns = getColumns(templateId);
+		List<TemplateColumnEntity> targetColumns = getColumns(templateId);
 
-		for (TemplateColumn column : targetColumns) {
+		for (TemplateColumnEntity column : targetColumns) {
 
 			if (column.getColumnNumber() > columnNumber) {
 				column.setColumnNumber(column.getColumnNumber() - 1);
@@ -119,24 +119,24 @@ public class TemplateColumnLayoutService {
 	 * 挿入位置以降の列番号を後方へ移動し、
 	 * 挿入位置をまたぐセルは結合範囲を拡張する。
 	 */
-	public TemplateColumn insertColumn(Long templateId, Integer columnNumber) {
+	public TemplateColumnEntity insertColumn(Long templateId, Integer columnNumber) {
 
 		if (templateId == null || columnNumber == null || columnNumber < 1) {
 			throw new IllegalArgumentException("列の挿入位置が不正です。");
 		}
 
-		List<TemplateColumn> columns = getColumns(templateId);
+		List<TemplateColumnEntity> columns = getColumns(templateId);
 
 		if (columnNumber > columns.size() + 1) {
 			throw new IllegalArgumentException("列の挿入位置が不正です。");
 		}
 
 		// 後方の列から番号を移動し、番号の重複を防ぐ。
-		List<TemplateColumn> targetColumns = templateColumnRepository
+		List<TemplateColumnEntity> targetColumns = templateColumnRepository
 				.findByTemplateIdAndColumnNumberGreaterThanEqualOrderByColumnNumberDesc(
 						templateId, columnNumber);
 
-		for (TemplateColumn column : targetColumns) {
+		for (TemplateColumnEntity column : targetColumns) {
 			column.setColumnNumber(column.getColumnNumber() + 1);
 			templateColumnRepository.saveAndFlush(column);
 		}
@@ -163,7 +163,7 @@ public class TemplateColumnLayoutService {
 		}
 
 		// 新しい列を登録する。
-		TemplateColumn newColumn = new TemplateColumn();
+		TemplateColumnEntity newColumn = new TemplateColumnEntity();
 		newColumn.setTemplateId(templateId);
 		newColumn.setColumnNumber(columnNumber);
 		newColumn.setWidthUnit("fr");

@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.app.myblogpusher.entity.Article.ArticleWorkspace;
+import com.app.myblogpusher.entity.Article.ArticleWorkspaceEntity;
 import com.app.myblogpusher.repository.Article.ArticleWorkspaceRepository;
 
 import jakarta.persistence.EntityManager;
@@ -24,14 +24,14 @@ public class ArticleWorkspaceService {
 	public void save(Long userId, Long categoryGroupId, String hugoPath,
 			String title, String content) {
 
-		Optional<ArticleWorkspace> existingWorkspace = repository.findById(userId);
+		Optional<ArticleWorkspaceEntity> existingWorkspace = repository.findById(userId);
 
-		ArticleWorkspace workspace;
+		ArticleWorkspaceEntity workspace;
 
 		if (existingWorkspace.isPresent()) {
 			workspace = existingWorkspace.get();
 		} else {
-			workspace = new ArticleWorkspace();
+			workspace = new ArticleWorkspaceEntity();
 			workspace.setUserId(userId);
 		}
 
@@ -45,7 +45,7 @@ public class ArticleWorkspaceService {
 		}
 	}
 
-	public Optional<ArticleWorkspace> find(Long userId) {
+	public Optional<ArticleWorkspaceEntity> find(Long userId) {
 		return repository.findById(userId);
 	}
 

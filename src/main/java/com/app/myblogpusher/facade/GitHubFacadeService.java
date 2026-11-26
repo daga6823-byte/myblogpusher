@@ -14,7 +14,7 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.springframework.stereotype.Service;
 
 import com.app.myblogpusher.entity.UserRepositoryEntity;
-import com.app.myblogpusher.entity.Article.Article;
+import com.app.myblogpusher.entity.Article.ArticleEntity;
 import com.app.myblogpusher.service.Github.ArticlePublishAsyncService;
 import com.app.myblogpusher.service.Github.GitHubMarkdownFileService;
 import com.app.myblogpusher.service.Github.GitHubPermissionService;
@@ -47,8 +47,8 @@ public class GitHubFacadeService {
 	public String pushArticle(
 			UserRepositoryEntity repoEntity,
 			String cipherKey,
-			Article article,
-			Article existingArticle,
+			ArticleEntity article,
+			ArticleEntity existingArticle,
 			boolean newArticle,
 			String slug)
 			throws IOException, GitAPIException {
@@ -71,7 +71,7 @@ public class GitHubFacadeService {
 	public void pushArticleAsync(
 			UserRepositoryEntity repository,
 			String cipherKey,
-			Article article,
+			ArticleEntity article,
 			boolean newArticle,
 			Long workId,
 			String slug) {

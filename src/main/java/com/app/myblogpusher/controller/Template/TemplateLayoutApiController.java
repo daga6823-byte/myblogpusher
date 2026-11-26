@@ -18,9 +18,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.app.myblogpusher.entity.UserMaster;
 import com.app.myblogpusher.entity.Template.TemplateCellEntity;
-import com.app.myblogpusher.entity.Template.TemplateColumn;
+import com.app.myblogpusher.entity.Template.TemplateColumnEntity;
 import com.app.myblogpusher.entity.Template.TemplateEntity;
-import com.app.myblogpusher.entity.Template.TemplateRow;
+import com.app.myblogpusher.entity.Template.TemplateRowEntity;
 import com.app.myblogpusher.facade.TemplateLayoutFacadeService;
 import com.app.myblogpusher.service.Template.TemplateService;
 
@@ -59,14 +59,14 @@ public class TemplateLayoutApiController {
 	 * 指定位置に行を追加する。
 	 */
 	@PostMapping("/row/insert")
-	public ResponseEntity<TemplateRow> insertRow(
+	public ResponseEntity<TemplateRowEntity> insertRow(
 			@RequestParam Long templateId,
 			@RequestParam Integer rowNumber,
 			HttpSession session) {
 
 		getOwnedTemplate(templateId, session);
 
-		TemplateRow row = templateLayoutFacadeService.insertRow(templateId, rowNumber);
+		TemplateRowEntity row = templateLayoutFacadeService.insertRow(templateId, rowNumber);
 
 		return ResponseEntity.ok(row);
 	}
@@ -91,14 +91,14 @@ public class TemplateLayoutApiController {
 	 * 指定位置に列を追加する。
 	 */
 	@PostMapping("/column/insert")
-	public ResponseEntity<TemplateColumn> insertColumn(
+	public ResponseEntity<TemplateColumnEntity> insertColumn(
 			@RequestParam Long templateId,
 			@RequestParam Integer columnNumber,
 			HttpSession session) {
 
 		getOwnedTemplate(templateId, session);
 
-		TemplateColumn column = templateLayoutFacadeService.insertColumn(templateId, columnNumber);
+		TemplateColumnEntity column = templateLayoutFacadeService.insertColumn(templateId, columnNumber);
 
 		return ResponseEntity.ok(column);
 	}

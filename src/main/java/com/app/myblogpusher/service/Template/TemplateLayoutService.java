@@ -13,8 +13,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.app.myblogpusher.entity.Template.TemplateCellEntity;
-import com.app.myblogpusher.entity.Template.TemplateColumn;
-import com.app.myblogpusher.entity.Template.TemplateRow;
+import com.app.myblogpusher.entity.Template.TemplateColumnEntity;
+import com.app.myblogpusher.entity.Template.TemplateRowEntity;
 import com.app.myblogpusher.repository.Template.TemplateCellRepository;
 import com.app.myblogpusher.repository.Template.TemplateColumnRepository;
 import com.app.myblogpusher.repository.Template.TemplateRowRepository;
@@ -34,7 +34,7 @@ public class TemplateLayoutService {
 	 * テンプレートの行情報を取得する。
 	 */
 	@Transactional(readOnly = true)
-	public List<TemplateRow> getRows(Long templateId) {
+	public List<TemplateRowEntity> getRows(Long templateId) {
 		return templateRowRepository.findByTemplateIdOrderByRowNumberAsc(templateId);
 	}
 
@@ -42,7 +42,7 @@ public class TemplateLayoutService {
 	 * テンプレートの列情報を取得する。
 	 */
 	@Transactional(readOnly = true)
-	public List<TemplateColumn> getColumns(Long templateId) {
+	public List<TemplateColumnEntity> getColumns(Long templateId) {
 		return templateColumnRepository.findByTemplateIdOrderByColumnNumberAsc(templateId);
 	}
 
@@ -60,7 +60,7 @@ public class TemplateLayoutService {
 	 *
 	 * テンプレートIDと行番号の入力を検証してから保存する。
 	 */
-	public TemplateRow saveRow(TemplateRow row) {
+	public TemplateRowEntity saveRow(TemplateRowEntity row) {
 
 		if (row.getTemplateId() == null || row.getRowNumber() == null
 				|| row.getRowNumber() < 1) {
@@ -75,7 +75,7 @@ public class TemplateLayoutService {
 	 *
 	 * テンプレートIDと列番号の入力を検証してから保存する。
 	 */
-	public TemplateColumn saveColumn(TemplateColumn column) {
+	public TemplateColumnEntity saveColumn(TemplateColumnEntity column) {
 
 		if (column.getTemplateId() == null || column.getColumnNumber() == null
 				|| column.getColumnNumber() < 1) {
@@ -104,8 +104,8 @@ public class TemplateLayoutService {
 			throw new IllegalArgumentException("セルの配置情報が不正です。");
 		}
 
-		List<TemplateRow> rows = getRows(cell.getTemplateId());
-		List<TemplateColumn> columns = getColumns(cell.getTemplateId());
+		List<TemplateRowEntity> rows = getRows(cell.getTemplateId());
+		List<TemplateColumnEntity> columns = getColumns(cell.getTemplateId());
 
 		int endRow = cell.getRowNumber() + cell.getRowSpan() - 1;
 		int endColumn = cell.getColumnNumber() + cell.getColumnSpan() - 1;
@@ -172,7 +172,7 @@ public class TemplateLayoutService {
 	 */
 	public void deleteRow(Long templateId, Integer rowNumber) {
 
-		List<TemplateRow> rows = getRows(templateId);
+		List<TemplateRowEntity> rows = getRows(templateId);
 
 		if (templateId == null || rowNumber == null
 				|| rowNumber < 1 || rowNumber > rows.size()) {
@@ -223,9 +223,9 @@ public class TemplateLayoutService {
 				templateId, rowNumber);
 
 		// 後続の行番号を前方へ詰める。
-		List<TemplateRow> targetRows = getRows(templateId);
+		List<TemplateRowEntity> targetRows = getRows(templateId);
 
-		for (TemplateRow row : targetRows) {
+		for (TemplateRowEntity row : targetRows) {
 
 			if (row.getRowNumber() > rowNumber) {
 				row.setRowNumber(row.getRowNumber() - 1);
@@ -245,7 +245,7 @@ public class TemplateLayoutService {
 	 */
 	public void deleteColumn(Long templateId, Integer columnNumber) {
 
-		List<TemplateColumn> columns = getColumns(templateId);
+		List<TemplateColumnEntity> columns = getColumns(templateId);
 
 		if (templateId == null || columnNumber == null
 				|| columnNumber < 1 || columnNumber > columns.size()) {
@@ -297,9 +297,9 @@ public class TemplateLayoutService {
 				templateId, columnNumber);
 
 		// 後続の列番号を前方へ詰める。
-		List<TemplateColumn> targetColumns = getColumns(templateId);
+		List<TemplateColumnEntity> targetColumns = getColumns(templateId);
 
-		for (TemplateColumn column : targetColumns) {
+		for (TemplateColumnEntity column : targetColumns) {
 
 			if (column.getColumnNumber() > columnNumber) {
 				column.setColumnNumber(column.getColumnNumber() - 1);
@@ -335,8 +335,8 @@ public class TemplateLayoutService {
 			throw new IllegalArgumentException("セルの結合範囲が不正です。");
 		}
 
-		List<TemplateRow> rows = getRows(templateId);
-		List<TemplateColumn> columns = getColumns(templateId);
+		List<TemplateRowEntity> rows = getRows(templateId);
+		List<TemplateColumnEntity> columns = getColumns(templateId);
 
 		int endRow = startRow + rowSpan - 1;
 		int endColumn = startColumn + columnSpan - 1;
@@ -487,9 +487,9 @@ public class TemplateLayoutService {
 	 * @param templateId テンプレートID
 	 * @param rowNumber 挿入する行番号
 	 */
-	public TemplateRow insertRow(Long templateId, Integer rowNumber) {
+	public TemplateRowEntity insertRow(Long templateId, Integer rowNumber) {
 
-		List<TemplateRow> rows = getRows(templateId);
+		List<TemplateRowEntity> rows = getRows(templateId);
 
 		if (templateId == null || rowNumber == null
 				|| rowNumber < 1 || rowNumber > rows.size() + 1) {
@@ -497,11 +497,11 @@ public class TemplateLayoutService {
 		}
 
 		// 後方の行から番号を移動する。
-		List<TemplateRow> targetRows = templateRowRepository
+		List<TemplateRowEntity> targetRows = templateRowRepository
 				.findByTemplateIdAndRowNumberGreaterThanEqualOrderByRowNumberDesc(
 						templateId, rowNumber);
 
-		for (TemplateRow row : targetRows) {
+		for (TemplateRowEntity row : targetRows) {
 			row.setRowNumber(row.getRowNumber() + 1);
 			templateRowRepository.saveAndFlush(row);
 		}
@@ -538,7 +538,7 @@ public class TemplateLayoutService {
 		}
 
 		// 新しい行を登録する。
-		TemplateRow newRow = new TemplateRow();
+		TemplateRowEntity newRow = new TemplateRowEntity();
 		newRow.setTemplateId(templateId);
 		newRow.setRowNumber(rowNumber);
 		newRow.setHeightUnit("auto");
@@ -555,9 +555,9 @@ public class TemplateLayoutService {
 	 * @param templateId テンプレートID
 	 * @param columnNumber 挿入する列番号
 	 */
-	public TemplateColumn insertColumn(Long templateId, Integer columnNumber) {
+	public TemplateColumnEntity insertColumn(Long templateId, Integer columnNumber) {
 
-		List<TemplateColumn> columns = getColumns(templateId);
+		List<TemplateColumnEntity> columns = getColumns(templateId);
 
 		if (templateId == null || columnNumber == null
 				|| columnNumber < 1 || columnNumber > columns.size() + 1) {
@@ -565,11 +565,11 @@ public class TemplateLayoutService {
 		}
 
 		// 後方の列から番号を移動する。
-		List<TemplateColumn> targetColumns = templateColumnRepository
+		List<TemplateColumnEntity> targetColumns = templateColumnRepository
 				.findByTemplateIdAndColumnNumberGreaterThanEqualOrderByColumnNumberDesc(
 						templateId, columnNumber);
 
-		for (TemplateColumn column : targetColumns) {
+		for (TemplateColumnEntity column : targetColumns) {
 			column.setColumnNumber(column.getColumnNumber() + 1);
 			templateColumnRepository.saveAndFlush(column);
 		}
@@ -606,7 +606,7 @@ public class TemplateLayoutService {
 		}
 
 		// 新しい列を登録する。
-		TemplateColumn newColumn = new TemplateColumn();
+		TemplateColumnEntity newColumn = new TemplateColumnEntity();
 		newColumn.setTemplateId(templateId);
 		newColumn.setColumnNumber(columnNumber);
 		newColumn.setWidthUnit("fr");

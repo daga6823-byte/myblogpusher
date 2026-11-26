@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import com.app.myblogpusher.dto.Article.ArticleWorkView;
 import com.app.myblogpusher.entity.UserMaster;
-import com.app.myblogpusher.entity.Article.ArticleWork;
+import com.app.myblogpusher.entity.Article.ArticleWorkEntity;
 import com.app.myblogpusher.service.Article.ArticleWorkService;
 
 import jakarta.servlet.http.HttpSession;
@@ -36,7 +36,7 @@ public class ArticleListController {
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 		Long userId = loginUser.getUserId();
 
-		List<ArticleWork> works = articleWorkService.findDrafts(userId);
+		List<ArticleWorkEntity> works = articleWorkService.findDrafts(userId);
 
 		List<ArticleWorkView> workViews = works.stream()
 				.map(work -> {

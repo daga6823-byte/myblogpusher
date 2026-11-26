@@ -8,34 +8,34 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import com.app.myblogpusher.entity.Article.ArticleWork;
+import com.app.myblogpusher.entity.Article.ArticleWorkEntity;
 
-public interface ArticleWorkRepository extends JpaRepository<ArticleWork, Long> {
+public interface ArticleWorkRepository extends JpaRepository<ArticleWorkEntity, Long> {
 
-	Optional<ArticleWork> findByWorkIdAndUserId(Long workId, Long userId);
+	Optional<ArticleWorkEntity> findByWorkIdAndUserId(Long workId, Long userId);
 
-	Optional<ArticleWork> findByArticleId(Long articleId);
+	Optional<ArticleWorkEntity> findByArticleId(Long articleId);
 
-	List<ArticleWork> findByUserIdOrderByUpdateDateDesc(Long userId);
+	List<ArticleWorkEntity> findByUserIdOrderByUpdateDateDesc(Long userId);
 
-	Optional<ArticleWork> findByUserIdAndCategoryGroupIdAndTitleAndContent(
+	Optional<ArticleWorkEntity> findByUserIdAndCategoryGroupIdAndTitleAndContent(
 			Long userId,
 			Long categoryGroupId,
 			String title,
 			String content);
 
-	Optional<ArticleWork> findByUserIdAndHugoPathAndTitleAndContent(
+	Optional<ArticleWorkEntity> findByUserIdAndHugoPathAndTitleAndContent(
 			Long userId,
 			String hugoPath,
 			String title,
 			String content);
 
-	Optional<ArticleWork> findBySlug(String slug);
+	Optional<ArticleWorkEntity> findBySlug(String slug);
 
 	/**
 	 * ユーザーの指定ステータスの記事を更新日時の降順で取得する
 	 */
-	List<ArticleWork> findByUserIdAndStatusOrderByUpdateDateDesc(
+	List<ArticleWorkEntity> findByUserIdAndStatusOrderByUpdateDateDesc(
 			Long userId,
 			Integer status);
 

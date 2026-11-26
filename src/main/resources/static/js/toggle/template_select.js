@@ -154,9 +154,11 @@ function renderTemplatePreview() {
 	// VARIABLEセルの入力欄を生成する。
 	renderVariableInputs(preview, variableInputs);
 
+	// テンプレート全体の背景画像選択欄を生成する。
+	renderBackgroundImageSelector(preview, assignments);
+
 	// IMAGEセルの画像割り当て
 	const placeholders = preview.querySelectorAll(
-		"[data-template-image-cell]"
 	);
 
 	placeholders.forEach(placeholder => {
@@ -180,6 +182,71 @@ function renderTemplatePreview() {
 	});
 
 	previewArea.style.display = "block";
+}
+
+/**
+ * テンプレート全体の背景画像選択欄を生成する。
+ *
+ * 選択した画像はテンプレートの外枠に設定する。
+ * 画像は記事ごとに選択し、テンプレート自体には保存しない。
+ */
+function renderBackgroundImageSelector(preview, assignments) {
+
+	const templateElement = preview.querySelector(".mbp-template");
+
+	if (!templateElement) {
+		return;
+	}
+
+	const wrapper = document.createElement("div");
+	wrapper.className = "template-background-image-assignment";
+
+	const label = document.createElement("p");
+	label.textContent = "テンプレート背景画像";
+
+	const button = document.createElement("button");
+	button.type = "button";
+	button.textContent = "背景画像を選択";
+
+	button.addEventListener("click", () => {
+
+		button.disabled = true;
+
+		try {
+
+			openImageSelector(image => {
+
+				// テンプレート全体に背景画像を設定する。
+				const escapedUrl = image.url.replace(/["\\\n\r]/g, "\\$&");
+
+				templateElement.style.backgroundImage =
+					`url("${escapedUrl}")`;
+
+				templateElement.style.backgroundSize = "cover";
+				templateElement.style.backgroundPosition = "center";
+				templateElement.style.backgroundRepeat = "no-repeat";
+
+				templateElement.dataset.backgroundImageAssetId =
+					image.imageId;
+
+				button.textContent = "背景画像を変更";
+			});
+
+		} catch (error) {
+
+			console.error(error);
+			alert("背景画像を選択できませんでした。");
+
+		} finally {
+
+			button.disabled = false;
+		}
+	});
+
+	wrapper.appendChild(label);
+	wrapper.appendChild(button);
+
+	assignments.prepend(wrapper);
 }
 
 /**

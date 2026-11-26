@@ -21,7 +21,7 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(name = "template_row")
-public class TemplateRow {
+public class TemplateRowEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -10,8 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.app.myblogpusher.entity.UserRepositoryEntity;
-import com.app.myblogpusher.entity.Article.Article;
-import com.app.myblogpusher.entity.Article.ArticleWork;
+import com.app.myblogpusher.entity.Article.ArticleEntity;
+import com.app.myblogpusher.entity.Article.ArticleWorkEntity;
 import com.app.myblogpusher.facade.GitHubFacadeService;
 import com.app.myblogpusher.service.ApplicationErrorLogService;
 import com.app.myblogpusher.service.Github.GitHubActionsService;
@@ -42,7 +42,7 @@ public class ArticlePublishWorkerService {
 	public void publish(
 			UserRepositoryEntity repo,
 			String cipherKey,
-			ArticleWork work,
+			ArticleWorkEntity work,
 			String thumbnailUrl) {
 
 		try {
@@ -72,7 +72,7 @@ public class ArticlePublishWorkerService {
 
 			// ArticleWork.articleIdを基準に元の記事を取得する。
 			// カテゴリー変更後のhugoPathではなく、元の記事そのものを特定する。
-			Article existingArticle = null;
+			ArticleEntity existingArticle = null;
 
 			if (work.getArticleId() != null) {
 				existingArticle = articleService.findById(
@@ -80,7 +80,7 @@ public class ArticlePublishWorkerService {
 			}
 
 			// GitHub投稿用のArticleをメモリ上だけで作成する。
-			Article article = new Article();
+			ArticleEntity article = new ArticleEntity();
 			article.setUserId(work.getUserId());
 			article.setTitle(work.getTitle());
 			article.setSlug(work.getSlug());

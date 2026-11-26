@@ -16,7 +16,7 @@ import org.eclipse.jgit.revwalk.RevCommit;
 import org.springframework.stereotype.Service;
 
 import com.app.myblogpusher.entity.UserRepositoryEntity;
-import com.app.myblogpusher.entity.Article.Article;
+import com.app.myblogpusher.entity.Article.ArticleEntity;
 import com.app.myblogpusher.service.HugoArticleService;
 
 @Service
@@ -39,8 +39,8 @@ public class GitHubPushService {
 	public String pushArticle(
 			UserRepositoryEntity repoEntity,
 			String cipherKey,
-			Article article,
-			Article existingArticle,
+			ArticleEntity article,
+			ArticleEntity existingArticle,
 			boolean newArticle,
 			String slug)
 			throws IOException, GitAPIException {

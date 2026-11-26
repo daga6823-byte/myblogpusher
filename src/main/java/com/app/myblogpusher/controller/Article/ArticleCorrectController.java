@@ -22,7 +22,7 @@ import com.app.myblogpusher.dto.ProofreadResultView;
 import com.app.myblogpusher.dto.Typo.TypoScanResultView;
 import com.app.myblogpusher.entity.UserMaster;
 import com.app.myblogpusher.entity.Article.ArticleCategory;
-import com.app.myblogpusher.entity.Article.ArticleWork;
+import com.app.myblogpusher.entity.Article.ArticleWorkEntity;
 import com.app.myblogpusher.service.HomophoneTypoScanService;
 import com.app.myblogpusher.service.LanguageToolService;
 import com.app.myblogpusher.service.TypoCorrectionService;
@@ -86,7 +86,7 @@ public class ArticleCorrectController {
 			return "redirect:/article/edit";
 		}
 
-		ArticleWork work = articleWorkService.findById(savedWorkId, userId);
+		ArticleWorkEntity work = articleWorkService.findById(savedWorkId, userId);
 
 		Long categoryGroupId = work.getCategoryGroupId();
 		String categoryPath = work.getHugoPath();
@@ -134,7 +134,7 @@ public class ArticleCorrectController {
 		Long targetCategoryId = null;
 
 		if (isGeneral == null || !isGeneral) {
-			ArticleWork work = articleWorkService.findById(workId, userId);
+			ArticleWorkEntity work = articleWorkService.findById(workId, userId);
 			targetCategoryId = work.getTypoCategoryId();
 		}
 
@@ -217,7 +217,7 @@ public class ArticleCorrectController {
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 		Long userId = loginUser.getUserId();
 
-		ArticleWork work = articleWorkService.findById(workId, userId);
+		ArticleWorkEntity work = articleWorkService.findById(workId, userId);
 		Long categoryId = work.getTypoCategoryId();
 
 		List<LanguageToolService.LanguageToolMatch> allMatches = languageToolService.checkText(content);

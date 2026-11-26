@@ -11,9 +11,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.app.myblogpusher.entity.Template.TemplateCellEntity;
-import com.app.myblogpusher.entity.Template.TemplateColumn;
+import com.app.myblogpusher.entity.Template.TemplateColumnEntity;
 import com.app.myblogpusher.entity.Template.TemplateEntity;
-import com.app.myblogpusher.entity.Template.TemplateRow;
+import com.app.myblogpusher.entity.Template.TemplateRowEntity;
 import com.app.myblogpusher.facade.TemplateLayoutFacadeService;
 
 import lombok.RequiredArgsConstructor;
@@ -55,14 +55,14 @@ public class TemplateSaveService {
         Long templateId = saved.getTemplateId();
 
         // 初期行を登録する。
-        TemplateRow row = new TemplateRow();
+        TemplateRowEntity row = new TemplateRowEntity();
         row.setTemplateId(templateId);
         row.setRowNumber(1);
         row.setHeightUnit("auto");
         templateLayoutFacadeService.saveRow(row);
 
         // 初期列を登録する。
-        TemplateColumn column = new TemplateColumn();
+        TemplateColumnEntity column = new TemplateColumnEntity();
         column.setTemplateId(templateId);
         column.setColumnNumber(1);
         column.setWidthUnit("fr");

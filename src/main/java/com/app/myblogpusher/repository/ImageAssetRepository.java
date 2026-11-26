@@ -13,11 +13,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import com.app.myblogpusher.entity.ImageAsset;
+import com.app.myblogpusher.entity.ImageAssetEntity;
 
-public interface ImageAssetRepository extends JpaRepository<ImageAsset, Long> {
+public interface ImageAssetRepository extends JpaRepository<ImageAssetEntity, Long> {
 
-	List<ImageAsset> findByUserIdOrderByUploadDateDesc(Long userId);
+	List<ImageAssetEntity> findByUserIdOrderByUploadDateDesc(Long userId);
 
 	/**
 	 * ユーザーの画像に登録されたフォルダー名を重複なしで取得する。
@@ -30,23 +30,23 @@ public interface ImageAssetRepository extends JpaRepository<ImageAsset, Long> {
 	List<String> findDistinctFolderNamesByUserId(
 			@Param("userId") Long userId);
 
-	Page<ImageAsset> findByUserIdOrderByUploadDateDesc(
+	Page<ImageAssetEntity> findByUserIdOrderByUploadDateDesc(
 			Long userId,
 			Pageable pageable);
 
-	Page<ImageAsset> findByUserIdAndFolderNameOrderByUploadDateDesc(
+	Page<ImageAssetEntity> findByUserIdAndFolderNameOrderByUploadDateDesc(
 			Long userId,
 			String folderName,
 			Pageable pageable);
 
-	List<ImageAsset> findByUserIdAndFolderName(
+	List<ImageAssetEntity> findByUserIdAndFolderName(
 			Long userId,
 			String folderName);
 
 	/**
 	 * ログインユーザーが所有する画像を画像IDで取得する。
 	 */
-	Optional<ImageAsset> findByImageIdAndUserId(
+	Optional<ImageAssetEntity> findByImageIdAndUserId(
 			Long imageId,
 			Long userId);
 

@@ -44,12 +44,19 @@
 					<td th:text="${template.templateDescription}"></td>
 					<td>
 						<button type="button" class="btn-edit editTemplateButton" th:attr="
-        data-id=${template.templateId},
-        data-name=${template.templateName},
-        data-key=${template.templateKey},
-        data-description=${template.templateDescription}">
+       data-id=${template.templateId},
+       data-name=${template.templateName},
+       data-key=${template.templateKey},
+       data-description=${template.templateDescription}">
 							編集
 						</button>
+
+						<button type="button" class="btn-save duplicateTemplateButton" th:attr="
+        data-id=${template.templateId},
+        data-name=${template.templateName}">
+							複製
+						</button>
+
 						<button type="button" class="btn-delete deleteTemplateButton"
 							th:attr="data-id=${template.templateId}">
 							削除

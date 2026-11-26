@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.app.myblogpusher.entity.Template.TemplateCellEntity;
-import com.app.myblogpusher.entity.Template.TemplateRow;
+import com.app.myblogpusher.entity.Template.TemplateRowEntity;
 import com.app.myblogpusher.repository.Template.TemplateCellRepository;
 import com.app.myblogpusher.repository.Template.TemplateRowRepository;
 
@@ -32,14 +32,14 @@ public class TemplateRowLayoutService {
 	 * テンプレートの行情報を取得する。
 	 */
 	@Transactional(readOnly = true)
-	public List<TemplateRow> getRows(Long templateId) {
+	public List<TemplateRowEntity> getRows(Long templateId) {
 		return templateRowRepository.findByTemplateIdOrderByRowNumberAsc(templateId);
 	}
 
 	/**
 	 * 行情報を保存する。
 	 */
-	public TemplateRow saveRow(TemplateRow row) {
+	public TemplateRowEntity saveRow(TemplateRowEntity row) {
 
 		if (row.getTemplateId() == null || row.getRowNumber() == null
 				|| row.getRowNumber() < 1) {
@@ -61,7 +61,7 @@ public class TemplateRowLayoutService {
 			throw new IllegalArgumentException("行の削除位置が不正です。");
 		}
 
-		List<TemplateRow> rows = getRows(templateId);
+		List<TemplateRowEntity> rows = getRows(templateId);
 
 		if (rowNumber > rows.size()) {
 			throw new IllegalArgumentException("行の削除位置が不正です。");
@@ -109,9 +109,9 @@ public class TemplateRowLayoutService {
 		templateRowRepository.deleteByTemplateIdAndRowNumber(
 				templateId, rowNumber);
 
-		List<TemplateRow> targetRows = getRows(templateId);
+		List<TemplateRowEntity> targetRows = getRows(templateId);
 
-		for (TemplateRow row : targetRows) {
+		for (TemplateRowEntity row : targetRows) {
 
 			if (row.getRowNumber() > rowNumber) {
 				row.setRowNumber(row.getRowNumber() - 1);
@@ -126,24 +126,24 @@ public class TemplateRowLayoutService {
 	 * 挿入位置以降の行番号を後方へ移動し、
 	 * 挿入位置をまたぐセルは結合範囲を拡張する。
 	 */
-	public TemplateRow insertRow(Long templateId, Integer rowNumber) {
+	public TemplateRowEntity insertRow(Long templateId, Integer rowNumber) {
 
 		if (templateId == null || rowNumber == null || rowNumber < 1) {
 			throw new IllegalArgumentException("行の挿入位置が不正です。");
 		}
 
-		List<TemplateRow> rows = getRows(templateId);
+		List<TemplateRowEntity> rows = getRows(templateId);
 
 		if (rowNumber > rows.size() + 1) {
 			throw new IllegalArgumentException("行の挿入位置が不正です。");
 		}
 
 		// 後方の行から番号を移動し、番号の重複を防ぐ。
-		List<TemplateRow> targetRows = templateRowRepository
+		List<TemplateRowEntity> targetRows = templateRowRepository
 				.findByTemplateIdAndRowNumberGreaterThanEqualOrderByRowNumberDesc(
 						templateId, rowNumber);
 
-		for (TemplateRow row : targetRows) {
+		for (TemplateRowEntity row : targetRows) {
 			row.setRowNumber(row.getRowNumber() + 1);
 			templateRowRepository.saveAndFlush(row);
 		}
@@ -176,7 +176,7 @@ public class TemplateRowLayoutService {
 		}
 
 		// 新しい行を登録する。
-		TemplateRow newRow = new TemplateRow();
+		TemplateRowEntity newRow = new TemplateRowEntity();
 		newRow.setTemplateId(templateId);
 		newRow.setRowNumber(rowNumber);
 		newRow.setHeightUnit("auto");

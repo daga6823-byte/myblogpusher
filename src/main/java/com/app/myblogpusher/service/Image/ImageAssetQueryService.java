@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
 
 import com.app.myblogpusher.dto.ImageAssetView;
 import com.app.myblogpusher.dto.ImageCategoryDto;
-import com.app.myblogpusher.entity.ImageAsset;
+import com.app.myblogpusher.entity.ImageAssetEntity;
 import com.app.myblogpusher.repository.ImageAssetRepository;
 import com.app.myblogpusher.service.Supabase.SupabaseStorageService;
 
@@ -42,7 +42,7 @@ public class ImageAssetQueryService {
 	 */
 	public List<String> listImageUrls(Long userId, String folderName) {
 
-		List<ImageAsset> assets;
+		List<ImageAssetEntity> assets;
 
 		if (folderName != null && !folderName.isBlank()) {
 
@@ -88,7 +88,7 @@ public class ImageAssetQueryService {
 
 		Pageable pageable = PageRequest.of(0, folderName == null || folderName.isBlank() ? 12 : 100);
 
-		List<ImageAsset> assets;
+		List<ImageAssetEntity> assets;
 		if (folderName == null || folderName.isBlank()) {
 			assets = imageAssetRepository
 					.findByUserIdOrderByUploadDateDesc(userId, pageable)
@@ -151,7 +151,7 @@ public class ImageAssetQueryService {
 	 */
 	public String getImageUrl(Long userId, Long imageId) {
 
-		ImageAsset asset = imageAssetRepository
+		ImageAssetEntity asset = imageAssetRepository
 				.findByImageIdAndUserId(imageId, userId)
 				.orElseThrow(() -> new IllegalArgumentException("対象の画像が見つかりません。"));
 
@@ -161,7 +161,7 @@ public class ImageAssetQueryService {
 	/**
 	 * 画像情報を画面表示用DTOへ変換する。
 	 */
-	private ImageAssetView toImageAssetView(ImageAsset asset) {
+	private ImageAssetView toImageAssetView(ImageAssetEntity asset) {
 		return new ImageAssetView(
 				asset.getImageId(),
 				asset.getFolderName(),
@@ -184,7 +184,7 @@ public class ImageAssetQueryService {
 			return cachedImages;
 		}
 
-		List<ImageAsset> assets = imageAssetRepository.findByUserIdOrderByUploadDateDesc(userId);
+		List<ImageAssetEntity> assets = imageAssetRepository.findByUserIdOrderByUploadDateDesc(userId);
 
 		List<ImageAssetView> images = assets.stream()
 				.map(asset -> new ImageAssetView(
@@ -209,7 +209,7 @@ public class ImageAssetQueryService {
 			String folderName,
 			Pageable pageable) {
 
-		Page<ImageAsset> page;
+		Page<ImageAssetEntity> page;
 
 		if (folderName == null) {
 

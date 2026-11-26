@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.app.myblogpusher.entity.ImageAsset;
+import com.app.myblogpusher.entity.ImageAssetEntity;
 import com.app.myblogpusher.repository.ImageAssetRepository;
 import com.app.myblogpusher.service.Supabase.SupabaseStorageService;
 
@@ -40,7 +40,7 @@ public class ImageAssetImportService {
 
 		Set<String> existingPaths = imageAssetRepository
 		        .findByUserIdOrderByUploadDateDesc(userId).stream()
-		        .map(ImageAsset::getStoragePath)
+		        .map(ImageAssetEntity::getStoragePath)
 		        .collect(Collectors.toSet());
 
 		int importedCount = 0;
@@ -61,7 +61,7 @@ public class ImageAssetImportService {
 					? path.substring(lastSlash + 1)
 					: path;
 
-			ImageAsset asset = new ImageAsset();
+			ImageAssetEntity asset = new ImageAssetEntity();
 			asset.setUserId(userId);
 			asset.setFolderName(folderName);
 			asset.setFileName(fileName);

@@ -17,7 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.app.myblogpusher.dto.ImageAssetView;
 import com.app.myblogpusher.dto.ImageCategoryDto;
-import com.app.myblogpusher.entity.ImageAsset;
+import com.app.myblogpusher.entity.ImageAssetEntity;
 import com.app.myblogpusher.facade.ImageAssetFacade;
 
 @Service
@@ -26,7 +26,7 @@ public class ImageAssetService {
 	@Autowired
 	private ImageAssetFacade imageAssetFacade;
 
-	public ImageAsset uploadAndRegister(
+	public ImageAssetEntity uploadAndRegister(
 			MultipartFile file,
 			String folderName,
 			Long userId) throws IOException {

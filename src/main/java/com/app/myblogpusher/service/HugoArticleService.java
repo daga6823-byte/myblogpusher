@@ -22,7 +22,7 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.springframework.stereotype.Service;
 
-import com.app.myblogpusher.entity.Article.Article;
+import com.app.myblogpusher.entity.Article.ArticleEntity;
 import com.app.myblogpusher.entity.Article.ArticleCategory;
 import com.app.myblogpusher.repository.CategoryRelationRepository;
 import com.app.myblogpusher.repository.Article.ArticleCategoryRepository;
@@ -43,7 +43,7 @@ public class HugoArticleService {
 	public void createArticle(
 			Git git,
 			String repoPath,
-			Article article,
+			ArticleEntity article,
 			String slug)
 			throws IOException, GitAPIException {
 
@@ -199,7 +199,7 @@ public class HugoArticleService {
 	 * 記事本文からテンプレートIDを抽出し、最新のテンプレート定義からCSSを生成する。
 	 * Gitへの追加のみ行い、コミットとPushは記事投稿処理に委譲する。
 	 */
-	private void saveTemplateCss(Git git, String repoPath, Article article)
+	private void saveTemplateCss(Git git, String repoPath, ArticleEntity article)
 			throws IOException, GitAPIException {
 
 		Pattern pattern = Pattern.compile("mbp-template-(\\d+)");

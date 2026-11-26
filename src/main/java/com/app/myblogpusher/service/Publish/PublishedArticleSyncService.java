@@ -21,7 +21,7 @@ import org.springframework.stereotype.Service;
 
 import com.app.myblogpusher.dto.Publish.PublishedArticleSummaryDto;
 import com.app.myblogpusher.entity.UserRepositoryEntity;
-import com.app.myblogpusher.entity.Article.Article;
+import com.app.myblogpusher.entity.Article.ArticleEntity;
 import com.app.myblogpusher.repository.Article.ArticleRepository;
 import com.app.myblogpusher.service.ApplicationErrorLogService;
 import com.app.myblogpusher.service.Article.ArticleService;
@@ -78,7 +78,7 @@ public class PublishedArticleSyncService {
 
 				githubPaths.add(hugoPath);
 
-				Optional<Article> existing = articleRepository.findByUserIdAndHugoPath(
+				Optional<ArticleEntity> existing = articleRepository.findByUserIdAndHugoPath(
 						userId,
 						hugoPath);
 
@@ -102,10 +102,10 @@ public class PublishedArticleSyncService {
 				}
 
 				Long articleId = existing
-						.map(Article::getArticleId)
+						.map(ArticleEntity::getArticleId)
 						.orElse(null);
 
-				Article article = articleService.saveFromGitHub(
+				ArticleEntity article = articleService.saveFromGitHub(
 				        articleId,
 				        userId,
 				        summary.getSlug(),
@@ -123,9 +123,9 @@ public class PublishedArticleSyncService {
 			}
 
 			// GitHubから削除された記事をDBから削除
-			List<Article> dbArticles = articleRepository.findByUserId(userId);
+			List<ArticleEntity> dbArticles = articleRepository.findByUserId(userId);
 
-			for (Article dbArticle : dbArticles) {
+			for (ArticleEntity dbArticle : dbArticles) {
 
 				if (!githubPaths.contains(dbArticle.getHugoPath())) {
 					articleService.deleteById(

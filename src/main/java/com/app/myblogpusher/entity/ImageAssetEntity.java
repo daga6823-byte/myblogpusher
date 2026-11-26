@@ -21,7 +21,7 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(name = "image_asset")
-public class ImageAsset {
+public class ImageAssetEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)

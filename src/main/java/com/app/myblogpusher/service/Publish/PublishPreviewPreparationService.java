@@ -14,8 +14,8 @@ import java.util.Optional;
 import org.springframework.stereotype.Service;
 
 import com.app.myblogpusher.entity.UserRepositoryEntity;
-import com.app.myblogpusher.entity.Article.Article;
-import com.app.myblogpusher.entity.Article.ArticleWork;
+import com.app.myblogpusher.entity.Article.ArticleEntity;
+import com.app.myblogpusher.entity.Article.ArticleWorkEntity;
 import com.app.myblogpusher.repository.UserRepositoryRepository;
 import com.app.myblogpusher.service.Article.ArticleService;
 import com.app.myblogpusher.service.Article.ArticleWorkService;
@@ -60,10 +60,10 @@ public class PublishPreviewPreparationService {
 		}
 
 		// 保存前のワークをログインユーザー本人のデータに限定して取得する。
-		ArticleWork existingWork = articleWorkService.findById(workId, userId);
+		ArticleWorkEntity existingWork = articleWorkService.findById(workId, userId);
 
 		// ワークに投稿済み記事との関連があれば、その記事も取得する。
-		Article existingArticle = null;
+		ArticleEntity existingArticle = null;
 
 		if (existingWork != null && existingWork.getArticleId() != null) {
 			existingArticle = articleService.findById(
@@ -121,7 +121,7 @@ public class PublishPreviewPreparationService {
 			boolean preferWorkSlug) {
 
 		// 保存後のワークを取得する。
-		ArticleWork work = articleWorkService.findById(savedWorkId, userId);
+		ArticleWorkEntity work = articleWorkService.findById(savedWorkId, userId);
 
 		if (work == null) {
 			return PreparationResult.failure(
@@ -138,8 +138,8 @@ public class PublishPreviewPreparationService {
 
 		UserRepositoryEntity repo = repoOpt.get();
 
-		ArticleWork existingWork = existingData.getWork();
-		Article existingArticle = existingData.getArticle();
+		ArticleWorkEntity existingWork = existingData.getWork();
+		ArticleEntity existingArticle = existingData.getArticle();
 
 		// 呼び出し元の用途に応じて、優先するスラッグと代替スラッグを決定する。
 		String primarySlug;
@@ -183,21 +183,21 @@ public class PublishPreviewPreparationService {
 	 */
 	public static class ExistingArticleData {
 
-		private final ArticleWork work;
-		private final Article article;
+		private final ArticleWorkEntity work;
+		private final ArticleEntity article;
 
 		public ExistingArticleData(
-				ArticleWork work,
-				Article article) {
+				ArticleWorkEntity work,
+				ArticleEntity article) {
 			this.work = work;
 			this.article = article;
 		}
 
-		public ArticleWork getWork() {
+		public ArticleWorkEntity getWork() {
 			return work;
 		}
 
-		public Article getArticle() {
+		public ArticleEntity getArticle() {
 			return article;
 		}
 	}

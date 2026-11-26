@@ -11,7 +11,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import com.app.myblogpusher.entity.UserRepositoryEntity;
-import com.app.myblogpusher.entity.Article.Article;
+import com.app.myblogpusher.entity.Article.ArticleEntity;
 import com.app.myblogpusher.service.ApplicationErrorLogService;
 import com.app.myblogpusher.service.Article.ArticleWorkService;
 import com.app.myblogpusher.util.ArticleImageUtil;
@@ -43,7 +43,7 @@ public class ArticlePublishAsyncService {
 	public void pushArticleAsync(
 			UserRepositoryEntity repository,
 			String cipherKey,
-			Article article,
+			ArticleEntity article,
 			boolean newArticle,
 			Long workId,
 			String slug) {

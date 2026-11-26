@@ -8,7 +8,7 @@ package com.app.myblogpusher.service.Publish;
 
 import org.springframework.stereotype.Service;
 
-import com.app.myblogpusher.entity.Article.ArticleWork;
+import com.app.myblogpusher.entity.Article.ArticleWorkEntity;
 import com.app.myblogpusher.util.SlugUtil;
 
 @Service
@@ -28,7 +28,7 @@ public class PublishSlugService {
 	 *
 	 * @return 決定したスラッグ。生成できなかった場合はnullまたは空文字
 	 */
-	public String decideSlug(ArticleWork work, String title) {
+	public String decideSlug(ArticleWorkEntity work, String title) {
 
 		// 既存記事は保存済みのスラッグを維持する。
 		if (work.getArticleId() != null) {

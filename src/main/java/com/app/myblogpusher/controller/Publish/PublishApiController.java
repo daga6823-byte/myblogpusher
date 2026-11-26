@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.app.myblogpusher.entity.UserMaster;
-import com.app.myblogpusher.entity.Article.ArticleWork;
+import com.app.myblogpusher.entity.Article.ArticleWorkEntity;
 import com.app.myblogpusher.service.Article.ArticleWorkService;
 import com.app.myblogpusher.service.Publish.PublishSlugService;
 import com.app.myblogpusher.service.Publish.PublishStatusService;
@@ -62,7 +62,7 @@ public class PublishApiController {
 					.body(Map.of("error", "UNAUTHORIZED"));
 		}
 
-		ArticleWork work = articleWorkService.findById(
+		ArticleWorkEntity work = articleWorkService.findById(
 				workId,
 				loginUser.getUserId());
 

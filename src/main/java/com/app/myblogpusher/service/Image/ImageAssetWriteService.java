@@ -20,7 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.app.myblogpusher.entity.ImageAsset;
+import com.app.myblogpusher.entity.ImageAssetEntity;
 import com.app.myblogpusher.facade.SupabaseFacadeService;
 import com.app.myblogpusher.repository.ImageAssetRepository;
 
@@ -44,7 +44,7 @@ public class ImageAssetWriteService {
 	 *
 	 * folderNameが未指定の場合はmiscフォルダを使用する。
 	 */
-	public ImageAsset uploadAndRegister(
+	public ImageAssetEntity uploadAndRegister(
 			MultipartFile file,
 			String folderName,
 			Long userId) throws IOException {
@@ -99,7 +99,7 @@ public class ImageAssetWriteService {
 			deleteTemporaryFile(uploadFile, convertedFile);
 		}
 
-		ImageAsset asset = new ImageAsset();
+		ImageAssetEntity asset = new ImageAssetEntity();
 		asset.setUserId(userId);
 		asset.setFolderName(resolvedFolderName);
 		asset.setFileName(fileName);
@@ -129,7 +129,7 @@ public class ImageAssetWriteService {
 			MultipartFile file,
 			Long userId) throws IOException {
 
-		ImageAsset asset = imageAssetRepository.findById(imageId)
+		ImageAssetEntity asset = imageAssetRepository.findById(imageId)
 				.orElseThrow();
 
 		// 他ユーザーの画像を更新できないようにする。
@@ -248,7 +248,7 @@ public class ImageAssetWriteService {
 			Long imageId,
 			Long userId) {
 
-		ImageAsset asset = imageAssetRepository.findById(imageId)
+		ImageAssetEntity asset = imageAssetRepository.findById(imageId)
 				.orElseThrow();
 
 		// 他ユーザーの画像削除防止
@@ -295,7 +295,7 @@ public class ImageAssetWriteService {
 					"フォルダ名に使用できない文字が含まれています");
 		}
 
-		List<ImageAsset> assets = imageAssetRepository.findByUserIdAndFolderName(
+		List<ImageAssetEntity> assets = imageAssetRepository.findByUserIdAndFolderName(
 				userId, oldFolderName);
 
 		if (assets.isEmpty()) {
@@ -310,7 +310,7 @@ public class ImageAssetWriteService {
 		try {
 			LocalDateTime now = LocalDateTime.now();
 
-			for (ImageAsset asset : assets) {
+			for (ImageAssetEntity asset : assets) {
 				String newStoragePath = movedPaths.get(asset.getStoragePath());
 
 				if (newStoragePath == null) {

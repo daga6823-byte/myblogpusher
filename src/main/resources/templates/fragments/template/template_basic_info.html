@@ -17,9 +17,20 @@
 	</div>
 
 	<div class="form-group">
+
 		<label for="backgroundColor">全体背景色</label>
-		<input type="color" id="backgroundColor" name="backgroundColor" th:value="${template.backgroundColor != null
-                ? template.backgroundColor : '#FFFFFF'}">
+
+		<input type="color" id="backgroundColor" value="#FFFFFF">
+
+		<label for="backgroundOpacity">背景色の透過率</label>
+
+		<input type="range" id="backgroundOpacity" min="0" max="100" step="1" value="0">
+
+		<span id="backgroundOpacityValue">0%</span>
+
+		<input type="hidden" id="backgroundColorValue" th:field="*{backgroundColor}" th:value="${template.backgroundColor != null
+            ? template.backgroundColor : '#FFFFFF00'}">
+
 	</div>
 
 </div>

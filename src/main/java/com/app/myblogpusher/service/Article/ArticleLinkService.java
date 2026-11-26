@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 
 import com.app.myblogpusher.dto.Article.ArticleLinkView;
 import com.app.myblogpusher.dto.Category.CategoryOptionView;
-import com.app.myblogpusher.entity.Article.Article;
+import com.app.myblogpusher.entity.Article.ArticleEntity;
 import com.app.myblogpusher.repository.Article.ArticleRepository;
 import com.app.myblogpusher.service.Category.CategorySelectionService;
 
@@ -39,7 +39,7 @@ public class ArticleLinkService {
 	    List<CategoryOptionView> categories =
 	            categorySelectionService.findSelectableCategories(userId);
 
-	    List<Article> articles;
+	    List<ArticleEntity> articles;
 
 	    if (categoryGroupId == null) {
 
@@ -95,7 +95,7 @@ public class ArticleLinkService {
 	 */
 	public List<CategoryOptionView> findLinkCategories(Long userId) {
 
-	    List<Article> articles = articleRepository.findByUserId(userId);
+	    List<ArticleEntity> articles = articleRepository.findByUserId(userId);
 
 	    if (articles.isEmpty()) {
 	        return List.of();

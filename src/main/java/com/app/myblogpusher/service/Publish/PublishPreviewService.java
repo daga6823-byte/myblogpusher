@@ -15,8 +15,8 @@ import org.springframework.stereotype.Service;
 import com.app.myblogpusher.dto.SlugAnalysisDto;
 import com.app.myblogpusher.dto.Publish.PublishPreviewForm;
 import com.app.myblogpusher.entity.UserRepositoryEntity;
-import com.app.myblogpusher.entity.Article.Article;
-import com.app.myblogpusher.entity.Article.ArticleWork;
+import com.app.myblogpusher.entity.Article.ArticleEntity;
+import com.app.myblogpusher.entity.Article.ArticleWorkEntity;
 import com.app.myblogpusher.util.SlugUtil;
 
 @Service
@@ -53,8 +53,8 @@ public class PublishPreviewService {
 			String title,
 			String content,
 			Long categoryId,
-			ArticleWork work,
-			Article existingArticle,
+			ArticleWorkEntity work,
+			ArticleEntity existingArticle,
 			UserRepositoryEntity repo,
 			String primarySlug,
 			String fallbackSlug) {

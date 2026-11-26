@@ -18,7 +18,7 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.app.myblogpusher.entity.Article.ArticleWork;
+import com.app.myblogpusher.entity.Article.ArticleWorkEntity;
 import com.app.myblogpusher.repository.Article.ArticleWorkRepository;
 
 import jakarta.transaction.Transactional;
@@ -32,7 +32,7 @@ public class ArticleWorkService {
 	/**
 	 * ユーザーの編集中記事一覧を取得する
 	 */
-	public List<ArticleWork> findByUserId(Long userId) {
+	public List<ArticleWorkEntity> findByUserId(Long userId) {
 
 		return articleWorkRepository.findByUserIdOrderByUpdateDateDesc(userId);
 	}
@@ -49,13 +49,18 @@ public class ArticleWorkService {
 			Long typoCategoryId,
 			String title,
 			String content,
-			String slug) {
+			String slug,
+			Long templateId,
+			Long templateBackgroundImageAssetId) {
 
-		ArticleWork work = new ArticleWork();
+		ArticleWorkEntity work = new ArticleWorkEntity();
 
 		work.setUserId(userId);
 		work.setArticleId(articleId);
 		work.setHugoPath(hugoPath);
+		work.setTemplateId(templateId);
+		work.setTemplateBackgroundImageAssetId(
+				templateBackgroundImageAssetId);
 		work.setTypoCategoryId(typoCategoryId);
 		work.setTitle(title);
 		work.setContent(content);
@@ -86,13 +91,18 @@ public class ArticleWorkService {
 			String title,
 			String content,
 			Long userId,
-			String slug) {
+			String slug,
+			Long templateId,
+			Long templateBackgroundImageAssetId) {
 
-		ArticleWork work = articleWorkRepository
+		ArticleWorkEntity work = articleWorkRepository
 				.findByWorkIdAndUserId(workId, userId)
 				.orElseThrow();
 
 		work.setHugoPath(hugoPath);
+		work.setTemplateId(templateId);
+		work.setTemplateBackgroundImageAssetId(
+				templateBackgroundImageAssetId);
 		work.setTypoCategoryId(typoCategoryId);
 		work.setTitle(title);
 		work.setContent(content);
@@ -105,7 +115,7 @@ public class ArticleWorkService {
 	/**
 	 * ログインユーザーが所有する編集中記事を取得する
 	 */
-	public ArticleWork findById(Long workId, Long userId) {
+	public ArticleWorkEntity findById(Long workId, Long userId) {
 
 		return articleWorkRepository
 				.findByWorkIdAndUserId(workId, userId)
@@ -124,7 +134,7 @@ public class ArticleWorkService {
 			Integer status,
 			Long userId) {
 
-		ArticleWork work = articleWorkRepository
+		ArticleWorkEntity work = articleWorkRepository
 				.findByWorkIdAndUserId(workId, userId)
 				.orElseThrow();
 
@@ -153,7 +163,7 @@ public class ArticleWorkService {
 			String errorCode,
 			Long userId) {
 
-		ArticleWork work = articleWorkRepository
+		ArticleWorkEntity work = articleWorkRepository
 				.findByWorkIdAndUserId(workId, userId)
 				.orElseThrow();
 
@@ -167,18 +177,18 @@ public class ArticleWorkService {
 	/**
 	 * 同一内容の下書きが存在するか確認する
 	 */
-	public Optional<ArticleWork> findDuplicate(
-	        Long userId,
-	        String hugoPath,
-	        String title,
-	        String content) {
+	public Optional<ArticleWorkEntity> findDuplicate(
+			Long userId,
+			String hugoPath,
+			String title,
+			String content) {
 
-	    return articleWorkRepository
-	            .findByUserIdAndHugoPathAndTitleAndContent(
-	                    userId,
-	                    hugoPath,
-	                    title,
-	                    content);
+		return articleWorkRepository
+				.findByUserIdAndHugoPathAndTitleAndContent(
+						userId,
+						hugoPath,
+						title,
+						content);
 	}
 
 	/**
@@ -188,7 +198,7 @@ public class ArticleWorkService {
 			Long workId,
 			Long userId) {
 
-		ArticleWork work = articleWorkRepository
+		ArticleWorkEntity work = articleWorkRepository
 				.findByWorkIdAndUserId(workId, userId)
 				.orElseThrow();
 
@@ -198,7 +208,7 @@ public class ArticleWorkService {
 	/**
 	 * 投稿済み記事のarticleIdから編集中記事を検索する
 	 */
-	public Optional<ArticleWork> findByArticleId(Long articleId) {
+	public Optional<ArticleWorkEntity> findByArticleId(Long articleId) {
 
 		return articleWorkRepository.findByArticleId(articleId);
 	}
@@ -206,7 +216,7 @@ public class ArticleWorkService {
 	/**
 	 * 投稿中の記事を取得する
 	 */
-	public List<ArticleWork> findPublishing(Long userId) {
+	public List<ArticleWorkEntity> findPublishing(Long userId) {
 
 		return articleWorkRepository.findByUserIdAndStatusOrderByUpdateDateDesc(
 				userId,
@@ -216,14 +226,14 @@ public class ArticleWorkService {
 	/**
 	 * エラー記事を取得する
 	 */
-	public List<ArticleWork> findError(Long userId) {
+	public List<ArticleWorkEntity> findError(Long userId) {
 		return articleWorkRepository.findByUserIdAndStatusOrderByUpdateDateDesc(userId, 2);
 	}
 
 	/**
 	 * 投稿前の下書きを取得する
 	 */
-	public List<ArticleWork> findDrafts(Long userId) {
+	public List<ArticleWorkEntity> findDrafts(Long userId) {
 
 		return articleWorkRepository.findByUserIdAndStatusOrderByUpdateDateDesc(
 				userId,
@@ -238,7 +248,7 @@ public class ArticleWorkService {
 			String slug,
 			Long userId) {
 
-		ArticleWork work = articleWorkRepository
+		ArticleWorkEntity work = articleWorkRepository
 				.findByWorkIdAndUserId(workId, userId)
 				.orElseThrow();
 
@@ -256,7 +266,7 @@ public class ArticleWorkService {
 			Long userId,
 			String thumbnailUrl) {
 
-		ArticleWork work = articleWorkRepository
+		ArticleWorkEntity work = articleWorkRepository
 				.findByWorkIdAndUserId(workId, userId)
 				.orElseThrow();
 
@@ -274,7 +284,7 @@ public class ArticleWorkService {
 			Long userId,
 			String slug) {
 
-		ArticleWork work = articleWorkRepository
+		ArticleWorkEntity work = articleWorkRepository
 				.findByWorkIdAndUserId(workId, userId)
 				.orElseThrow();
 
@@ -293,7 +303,7 @@ public class ArticleWorkService {
 			String hugoPath,
 			Long userId) {
 
-		ArticleWork work = articleWorkRepository
+		ArticleWorkEntity work = articleWorkRepository
 				.findByWorkIdAndUserId(workId, userId)
 				.orElseThrow();
 

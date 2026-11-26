@@ -20,7 +20,7 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(name = "article_workspace")
-public class ArticleWorkspace {
+public class ArticleWorkspaceEntity {
 
 	/** ワークスペースを所有するユーザーID（主キー）。 */
 	@Id
@@ -34,6 +34,12 @@ public class ArticleWorkspace {
 	/** 編集中の記事のカテゴリーPath。 */
 	@Column(name = "hugo_path")
 	private String hugoPath;
+	
+	@Column(name = "template_id")
+	private Long templateId;
+
+	@Column(name = "template_background_image_asset_id")
+	private Long templateBackgroundImageAssetId;
 	
 	/** 編集中の記事のタイトル。 */
 	@Column(name = "title")

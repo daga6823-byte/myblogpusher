@@ -20,8 +20,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import com.app.myblogpusher.dto.Category.CategorySelectView;
 import com.app.myblogpusher.entity.UserMaster;
 import com.app.myblogpusher.entity.UserRepositoryEntity;
-import com.app.myblogpusher.entity.Article.Article;
-import com.app.myblogpusher.entity.Article.ArticleWork;
+import com.app.myblogpusher.entity.Article.ArticleEntity;
+import com.app.myblogpusher.entity.Article.ArticleWorkEntity;
 import com.app.myblogpusher.facade.ImageAssetFacadeService;
 import com.app.myblogpusher.repository.UserRepositoryRepository;
 import com.app.myblogpusher.repository.Article.ArticleRepository;
@@ -120,7 +120,7 @@ public class ArticleEditController {
 				"imageFolders",
 				imageAssetFacadeService.findImageCategories(userId));
 
-		ArticleWork work = null;
+		ArticleWorkEntity work = null;
 
 		if (workId != null) {
 
@@ -167,7 +167,7 @@ public class ArticleEditController {
 
 		if (work != null) {
 
-			Article article = null;
+			ArticleEntity article = null;
 
 			if (work.getArticleId() != null) {
 				article = articleRepository.findById(work.getArticleId())

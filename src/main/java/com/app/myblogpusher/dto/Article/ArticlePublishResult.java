@@ -4,22 +4,22 @@
 
 package com.app.myblogpusher.dto.Article;
 
-import com.app.myblogpusher.entity.Article.Article;
+import com.app.myblogpusher.entity.Article.ArticleEntity;
 
 public class ArticlePublishResult {
 
-	private Article article;
+	private ArticleEntity article;
 	private boolean newArticle;
 
 	public ArticlePublishResult(
-			Article article,
+			ArticleEntity article,
 			boolean newArticle) {
 
 		this.article = article;
 		this.newArticle = newArticle;
 	}
 
-	public Article getArticle() {
+	public ArticleEntity getArticle() {
 		return article;
 	}
 

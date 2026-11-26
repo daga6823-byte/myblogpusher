@@ -14,8 +14,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.app.myblogpusher.entity.Article.Article;
-import com.app.myblogpusher.entity.Article.ArticleWork;
+import com.app.myblogpusher.entity.Article.ArticleEntity;
+import com.app.myblogpusher.entity.Article.ArticleWorkEntity;
 import com.app.myblogpusher.enums.ArticleStatus;
 import com.app.myblogpusher.repository.Article.ArticleRepository;
 
@@ -28,6 +28,9 @@ public class ArticleService {
 	@Autowired
 	private ArticleWorkService articleWorkService;
 
+	@Autowired
+	private ArticleTemplateCellService articleTemplateCellService;
+	
 	/**
 	 * GitHub投稿成功後のArticle更新とArticleWork削除を
 	 * 1つのDBトランザクションで完了させる。
@@ -37,8 +40,8 @@ public class ArticleService {
 	 * 投稿対象カテゴリーのArticleを更新する。
 	 */
 	@Transactional
-	public Article completePublish(
-			ArticleWork work,
+	public ArticleEntity completePublish(
+			ArticleWorkEntity work,
 			String slug,
 			String thumbnailUrl) {
 
@@ -46,7 +49,7 @@ public class ArticleService {
 		// status=0はまだ投稿処理に入っておらず、
 		// status=2は投稿エラー中のため、ここでは処理しない。
 		// ログインユーザー本人の記事に限定して取得する。
-		ArticleWork currentWork = articleWorkService.findById(
+		ArticleWorkEntity currentWork = articleWorkService.findById(
 				work.getWorkId(),
 				work.getUserId());
 
@@ -62,7 +65,7 @@ public class ArticleService {
 
 		// ArticleWork.articleIdがある場合は、元の記事を直接特定する。
 		// カテゴリーやslugを変更していても、元の記事を更新できる。
-		Article targetArticle = null;
+		ArticleEntity targetArticle = null;
 
 		if (currentWork.getArticleId() != null) {
 			targetArticle = articleRepository.findById(
@@ -96,20 +99,26 @@ public class ArticleService {
 		targetArticle.setStatus(ArticleStatus.PUBLISHED);
 		targetArticle = articleRepository.save(targetArticle);
 
-		// DB上の投稿処理がすべて成功した場合のみWorkを削除する。
+		// 記事用テンプレートセル情報を公開済みArticleへ引き継ぐ。
+		articleTemplateCellService.transferWorkCellsToArticle(
+		        currentWork.getUserId(),
+		        currentWork.getWorkId(),
+		        targetArticle.getArticleId());
+
+		// セル情報の引き継ぎが成功した場合のみWorkを削除する。
 		articleWorkService.delete(
-				currentWork.getWorkId(),
-				currentWork.getUserId());
+		        currentWork.getWorkId(),
+		        currentWork.getUserId());
 
 		return targetArticle;
 	}
 
-	public Article createFromWork(
-			ArticleWork work,
+	public ArticleEntity createFromWork(
+			ArticleWorkEntity work,
 			String slug,
 			String thumbnailUrl) {
 
-		Article article = new Article();
+		ArticleEntity article = new ArticleEntity();
 
 		article.setUserId(work.getUserId());
 		article.setTitle(work.getTitle());
@@ -119,6 +128,10 @@ public class ArticleService {
 
 		// カテゴリー経路とslugを結合したフルパスを保存する。
 		article.setHugoPath(work.getHugoPath() + "/" + slug);
+		
+		article.setTemplateId(work.getTemplateId());
+		article.setTemplateBackgroundImageAssetId(
+		        work.getTemplateBackgroundImageAssetId());
 
 		article.setContent(work.getContent());
 
@@ -140,9 +153,9 @@ public class ArticleService {
 	/**
 	 * 投稿済み記事を更新
 	 */
-	public Article updateFromWork(
-			Article article,
-			ArticleWork work,
+	public ArticleEntity updateFromWork(
+			ArticleEntity article,
+			ArticleWorkEntity work,
 			String slug,
 			String thumbnailUrl) {
 
@@ -153,6 +166,10 @@ public class ArticleService {
 
 		// カテゴリー経路とslugを結合したフルパスを保存する。
 		article.setHugoPath(work.getHugoPath() + "/" + slug);
+		
+		article.setTemplateId(work.getTemplateId());
+		article.setTemplateBackgroundImageAssetId(
+		        work.getTemplateBackgroundImageAssetId());
 
 		article.setContent(work.getContent());
 
@@ -168,7 +185,7 @@ public class ArticleService {
 	 * GitHub同期用
 	 * 既存記事なら更新、存在しなければ新規登録
 	 */
-	public Article saveFromGitHub(
+	public ArticleEntity saveFromGitHub(
 			Long articleId,
 			Long userId,
 			String slug,
@@ -178,13 +195,13 @@ public class ArticleService {
 			LocalDateTime publishDate,
 			String thumbnailUrl) {
 
-		Optional<Article> existing = Optional.empty();
+		Optional<ArticleEntity> existing = Optional.empty();
 
 		if (articleId != null) {
 			existing = articleRepository.findById(articleId);
 		}
 
-		Article article = existing.orElseGet(Article::new);
+		ArticleEntity article = existing.orElseGet(ArticleEntity::new);
 
 		LocalDateTime articleDate = publishDate;
 
@@ -226,7 +243,7 @@ public class ArticleService {
 
 	public void updateStatus(Long articleId, ArticleStatus status) {
 
-		Article article = articleRepository.findById(articleId)
+		ArticleEntity article = articleRepository.findById(articleId)
 				.orElseThrow();
 
 		article.setStatus(status);
@@ -237,7 +254,7 @@ public class ArticleService {
 	/**
 	 * 投稿済み記事IDから記事を取得する
 	 */
-	public Article findById(Long articleId) {
+	public ArticleEntity findById(Long articleId) {
 
 		return articleRepository.findById(articleId)
 				.orElseThrow();
@@ -247,7 +264,7 @@ public class ArticleService {
 	/**
 	 * Hugoパスから投稿済み記事を取得する
 	 */
-	public Article findByHugoPath(
+	public ArticleEntity findByHugoPath(
 			Long userId,
 			String hugoPath) {
 
@@ -261,14 +278,14 @@ public class ArticleService {
 	/**
 	 * 公開済み記事一覧取得
 	 */
-	public List<Article> findPublishedByUserId(Long userId) {
+	public List<ArticleEntity> findPublishedByUserId(Long userId) {
 
 		return articleRepository.findByUserIdAndStatusOrderByUpdateDateDesc(
 				userId,
 				ArticleStatus.PUBLISHED);
 	}
 
-	public Article findBySlug(Long userId, String slug) {
+	public ArticleEntity findBySlug(Long userId, String slug) {
 
 		return articleRepository.findByUserIdAndSlug(userId, slug)
 				.orElse(null);
@@ -302,7 +319,7 @@ public class ArticleService {
 	/**
 	 * 記事を保存する
 	 */
-	public Article save(Article article) {
+	public ArticleEntity save(ArticleEntity article) {
 		return articleRepository.save(article);
 	}
 

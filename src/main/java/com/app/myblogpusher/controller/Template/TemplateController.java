@@ -7,19 +7,23 @@
  */
 package com.app.myblogpusher.controller.Template;
 
+import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.app.myblogpusher.entity.UserMaster;
 import com.app.myblogpusher.entity.Template.TemplateEntity;
+import com.app.myblogpusher.service.Template.TemplateDuplicateService;
 import com.app.myblogpusher.service.Template.TemplateEditService;
 import com.app.myblogpusher.service.Template.TemplateSaveService;
 import com.app.myblogpusher.service.Template.TemplateService;
@@ -35,6 +39,7 @@ public class TemplateController {
 	private final TemplateService templateService;
 	private final TemplateEditService templateEditService;
 	private final TemplateSaveService templateSaveService;
+	private final TemplateDuplicateService templateDuplicateService;
 
 	/**
 	 * テンプレート管理トップ画面を表示する。
@@ -163,5 +168,38 @@ public class TemplateController {
 		templateService.deleteTemplate(userId, templateId);
 
 		return "redirect:/template/list";
+	}
+
+	/**
+	 * テンプレート複製API
+	 */
+	@PostMapping("/api/{templateId}/duplicate")
+	@ResponseBody
+	public ResponseEntity<Map<String, Object>> duplicateTemplate(
+	        @PathVariable Long templateId,
+	        @RequestParam("templateName") String templateName,
+	        HttpSession session) {
+
+		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
+
+		if (loginUser == null) {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+		}
+
+		Long userId = loginUser.getUserId();
+
+		try {
+			TemplateEntity duplicated = templateDuplicateService
+			        .duplicateTemplate(userId, templateId, templateName.trim());
+
+			Map<String, Object> response = new HashMap<>();
+			response.put("templateId", duplicated.getTemplateId());
+			response.put("duplicated", true);
+
+			return ResponseEntity.ok(response);
+
+		} catch (IllegalArgumentException e) {
+			return ResponseEntity.badRequest().build();
+		}
 	}
 }

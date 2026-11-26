@@ -14,13 +14,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.app.myblogpusher.entity.Article.Article;
 import com.app.myblogpusher.entity.Article.ArticleCategory;
-import com.app.myblogpusher.entity.Article.ArticleWork;
+import com.app.myblogpusher.entity.Article.ArticleEntity;
+import com.app.myblogpusher.entity.Article.ArticleTemplateCellEntity;
+import com.app.myblogpusher.entity.Article.ArticleWorkEntity;
 import com.app.myblogpusher.repository.Article.ArticleRepository;
 import com.app.myblogpusher.service.Article.ArticleCategoryService;
 import com.app.myblogpusher.service.Article.ArticleFormatService;
 import com.app.myblogpusher.service.Article.ArticleService;
+import com.app.myblogpusher.service.Article.ArticleTemplateCellService;
 import com.app.myblogpusher.service.Article.ArticleWorkService;
 import com.app.myblogpusher.service.Category.CategoryPathService;
 import com.app.myblogpusher.service.Category.CategoryRelationService;
@@ -52,6 +54,47 @@ public class ArticleSaveUtil {
 	@Autowired
 	private ArticleService articleService;
 
+	@Autowired
+	private ArticleTemplateCellService articleTemplateCellService;
+
+	/**
+	 * 従来の呼び出し元向け下書き保存処理
+	 *
+	 * 添削画面などテンプレート情報を送信しない画面では、
+	 * 既存のテンプレート設定を引き継いで保存する。
+	 */
+	public Long doSaveDraft(
+			Long workId,
+			String categorySelect,
+			String newCategoryName,
+			String newCategoryDisplayName,
+			String title,
+			String content,
+			Long userId) {
+
+		Long templateId = null;
+		Long templateBackgroundImageAssetId = null;
+
+		if (workId != null) {
+			ArticleWorkEntity work = articleWorkService.findById(workId, userId);
+
+			templateId = work.getTemplateId();
+			templateBackgroundImageAssetId = work.getTemplateBackgroundImageAssetId();
+		}
+
+		return doSaveDraft(
+				workId,
+				categorySelect,
+				newCategoryName,
+				newCategoryDisplayName,
+				title,
+				content,
+				userId,
+				templateId,
+				templateBackgroundImageAssetId,
+				null);
+	}
+
 	// -----------------------------------------------------
 	// カテゴリー情報の解決
 	//
@@ -65,7 +108,10 @@ public class ArticleSaveUtil {
 			String newCategoryDisplayName,
 			String title,
 			String content,
-			Long userId) {
+			Long userId,
+			Long templateId,
+			Long templateBackgroundImageAssetId,
+			List<ArticleTemplateCellEntity> templateCells) {
 
 		CategoryResolution categoryResolution = resolveCategory(
 				userId,
@@ -81,11 +127,11 @@ public class ArticleSaveUtil {
 
 		if (workId != null) {
 
-			ArticleWork work = articleWorkService.findById(workId, userId);
+			ArticleWorkEntity work = articleWorkService.findById(workId, userId);
 
 			if (work != null && work.getArticleId() != null) {
 
-				Article article = articleService.findById(work.getArticleId());
+				ArticleEntity article = articleService.findById(work.getArticleId());
 
 				slug = article.getSlug();
 			} else if (work != null) {
@@ -137,7 +183,7 @@ public class ArticleSaveUtil {
 				return null;
 			}
 
-			Optional<ArticleWork> existing = articleWorkService.findDuplicate(
+			Optional<ArticleWorkEntity> existing = articleWorkService.findDuplicate(
 					userId,
 					hugoPath,
 					title,
@@ -151,10 +197,21 @@ public class ArticleSaveUtil {
 					userId,
 					null,
 					hugoPath,
-					null,
+					typoCategoryId,
 					title,
 					formattedContent,
-					slug);
+					slug,
+					templateId,
+					templateBackgroundImageAssetId);
+
+			// 記事固有のセル情報を保存する。
+			if (templateCells != null) {
+				articleTemplateCellService.saveWorkCells(
+						userId,
+						newWorkId,
+						templateId,
+						templateCells);
+			}
 
 			return newWorkId;
 
@@ -170,7 +227,18 @@ public class ArticleSaveUtil {
 					title,
 					formattedContent,
 					userId,
-					slug);
+					slug,
+					templateId,
+					templateBackgroundImageAssetId);
+
+			// 記事固有のセル情報を置き換えて保存する。
+			if (templateCells != null) {
+				articleTemplateCellService.saveWorkCells(
+						userId,
+						workId,
+						templateId,
+						templateCells);
+			}
 
 			return workId;
 		}

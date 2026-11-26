@@ -15,9 +15,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.app.myblogpusher.entity.Template.TemplateCellEntity;
-import com.app.myblogpusher.entity.Template.TemplateColumn;
+import com.app.myblogpusher.entity.Template.TemplateColumnEntity;
 import com.app.myblogpusher.entity.Template.TemplateEntity;
-import com.app.myblogpusher.entity.Template.TemplateRow;
+import com.app.myblogpusher.entity.Template.TemplateRowEntity;
 import com.app.myblogpusher.facade.TemplateLayoutFacadeService;
 import com.app.myblogpusher.service.Image.ImageAssetQueryService;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -52,11 +52,11 @@ public class TemplateEditService {
 
 		TemplateEntity template = new TemplateEntity();
 
-		TemplateRow row = new TemplateRow();
+		TemplateRowEntity row = new TemplateRowEntity();
 		row.setRowNumber(1);
 		row.setHeightUnit("auto");
 
-		TemplateColumn column = new TemplateColumn();
+		TemplateColumnEntity column = new TemplateColumnEntity();
 		column.setColumnNumber(1);
 		column.setWidthUnit("fr");
 
@@ -67,8 +67,8 @@ public class TemplateEditService {
 		cell.setColumnSpan(1);
 		cell.setCellType("EMPTY");
 
-		List<TemplateRow> rows = List.of(row);
-		List<TemplateColumn> columns = List.of(column);
+		List<TemplateRowEntity> rows = List.of(row);
+		List<TemplateColumnEntity> columns = List.of(column);
 		List<TemplateCellEntity> cells = List.of(cell);
 
 		return createEditModel(
@@ -97,9 +97,9 @@ public class TemplateEditService {
 				userId,
 				templateId);
 
-		List<TemplateRow> rows = templateLayoutFacadeService.getRows(templateId);
+		List<TemplateRowEntity> rows = templateLayoutFacadeService.getRows(templateId);
 
-		List<TemplateColumn> columns = templateLayoutFacadeService.getColumns(templateId);
+		List<TemplateColumnEntity> columns = templateLayoutFacadeService.getColumns(templateId);
 
 		List<TemplateCellEntity> cells = templateLayoutFacadeService.getCells(templateId);
 
@@ -119,8 +119,8 @@ public class TemplateEditService {
 	private Map<String, Object> createEditModel(
 			Long userId,
 			TemplateEntity template,
-			List<TemplateRow> rows,
-			List<TemplateColumn> columns,
+			List<TemplateRowEntity> rows,
+			List<TemplateColumnEntity> columns,
 			List<TemplateCellEntity> cells) throws JsonProcessingException {
 
 		Map<String, Object> model = new LinkedHashMap<>();

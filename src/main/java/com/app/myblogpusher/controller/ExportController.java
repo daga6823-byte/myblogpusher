@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import com.app.myblogpusher.entity.MenuMaster;
 import com.app.myblogpusher.entity.TypoCorrection;
 import com.app.myblogpusher.entity.Article.ArticleCategory;
-import com.app.myblogpusher.entity.Article.ArticleWork;
+import com.app.myblogpusher.entity.Article.ArticleWorkEntity;
 import com.app.myblogpusher.repository.MenuMasterRepository;
 import com.app.myblogpusher.repository.TypoCorrectionRepository;
 import com.app.myblogpusher.repository.Article.ArticleCategoryRepository;
@@ -53,7 +53,7 @@ public class ExportController {
 				new String[] { "work_id", "user_id", "category_group_id", "title", "content", "create_date",
 						"update_date", "create_user", "update_user" },
 				articleWorkRepository.findAll(),
-				(ArticleWork w) -> new String[] {
+				(ArticleWorkEntity w) -> new String[] {
 						str(w.getWorkId()), str(w.getUserId()), str(w.getCategoryGroupId()), w.getTitle(),
 						w.getContent(),
 						str(w.getCreateDate()), str(w.getUpdateDate()), str(w.getCreateUser()), str(w.getUpdateUser())

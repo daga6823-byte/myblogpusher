@@ -16,8 +16,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import com.app.myblogpusher.dto.Publish.PublishedArticleDto;
 import com.app.myblogpusher.entity.UserMaster;
 import com.app.myblogpusher.entity.UserRepositoryEntity;
-import com.app.myblogpusher.entity.Article.Article;
-import com.app.myblogpusher.entity.Article.ArticleWork;
+import com.app.myblogpusher.entity.Article.ArticleEntity;
+import com.app.myblogpusher.entity.Article.ArticleWorkEntity;
 import com.app.myblogpusher.facade.ImageAssetFacadeService;
 import com.app.myblogpusher.repository.UserRepositoryRepository;
 import com.app.myblogpusher.service.Article.ArticleService;
@@ -60,7 +60,7 @@ public class ArticlePublishedController {
 
 		Long userId = loginUser.getUserId();
 
-		List<Article> articles = articleService.findPublishedByUserId(userId);
+		List<ArticleEntity> articles = articleService.findPublishedByUserId(userId);
 
 		/*
 		 * 投稿済み記事のHugoPathからカテゴリー経路を取得する。
@@ -73,7 +73,7 @@ public class ArticlePublishedController {
 		        articles.stream()
 		                .collect(
 		                        Collectors.toMap(
-		                                Article::getArticleId,
+		                                ArticleEntity::getArticleId,
 		                                article -> {
 		                                    String hugoPath = article.getHugoPath();
 
@@ -109,7 +109,7 @@ public class ArticlePublishedController {
 
 		Long userId = loginUser.getUserId();
 
-		Article article = articleService.findByHugoPath(
+		ArticleEntity article = articleService.findByHugoPath(
 				userId,
 				hugoPath);
 
@@ -118,12 +118,12 @@ public class ArticlePublishedController {
 
 		if (article != null) {
 
-			Optional<ArticleWork> existing = articleWorkService.findByArticleId(
+			Optional<ArticleWorkEntity> existing = articleWorkService.findByArticleId(
 					article.getArticleId());
 
 			if (existing.isPresent()) {
 
-				ArticleWork work = existing.get();
+				ArticleWorkEntity work = existing.get();
 				workId = work.getWorkId();
 
 				// 投稿済み記事の保存先をカテゴリー選択の復元に使用する。
@@ -142,13 +142,15 @@ public class ArticlePublishedController {
 				}
 
 				workId = articleWorkService.insertArticleWork(
-						userId,
-						article.getArticleId(),
-						categoryPath,
-						null,
-						article.getTitle(),
-						article.getContent(),
-						article.getSlug());
+				        userId,
+				        article.getArticleId(),
+				        categoryPath,
+				        null,
+				        article.getTitle(),
+				        article.getContent(),
+				        article.getSlug(),
+				        article.getTemplateId(),
+				        article.getTemplateBackgroundImageAssetId());
 			}
 
 		} else {
@@ -197,13 +199,15 @@ public class ArticlePublishedController {
 			}
 
 			workId = articleWorkService.insertArticleWork(
-					userId,
-					null,
-					categoryPath,
-					null,
-					githubArticle.getTitle(),
-					githubArticle.getContent(),
-					githubArticle.getSlug());
+			        userId,
+			        null,
+			        categoryPath,
+			        null,
+			        githubArticle.getTitle(),
+			        githubArticle.getContent(),
+			        githubArticle.getSlug(),
+			        null,
+			        null);
 		}
 
 		return "redirect:/article/edit?workId="
@@ -223,7 +227,7 @@ public class ArticlePublishedController {
 
 		Long userId = loginUser.getUserId();
 
-		Article article = articleService.findByHugoPath(
+		ArticleEntity article = articleService.findByHugoPath(
 				userId,
 				hugoPath);
 

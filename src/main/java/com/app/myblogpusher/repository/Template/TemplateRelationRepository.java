@@ -9,19 +9,19 @@ import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.app.myblogpusher.entity.Template.TemplateRelation;
+import com.app.myblogpusher.entity.Template.TemplateRelationEntity;
 
-public interface TemplateRelationRepository extends JpaRepository<TemplateRelation, Long> {
+public interface TemplateRelationRepository extends JpaRepository<TemplateRelationEntity, Long> {
 
 	/**
 	 * 指定した親テンプレートに属する子テンプレートとの関係を取得する。
 	 */
-	List<TemplateRelation> findByParentTemplateId(Long parentTemplateId);
+	List<TemplateRelationEntity> findByParentTemplateId(Long parentTemplateId);
 
 	/**
 	 * 指定した子テンプレートの親テンプレートとの関係を取得する。
 	 */
-	List<TemplateRelation> findByChildTemplateId(Long childTemplateId);
+	List<TemplateRelationEntity> findByChildTemplateId(Long childTemplateId);
 
 	/**
 	 * 指定した親子関係が既に登録されているか確認する。

@@ -16,7 +16,7 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(name = "article_work")
-public class ArticleWork {
+public class ArticleWorkEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -40,6 +40,12 @@ public class ArticleWork {
 	/** 編集中の記事のカテゴリーPath。 */
 	@Column(name = "hugo_path")
 	private String hugoPath;
+	
+	@Column(name = "template_id")
+	private Long templateId;
+
+	@Column(name = "template_background_image_asset_id")
+	private Long templateBackgroundImageAssetId;
 	
     @Column(name = "title")
     private String title;

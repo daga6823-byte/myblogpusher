@@ -12,8 +12,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.app.myblogpusher.entity.Template.TemplateCellEntity;
-import com.app.myblogpusher.entity.Template.TemplateColumn;
-import com.app.myblogpusher.entity.Template.TemplateRow;
+import com.app.myblogpusher.entity.Template.TemplateColumnEntity;
+import com.app.myblogpusher.entity.Template.TemplateRowEntity;
 import com.app.myblogpusher.service.Template.TemplateCellMergeService;
 import com.app.myblogpusher.service.Template.TemplateCellQueryService;
 import com.app.myblogpusher.service.Template.TemplateCellSaveService;
@@ -39,7 +39,7 @@ public class TemplateLayoutFacadeService {
 	 * 行情報を取得する。
 	 */
 	@Transactional(readOnly = true)
-	public List<TemplateRow> getRows(Long templateId) {
+	public List<TemplateRowEntity> getRows(Long templateId) {
 		return templateRowLayoutService.getRows(templateId);
 	}
 
@@ -47,7 +47,7 @@ public class TemplateLayoutFacadeService {
 	 * 列情報を取得する。
 	 */
 	@Transactional(readOnly = true)
-	public List<TemplateColumn> getColumns(Long templateId) {
+	public List<TemplateColumnEntity> getColumns(Long templateId) {
 		return templateColumnLayoutService.getColumns(templateId);
 	}
 
@@ -62,14 +62,14 @@ public class TemplateLayoutFacadeService {
 	/**
 	 * 行情報を保存する。
 	 */
-	public TemplateRow saveRow(TemplateRow row) {
+	public TemplateRowEntity saveRow(TemplateRowEntity row) {
 		return templateRowLayoutService.saveRow(row);
 	}
 
 	/**
 	 * 列情報を保存する。
 	 */
-	public TemplateColumn saveColumn(TemplateColumn column) {
+	public TemplateColumnEntity saveColumn(TemplateColumnEntity column) {
 		return templateColumnLayoutService.saveColumn(column);
 	}
 
@@ -125,14 +125,14 @@ public class TemplateLayoutFacadeService {
 	/**
 	 * 行を挿入する。
 	 */
-	public TemplateRow insertRow(Long templateId, Integer rowNumber) {
+	public TemplateRowEntity insertRow(Long templateId, Integer rowNumber) {
 		return templateRowLayoutService.insertRow(templateId, rowNumber);
 	}
 
 	/**
 	 * 列を挿入する。
 	 */
-	public TemplateColumn insertColumn(Long templateId, Integer columnNumber) {
+	public TemplateColumnEntity insertColumn(Long templateId, Integer columnNumber) {
 		return templateColumnLayoutService.insertColumn(templateId, columnNumber);
 	}
 }

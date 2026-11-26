@@ -10,7 +10,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.app.myblogpusher.entity.Template.TemplateRelation;
+import com.app.myblogpusher.entity.Template.TemplateRelationEntity;
 import com.app.myblogpusher.repository.Template.TemplateRelationRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -26,7 +26,7 @@ public class TemplateRelationService {
 	 * 親テンプレートに紐付く子テンプレートの関係を取得する。
 	 */
 	@Transactional(readOnly = true)
-	public List<TemplateRelation> getChildren(Long templateId) {
+	public List<TemplateRelationEntity> getChildren(Long templateId) {
 		return templateRelationRepository.findByParentTemplateId(templateId);
 	}
 
@@ -34,14 +34,14 @@ public class TemplateRelationService {
 	 * 子テンプレートに紐付く親テンプレートの関係を取得する。
 	 */
 	@Transactional(readOnly = true)
-	public List<TemplateRelation> getParents(Long templateId) {
+	public List<TemplateRelationEntity> getParents(Long templateId) {
 		return templateRelationRepository.findByChildTemplateId(templateId);
 	}
 
 	/**
 	 * 親子関係を登録する。
 	 */
-	public TemplateRelation addRelation(Long parentTemplateId, Long childTemplateId) {
+	public TemplateRelationEntity addRelation(Long parentTemplateId, Long childTemplateId) {
 
 		if (parentTemplateId.equals(childTemplateId)) {
 			throw new IllegalArgumentException("自分自身を親テンプレートには指定できません。");
@@ -52,7 +52,7 @@ public class TemplateRelationService {
 			throw new IllegalArgumentException("親子関係は既に登録されています。");
 		}
 
-		TemplateRelation relation = new TemplateRelation();
+		TemplateRelationEntity relation = new TemplateRelationEntity();
 		relation.setParentTemplateId(parentTemplateId);
 		relation.setChildTemplateId(childTemplateId);
 

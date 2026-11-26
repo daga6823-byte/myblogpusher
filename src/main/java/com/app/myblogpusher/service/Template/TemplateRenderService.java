@@ -18,9 +18,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.app.myblogpusher.entity.Template.TemplateCellEntity;
-import com.app.myblogpusher.entity.Template.TemplateColumn;
+import com.app.myblogpusher.entity.Template.TemplateColumnEntity;
 import com.app.myblogpusher.entity.Template.TemplateEntity;
-import com.app.myblogpusher.entity.Template.TemplateRow;
+import com.app.myblogpusher.entity.Template.TemplateRowEntity;
 import com.app.myblogpusher.facade.TemplateLayoutFacadeService;
 
 import lombok.RequiredArgsConstructor;
@@ -44,8 +44,8 @@ public class TemplateRenderService {
 
 		TemplateEntity template = templateService.getTemplate(userId, templateId);
 
-		List<TemplateRow> rows = templateLayoutFacadeService.getRows(templateId);
-		List<TemplateColumn> columns = templateLayoutFacadeService.getColumns(templateId);
+		List<TemplateRowEntity> rows = templateLayoutFacadeService.getRows(templateId);
+		List<TemplateColumnEntity> columns = templateLayoutFacadeService.getColumns(templateId);
 		List<TemplateCellEntity> cells = templateLayoutFacadeService.getCells(templateId);
 
 		String cssClass = "mbp-template-" + templateId;
@@ -142,8 +142,8 @@ public class TemplateRenderService {
 	 */
 	private String generateCss(
 			TemplateEntity template,
-			List<TemplateRow> rows,
-			List<TemplateColumn> columns,
+			List<TemplateRowEntity> rows,
+			List<TemplateColumnEntity> columns,
 			List<TemplateCellEntity> cells,
 			String cssClass) {
 
@@ -169,7 +169,7 @@ public class TemplateRenderService {
 		css.append("min-height: 0;");
 		css.append("overflow-wrap: anywhere;");
 		css.append("border: 1px solid #777;");
-		css.append("background-color: #fff;");
+		css.append("background-color: transparent;");
 		css.append("font-size: 10px;");
 		css.append("font-weight: normal;");
 		css.append("}\n");
@@ -277,7 +277,7 @@ public class TemplateRenderService {
 	/**
 	 * 列幅をCSS Grid用の値に変換する。
 	 */
-	private String generateColumnSizes(List<TemplateColumn> columns) {
+	private String generateColumnSizes(List<TemplateColumnEntity> columns) {
 
 		if (columns.isEmpty()) {
 			return "1fr";
@@ -285,7 +285,7 @@ public class TemplateRenderService {
 
 		StringBuilder sizes = new StringBuilder();
 
-		for (TemplateColumn column : columns) {
+		for (TemplateColumnEntity column : columns) {
 			if (sizes.length() > 0) {
 				sizes.append(" ");
 			}
@@ -299,7 +299,7 @@ public class TemplateRenderService {
 	/**
 	 * 行の高さをCSS Grid用の値に変換する。
 	 */
-	private String generateRowSizes(List<TemplateRow> rows) {
+	private String generateRowSizes(List<TemplateRowEntity> rows) {
 
 		if (rows.isEmpty()) {
 			return "auto";
@@ -307,7 +307,7 @@ public class TemplateRenderService {
 
 		StringBuilder sizes = new StringBuilder();
 
-		for (TemplateRow row : rows) {
+		for (TemplateRowEntity row : rows) {
 			if (sizes.length() > 0) {
 				sizes.append(" ");
 			}
