@@ -217,6 +217,7 @@ public class TemplateLayoutApiController {
 			@RequestParam(required = false) String fontWeight,
 			@RequestParam(required = false) String textStrokeColor,
 			@RequestParam(required = false) BigDecimal textStrokeWidth,
+			@RequestParam(required = false) String textAlign,
 			HttpSession session) {
 
 		getOwnedTemplate(templateId, session);
@@ -294,6 +295,10 @@ public class TemplateLayoutApiController {
 
 		if (textStrokeWidth != null) {
 		    cell.setTextStrokeWidth(textStrokeWidth);
+		}
+
+		if (textAlign != null) {
+		    cell.setTextAlign(textAlign);
 		}
 
 		// 既存のレイアウト保存処理を利用する。

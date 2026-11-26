@@ -1,0 +1,44 @@
+/*
+ * テンプレート選択モーダル専用CSS
+ *
+ * モーダルのサイズ、スクロール、表示領域を管理する。
+ */
+
+/* モーダル本体 */
+#templateSelectModal .modal-content {
+	width: min(1000px, calc(100vw - 48px));
+	min-width: 0;
+	max-height: calc(100vh - 40px);
+	overflow-y: auto;
+	box-sizing: border-box;
+	padding: 24px;
+}
+
+/* テンプレートプレビュー */
+#templatePreview {
+	width: 100%;
+	box-sizing: border-box;
+	overflow-x: auto;
+}
+
+/* 変数入力欄 */
+#templateVariableInputs {
+	width: 100%;
+	box-sizing: border-box;
+}
+
+/* 画像割り当て欄 */
+#templateImageAssignments {
+	width: 100%;
+	box-sizing: border-box;
+}
+
+/* モバイル */
+@media (max-width: 768px) {
+
+	#templateSelectModal .modal-content {
+		width: calc(100vw - 24px);
+		max-height: calc(100vh - 24px);
+		padding: 16px;
+	}
+}
