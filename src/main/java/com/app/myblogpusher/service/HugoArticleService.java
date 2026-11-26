@@ -229,7 +229,14 @@ public class HugoArticleService {
 						"テンプレートCSSを生成できませんでした。templateId=" + templateId);
 			}
 
-			Path cssPath = cssDirectory.resolve("template_" + templateId + ".css");
+			String cssFileName = rendered.get("cssFileName");
+
+			if (cssFileName == null || cssFileName.isBlank()) {
+			    throw new IllegalStateException(
+			            "テンプレートCSSのファイル名を取得できませんでした。templateId=" + templateId);
+			}
+
+			Path cssPath = cssDirectory.resolve(cssFileName);
 
 			Files.writeString(cssPath, css, StandardCharsets.UTF_8);
 		}

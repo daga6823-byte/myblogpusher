@@ -7,6 +7,7 @@
 import { templateState } from "./template_state.js";
 import { callLayoutApi } from "./template_api.js";
 import { selectCell } from "../facade/template_cell_facade.js";
+import { TEXT_ALIGN_TO_JUSTIFY } from "./template_color_utils.js";
 
 /**
  * セル要素を生成する。
@@ -141,7 +142,13 @@ export function restoreGrid() {
 		}
 
 		if (cellData.textAlign) {
+
 			cell.style.textAlign = cellData.textAlign;
+
+			cell.style.justifyContent =
+				TEXT_ALIGN_TO_JUSTIFY[cellData.textAlign]
+				?? TEXT_ALIGN_TO_JUSTIFY.center;
+
 		}
 
 		if (cellData.verticalAlign) {

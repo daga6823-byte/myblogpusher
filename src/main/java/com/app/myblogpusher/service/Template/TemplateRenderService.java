@@ -49,15 +49,38 @@ public class TemplateRenderService {
 		List<TemplateCellEntity> cells = templateLayoutFacadeService.getCells(templateId);
 
 		String cssClass = "mbp-template-" + templateId;
+		String cssFileName = generateCssFileName(template);
 
-		String html = generateHtml(cells, cssClass);
+		String html = generateHtml(cells, cssClass, cssFileName);
 		String css = generateCss(template, rows, columns, cells, cssClass);
 
 		Map<String, String> result = new HashMap<>();
 		result.put("html", html);
 		result.put("css", css);
+		result.put("cssFileName", cssFileName);
 
 		return result;
+	}
+
+	/**
+	 * テンプレート識別キーとIDからCSSファイル名を生成する。
+	 *
+	 * 同一識別キーを別ユーザーが使用しても、
+	 * テンプレートIDによってファイル名が重複しない。
+	 */
+	private String generateCssFileName(TemplateEntity template) {
+
+		String safeKey = template.getTemplateKey()
+				.toLowerCase()
+				.replaceAll("[^a-z0-9_-]", "-")
+				.replaceAll("-+", "-")
+				.replaceAll("^-|-$", "");
+
+		if (safeKey.isBlank()) {
+			safeKey = "template";
+		}
+
+		return safeKey + "-" + template.getTemplateId() + ".css";
 	}
 
 	/**
@@ -68,14 +91,15 @@ public class TemplateRenderService {
 	 */
 	private String generateHtml(
 			List<TemplateCellEntity> cells,
-			String cssClass) {
+			String cssClass,
+			String cssFileName) {
 
 		StringBuilder html = new StringBuilder();
 
 		// Hugoに配置したテンプレート専用CSSを読み込む。
-		html.append("<link rel=\"stylesheet\" href=\"/css/templates/template_")
-				.append(cssClass.substring("mbp-template-".length()))
-				.append(".css\">");
+		html.append("<link rel=\"stylesheet\" href=\"/css/templates/")
+				.append(cssFileName)
+				.append("\">");
 
 		html.append("<div class=\"mbp-template ")
 				.append(cssClass)

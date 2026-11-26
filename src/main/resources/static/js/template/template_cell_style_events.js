@@ -16,12 +16,18 @@ let activeColorProperty = null;
  * 色変更を保存する。
  */
 async function applyColor(property, colorCode) {
-	if (!/^#[0-9A-Fa-f]{6}$/.test(colorCode)) {
-		alert("カラーコードは #RRGGBB 形式で入力してください。");
+	const normalizedInput = colorCode.trim();
+
+	const normalizedColor = (
+		normalizedInput.startsWith("#")
+			? normalizedInput
+			: `#${normalizedInput}`
+	).toUpperCase();
+
+	if (!/^#[0-9A-F]{6}$/.test(normalizedColor)) {
+		alert("カラーコードは RRGGBB または #RRGGBB 形式で入力してください。");
 		return;
 	}
-
-	const normalizedColor = colorCode.toUpperCase();
 
 	syncColorInputs(property, normalizedColor);
 
