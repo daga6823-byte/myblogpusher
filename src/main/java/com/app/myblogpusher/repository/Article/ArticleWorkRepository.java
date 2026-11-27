@@ -45,7 +45,7 @@ public interface ArticleWorkRepository extends JpaRepository<ArticleWorkEntity, 
 	 * 更新件数が1件なら投稿開始可能、0件なら受付不可。
 	 */
 	@Modifying
-	@Query("UPDATE ArticleWork w SET w.status = 1 "
+	@Query("UPDATE ArticleWorkEntity w SET w.status = 1 "
 			+ "WHERE w.workId = :workId "
 			+ "AND w.userId = :userId "
 			+ "AND w.status IN (0, 2)")
