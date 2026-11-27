@@ -68,7 +68,7 @@ public interface ArticleRepository extends JpaRepository<ArticleEntity, Long> {
 	 */
 	@Query("""
 			SELECT a
-			FROM Article a
+			FROM ArticleEntity a
 			WHERE a.userId = :userId
 			AND a.hugoPath LIKE CONCAT(:hugoPath, '%')
 			""")

@@ -22,7 +22,7 @@ public interface ImageAssetRepository extends JpaRepository<ImageAssetEntity, Lo
 	/**
 	 * ユーザーの画像に登録されたフォルダー名を重複なしで取得する。
 	 */
-	@Query("SELECT DISTINCT i.folderName FROM ImageAsset i "
+	@Query("SELECT DISTINCT i.folderName FROM ImageAssetEntity i "
 			+ "WHERE i.userId = :userId "
 			+ "AND i.folderName IS NOT NULL "
 			+ "AND i.folderName <> '' "
