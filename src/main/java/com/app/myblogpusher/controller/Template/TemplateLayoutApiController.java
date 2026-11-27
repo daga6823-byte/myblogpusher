@@ -88,6 +88,28 @@ public class TemplateLayoutApiController {
 	}
 
 	/**
+	 * 指定した行の高さを更新する。
+	 */
+	@PostMapping("/row/size")
+	public ResponseEntity<TemplateRowEntity> updateRowSize(
+			@RequestParam Long templateId,
+			@RequestParam Integer rowNumber,
+			@RequestParam(required = false) BigDecimal height,
+			@RequestParam(required = false, defaultValue = "auto") String heightUnit,
+			HttpSession session) {
+
+		getOwnedTemplate(templateId, session);
+
+		TemplateRowEntity updatedRow = templateLayoutFacadeService.updateRowSize(
+				templateId,
+				rowNumber,
+				height,
+				heightUnit);
+
+		return ResponseEntity.ok(updatedRow);
+	}
+
+	/**
 	 * 指定位置に列を追加する。
 	 */
 	@PostMapping("/column/insert")
@@ -101,6 +123,29 @@ public class TemplateLayoutApiController {
 		TemplateColumnEntity column = templateLayoutFacadeService.insertColumn(templateId, columnNumber);
 
 		return ResponseEntity.ok(column);
+	}
+	
+	/**
+	 * 指定した列の幅を更新する。
+	 */
+	@PostMapping("/column/size")
+	public ResponseEntity<TemplateColumnEntity> updateColumnSize(
+	        @RequestParam Long templateId,
+	        @RequestParam Integer columnNumber,
+	        @RequestParam(required = false) BigDecimal width,
+	        @RequestParam(required = false, defaultValue = "auto") String widthUnit,
+	        HttpSession session) {
+
+	    getOwnedTemplate(templateId, session);
+
+	    TemplateColumnEntity updatedColumn =
+	            templateLayoutFacadeService.updateColumnSize(
+	                    templateId,
+	                    columnNumber,
+	                    width,
+	                    widthUnit);
+
+	    return ResponseEntity.ok(updatedColumn);
 	}
 
 	/**
@@ -280,30 +325,30 @@ public class TemplateLayoutApiController {
 
 		// 背景色が空文字の場合は個別設定を解除する。
 		if (backgroundColor != null) {
-		    cell.setBackgroundColor(
-		            backgroundColor.isBlank() ? null : backgroundColor);
+			cell.setBackgroundColor(
+					backgroundColor.isBlank() ? null : backgroundColor);
 		}
 
 		if (clearFontSize) {
-		    cell.setFontSize(null);
+			cell.setFontSize(null);
 		} else if (fontSize != null) {
-		    cell.setFontSize(fontSize);
+			cell.setFontSize(fontSize);
 		}
 
 		if (fontWeight != null) {
 			cell.setFontWeight(fontWeight);
 		}
-		
+
 		if (textStrokeColor != null) {
-		    cell.setTextStrokeColor(textStrokeColor);
+			cell.setTextStrokeColor(textStrokeColor);
 		}
 
 		if (textStrokeWidth != null) {
-		    cell.setTextStrokeWidth(textStrokeWidth);
+			cell.setTextStrokeWidth(textStrokeWidth);
 		}
 
 		if (textAlign != null) {
-		    cell.setTextAlign(textAlign);
+			cell.setTextAlign(textAlign);
 		}
 
 		// 既存のレイアウト保存処理を利用する。

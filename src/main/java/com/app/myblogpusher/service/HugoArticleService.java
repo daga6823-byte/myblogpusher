@@ -22,10 +22,11 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.springframework.stereotype.Service;
 
-import com.app.myblogpusher.entity.Article.ArticleEntity;
 import com.app.myblogpusher.entity.Article.ArticleCategory;
+import com.app.myblogpusher.entity.Article.ArticleEntity;
 import com.app.myblogpusher.repository.CategoryRelationRepository;
 import com.app.myblogpusher.repository.Article.ArticleCategoryRepository;
+import com.app.myblogpusher.service.Image.ImageAssetQueryService;
 import com.app.myblogpusher.service.Template.TemplateRenderService;
 
 import lombok.RequiredArgsConstructor;
@@ -39,6 +40,8 @@ public class HugoArticleService {
 	private CategoryRelationRepository categoryRelationRepository;
 
 	private final TemplateRenderService templateRenderService;
+
+	private final ImageAssetQueryService imageAssetQueryService;
 
 	public void createArticle(
 			Git git,
@@ -65,13 +68,106 @@ public class HugoArticleService {
 
 		contentPath.getParent().toFile().mkdirs();
 
+		String content = article.getContent();
+
+		// 記事に設定された背景画像をテンプレートHTMLへ反映する。
+		if (article.getTemplateBackgroundImageAssetId() != null) {
+
+			String backgroundImageUrl = imageAssetQueryService.getImageUrl(
+					article.getUserId(),
+					article.getTemplateBackgroundImageAssetId());
+
+			content = applyTemplateBackgroundImage(
+					content,
+					backgroundImageUrl);
+		}
+
 		Files.write(
 				contentPath,
-				article.getContent().getBytes(StandardCharsets.UTF_8));
+				content.getBytes(StandardCharsets.UTF_8));
 
 		git.add().addFilepattern("content").call();
 
 		saveTemplateCss(git, repoPath, article);
+	}
+
+	/**
+	 * 記事本文内のテンプレートに記事固有の背景画像を設定する。
+	 *
+	 * 既存のstyle属性にある背景画像を置き換え、
+	 * その他のインラインスタイルは維持する。
+	 */
+	private String applyTemplateBackgroundImage(
+			String content,
+			String backgroundImageUrl) {
+
+		if (content == null || content.isBlank()
+				|| backgroundImageUrl == null || backgroundImageUrl.isBlank()) {
+			return content;
+		}
+
+		String escapedUrl = backgroundImageUrl
+				.replace("&", "&amp;")
+				.replace("\"", "&quot;")
+				.replace("<", "&lt;")
+				.replace(">", "&gt;");
+
+		Pattern templatePattern = Pattern.compile(
+				"<div\\b(?=[^>]*\\bclass\\s*=\\s*\"[^\"]*\\bmbp-template\\b[^\"]*\")[^>]*>",
+				Pattern.CASE_INSENSITIVE);
+
+		Matcher templateMatcher = templatePattern.matcher(content);
+		StringBuffer result = new StringBuffer();
+
+		while (templateMatcher.find()) {
+
+			String tag = templateMatcher.group();
+
+			Pattern stylePattern = Pattern.compile(
+					"\\sstyle\\s*=\\s*\"([^\"]*)\"",
+					Pattern.CASE_INSENSITIVE);
+
+			Matcher styleMatcher = stylePattern.matcher(tag);
+
+			String backgroundStyle = "background-image: url(&quot;" + escapedUrl + "&quot;);";
+
+			String updatedTag;
+
+			if (styleMatcher.find()) {
+
+				String existingStyle = styleMatcher.group(1);
+
+				existingStyle = existingStyle.replaceAll(
+						"(?i)background-image\\s*:[^;]*(;|$)",
+						"");
+
+				String updatedStyle = existingStyle;
+
+				if (!updatedStyle.isBlank()
+						&& !updatedStyle.trim().endsWith(";")) {
+					updatedStyle += ";";
+				}
+
+				updatedStyle += backgroundStyle;
+
+				updatedTag = styleMatcher.replaceFirst(
+						Matcher.quoteReplacement(
+								" style=\"" + updatedStyle + "\""));
+
+			} else {
+
+				updatedTag = tag.substring(0, tag.length() - 1)
+						+ " style=\"" + backgroundStyle + "\">";
+			}
+
+			templateMatcher.appendReplacement(
+					result,
+					Matcher.quoteReplacement(updatedTag));
+		}
+
+		templateMatcher.appendTail(result);
+
+		return result.toString();
 	}
 
 	private void createCategoryIndexesRecursively(
@@ -220,7 +316,9 @@ public class HugoArticleService {
 
 		for (Long templateId : templateIds) {
 
-			Map<String, String> rendered = templateRenderService.generate(article.getUserId(), templateId);
+			Map<String, String> rendered = templateRenderService.generate(
+			        article.getUserId(),
+			        templateId);
 
 			String css = rendered.get("css");
 
@@ -232,8 +330,8 @@ public class HugoArticleService {
 			String cssFileName = rendered.get("cssFileName");
 
 			if (cssFileName == null || cssFileName.isBlank()) {
-			    throw new IllegalStateException(
-			            "テンプレートCSSのファイル名を取得できませんでした。templateId=" + templateId);
+				throw new IllegalStateException(
+						"テンプレートCSSのファイル名を取得できませんでした。templateId=" + templateId);
 			}
 
 			Path cssPath = cssDirectory.resolve(cssFileName);

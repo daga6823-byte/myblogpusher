@@ -9,6 +9,66 @@ import { templateState } from "./template_state.js";
 import { restoreCellStyle } from "../facade/template_cell_style_facade.js";
 
 /**
+ * 選択セルが属する行高・列幅をツールバーへ反映する。
+ */
+function restoreSelectedCellSize(cell) {
+
+	const rowHeightInput = document.getElementById("rowHeightInput");
+	const rowHeightUnit = document.getElementById("rowHeightUnit");
+	const columnWidthInput = document.getElementById("columnWidthInput");
+	const columnWidthUnit = document.getElementById("columnWidthUnit");
+
+	if (!cell) {
+		if (rowHeightInput) rowHeightInput.value = "";
+		if (columnWidthInput) columnWidthInput.value = "";
+		return;
+	}
+
+	const grid = templateState.grid;
+
+	try {
+		const rows = JSON.parse(
+			grid.dataset.rowsJson || grid.dataset.rows || "[]"
+		);
+
+		const columns = JSON.parse(
+			grid.dataset.columnsJson || grid.dataset.columns || "[]"
+		);
+
+		const rowNumber = Number(cell.dataset.row) + 1;
+		const columnNumber = Number(cell.dataset.column) + 1;
+
+		const row = rows.find(item => item.rowNumber === rowNumber);
+		const column = columns.find(item => item.columnNumber === columnNumber);
+
+		if (rowHeightInput) {
+			rowHeightInput.value = row?.height ?? "";
+		}
+
+		if (rowHeightUnit) {
+			rowHeightUnit.value =
+				row?.heightUnit && row.heightUnit !== "auto"
+					? row.heightUnit
+					: "px";
+		}
+
+		if (columnWidthInput) {
+			columnWidthInput.value = column?.width ?? "";
+		}
+
+		if (columnWidthUnit) {
+			columnWidthUnit.value =
+				column?.widthUnit && column.widthUnit !== "auto"
+					? column.widthUnit
+					: "fr";
+		}
+
+	} catch (error) {
+		console.error("行高・列幅の復元に失敗しました。", error);
+	}
+}
+
+/**
  * セル選択を切り替える。
  *
  * @param {HTMLElement} cell 選択対象セル
@@ -56,4 +116,7 @@ export function selectCell(cell, event = null) {
 
 	// 最後に選択したセルの装飾値をツールバーへ反映する。
 	restoreCellStyle(templateState.selectedCell);
+
+	// 選択セルが属する行高・列幅をツールバーへ反映する。
+	restoreSelectedCellSize(templateState.selectedCell);
 }

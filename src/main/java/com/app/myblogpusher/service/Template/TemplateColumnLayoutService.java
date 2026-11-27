@@ -7,6 +7,7 @@
  */
 package com.app.myblogpusher.service.Template;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -44,6 +45,46 @@ public class TemplateColumnLayoutService {
 				|| column.getColumnNumber() < 1) {
 			throw new IllegalArgumentException("列情報が不正です。");
 		}
+
+		return templateColumnRepository.save(column);
+	}
+
+	/**
+	 * 指定した列の幅を更新する。
+	 *
+	 * 幅がNULLの場合はautoに戻す。
+	 */
+	public TemplateColumnEntity updateColumnSize(
+			Long templateId,
+			Integer columnNumber,
+			BigDecimal width,
+			String widthUnit) {
+
+		if (templateId == null || columnNumber == null || columnNumber < 1) {
+			throw new IllegalArgumentException("列の指定が不正です。");
+		}
+
+		if (width == null) {
+			widthUnit = "auto";
+		} else {
+			if (width.compareTo(BigDecimal.ZERO) <= 0) {
+				throw new IllegalArgumentException("列の幅は0より大きい値を指定してください。");
+			}
+
+			if (widthUnit == null
+					|| !List.of("px", "%", "rem", "em", "vw", "vh", "fr")
+							.contains(widthUnit)) {
+				throw new IllegalArgumentException("列の幅の単位が不正です。");
+			}
+		}
+
+		TemplateColumnEntity column = getColumns(templateId).stream()
+				.filter(item -> item.getColumnNumber().equals(columnNumber))
+				.findFirst()
+				.orElseThrow(() -> new IllegalArgumentException("対象の列が見つかりません。"));
+
+		column.setWidth(width);
+		column.setWidthUnit(widthUnit);
 
 		return templateColumnRepository.save(column);
 	}

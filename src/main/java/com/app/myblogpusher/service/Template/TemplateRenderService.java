@@ -41,6 +41,23 @@ public class TemplateRenderService {
 	 * @return HTMLとCSS
 	 */
 	public Map<String, String> generate(Long userId, Long templateId) {
+		return generate(userId, templateId, null);
+	}
+
+	/**
+	 * 記事ごとの背景画像を反映してテンプレートのHTML・CSSを生成する。
+	 *
+	 * 背景画像URLはHTML側に設定し、共通CSSには含めない。
+	 *
+	 * @param userId ログインユーザーID
+	 * @param templateId テンプレートID
+	 * @param backgroundImageUrl 記事固有の背景画像URL
+	 * @return HTMLとCSS
+	 */
+	public Map<String, String> generate(
+			Long userId,
+			Long templateId,
+			String backgroundImageUrl) {
 
 		TemplateEntity template = templateService.getTemplate(userId, templateId);
 
@@ -51,7 +68,7 @@ public class TemplateRenderService {
 		String cssClass = "mbp-template-" + templateId;
 		String cssFileName = generateCssFileName(template);
 
-		String html = generateHtml(cells, cssClass);
+		String html = generateHtml(cells, cssClass, backgroundImageUrl);
 		String css = generateCss(template, rows, columns, cells, cssClass);
 
 		Map<String, String> result = new HashMap<>();
@@ -91,13 +108,22 @@ public class TemplateRenderService {
 	 */
 	private String generateHtml(
 			List<TemplateCellEntity> cells,
-			String cssClass) {
+			String cssClass,
+			String backgroundImageUrl) {
 
 		StringBuilder html = new StringBuilder();
 
 		html.append("<div class=\"mbp-template ")
 				.append(cssClass)
-				.append("\">");
+				.append("\"");
+
+		if (backgroundImageUrl != null && !backgroundImageUrl.isBlank()) {
+			html.append(" style=\"background-image: url(&quot;")
+					.append(escapeHtml(backgroundImageUrl))
+					.append("&quot;);\"");
+		}
+
+		html.append(">");
 
 		for (TemplateCellEntity cell : cells) {
 
@@ -109,15 +135,11 @@ public class TemplateRenderService {
 
 			if ("TEXT".equals(cellType)) {
 
-				html.append(escapeHtml(cell.getCellContent()));
+			    html.append(escapeHtml(cell.getCellContent()));
 
-			} else if ("VARIABLE".equals(cellType)) {
+			} else if ("EMPTY".equals(cellType)) {
 
-				html.append("<span data-template-variable=\"")
-						.append(escapeHtml(cell.getVariableName()))
-						.append("\">")
-						.append(escapeHtml(cell.getCellContent()))
-						.append("</span>");
+			    // 空セルのため、HTMLには内容を出力しない。
 
 			} else if ("IMAGE".equals(cellType)) {
 
@@ -159,6 +181,9 @@ public class TemplateRenderService {
 				.append(";");
 		css.append("gap: 2px;");
 		css.append("box-sizing: border-box;");
+		css.append("background-repeat: no-repeat;");
+		css.append("background-position: center;");
+		css.append("background-size: cover;");
 		appendCssProperty(css, "background-color", template.getBackgroundColor());
 		css.append("}\n");
 

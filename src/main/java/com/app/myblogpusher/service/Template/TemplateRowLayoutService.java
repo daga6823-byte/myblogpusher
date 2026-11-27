@@ -7,6 +7,7 @@
  */
 package com.app.myblogpusher.service.Template;
 
+import java.math.BigDecimal;
 import java.util.Comparator;
 import java.util.List;
 
@@ -45,6 +46,46 @@ public class TemplateRowLayoutService {
 				|| row.getRowNumber() < 1) {
 			throw new IllegalArgumentException("行情報が不正です。");
 		}
+
+		return templateRowRepository.save(row);
+	}
+
+	/**
+	 * 指定した行の高さを更新する。
+	 *
+	 * 高さがNULLの場合はautoに戻す。
+	 */
+	public TemplateRowEntity updateRowSize(
+			Long templateId,
+			Integer rowNumber,
+			BigDecimal height,
+			String heightUnit) {
+
+		if (templateId == null || rowNumber == null || rowNumber < 1) {
+			throw new IllegalArgumentException("行の指定が不正です。");
+		}
+
+		if (height == null) {
+			heightUnit = "auto";
+		} else {
+			if (height.compareTo(BigDecimal.ZERO) <= 0) {
+				throw new IllegalArgumentException("行の高さは0より大きい値を指定してください。");
+			}
+
+			if (heightUnit == null
+					|| !List.of("px", "%", "rem", "em", "vw", "vh", "fr")
+							.contains(heightUnit)) {
+				throw new IllegalArgumentException("行の高さの単位が不正です。");
+			}
+		}
+
+		TemplateRowEntity row = getRows(templateId).stream()
+				.filter(item -> item.getRowNumber().equals(rowNumber))
+				.findFirst()
+				.orElseThrow(() -> new IllegalArgumentException("対象の行が見つかりません。"));
+
+		row.setHeight(height);
+		row.setHeightUnit(heightUnit);
 
 		return templateRowRepository.save(row);
 	}

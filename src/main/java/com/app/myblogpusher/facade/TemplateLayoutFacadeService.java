@@ -6,6 +6,7 @@
  */
 package com.app.myblogpusher.facade;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -63,14 +64,40 @@ public class TemplateLayoutFacadeService {
 	 * 行情報を保存する。
 	 */
 	public TemplateRowEntity saveRow(TemplateRowEntity row) {
-		return templateRowLayoutService.saveRow(row);
+	    return templateRowLayoutService.saveRow(row);
+	}
+
+	/**
+	 * 行の高さを更新する。
+	 */
+	public TemplateRowEntity updateRowSize(
+	        Long templateId,
+	        Integer rowNumber,
+	        BigDecimal height,
+	        String heightUnit) {
+
+	    return templateRowLayoutService.updateRowSize(
+	            templateId, rowNumber, height, heightUnit);
 	}
 
 	/**
 	 * 列情報を保存する。
 	 */
 	public TemplateColumnEntity saveColumn(TemplateColumnEntity column) {
-		return templateColumnLayoutService.saveColumn(column);
+	    return templateColumnLayoutService.saveColumn(column);
+	}
+
+	/**
+	 * 列の幅を更新する。
+	 */
+	public TemplateColumnEntity updateColumnSize(
+	        Long templateId,
+	        Integer columnNumber,
+	        BigDecimal width,
+	        String widthUnit) {
+
+	    return templateColumnLayoutService.updateColumnSize(
+	            templateId, columnNumber, width, widthUnit);
 	}
 
 	/**

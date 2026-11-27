@@ -55,6 +55,7 @@ export function restoreGrid() {
 	templateState.selectedCell = null;
 	templateState.selectedCells = [];
 
+	// セルだけを再生成する。背景画像のプレビュー設定は維持する。
 	grid.replaceChildren();
 
 	if (templateState.rowCount === 0 || templateState.columnCount === 0) {
@@ -249,6 +250,129 @@ async function addColumn() {
 	}
 }
 
+/**
+ * 選択セルが属する行の高さを更新する。
+ */
+async function updateRowHeight() {
+
+	const selectedCell = templateState.selectedCell;
+
+	if (!selectedCell) {
+		alert("高さを変更する行のセルを選択してください。");
+		return;
+	}
+
+	const heightInput = document.getElementById("rowHeightInput");
+	const heightUnit = document.getElementById("rowHeightUnit")?.value;
+
+	const height = heightInput?.value.trim() ?? "";
+	const rowNumber = Number(selectedCell.dataset.row) + 1;
+
+	try {
+		await callLayoutApi(
+			"/template/api/layout/row/size",
+			{
+				rowNumber,
+				height,
+				heightUnit: height === "" ? "auto" : heightUnit
+			}
+		);
+
+		const rows = JSON.parse(
+			templateState.grid.dataset.rowsJson
+			|| templateState.grid.dataset.rows
+			|| "[]"
+		);
+
+		const row = rows.find(
+			item => Number(item.rowNumber) === rowNumber
+		);
+
+		if (!row) {
+			throw new Error("更新対象の行が見つかりません。");
+		}
+
+		row.height = height === "" ? null : Number(height);
+		row.heightUnit = height === "" ? "auto" : heightUnit;
+
+		templateState.grid.dataset.rowsJson = JSON.stringify(rows);
+
+		templateState.grid.style.gridTemplateRows =
+			rows.map(item => {
+				if (item.height == null) {
+					return "auto";
+				}
+
+				return `${item.height}${item.heightUnit ?? "px"}`;
+			}).join(" ");
+
+	} catch (error) {
+		alert(error.message);
+	}
+}
+
+/**
+ * 選択セルが属する列の幅を更新する。
+ */
+async function updateColumnWidth() {
+
+	const selectedCell = templateState.selectedCell;
+
+	if (!selectedCell) {
+		alert("幅を変更する列のセルを選択してください。");
+		return;
+	}
+
+	const widthInput = document.getElementById("columnWidthInput");
+	const widthUnit = document.getElementById("columnWidthUnit")?.value;
+
+	const width = widthInput?.value.trim() ?? "";
+	const columnNumber = Number(selectedCell.dataset.column) + 1;
+
+	try {
+		await callLayoutApi(
+			"/template/api/layout/column/size",
+			{
+				columnNumber,
+				width,
+				widthUnit: width === "" ? "auto" : widthUnit
+			}
+		);
+
+		const columns = JSON.parse(
+			templateState.grid.dataset.columnsJson
+			|| templateState.grid.dataset.columns
+			|| "[]"
+		);
+
+		const column = columns.find(
+			item => Number(item.columnNumber) === columnNumber
+		);
+
+		if (!column) {
+			throw new Error("更新対象の列が見つかりません。");
+		}
+
+		column.width = width === "" ? null : Number(width);
+		column.widthUnit = width === "" ? "auto" : widthUnit;
+
+		templateState.grid.dataset.columnsJson =
+			JSON.stringify(columns);
+
+		templateState.grid.style.gridTemplateColumns =
+			columns.map(item => {
+				if (item.width == null) {
+					return "auto";
+				}
+
+				return `${item.width}${item.widthUnit ?? "px"}`;
+			}).join(" ");
+
+	} catch (error) {
+		alert(error.message);
+	}
+}
+
 document.addEventListener("DOMContentLoaded", () => {
 	const grid = document.getElementById("templateGrid");
 
@@ -269,6 +393,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
 	document.getElementById("deleteColumnButton")
 		?.addEventListener("click", deleteColumn);
+
+	document.getElementById("applyRowHeightButton")
+		?.addEventListener("click", updateRowHeight);
+
+	document.getElementById("applyColumnWidthButton")
+		?.addEventListener("click", updateColumnWidth);
 
 	restoreGrid();
 });
