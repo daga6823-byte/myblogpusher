@@ -16,23 +16,41 @@ let activeColorProperty = null;
  * 色変更を保存する。
  */
 async function applyColor(property, colorCode) {
+
 	const normalizedInput = colorCode.trim();
 
+	// 背景色が空欄の場合は個別設定を解除する。
+	if (property === "backgroundColor" && normalizedInput === "") {
+
+		await saveCellStyle(property, null);
+
+		return;
+	}
+
 	const normalizedColor = (
+
 		normalizedInput.startsWith("#")
+
 			? normalizedInput
+
 			: `#${normalizedInput}`
+
 	).toUpperCase();
 
 	if (!/^#[0-9A-F]{6}$/.test(normalizedColor)) {
+
 		alert("カラーコードは RRGGBB または #RRGGBB 形式で入力してください。");
+
 		return;
+
 	}
 
 	syncColorInputs(property, normalizedColor);
 
 	await saveColorHistory(normalizedColor);
+
 	await saveCellStyle(property, normalizedColor);
+
 }
 
 /**

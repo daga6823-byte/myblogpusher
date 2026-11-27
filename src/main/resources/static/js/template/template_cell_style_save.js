@@ -25,7 +25,7 @@ function applyStyleToCell(cell, property, value) {
 			cell.style.paintOrder = "stroke fill";
 			break;
 		case "backgroundColor":
-			cell.style.backgroundColor = value;
+			cell.style.backgroundColor = value ?? "transparent";
 			break;
 		case "fontSize":
 
@@ -67,6 +67,8 @@ export async function saveCellStyle(property, value) {
 
 	if (property === "fontSize" && value === null) {
 		params.clearFontSize = true;
+	} else if (property === "backgroundColor" && value === null) {
+		params.backgroundColor = "";
 	} else {
 		params[property] = value;
 	}

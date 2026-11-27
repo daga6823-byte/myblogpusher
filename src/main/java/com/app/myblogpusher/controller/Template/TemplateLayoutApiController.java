@@ -278,8 +278,10 @@ public class TemplateLayoutApiController {
 			cell.setTextColor(textColor);
 		}
 
+		// 背景色が空文字の場合は個別設定を解除する。
 		if (backgroundColor != null) {
-			cell.setBackgroundColor(backgroundColor);
+		    cell.setBackgroundColor(
+		            backgroundColor.isBlank() ? null : backgroundColor);
 		}
 
 		if (clearFontSize) {

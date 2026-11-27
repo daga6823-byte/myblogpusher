@@ -53,8 +53,12 @@ export function toHexColor(color) {
 
 /**
  * 色コード入力欄とカラーピッカーを同期する。
+ *
+ * 未指定の場合、カラーピッカーは表示用の白色にし、
+ * カラーコード入力欄は空欄にする。
  */
 export function syncColorInputs(property, colorCode) {
+
 	const ids = COLOR_INPUT_IDS[property];
 
 	if (!ids) {
@@ -64,11 +68,15 @@ export function syncColorInputs(property, colorCode) {
 	const picker = document.getElementById(ids.picker);
 	const codeInput = document.getElementById(ids.code);
 
+	const normalizedColor = colorCode
+		? colorCode.toUpperCase()
+		: "";
+
 	if (picker) {
-		picker.value = colorCode;
+		picker.value = normalizedColor || "#FFFFFF";
 	}
 
 	if (codeInput) {
-		codeInput.value = colorCode.toUpperCase();
+		codeInput.value = normalizedColor;
 	}
 }

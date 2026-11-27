@@ -30,9 +30,14 @@ export function restoreCellStyle(cell) {
 	);
 
 	// 背景色
+	// セル自身に個別指定がない場合は未指定として表示する。
+	const backgroundColor = cell.style.backgroundColor;
+
 	syncColorInputs(
 		"backgroundColor",
-		toHexColor(computedStyle.backgroundColor)
+		backgroundColor
+			? toHexColor(backgroundColor)
+			: ""
 	);
 
 	// 文字の縁取り色

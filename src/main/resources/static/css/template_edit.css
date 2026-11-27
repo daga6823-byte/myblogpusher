@@ -122,7 +122,7 @@
     min-height: 80px;
     padding: 8px;
     border: 1px solid #777;
-    background-color: #fff;
+    background-color: transparent;
     cursor: pointer;
     overflow-wrap: anywhere;
     text-align: center;
@@ -136,7 +136,7 @@
 }
 
 .template-cell.empty {
-	background-color: #f2f2f2;
+    background-color: transparent;
 }
 
 .template-cell.variable {
@@ -144,8 +144,8 @@
 }
 
 .template-cell.image {
-	color: #666;
-	background-color: #eee;
+    color: #666;
+    background-color: transparent;
 }
 
 @media (max-width: 700px) {
