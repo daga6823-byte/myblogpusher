@@ -173,12 +173,14 @@ public class TemplateController {
 	/**
 	 * テンプレート複製API
 	 */
-	@PostMapping("/api/{templateId}/duplicate")
+	@PostMapping("/template/api/{templateId}/duplicate")
 	@ResponseBody
 	public ResponseEntity<Map<String, Object>> duplicateTemplate(
-	        @PathVariable Long templateId,
-	        @RequestParam("templateName") String templateName,
-	        HttpSession session) {
+			@PathVariable Long templateId,
+			@RequestParam("templateName") String templateName,
+			@RequestParam("templateKey") String templateKey,
+			@RequestParam("templateDescription") String templateDescription,
+			HttpSession session) {
 
 		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 
@@ -190,7 +192,12 @@ public class TemplateController {
 
 		try {
 			TemplateEntity duplicated = templateDuplicateService
-			        .duplicateTemplate(userId, templateId, templateName.trim());
+					.duplicateTemplate(
+							userId,
+							templateId,
+							templateName,
+							templateKey,
+							templateDescription);
 
 			Map<String, Object> response = new HashMap<>();
 			response.put("templateId", duplicated.getTemplateId());

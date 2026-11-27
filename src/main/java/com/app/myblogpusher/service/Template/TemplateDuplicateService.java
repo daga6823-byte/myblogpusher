@@ -39,10 +39,26 @@ public class TemplateDuplicateService {
 	 * テンプレートをレイアウトごと複製する。
 	 */
 	public TemplateEntity duplicateTemplate(
-	        Long userId, Long templateId, String templateName) {
+			Long userId,
+			Long templateId,
+			String templateName,
+			String templateKey,
+			String templateDescription) {
 
 		if (userId == null || templateId == null) {
 			throw new IllegalArgumentException("複製対象が不正です。");
+		}
+
+		if (templateName == null || templateName.isBlank()
+				|| templateKey == null || templateKey.isBlank()) {
+			throw new IllegalArgumentException(
+					"テンプレート名と識別名を入力してください。");
+		}
+
+		if (templateRepository.existsByUserIdAndTemplateKey(
+				userId, templateKey.trim())) {
+			throw new IllegalArgumentException(
+					"このテンプレート識別名は既に使用されています。");
 		}
 
 		// 複製元の取得と所有者確認
@@ -60,9 +76,9 @@ public class TemplateDuplicateService {
 		// テンプレート本体を複製
 		TemplateEntity target = new TemplateEntity();
 		target.setUserId(userId);
-		target.setTemplateName(templateName);
-		target.setTemplateKey(createTemplateKey(userId, source.getTemplateKey()));
-		target.setTemplateDescription(source.getTemplateDescription());
+		target.setTemplateName(templateName.trim());
+		target.setTemplateKey(templateKey.trim());
+		target.setTemplateDescription(templateDescription);
 		target.setBackgroundColor(source.getBackgroundColor());
 		target.setCreateDate(now);
 		target.setUpdateDate(now);
@@ -153,24 +169,5 @@ public class TemplateDuplicateService {
 		templateCellRepository.saveAll(targetCells);
 
 		return target;
-	}
-
-	/**
-	 * ユーザー内で重複しないテンプレート識別キーを生成する。
-	 */
-	private String createTemplateKey(Long userId, String sourceKey) {
-
-		String baseKey = sourceKey + "-copy";
-		String candidate = baseKey;
-		int suffix = 2;
-
-		while (templateRepository.existsByUserIdAndTemplateKey(
-				userId, candidate)) {
-
-			candidate = baseKey + "-" + suffix;
-			suffix++;
-		}
-
-		return candidate;
 	}
 }
