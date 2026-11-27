@@ -1,53 +1,18 @@
 <!-- テンプレート編集ツールバー -->
+
 <div th:fragment="templateEditorToolbar" class="template-editor-toolbar">
 
 	<!-- 行・列操作 -->
+
 	<div class="toolbar-group">
+
 		<button type="button" id="addRowButton">行を追加</button>
+
 		<button type="button" id="deleteRowButton">選択行を削除</button>
+
 		<button type="button" id="addColumnButton">列を追加</button>
+
 		<button type="button" id="deleteColumnButton">選択列を削除</button>
-	</div>
-
-	<!-- 行高・列幅の設定 -->
-
-	<div class="toolbar-group">
-
-		<label for="rowHeightInput">行の高さ</label>
-
-		<input type="number" id="rowHeightInput" min="0.01" step="0.1" placeholder="自動">
-
-		<select id="rowHeightUnit">
-			<option value="px">px</option>
-			<option value="%">%</option>
-			<option value="rem">rem</option>
-			<option value="em">em</option>
-			<option value="vw">vw</option>
-			<option value="vh">vh</option>
-			<option value="fr">fr</option>
-		</select>
-
-		<button type="button" id="applyRowHeightButton">
-			行高を適用
-		</button>
-
-		<label for="columnWidthInput">列の幅</label>
-
-		<input type="number" id="columnWidthInput" min="0.01" step="0.1" placeholder="自動">
-
-		<select id="columnWidthUnit">
-			<option value="px">px</option>
-			<option value="%">%</option>
-			<option value="rem">rem</option>
-			<option value="em">em</option>
-			<option value="vw">vw</option>
-			<option value="vh">vh</option>
-			<option value="fr">fr</option>
-		</select>
-
-		<button type="button" id="applyColumnWidthButton">
-			列幅を適用
-		</button>
 
 	</div>
 
@@ -77,70 +42,60 @@
 			背景画像を解除
 		</button>
 
-		<label for="backgroundImageSize">表示サイズ</label>
-
-		<select id="backgroundImageSize">
-			<option value="cover">全体を覆う</option>
-			<option value="contain">全体を収める</option>
-			<option value="100% 100%">領域に合わせる</option>
-			<option value="auto">原寸</option>
-		</select>
-
-		<label for="backgroundImagePosition">表示位置</label>
-
-		<select id="backgroundImagePosition">
-			<option value="center">中央</option>
-			<option value="top">上</option>
-			<option value="bottom">下</option>
-			<option value="left">左</option>
-			<option value="right">右</option>
-		</select>
-
-		<label for="backgroundImageRepeat">繰り返し</label>
-
-		<select id="backgroundImageRepeat">
-			<option value="no-repeat">なし</option>
-			<option value="repeat">繰り返す</option>
-			<option value="repeat-x">横方向</option>
-			<option value="repeat-y">縦方向</option>
-		</select>
-
 	</div>
 
 	<!-- セル結合 -->
+
 	<div class="toolbar-group">
+
 		<button type="button" id="mergeCellsButton">セルを結合</button>
+
 		<button type="button" id="splitCellButton">結合を解除</button>
+
 	</div>
 
 	<!-- 文字装飾 -->
+
 	<div class="toolbar-group">
 
 		<label for="cellTextColor">文字色</label>
+
 		<input type="color" id="cellTextColor" value="#000000">
+
 		<input type="text" id="cellTextColorCode" value="#000000" maxlength="7" pattern="#[0-9A-Fa-f]{6}"
 			placeholder="#000000" title="カラーコード（例：#000000）">
 
 		<label for="cellTextStrokeColor">文字の縁取り色</label>
+
 		<input type="color" id="cellTextStrokeColor" value="#000000">
+
 		<input type="text" id="cellTextStrokeColorCode" value="#000000" maxlength="7" pattern="#[0-9A-Fa-f]{6}"
 			placeholder="#000000" title="縁取り色（例：#000000）">
 
 		<label for="cellTextStrokeWidth">縁取りの太さ</label>
+
 		<input type="number" id="cellTextStrokeWidth" min="0" max="3" step="0.5" value="0">
+
 		<span>px</span>
 
 		<label for="cellFontSize">文字サイズ</label>
+
 		<input type="number" id="cellFontSize" min="1" step="1" placeholder="自動">
+
 		<span>px</span>
 
 		<label for="cellFontWeight">文字の太さ</label>
+
 		<select id="cellFontWeight">
+
 			<option value="normal">標準</option>
+
 			<option value="bold">太字</option>
+
 		</select>
 
-		<label>文字配置</label>
+		<label>文字の横位置</label>
+
 		<div id="cellTextAlignGroup" class="text-align-buttons">
 
 			<button type="button" class="text-align-button" data-align="left" title="左揃え" aria-label="左揃え"
@@ -159,21 +114,51 @@
 			</button>
 
 		</div>
+
+		<label>文字の縦位置</label>
+
+		<div id="cellVerticalAlignGroup" class="text-align-buttons">
+
+			<button type="button" class="vertical-align-button" data-vertical-align="flex-start" title="上揃え"
+				aria-label="上揃え" aria-pressed="false">
+				<icon name="align-vertical-justify-start" />
+			</button>
+
+			<button type="button" class="vertical-align-button" data-vertical-align="center" title="中央揃え"
+				aria-label="中央揃え" aria-pressed="false">
+				<icon name="align-vertical-justify-center" />
+			</button>
+
+			<button type="button" class="vertical-align-button" data-vertical-align="flex-end" title="下揃え"
+				aria-label="下揃え" aria-pressed="false">
+				<icon name="align-vertical-justify-end" />
+			</button>
+
+		</div>
+
 	</div>
 
 	<!-- セル背景色 -->
+
 	<div class="toolbar-group">
+
 		<label for="cellBackgroundColor">セル背景色</label>
+
 		<input type="color" id="cellBackgroundColor" value="#FFFFFF">
 
 		<input type="text" id="cellBackgroundColorCode" value="" maxlength="7" pattern="#[0-9A-Fa-f]{6}"
 			placeholder="未指定（透明）" title="空欄にするとセル個別の背景色を解除します。">
+
 	</div>
 
 	<!-- 使用色履歴 -->
+
 	<div class="toolbar-group">
+
 		<label>使用した色</label>
+
 		<div id="templateColorHistory" class="template-color-history"></div>
+
 	</div>
 
 </div>

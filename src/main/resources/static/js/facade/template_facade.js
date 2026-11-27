@@ -4,7 +4,7 @@
  * テンプレート編集機能のエントリーポイント（ファサード）。
  *
  * 実装は template_state.js / template_api.js /
- * template_grid.js / template_cell.js / template_image.js
+ * template_grid_facade.js / template_cell.js / template_image.js
  * に分割されている。
  *
  * このファイルを読み込むだけで、
@@ -13,7 +13,7 @@
 
 import "../template/template_state.js";
 import "../template/template_api.js";
-import "../template/template_grid.js";
+import "./template_grid_facade.js";
 import "../template/template_save.js";
 import "./template_cell_facade.js";
 import "../template/template_image.js";

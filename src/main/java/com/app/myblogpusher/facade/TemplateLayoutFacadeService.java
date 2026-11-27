@@ -64,47 +64,97 @@ public class TemplateLayoutFacadeService {
 	 * 行情報を保存する。
 	 */
 	public TemplateRowEntity saveRow(TemplateRowEntity row) {
-	    return templateRowLayoutService.saveRow(row);
+		return templateRowLayoutService.saveRow(row);
 	}
 
 	/**
 	 * 行の高さを更新する。
 	 */
 	public TemplateRowEntity updateRowSize(
-	        Long templateId,
-	        Integer rowNumber,
-	        BigDecimal height,
-	        String heightUnit) {
+			Long templateId,
+			Integer rowNumber,
+			BigDecimal height,
+			String heightUnit) {
 
-	    return templateRowLayoutService.updateRowSize(
-	            templateId, rowNumber, height, heightUnit);
+		return templateRowLayoutService.updateRowSize(
+				templateId, rowNumber, height, heightUnit);
+	}
+
+	/**
+	 * 隣接する2行の高さを一括更新する。
+	 *
+	 * 2行分の更新を同一トランザクションで実行する。
+	 */
+	public void updateRowSizes(
+			Long templateId,
+			Integer firstRowNumber,
+			BigDecimal firstHeight,
+			Integer secondRowNumber,
+			BigDecimal secondHeight) {
+
+		templateRowLayoutService.updateRowSize(
+				templateId,
+				firstRowNumber,
+				firstHeight,
+				"px");
+
+		templateRowLayoutService.updateRowSize(
+				templateId,
+				secondRowNumber,
+				secondHeight,
+				"px");
 	}
 
 	/**
 	 * 列情報を保存する。
 	 */
 	public TemplateColumnEntity saveColumn(TemplateColumnEntity column) {
-	    return templateColumnLayoutService.saveColumn(column);
+		return templateColumnLayoutService.saveColumn(column);
 	}
 
 	/**
 	 * 列の幅を更新する。
 	 */
 	public TemplateColumnEntity updateColumnSize(
-	        Long templateId,
-	        Integer columnNumber,
-	        BigDecimal width,
-	        String widthUnit) {
+			Long templateId,
+			Integer columnNumber,
+			BigDecimal width,
+			String widthUnit) {
 
-	    return templateColumnLayoutService.updateColumnSize(
-	            templateId, columnNumber, width, widthUnit);
+		return templateColumnLayoutService.updateColumnSize(
+				templateId, columnNumber, width, widthUnit);
+	}
+	
+	/**
+	 * 隣接する2列の幅を一括更新する。
+	 *
+	 * 2列分の更新を同一トランザクションで実行する。
+	 */
+	public void updateColumnSizes(
+			Long templateId,
+			Integer firstColumnNumber,
+			BigDecimal firstWidth,
+			Integer secondColumnNumber,
+			BigDecimal secondWidth) {
+
+		templateColumnLayoutService.updateColumnSize(
+				templateId,
+				firstColumnNumber,
+				firstWidth,
+				"px");
+
+		templateColumnLayoutService.updateColumnSize(
+				templateId,
+				secondColumnNumber,
+				secondWidth,
+				"px");
 	}
 
 	/**
 	 * セル情報を保存する。
 	 */
 	public TemplateCellEntity saveCell(TemplateCellEntity cell) {
-	    return templateCellSaveService.saveCell(cell);
+		return templateCellSaveService.saveCell(cell);
 	}
 
 	/**
@@ -132,21 +182,21 @@ public class TemplateLayoutFacadeService {
 			Integer columnSpan) {
 
 		return templateCellMergeService.mergeCells(
-		        templateId, startRow, startColumn, rowSpan, columnSpan);
+				templateId, startRow, startColumn, rowSpan, columnSpan);
 	}
 
 	/**
 	 * 結合セルを分割する。
 	 */
 	public void splitCell(Long templateId, Long cellId) {
-	    templateCellMergeService.splitCell(templateId, cellId);
+		templateCellMergeService.splitCell(templateId, cellId);
 	}
 
 	/**
 	 * レイアウト情報をすべて削除する。
 	 */
 	public void deleteLayout(Long templateId) {
-	    templateLayoutDeleteService.deleteLayout(templateId);
+		templateLayoutDeleteService.deleteLayout(templateId);
 	}
 
 	/**

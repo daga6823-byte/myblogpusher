@@ -106,6 +106,8 @@
 
 .template-grid {
 
+	position: relative;
+
 	display: grid;
 
 	grid-template-columns: repeat(var(--column-count, 1), minmax(80px, 1fr));
@@ -118,34 +120,52 @@
 
 	border: 1px solid #888;
 
-	overflow-x: auto;
+	overflow: visible;
 
 	background-color: transparent;
 
 	background-repeat: no-repeat;
 
-	background-position: center;
+	background-position: top center;
 
-	background-size: cover;
+	background-size: 100% auto;
 
 	box-sizing: border-box;
 
 }
 
 .template-cell {
+
 	display: flex;
+
 	align-items: center;
+
 	justify-content: center;
+
+	position: relative;
+
+	z-index: 1;
+
 	min-width: 0;
+
 	min-height: 80px;
+
 	padding: 8px;
+
 	border: 1px solid #777;
+
 	background-color: transparent;
+
 	cursor: pointer;
+
 	overflow-wrap: anywhere;
+
 	text-align: center;
+
 	font-size: 10px;
+
 	font-weight: normal;
+
 }
 
 .template-cell.selected {
@@ -244,4 +264,60 @@
 
 	padding: 6px;
 
+}
+
+/* 行・列サイズ変更ハンドル */
+
+.template-resize-handle {
+
+	position: absolute;
+
+	z-index: 20;
+
+	background-color: rgba(50, 120, 220, 0.35);
+
+	transition: background-color 0.15s ease;
+
+	touch-action: none;
+
+	user-select: none;
+
+}
+
+.template-resize-handle:hover {
+
+	background-color: rgba(50, 120, 220, 0.85);
+
+}
+
+.template-resize-handle:active {
+
+	background-color: rgba(30, 90, 190, 0.95);
+
+}
+
+.column-resize-handle {
+
+	width: 10px;
+
+	cursor: col-resize;
+
+}
+
+.row-resize-handle {
+
+	height: 10px;
+
+	cursor: row-resize;
+
+}
+
+.column-resize-handle {
+	width: 10px;
+	cursor: col-resize;
+}
+
+.row-resize-handle {
+	height: 10px;
+	cursor: row-resize;
 }

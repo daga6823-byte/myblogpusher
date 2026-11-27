@@ -108,6 +108,30 @@ public class TemplateLayoutApiController {
 
 		return ResponseEntity.ok(updatedRow);
 	}
+	
+	/**
+	 * 隣接する2行の高さを一括更新する。
+	 */
+	@PostMapping("/row/sizes")
+	public ResponseEntity<Void> updateRowSizes(
+			@RequestParam Long templateId,
+			@RequestParam Integer firstRowNumber,
+			@RequestParam BigDecimal firstHeight,
+			@RequestParam Integer secondRowNumber,
+			@RequestParam BigDecimal secondHeight,
+			HttpSession session) {
+
+		getOwnedTemplate(templateId, session);
+
+		templateLayoutFacadeService.updateRowSizes(
+				templateId,
+				firstRowNumber,
+				firstHeight,
+				secondRowNumber,
+				secondHeight);
+
+		return ResponseEntity.ok().build();
+	}
 
 	/**
 	 * 指定位置に列を追加する。
@@ -146,6 +170,30 @@ public class TemplateLayoutApiController {
 	                    widthUnit);
 
 	    return ResponseEntity.ok(updatedColumn);
+	}
+	
+	/**
+	 * 隣接する2列の幅を一括更新する。
+	 */
+	@PostMapping("/column/sizes")
+	public ResponseEntity<Void> updateColumnSizes(
+			@RequestParam Long templateId,
+			@RequestParam Integer firstColumnNumber,
+			@RequestParam BigDecimal firstWidth,
+			@RequestParam Integer secondColumnNumber,
+			@RequestParam BigDecimal secondWidth,
+			HttpSession session) {
+
+		getOwnedTemplate(templateId, session);
+
+		templateLayoutFacadeService.updateColumnSizes(
+				templateId,
+				firstColumnNumber,
+				firstWidth,
+				secondColumnNumber,
+				secondWidth);
+
+		return ResponseEntity.ok().build();
 	}
 
 	/**

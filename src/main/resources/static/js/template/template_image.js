@@ -46,47 +46,104 @@ function selectBackgroundImage() {
 		const grid = templateState.grid;
 
 		if (!grid) {
+
 			alert("テンプレートのグリッドが見つかりません。");
+
 			return;
+
 		}
 
-		grid.style.backgroundImage = `url("${image.url}")`;
+		const background = new Image();
 
-		applyBackgroundImageSettings();
+		background.onload = () => {
 
-		// プレビュー専用情報。テンプレートマスターには保存しない。
-		grid.dataset.previewBackgroundImageId = image.imageId;
-		grid.dataset.previewBackgroundImageUrl = image.url;
+			grid.style.backgroundImage = `url("${image.url}")`;
+			grid.style.backgroundSize = "100% auto";
+			grid.style.backgroundPosition = "top center";
+			grid.style.backgroundRepeat = "no-repeat";
+
+			if (grid.dataset.originalMinHeight === undefined) {
+
+				grid.dataset.originalMinHeight = grid.style.minHeight;
+
+			}
+
+			// 画像のアスペクト比に合わせてグリッドの高さを調整する。
+			adjustGridHeight(background);
+
+			// プレビュー専用情報。テンプレートマスターには保存しない。
+			grid.dataset.previewBackgroundImageId = image.imageId;
+			grid.dataset.previewBackgroundImageUrl = image.url;
+
+		};
+
+		background.onerror = () => {
+
+			alert("背景画像を読み込めませんでした。");
+
+		};
+
+		background.src = image.url;
+
 	});
+
 }
 
 /**
- * 背景画像の表示設定をグリッドに反映する。
+ * 背景画像のアスペクト比に合わせてグリッドの高さを調整する。
+ *
+ * 背景画像は幅100%で表示するため、
+ * 画像の元サイズから表示高さを計算する。
+ *
+ * @param {HTMLImageElement} image
  */
-function applyBackgroundImageSettings() {
+function adjustGridHeight(image) {
 
 	const grid = templateState.grid;
 
-	if (!grid || !grid.style.backgroundImage ||
-		grid.style.backgroundImage === "none") {
+	if (!grid || !image.naturalWidth || !image.naturalHeight) {
+
 		return;
+
 	}
 
-	const size = document.getElementById("backgroundImageSize")?.value;
-	const position = document.getElementById("backgroundImagePosition")?.value;
-	const repeat = document.getElementById("backgroundImageRepeat")?.value;
+	const style = getComputedStyle(grid);
 
-	if (size) {
-		grid.style.backgroundSize = size;
+	const horizontalPadding =
+		parseFloat(style.paddingLeft)
+		+ parseFloat(style.paddingRight);
+
+	const horizontalBorder =
+		parseFloat(style.borderLeftWidth)
+		+ parseFloat(style.borderRightWidth);
+
+	const contentWidth =
+		grid.clientWidth
+		- horizontalPadding
+		- horizontalBorder;
+
+	if (contentWidth <= 0) {
+
+		return;
+
 	}
 
-	if (position) {
-		grid.style.backgroundPosition = position;
-	}
+	const imageHeight =
+		contentWidth * image.naturalHeight / image.naturalWidth;
 
-	if (repeat) {
-		grid.style.backgroundRepeat = repeat;
-	}
+	const verticalPadding =
+		parseFloat(style.paddingTop)
+		+ parseFloat(style.paddingBottom);
+
+	const verticalBorder =
+		parseFloat(style.borderTopWidth)
+		+ parseFloat(style.borderBottomWidth);
+
+	const requiredHeight =
+		imageHeight + verticalPadding + verticalBorder;
+
+	grid.style.minHeight = `${requiredHeight}px`;
+
 }
 
 /**
@@ -104,6 +161,15 @@ function clearBackgroundImage() {
 
 	delete grid.dataset.previewBackgroundImageId;
 	delete grid.dataset.previewBackgroundImageUrl;
+
+	if (grid.dataset.originalMinHeight !== undefined) {
+
+		grid.style.minHeight = grid.dataset.originalMinHeight;
+
+		delete grid.dataset.originalMinHeight;
+
+	}
+
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -117,12 +183,23 @@ document.addEventListener("DOMContentLoaded", () => {
 	document.getElementById("clearBackgroundImageButton")
 		?.addEventListener("click", clearBackgroundImage);
 
-	document.getElementById("backgroundImageSize")
-		?.addEventListener("change", applyBackgroundImageSettings);
+	window.addEventListener("resize", () => {
 
-	document.getElementById("backgroundImagePosition")
-		?.addEventListener("change", applyBackgroundImageSettings);
+		const grid = templateState.grid;
 
-	document.getElementById("backgroundImageRepeat")
-		?.addEventListener("change", applyBackgroundImageSettings);
+		const imageUrl = grid?.dataset.previewBackgroundImageUrl;
+
+		if (!imageUrl) {
+			return;
+		}
+
+		const background = new Image();
+
+		background.onload = () => {
+
+			adjustGridHeight(background);
+
+		};
+		background.src = imageUrl;
+	});
 });

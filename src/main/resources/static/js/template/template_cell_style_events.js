@@ -171,6 +171,42 @@ function bindTextAlign() {
 }
 
 /**
+ * 文字の縦位置ボタンのクリックイベントを登録する。
+ */
+function bindVerticalAlign() {
+
+	const verticalAlignGroup = document.getElementById(
+		"cellVerticalAlignGroup"
+	);
+
+	verticalAlignGroup?.addEventListener("click", async event => {
+
+		const button = event.target.closest(".vertical-align-button");
+
+		if (!button || !verticalAlignGroup.contains(button)) {
+			return;
+		}
+
+		const verticalAlign = button.dataset.verticalAlign;
+
+		if (!["flex-start", "center", "flex-end"].includes(verticalAlign)) {
+			return;
+		}
+
+		await saveCellStyle("verticalAlign", verticalAlign);
+
+		verticalAlignGroup.querySelectorAll(".vertical-align-button")
+			.forEach(item => {
+
+				item.setAttribute(
+					"aria-pressed",
+					String(item.dataset.verticalAlign === verticalAlign)
+				);
+			});
+	});
+}
+
+/**
  * 色履歴のクリックイベントを登録する。
  */
 function bindColorHistory() {
@@ -205,8 +241,13 @@ document.addEventListener("DOMContentLoaded", () => {
 	bindColorInput("cellTextStrokeColorCode", "textStrokeColor");
 
 	bindTextStrokeWidth();
+
 	bindFontInputs();
+
 	bindTextAlign();
+
+	bindVerticalAlign();
+
 	bindColorHistory();
 
 	loadColorHistory();

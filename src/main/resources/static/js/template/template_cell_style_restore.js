@@ -1,7 +1,7 @@
 /**
  * 選択セルの装飾値をツールバーへ反映する処理を担当する。
  *
- * セルの現在の見た目から、色・縁取り・文字サイズ・太さ・配置を読み取り、
+ * セルの現在の見た目から、色・縁取り・文字サイズ・太さ・横位置・縦位置を読み取り、
  * 各入力欄とボタンの状態を更新する。
  */
 import {
@@ -96,5 +96,36 @@ export function restoreCellStyle(cell) {
 					String(button.dataset.align === textAlign)
 				);
 			});
+	}
+
+	// 文字の縦位置
+
+	const verticalAlignGroup = document.getElementById(
+		"cellVerticalAlignGroup"
+	);
+
+	if (verticalAlignGroup) {
+
+		const verticalAlign = [
+			"flex-start",
+			"center",
+			"flex-end"
+		].includes(cell.style.alignItems)
+			? cell.style.alignItems
+			: "center";
+
+		verticalAlignGroup.querySelectorAll(
+			".vertical-align-button"
+		).forEach(button => {
+
+			button.setAttribute(
+				"aria-pressed",
+				String(
+					button.dataset.verticalAlign === verticalAlign
+				)
+			);
+
+		});
+
 	}
 }

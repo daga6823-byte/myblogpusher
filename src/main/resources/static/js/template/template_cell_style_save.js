@@ -1,7 +1,8 @@
 /**
  * 選択セルへの装飾の保存と、画面表示への反映を担当する。
  *
- * 文字色、縁取り、背景色、文字サイズ、太字、文字配置のうち、
+ * 文字色、縁取り、背景色、文字サイズ、太字、文字配置、
+ * 縦位置のうち、
  * 指定した1項目をサーバーへ保存し、保存後にセルの見た目を更新する。
  */
 import { templateState } from "./template_state.js";
@@ -38,10 +39,21 @@ function applyStyleToCell(cell, property, value) {
 			cell.style.fontWeight = value;
 			break;
 		case "textAlign":
+
 			cell.style.textAlign = value;
+
 			cell.style.justifyContent = TEXT_ALIGN_TO_JUSTIFY[value];
+
 			break;
+
+		case "verticalAlign":
+
+			cell.style.alignItems = value;
+
+			break;
+
 		default:
+
 			break;
 	}
 }
