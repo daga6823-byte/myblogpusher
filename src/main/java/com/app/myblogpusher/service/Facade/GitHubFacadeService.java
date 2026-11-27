@@ -6,7 +6,7 @@
  * 自身はロジックを持たず、各サービスへ委譲するだけとする。
  */
 
-package com.app.myblogpusher.facade;
+package com.app.myblogpusher.service.Facade;
 
 import java.io.IOException;
 

@@ -6,8 +6,8 @@
  * 追加は最後の行・列へ、削除は選択セルが属する行・列へ行う。
  * 処理後は callLayoutApi の第3引数(true)により画面を再読み込みする。
  */
-import { templateState } from "./template_state.js";
-import { callLayoutApi } from "./template_api.js";
+import { templateState } from "../template_state.js";
+import { callLayoutApi } from "../template_api.js";
 
 /**
  * 最後の行に新しい行を追加する。

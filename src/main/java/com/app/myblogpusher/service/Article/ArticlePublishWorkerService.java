@@ -12,8 +12,8 @@ import org.springframework.stereotype.Service;
 import com.app.myblogpusher.entity.UserRepositoryEntity;
 import com.app.myblogpusher.entity.Article.ArticleEntity;
 import com.app.myblogpusher.entity.Article.ArticleWorkEntity;
-import com.app.myblogpusher.facade.GitHubFacadeService;
 import com.app.myblogpusher.service.ApplicationErrorLogService;
+import com.app.myblogpusher.service.Facade.GitHubFacadeService;
 import com.app.myblogpusher.service.Github.GitHubActionsService;
 
 @Service

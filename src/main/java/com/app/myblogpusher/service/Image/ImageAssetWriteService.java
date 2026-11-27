@@ -21,8 +21,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.app.myblogpusher.entity.ImageAssetEntity;
-import com.app.myblogpusher.facade.SupabaseFacadeService;
 import com.app.myblogpusher.repository.ImageAssetRepository;
+import com.app.myblogpusher.service.Facade.SupabaseFacadeService;
 
 @Service
 public class ImageAssetWriteService {

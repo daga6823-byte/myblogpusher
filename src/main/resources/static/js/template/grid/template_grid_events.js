@@ -6,7 +6,7 @@
  * グリッド要素をtemplateStateへ登録し、行・列の追加削除ボタンを結び付け、
  * グリッドを復元する。ウィンドウサイズが変わったときはハンドル位置を更新する。
  */
-import { templateState } from "./template_state.js";
+import { templateState } from "../template_state.js";
 import { restoreGrid } from "./template_grid_restore.js";
 import { updateGridResizeHandlePositions } from "./template_grid_resize_handles.js";
 import {

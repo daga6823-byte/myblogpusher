@@ -6,7 +6,7 @@
  * Thymeleafから渡された行・列・セルの情報を読み込み、
  * グリッドの行列定義、登録済みセル、DB未登録の空きセルを再生成する。
  */
-import { templateState } from "./template_state.js";
+import { templateState } from "../template_state.js";
 import { createCell } from "./template_grid_cell.js";
 import { createCellFromData } from "./template_grid_cell_render.js";
 import { createGridResizeHandles } from "./template_grid_resize_handles.js";

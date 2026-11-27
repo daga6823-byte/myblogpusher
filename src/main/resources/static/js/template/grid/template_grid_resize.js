@@ -7,7 +7,7 @@
  * 保存に失敗した場合やドラッグがキャンセルされた場合は、開始時のサイズへ戻す。
  * DBへの保存は template_grid_resize_save.js が担当する。
  */
-import { templateState } from "./template_state.js";
+import { templateState } from "../template_state.js";
 import { getGridTrackSizes } from "./template_grid_tracks.js";
 import { saveGridTrackSizes } from "./template_grid_resize_save.js";
 

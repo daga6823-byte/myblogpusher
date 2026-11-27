@@ -3,7 +3,7 @@
  *
  * グリッドの現在の行高・列幅の取得を担当する。
  */
-import { templateState } from "./template_state.js";
+import { templateState } from "../template_state.js";
 
 /**
  * グリッドの現在の行高・列幅を取得する。

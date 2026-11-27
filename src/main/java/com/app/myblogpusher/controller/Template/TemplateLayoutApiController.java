@@ -21,7 +21,7 @@ import com.app.myblogpusher.entity.Template.TemplateCellEntity;
 import com.app.myblogpusher.entity.Template.TemplateColumnEntity;
 import com.app.myblogpusher.entity.Template.TemplateEntity;
 import com.app.myblogpusher.entity.Template.TemplateRowEntity;
-import com.app.myblogpusher.facade.TemplateLayoutFacadeService;
+import com.app.myblogpusher.service.Facade.TemplateLayoutFacadeService;
 import com.app.myblogpusher.service.Template.TemplateService;
 
 import jakarta.servlet.http.HttpSession;

@@ -5,7 +5,7 @@
  *
  * ハンドルを操作したときのサイズ変更処理は、template_grid_resize.js が担当する。
  */
-import { templateState } from "./template_state.js";
+import { templateState } from "../template_state.js";
 import { getGridTrackSizes } from "./template_grid_tracks.js";
 import { startGridResize } from "./template_grid_resize.js";
 

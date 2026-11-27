@@ -6,8 +6,8 @@
  * 隣接する2トラックを1回のリクエストで保存し、
  * 保存成功後に画面復元用のデータ(data属性)を更新する。
  */
-import { templateState } from "./template_state.js";
-import { callLayoutApi } from "./template_api.js";
+import { templateState } from "../template_state.js";
+import { callLayoutApi } from "../template_api.js";
 
 /**
  * ドラッグで変更した隣接する行高・列幅をDBに一括保存する。

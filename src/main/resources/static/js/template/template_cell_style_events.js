@@ -5,7 +5,7 @@
  * 色の適用(履歴登録と保存)を行う。
  * 保存はtemplate_cell_style_save.js、色履歴はtemplate_color_history.jsへ委譲する。
  */
-import { syncColorInputs } from "./template_color_utils.js";
+import { syncColorInputs } from "../template_color_utils.js";
 import { loadColorHistory, saveColorHistory } from "./template_color_history.js";
 import { saveCellStyle } from "./template_cell_style_save.js";
 

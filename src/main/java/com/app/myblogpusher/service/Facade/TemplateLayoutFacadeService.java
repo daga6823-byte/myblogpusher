@@ -4,7 +4,7 @@
  * 行・列・セルそれぞれのレイアウト管理サービスへ処理を委譲する。
  * レイアウト管理の呼び出し窓口を一本化する。
  */
-package com.app.myblogpusher.facade;
+package com.app.myblogpusher.service.Facade;
 
 import java.math.BigDecimal;
 import java.util.List;

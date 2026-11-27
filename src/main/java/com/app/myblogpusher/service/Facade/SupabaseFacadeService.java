@@ -5,7 +5,7 @@
  * フォルダ単位の移動とロールバックはSupabaseStorageFolderServiceへ委譲する。
  * 呼び出し元は、このクラスだけを注入すればStorage操作をすべて行える。
  */
-package com.app.myblogpusher.facade;
+package com.app.myblogpusher.service.Facade;
 
 import java.io.File;
 import java.io.IOException;

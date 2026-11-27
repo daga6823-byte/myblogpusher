@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 
 import com.app.myblogpusher.dto.ImageAssetView;
 import com.app.myblogpusher.dto.ImageCategoryDto;
-import com.app.myblogpusher.facade.ImageAssetFacadeService;
+import com.app.myblogpusher.service.Facade.ImageAssetFacadeService;
 
 @Service
 public class ImageAssetPreloadAsyncService {
