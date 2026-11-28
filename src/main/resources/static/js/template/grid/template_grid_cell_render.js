@@ -102,10 +102,17 @@ function applyCellContent(cell, cellData) {
 			break;
 
 		case "VARIABLE":
+
 			cell.dataset.variableName =
 				cellData.variableName ?? "";
+
+			// 記事編集画面の変数入力欄から参照する属性
+			cell.dataset.templateVariable =
+				cell.dataset.variableName;
+
 			cell.textContent =
 				`{{${cell.dataset.variableName}}}`;
+
 			break;
 
 		case "IMAGE":
@@ -137,17 +144,36 @@ function applyCellContent(cell, cellData) {
 /**
  * DBのセル情報から、グリッドに配置できるセル要素を生成する。
  */
-export function createCellFromData(cellData) {
+/**
+ * DBのセル情報から、グリッドに配置できるセル要素を生成する。
+ *
+ * @param {Object} cellData DBから取得したセル情報
+ * @param {boolean} enableSelection セル選択イベントを登録するか
+ * @return {HTMLElement} 生成したセル要素
+ */
+export function createCellFromData(cellData, enableSelection = true) {
 	const row = cellData.rowNumber - 1;
 	const column = cellData.columnNumber - 1;
 	const rowSpan = cellData.rowSpan ?? 1;
 	const columnSpan = cellData.columnSpan ?? 1;
 
-	const cell = createCell(row, column);
+	// 記事編集画面では編集操作用のイベントを登録しない。
+	const cell = enableSelection
+		? createCell(row, column)
+		: document.createElement("div");
 
+	cell.dataset.row = row;
+	cell.dataset.column = column;
 	cell.dataset.cellId = cellData.cellId;
+
 	cell.dataset.cellType = cellData.cellType;
+
 	cell.dataset.imageAssetId = cellData.imageAssetId ?? "";
+
+	// 記事編集画面の画像割り当てから参照する属性
+	if (cellData.cellType === "IMAGE") {
+		cell.dataset.templateImageCell = cellData.cellId;
+	}
 
 	// 既存セルの編集時に現在の内容を取得できるよう保持する。
 	if (cellData.cellType === "TEXT") {

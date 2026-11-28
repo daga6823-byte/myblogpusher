@@ -6,6 +6,7 @@
  * IMAGEセルへの画像割り当てと本文への挿入を担当する。
  */
 import { openImageSelector } from "../image/image_gallery.js";
+import { createCellFromData } from "../template/grid/template_grid_cell_render.js";
 
 let selectedTemplate = null;
 let selectedTemplateHtml = "";
@@ -93,7 +94,7 @@ async function selectTemplate(template) {
 	try {
 
 		const response = await fetch(
-			`/template/api/${template.templateId}/render`
+			`/template/api/${template.templateId}/data`
 		);
 
 		if (!response.ok) {
@@ -103,10 +104,10 @@ async function selectTemplate(template) {
 		const result = await response.json();
 
 		selectedTemplate = template;
-		selectedTemplateHtml = result.html;
-		selectedTemplateCss = result.css;
+		selectedTemplateHtml = "";
+		selectedTemplateCss = "";
 
-		renderTemplatePreview();
+		renderTemplatePreview(result);
 
 
 		document.getElementById("insertTemplateButton").disabled = false;
@@ -121,10 +122,10 @@ async function selectTemplate(template) {
 /**
  * 選択テンプレートをプレビュー表示する。
  *
- * VARIABLEセルの入力欄とIMAGEセルの画像割り当て欄も生成する。
+ * テンプレート編集画面と共通のセル描画処理を使用する。
+ * VARIABLE・IMAGEセルには記事編集用の入力機能を追加する。
  */
-function renderTemplatePreview() {
-
+function renderTemplatePreview(result) {
 	const previewArea = document.getElementById("templatePreviewArea");
 	const preview = document.getElementById("templatePreview");
 	const assignments = document.getElementById("templateImageAssignments");
@@ -135,51 +136,114 @@ function renderTemplatePreview() {
 		return;
 	}
 
-	preview.innerHTML = selectedTemplateHtml;
+	const rows = JSON.parse(result.rowsJson || "[]");
+	const columns = JSON.parse(result.columnsJson || "[]");
+	const cells = JSON.parse(result.cellsJson || "[]");
 
-	assignments.innerHTML = "";
-	variableInputs.innerHTML = "";
+	preview.replaceChildren();
+	assignments.replaceChildren();
+	variableInputs.replaceChildren();
 
-	// プレビュー専用CSS
-	let style = document.getElementById("templatePreviewStyle");
-
-	if (!style) {
-		style = document.createElement("style");
-		style.id = "templatePreviewStyle";
-		document.head.appendChild(style);
+	if (rows.length === 0 || columns.length === 0) {
+		throw new Error("テンプレートの行・列情報がありません。");
 	}
 
-	style.textContent = selectedTemplateCss;
+	// テンプレート全体を囲む要素。
+	const templateElement = document.createElement("div");
+	templateElement.className = "template-preview-grid";
+
+	templateElement.style.display = "grid";
+	templateElement.style.width = "fit-content";
+	templateElement.style.gridTemplateColumns = columns.map(column => {
+		const width = column.width ?? 1;
+		const unit = column.widthUnit ?? "fr";
+
+		return unit === "px"
+			? `${width * 5}px`
+			: `${width}${unit}`;
+	}).join(" ");
+
+	templateElement.style.gridTemplateRows = rows.map(row => {
+		const height = row.height ?? "auto";
+		const unit = row.heightUnit ?? "auto";
+
+		if (unit === "auto") {
+			return "auto";
+		}
+
+		return unit === "px"
+			? `${height * 5}px`
+			: `${height}${unit}`;
+	}).join(" ");
+
+	templateElement.style.position = "relative";
+
+	// DB登録済みセルを共通描画処理で生成する。
+	const occupied = new Set();
+
+	cells.forEach(cellData => {
+		const row = cellData.rowNumber - 1;
+		const column = cellData.columnNumber - 1;
+		const rowSpan = cellData.rowSpan ?? 1;
+		const columnSpan = cellData.columnSpan ?? 1;
+
+		for (let r = row; r < row + rowSpan; r++) {
+			for (let c = column; c < column + columnSpan; c++) {
+				occupied.add(`${r}:${c}`);
+			}
+		}
+
+		const cell = createCellFromData(cellData, false);
+		templateElement.appendChild(cell);
+	});
+
+	// DB未登録の空きセルも編集画面と同じ位置に配置する。
+	for (let row = 0; row < rows.length; row++) {
+		for (let column = 0; column < columns.length; column++) {
+			if (occupied.has(`${row}:${column}`)) {
+				continue;
+			}
+
+			const cell = document.createElement("div");
+			cell.className = "template-cell empty";
+			cell.dataset.row = row;
+			cell.dataset.column = column;
+			cell.dataset.cellType = "EMPTY";
+			cell.style.gridRow = `${row + 1}`;
+			cell.style.gridColumn = `${column + 1}`;
+			cell.textContent = "空白";
+
+			templateElement.appendChild(cell);
+		}
+	}
+
+	preview.appendChild(templateElement);
 
 	// VARIABLEセルの入力欄を生成する。
 	renderVariableInputs(preview, variableInputs);
 
 	// テンプレート全体の背景画像選択欄を生成する。
-	renderBackgroundImageSelector(preview, assignments);
+	renderBackgroundImageSelector(templateElement, assignments);
 
-	// IMAGEセルの画像割り当て
-	const placeholders = preview.querySelectorAll(
-		"[data-template-image-cell]"
+	// IMAGEセルの画像割り当て欄を生成する。
+	const imageCells = templateElement.querySelectorAll(
+		'[data-cell-type="IMAGE"]'
 	);
 
-	placeholders.forEach(placeholder => {
-
-		const cellId = placeholder.dataset.templateImageCell;
-
+	imageCells.forEach(cell => {
 		const button = document.createElement("button");
 		button.type = "button";
 		button.textContent = "画像を選択";
 
 		button.addEventListener("click", () => {
-			selectImageForCell(placeholder, button);
+			selectImageForCell(cell, button);
 		});
 
-		placeholder.appendChild(button);
-
 		const label = document.createElement("p");
-		label.textContent = `画像枠：${cellId}`;
+		label.textContent = `画像枠：${cell.dataset.cellId}`;
 
 		assignments.appendChild(label);
+		assignments.appendChild(button);
 	});
 
 	previewArea.style.display = "block";
@@ -193,8 +257,7 @@ function renderTemplatePreview() {
  */
 function renderBackgroundImageSelector(preview, assignments) {
 
-	const templateElement = preview.querySelector(".mbp-template");
-
+	const templateElement = preview;
 	if (!templateElement) {
 		return;
 	}
@@ -259,7 +322,7 @@ function renderBackgroundImageSelector(preview, assignments) {
 function renderVariableInputs(preview, variableInputs) {
 
 	const variableElements = preview.querySelectorAll(
-		"[data-template-variable]"
+		'[data-cell-type="VARIABLE"]'
 	);
 
 	if (variableElements.length === 0) {
@@ -270,7 +333,7 @@ function renderVariableInputs(preview, variableInputs) {
 
 	variableElements.forEach(element => {
 
-		const variableName = element.dataset.templateVariable;
+		const variableName = element.dataset.variableName;
 
 		if (!variableName) {
 			return;

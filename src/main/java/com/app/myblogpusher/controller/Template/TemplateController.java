@@ -107,6 +107,35 @@ public class TemplateController {
 	}
 
 	/**
+	 * 記事編集画面用にテンプレートのレイアウト情報を取得する。
+	 *
+	 * テンプレート編集画面と同じサービスを利用し、
+	 * 行・列・セル・装飾・画像URLを取得する。
+	 *
+	 * @param templateId テンプレートID
+	 * @param session ログインセッション
+	 * @return テンプレート表示用データ
+	 */
+	@GetMapping("/api/{templateId}/data")
+	@ResponseBody
+	public ResponseEntity<?> getTemplateData(
+			@PathVariable Long templateId,
+			HttpSession session) throws JsonProcessingException {
+
+		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
+
+		if (loginUser == null) {
+			return ResponseEntity.status(401).body("ログインしてください。");
+		}
+
+		Map<String, Object> templateData = templateEditService.prepareEditTemplate(
+				loginUser.getUserId(),
+				templateId);
+
+		return ResponseEntity.ok(templateData);
+	}
+
+	/**
 	 * テンプレートを新規登録または更新する。
 	 *
 	 * 保存処理はTemplateSaveServiceに委譲する。
