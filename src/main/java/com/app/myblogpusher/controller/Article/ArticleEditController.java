@@ -4,6 +4,7 @@
  */
 
 package com.app.myblogpusher.controller.Article;
+
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -56,10 +57,10 @@ public class ArticleEditController {
 
 	@Autowired
 	private CategorySelectionService categorySelectionService;
-	
+
 	@Autowired
 	private CategoryPathService categoryPathService;
-	
+
 	/**
 	 * 記事編集画面で選択されたカテゴリー経路からgroupIdを取得する。
 	 *
@@ -68,23 +69,22 @@ public class ArticleEditController {
 	@GetMapping("/article/category/group-id")
 	@ResponseBody
 	public ResponseEntity<Long> resolveCategoryGroupId(
-	        @RequestParam String categoryPath,
-	        HttpSession session) {
+			@RequestParam String categoryPath,
+			HttpSession session) {
 
-	    UserMaster loginUser =
-	            (UserMaster) session.getAttribute("loginUser");
+		UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 
-	    Long userId = loginUser.getUserId();
+		Long userId = loginUser.getUserId();
 
-	    Long groupId = categoryPathService.findGroupIdByFullPath(
-	            userId,
-	            categoryPath);
+		Long groupId = categoryPathService.findGroupIdByFullPath(
+				userId,
+				categoryPath);
 
-	    if (groupId == null) {
-	        return ResponseEntity.notFound().build();
-	    }
+		if (groupId == null) {
+			return ResponseEntity.notFound().build();
+		}
 
-	    return ResponseEntity.ok(groupId);
+		return ResponseEntity.ok(groupId);
 	}
 
 	/**
@@ -125,16 +125,21 @@ public class ArticleEditController {
 		if (workId != null) {
 
 			// 既存の下書きを編集中の場合は、ログインユーザー本人の下書きの内容を優先する。
+
 			work = articleWorkService.findById(workId, userId);
 
 			model.addAttribute("work", work);
 
 			// 旧categoryGroupIdではなく、ArticleWorkに保存されたhugoPathを使用する。
+
 			model.addAttribute("categoryGroupId", work.getCategoryGroupId());
 
 			// URLにカテゴリー経路がない場合は、ArticleWorkのhugoPathを使用する。
+
 			if (categoryPath == null || categoryPath.isBlank()) {
+
 				categoryPath = work.getHugoPath();
+
 			}
 
 		} else {
@@ -153,8 +158,8 @@ public class ArticleEditController {
 				// URLにカテゴリー経路がない場合は、保存済みのPathを使用する。
 				if (categoryPath == null || categoryPath.isBlank()) {
 
-				    categoryPath = categoryPathService.findCategoryPathByGroupId(
-				            workspace.getCategoryGroupId());
+					categoryPath = categoryPathService.findCategoryPathByGroupId(
+							workspace.getCategoryGroupId());
 
 				}
 
@@ -170,9 +175,13 @@ public class ArticleEditController {
 			ArticleEntity article = null;
 
 			if (work.getArticleId() != null) {
-				article = articleRepository.findById(work.getArticleId())
-						.orElse(null);
+			    article = articleRepository.findById(work.getArticleId())
+			            .orElse(null);
 			}
+
+			model.addAttribute(
+			        "articleId",
+			        article != null ? article.getArticleId() : null);
 
 			if (article != null) {
 
@@ -232,13 +241,13 @@ public class ArticleEditController {
 		Long userId = loginUser.getUserId();
 
 		Long savedWorkId = articleSaveUtil.doSaveDraft(
-				workId,
-				categorySelect,
-				newCategoryName,
-				newCategoryDisplayName,
-				title,
-				content,
-				userId);
+		        workId,
+		        categorySelect,
+		        newCategoryName,
+		        newCategoryDisplayName,
+		        title,
+		        content,
+		        userId);
 
 		if (savedWorkId == null) {
 			return "redirect:/article/edit";
@@ -257,8 +266,8 @@ public class ArticleEditController {
 
 		// 保存後のArticleWorkに記録されたカテゴリー経路を使用する。
 		String savedCategoryPath = articleWorkService
-		        .findById(savedWorkId, userId)
-		        .getHugoPath();
+				.findById(savedWorkId, userId)
+				.getHugoPath();
 
 		return "redirect:/article/edit?workId=" + savedWorkId
 				+ "&saved=true"

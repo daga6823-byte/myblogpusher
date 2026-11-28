@@ -31,6 +31,9 @@ public class ArticleService {
 	@Autowired
 	private ArticleTemplateCellService articleTemplateCellService;
 	
+	@Autowired
+	private ArticleTemplateService articleTemplateService;
+	
 	/**
 	 * GitHub投稿成功後のArticle更新とArticleWork削除を
 	 * 1つのDBトランザクションで完了させる。
@@ -99,13 +102,19 @@ public class ArticleService {
 		targetArticle.setStatus(ArticleStatus.PUBLISHED);
 		targetArticle = articleRepository.save(targetArticle);
 
+		// 記事用テンプレート全体設定を公開済みArticleへ引き継ぐ。
+		articleTemplateService.transferWorkTemplateToArticle(
+		        currentWork.getUserId(),
+		        currentWork.getWorkId(),
+		        targetArticle.getArticleId());
+
 		// 記事用テンプレートセル情報を公開済みArticleへ引き継ぐ。
 		articleTemplateCellService.transferWorkCellsToArticle(
 		        currentWork.getUserId(),
 		        currentWork.getWorkId(),
 		        targetArticle.getArticleId());
 
-		// セル情報の引き継ぎが成功した場合のみWorkを削除する。
+		// テンプレート情報の引き継ぎが成功した場合のみWorkを削除する。
 		articleWorkService.delete(
 		        currentWork.getWorkId(),
 		        currentWork.getUserId());
@@ -128,10 +137,6 @@ public class ArticleService {
 
 		// カテゴリー経路とslugを結合したフルパスを保存する。
 		article.setHugoPath(work.getHugoPath() + "/" + slug);
-		
-		article.setTemplateId(work.getTemplateId());
-		article.setTemplateBackgroundImageAssetId(
-		        work.getTemplateBackgroundImageAssetId());
 
 		article.setContent(work.getContent());
 
@@ -166,10 +171,6 @@ public class ArticleService {
 
 		// カテゴリー経路とslugを結合したフルパスを保存する。
 		article.setHugoPath(work.getHugoPath() + "/" + slug);
-		
-		article.setTemplateId(work.getTemplateId());
-		article.setTemplateBackgroundImageAssetId(
-		        work.getTemplateBackgroundImageAssetId());
 
 		article.setContent(work.getContent());
 

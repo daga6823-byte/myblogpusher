@@ -25,129 +25,179 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ArticleTemplateCellService {
 
-    private final ArticleTemplateCellRepository articleTemplateCellRepository;
+	private final ArticleTemplateCellRepository articleTemplateCellRepository;
 
-    /**
-     * 編集中の記事のセル情報を取得する
-     */
-    @Transactional(readOnly = true)
-    public List<ArticleTemplateCellEntity> findByWorkId(
-            Long userId,
-            Long workId) {
+	private final ArticleWorkService articleWorkService;
 
-        return articleTemplateCellRepository
-                .findByUserIdAndWorkIdOrderByIdAsc(userId, workId);
-    }
+	/**
+	 * 編集中の記事のセル情報を取得する
+	 */
+	@Transactional(readOnly = true)
+	public List<ArticleTemplateCellEntity> findByWorkId(
+			Long userId,
+			Long workId) {
 
-    /**
-     * 編集中の記事のセル情報を置き換えて保存する
-     *
-     * 既存のセル情報を削除してから、
-     * 新しいセル情報をユーザー・作業・テンプレートに紐付ける。
-     */
-    @Transactional
-    public void saveWorkCells(
-            Long userId,
-            Long workId,
-            Long templateId,
-            List<ArticleTemplateCellEntity> cells) {
+		return articleTemplateCellRepository
+				.findByUserIdAndWorkIdOrderByIdAsc(userId, workId);
+	}
 
-        if (userId == null || workId == null) {
-            throw new IllegalArgumentException(
-                    "ユーザーIDと作業IDは必須です。");
-        }
+	/**
+	 * 編集中の記事のセル情報を置き換えて保存する
+	 *
+	 * VARIABLE値・IMAGE割り当て・背景画像IDを保存する。
+	 */
+	@Transactional
+	public void saveWorkCells(Long userId, Long workId, Long templateId,
+			List<ArticleTemplateCellEntity> cells) {
+		validateSaveParameters(userId, templateId, cells);
+		articleWorkService.findById(workId, userId);
 
-        if (cells == null) {
-            throw new IllegalArgumentException(
-                    "セル情報が指定されていません。");
-        }
+		LocalDateTime now = LocalDateTime.now();
 
-        if (!cells.isEmpty() && templateId == null) {
-            throw new IllegalArgumentException(
-                    "テンプレート未選択の記事にはセル情報を保存できません。");
-        }
+		for (ArticleTemplateCellEntity cell : cells) {
+			prepareCell(cell, userId, workId, null, templateId, now);
+		}
 
-        // 既存のセル情報を削除する。
-        articleTemplateCellRepository
-                .deleteByUserIdAndWorkId(userId, workId);
+		articleTemplateCellRepository.deleteByUserIdAndWorkId(userId, workId);
 
-        LocalDateTime now = LocalDateTime.now();
+		if (!cells.isEmpty()) {
+			articleTemplateCellRepository.saveAll(cells);
+		}
+	}
 
-        for (ArticleTemplateCellEntity cell : cells) {
+	/**
+	 * 公開済み記事のセル情報を取得する
+	 */
+	@Transactional(readOnly = true)
+	public List<ArticleTemplateCellEntity> findByArticleId(
+			Long userId,
+			Long articleId) {
 
-            if (cell == null) {
-                throw new IllegalArgumentException(
-                        "セル情報にnullが含まれています。");
-            }
+		return articleTemplateCellRepository
+				.findByUserIdAndArticleIdOrderByIdAsc(userId, articleId);
+	}
 
-            // リクエスト側から所有者や関連IDを指定させない。
-            cell.setId(null);
-            cell.setUserId(userId);
-            cell.setWorkId(workId);
-            cell.setArticleId(null);
-            cell.setTemplateId(templateId);
+	/**
+	 * 公開済み記事のセル情報を置き換えて保存する
+	 *
+	 * VARIABLE値・IMAGE割り当て・背景画像IDを保存する。
+	 */
+	@Transactional
+	public void saveArticleCells(Long userId, Long articleId, Long templateId,
+	        List<ArticleTemplateCellEntity> cells) {
+	    validateSaveParameters(userId, templateId, cells);
 
-            cell.setCreateDate(now);
-            cell.setUpdateDate(now);
-        }
+	    if (articleId == null) {
+	        throw new IllegalArgumentException("記事IDは必須です。");
+	    }
 
-        if (!cells.isEmpty()) {
-            articleTemplateCellRepository.saveAll(cells);
-        }
-    }
+	    LocalDateTime now = LocalDateTime.now();
 
-    /**
-     * 公開済み記事のセル情報を取得する
-     */
-    @Transactional(readOnly = true)
-    public List<ArticleTemplateCellEntity> findByArticleId(
-            Long userId,
-            Long articleId) {
+	    for (ArticleTemplateCellEntity cell : cells) {
+	        prepareCell(cell, userId, null, articleId, templateId, now);
+	    }
 
-        return articleTemplateCellRepository
-                .findByUserIdAndArticleIdOrderByIdAsc(userId, articleId);
-    }
+	    articleTemplateCellRepository.deleteByUserIdAndArticleId(userId, articleId);
 
-    /**
-     * 公開時に編集用セル情報を記事側へ引き継ぐ
-     *
-     * 既存記事のセル情報を置き換えたうえで、
-     * work_idからarticle_idへ所有先を変更する。
-     */
-    @Transactional
-    public void transferWorkCellsToArticle(
-            Long userId,
-            Long workId,
-            Long articleId) {
+	    if (!cells.isEmpty()) {
+	        articleTemplateCellRepository.saveAll(cells);
+	    }
+	}
 
-        List<ArticleTemplateCellEntity> cells =
-                articleTemplateCellRepository
-                        .findByUserIdAndWorkIdOrderByIdAsc(userId, workId);
+	/**
+	 * 保存パラメーターを検証する
+	 */
+	private void validateSaveParameters(
+			Long userId,
+			Long templateId,
+			List<ArticleTemplateCellEntity> cells) {
 
-        // 既存記事の古いセル情報を削除する。
-        articleTemplateCellRepository
-                .deleteByUserIdAndArticleId(userId, articleId);
+		if (userId == null) {
+			throw new IllegalArgumentException("ユーザーIDは必須です。");
+		}
 
-        LocalDateTime now = LocalDateTime.now();
+		if (templateId == null) {
+			throw new IllegalArgumentException("テンプレートIDは必須です。");
+		}
 
-        for (ArticleTemplateCellEntity cell : cells) {
-            cell.setWorkId(null);
-            cell.setArticleId(articleId);
-            cell.setUpdateDate(now);
-        }
+		if (cells == null) {
+			throw new IllegalArgumentException("セル情報が指定されていません。");
+		}
 
-        // work_idを解除し、article_idへ引き継ぐ。
-        if (!cells.isEmpty()) {
-            articleTemplateCellRepository.saveAll(cells);
-        }
-    }
+		for (ArticleTemplateCellEntity cell : cells) {
 
-    /**
-     * 編集中の記事のセル情報を削除する
-     */
-    @Transactional
-    public void deleteWorkCells(Long userId, Long workId) {
-        articleTemplateCellRepository
-                .deleteByUserIdAndWorkId(userId, workId);
-    }
+			if (cell == null) {
+				throw new IllegalArgumentException(
+						"セル情報にnullが含まれています。");
+			}
+
+			if (cell.getCellId() == null) {
+				throw new IllegalArgumentException(
+						"セルIDが指定されていません。");
+			}
+		}
+	}
+
+	/**
+	 * 保存するセル情報に所有者・記事・テンプレート情報を設定する
+	 */
+	private void prepareCell(ArticleTemplateCellEntity cell, Long userId, Long workId, Long articleId,
+	        Long templateId, LocalDateTime now) {
+	    cell.setId(null);
+	    cell.setUserId(userId);
+	    cell.setWorkId(workId);
+	    cell.setArticleId(articleId);
+	    cell.setTemplateId(templateId);
+	    cell.setCreateDate(now);
+	    cell.setUpdateDate(now);
+	}
+
+	/**
+	 * 公開時に編集用セル情報を記事側へ引き継ぐ
+	 *
+	 * 既存記事のセル情報を置き換えたうえで、
+	 * work_idからarticle_idへ所有先を変更する。
+	 *
+	 * 背景画像IDも各セルレコードに保持したまま引き継ぐ。
+	 */
+	@Transactional
+	public void transferWorkCellsToArticle(
+			Long userId,
+			Long workId,
+			Long articleId) {
+
+		if (userId == null || workId == null || articleId == null) {
+			throw new IllegalArgumentException(
+					"ユーザーID・作業ID・記事IDは必須です。");
+		}
+
+		List<ArticleTemplateCellEntity> cells = articleTemplateCellRepository
+				.findByUserIdAndWorkIdOrderByIdAsc(userId, workId);
+
+		// 既存記事の古いセル情報を削除する。
+		articleTemplateCellRepository
+				.deleteByUserIdAndArticleId(userId, articleId);
+
+		LocalDateTime now = LocalDateTime.now();
+
+		for (ArticleTemplateCellEntity cell : cells) {
+			cell.setWorkId(null);
+			cell.setArticleId(articleId);
+			cell.setUpdateDate(now);
+		}
+
+		// work_idを解除し、article_idへ引き継ぐ。
+		if (!cells.isEmpty()) {
+			articleTemplateCellRepository.saveAll(cells);
+		}
+	}
+
+	/**
+	 * 編集中の記事のセル情報を削除する
+	 */
+	@Transactional
+	public void deleteWorkCells(Long userId, Long workId) {
+		articleTemplateCellRepository
+				.deleteByUserIdAndWorkId(userId, workId);
+	}
 }

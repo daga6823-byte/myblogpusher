@@ -107,15 +107,25 @@ public class ImageAssetFacadeService {
 	}
 
 	/**
+	 * 画像IDからログインユーザー本人の画像URLを取得する。
+	 */
+	public String getImageUrl(Long userId, Long imageId) {
+
+	    return imageAssetQueryService.getImageUrl(
+	            userId,
+	            imageId);
+	}
+
+	/**
 	 * 画像を削除する。
 	 */
 	public void deleteImage(
-			Long imageId,
-			Long userId) {
+	        Long imageId,
+	        Long userId) {
 
-		imageAssetWriteService.deleteImage(
-				imageId,
-				userId);
+	    imageAssetWriteService.deleteImage(
+	            imageId,
+	            userId);
 	}
 
 	/**

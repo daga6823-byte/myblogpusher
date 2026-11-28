@@ -1,4 +1,5 @@
 package com.app.myblogpusher.controller.Article;
+
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -69,25 +70,25 @@ public class ArticlePublishedController {
 		 * 記事IDごとに一覧表示用のマップを作成する。
 		 */
 		model.addAttribute(
-		        "articleCategories",
-		        articles.stream()
-		                .collect(
-		                        Collectors.toMap(
-		                                ArticleEntity::getArticleId,
-		                                article -> {
-		                                    String hugoPath = article.getHugoPath();
+				"articleCategories",
+				articles.stream()
+						.collect(
+								Collectors.toMap(
+										ArticleEntity::getArticleId,
+										article -> {
+											String hugoPath = article.getHugoPath();
 
-		                                    if (hugoPath == null || hugoPath.isBlank()) {
-		                                        return "";
-		                                    }
+											if (hugoPath == null || hugoPath.isBlank()) {
+												return "";
+											}
 
-		                                    int lastSlash = hugoPath.lastIndexOf("/");
+											int lastSlash = hugoPath.lastIndexOf("/");
 
-		                                    return lastSlash > 0
-		                                            ? hugoPath.substring(0, lastSlash)
-		                                            : "";
-		                                },
-		                                (existing, replacement) -> existing)));
+											return lastSlash > 0
+													? hugoPath.substring(0, lastSlash)
+													: "";
+										},
+										(existing, replacement) -> existing)));
 
 		model.addAttribute(
 				"articles",
@@ -142,15 +143,13 @@ public class ArticlePublishedController {
 				}
 
 				workId = articleWorkService.insertArticleWork(
-				        userId,
-				        article.getArticleId(),
-				        categoryPath,
-				        null,
-				        article.getTitle(),
-				        article.getContent(),
-				        article.getSlug(),
-				        article.getTemplateId(),
-				        article.getTemplateBackgroundImageAssetId());
+						userId,
+						article.getArticleId(),
+						categoryPath,
+						null,
+						article.getTitle(),
+						article.getContent(),
+						article.getSlug());
 			}
 
 		} else {
@@ -199,15 +198,13 @@ public class ArticlePublishedController {
 			}
 
 			workId = articleWorkService.insertArticleWork(
-			        userId,
-			        null,
-			        categoryPath,
-			        null,
-			        githubArticle.getTitle(),
-			        githubArticle.getContent(),
-			        githubArticle.getSlug(),
-			        null,
-			        null);
+					userId,
+					null,
+					categoryPath,
+					null,
+					githubArticle.getTitle(),
+					githubArticle.getContent(),
+					githubArticle.getSlug());
 		}
 
 		return "redirect:/article/edit?workId="

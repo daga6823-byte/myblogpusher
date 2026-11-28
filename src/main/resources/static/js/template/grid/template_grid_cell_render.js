@@ -173,6 +173,7 @@ export function createCellFromData(cellData, enableSelection = true) {
 	// 記事編集画面の画像割り当てから参照する属性
 	if (cellData.cellType === "IMAGE") {
 		cell.dataset.templateImageCell = cellData.cellId;
+		cell.dataset.imageWidth = cellData.imageWidth ?? "";
 	}
 
 	// 既存セルの編集時に現在の内容を取得できるよう保持する。

@@ -41,12 +41,6 @@ public class ArticleWorkEntity {
 	@Column(name = "hugo_path")
 	private String hugoPath;
 	
-	@Column(name = "template_id")
-	private Long templateId;
-
-	@Column(name = "template_background_image_asset_id")
-	private Long templateBackgroundImageAssetId;
-	
     @Column(name = "title")
     private String title;
 

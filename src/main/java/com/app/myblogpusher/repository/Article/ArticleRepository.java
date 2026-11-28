@@ -57,6 +57,15 @@ public interface ArticleRepository extends JpaRepository<ArticleEntity, Long> {
 	List<ArticleEntity> findByUserId(Long userId);
 
 	/**
+	 * ユーザーIDと記事IDで記事を取得する
+	 *
+	 * 記事テンプレート設定の保存時に所有者を確認する。
+	 */
+	Optional<ArticleEntity> findByUserIdAndArticleId(
+			Long userId,
+			Long articleId);
+
+	/**
 	 * 記事リンク挿入用
 	 *
 	 * 指定したHugoパス配下の記事を取得する。

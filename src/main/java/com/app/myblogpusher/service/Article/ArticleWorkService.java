@@ -43,25 +43,20 @@ public class ArticleWorkService {
 	 * 投稿前の編集内容とslugをarticle_workへ保存する。
 	 */
 	public Long insertArticleWork(
-			Long userId,
-			Long articleId,
-			String hugoPath,
-			Long typoCategoryId,
-			String title,
-			String content,
-			String slug,
-			Long templateId,
-			Long templateBackgroundImageAssetId) {
+	        Long userId,
+	        Long articleId,
+	        String hugoPath,
+	        Long typoCategoryId,
+	        String title,
+	        String content,
+	        String slug) {
 
-		ArticleWorkEntity work = new ArticleWorkEntity();
+	    ArticleWorkEntity work = new ArticleWorkEntity();
 
-		work.setUserId(userId);
-		work.setArticleId(articleId);
-		work.setHugoPath(hugoPath);
-		work.setTemplateId(templateId);
-		work.setTemplateBackgroundImageAssetId(
-				templateBackgroundImageAssetId);
-		work.setTypoCategoryId(typoCategoryId);
+	    work.setUserId(userId);
+	    work.setArticleId(articleId);
+	    work.setHugoPath(hugoPath);
+	    work.setTypoCategoryId(typoCategoryId);
 		work.setTitle(title);
 		work.setContent(content);
 		work.setSlug(slug);
@@ -85,25 +80,20 @@ public class ArticleWorkService {
 	 * 画面で編集されたタイトル・本文・slugを保存する。
 	 */
 	public void updateArticleWork(
-			Long workId,
-			String hugoPath,
-			Long typoCategoryId,
-			String title,
-			String content,
-			Long userId,
-			String slug,
-			Long templateId,
-			Long templateBackgroundImageAssetId) {
+	        Long workId,
+	        String hugoPath,
+	        Long typoCategoryId,
+	        String title,
+	        String content,
+	        Long userId,
+	        String slug) {
 
-		ArticleWorkEntity work = articleWorkRepository
-				.findByWorkIdAndUserId(workId, userId)
-				.orElseThrow();
+	    ArticleWorkEntity work = articleWorkRepository
+	            .findByWorkIdAndUserId(workId, userId)
+	            .orElseThrow();
 
-		work.setHugoPath(hugoPath);
-		work.setTemplateId(templateId);
-		work.setTemplateBackgroundImageAssetId(
-				templateBackgroundImageAssetId);
-		work.setTypoCategoryId(typoCategoryId);
+	    work.setHugoPath(hugoPath);
+	    work.setTypoCategoryId(typoCategoryId);
 		work.setTitle(title);
 		work.setContent(content);
 		work.setSlug(slug);

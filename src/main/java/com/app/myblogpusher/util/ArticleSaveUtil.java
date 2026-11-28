@@ -16,13 +16,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.app.myblogpusher.entity.Article.ArticleCategory;
 import com.app.myblogpusher.entity.Article.ArticleEntity;
-import com.app.myblogpusher.entity.Article.ArticleTemplateCellEntity;
 import com.app.myblogpusher.entity.Article.ArticleWorkEntity;
 import com.app.myblogpusher.repository.Article.ArticleRepository;
 import com.app.myblogpusher.service.Article.ArticleCategoryService;
 import com.app.myblogpusher.service.Article.ArticleFormatService;
 import com.app.myblogpusher.service.Article.ArticleService;
-import com.app.myblogpusher.service.Article.ArticleTemplateCellService;
 import com.app.myblogpusher.service.Article.ArticleWorkService;
 import com.app.myblogpusher.service.Category.CategoryPathService;
 import com.app.myblogpusher.service.Category.CategoryRelationService;
@@ -54,14 +52,12 @@ public class ArticleSaveUtil {
 	@Autowired
 	private ArticleService articleService;
 
-	@Autowired
-	private ArticleTemplateCellService articleTemplateCellService;
-
 	/**
-	 * 従来の呼び出し元向け下書き保存処理
+	 * 下書きを新規作成・更新する。
 	 *
-	 * 添削画面などテンプレート情報を送信しない画面では、
-	 * 既存のテンプレート設定を引き継いで保存する。
+	 * カテゴリー情報の解決、本文フォーマット、
+	 * ArticleWorkの新規作成・更新を行う。
+	 * テンプレート固有の設定はArticleTemplateCellService側で管理する。
 	 */
 	public Long doSaveDraft(
 			Long workId,
@@ -71,47 +67,6 @@ public class ArticleSaveUtil {
 			String title,
 			String content,
 			Long userId) {
-
-		Long templateId = null;
-		Long templateBackgroundImageAssetId = null;
-
-		if (workId != null) {
-			ArticleWorkEntity work = articleWorkService.findById(workId, userId);
-
-			templateId = work.getTemplateId();
-			templateBackgroundImageAssetId = work.getTemplateBackgroundImageAssetId();
-		}
-
-		return doSaveDraft(
-				workId,
-				categorySelect,
-				newCategoryName,
-				newCategoryDisplayName,
-				title,
-				content,
-				userId,
-				templateId,
-				templateBackgroundImageAssetId,
-				null);
-	}
-
-	// -----------------------------------------------------
-	// カテゴリー情報の解決
-	//
-	// 選択されたカテゴリーと新規カテゴリー入力から、
-	// カテゴリー登録・親カテゴリー情報を解決する。
-	// -----------------------------------------------------
-	public Long doSaveDraft(
-			Long workId,
-			String categorySelect,
-			String newCategoryName,
-			String newCategoryDisplayName,
-			String title,
-			String content,
-			Long userId,
-			Long templateId,
-			Long templateBackgroundImageAssetId,
-			List<ArticleTemplateCellEntity> templateCells) {
 
 		CategoryResolution categoryResolution = resolveCategory(
 				userId,
@@ -171,7 +126,6 @@ public class ArticleSaveUtil {
 		formattedContent = MarkdownFootnoteUtil.normalize(formattedContent);
 
 		// 既存のslugがない場合は、タイトルからスラッグを生成する。
-		// 形態素解析と英単語辞典による変換はSlugUtilに委譲する。
 		if (slug == null || slug.isBlank()) {
 			slug = slugUtil.generateSlug(title);
 		}
@@ -193,27 +147,14 @@ public class ArticleSaveUtil {
 				return existing.get().getWorkId();
 			}
 
-			Long newWorkId = articleWorkService.insertArticleWork(
+			return articleWorkService.insertArticleWork(
 					userId,
 					null,
 					hugoPath,
 					typoCategoryId,
 					title,
 					formattedContent,
-					slug,
-					templateId,
-					templateBackgroundImageAssetId);
-
-			// 記事固有のセル情報を保存する。
-			if (templateCells != null) {
-				articleTemplateCellService.saveWorkCells(
-						userId,
-						newWorkId,
-						templateId,
-						templateCells);
-			}
-
-			return newWorkId;
+					slug);
 
 		} else {
 
@@ -227,18 +168,7 @@ public class ArticleSaveUtil {
 					title,
 					formattedContent,
 					userId,
-					slug,
-					templateId,
-					templateBackgroundImageAssetId);
-
-			// 記事固有のセル情報を置き換えて保存する。
-			if (templateCells != null) {
-				articleTemplateCellService.saveWorkCells(
-						userId,
-						workId,
-						templateId,
-						templateCells);
-			}
+					slug);
 
 			return workId;
 		}

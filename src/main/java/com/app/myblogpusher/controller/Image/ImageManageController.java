@@ -3,6 +3,7 @@
  */
 
 package com.app.myblogpusher.controller.Image;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -22,7 +24,6 @@ import com.app.myblogpusher.entity.UserMaster;
 import com.app.myblogpusher.service.Facade.ImageAssetFacadeService;
 
 import jakarta.servlet.http.HttpSession;
-
 @Controller
 public class ImageManageController {
 
@@ -152,6 +153,36 @@ public class ImageManageController {
 		return imageAssetFacadeService.findImageFolders(
 				loginUser.getUserId());
 
+	}
+	
+	/**
+	 * 画像ID一覧から画像URL一覧を取得する。
+	 *
+	 * ログインユーザー本人が所有する画像のみ取得する。
+	 * テンプレート設定の復元で使用する。
+	 */
+	@PostMapping("/image/urls")
+	@ResponseBody
+	public Map<Long, String> getImageUrls(
+	        @RequestBody List<Long> imageIds,
+	        HttpSession session) {
+
+	    UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
+	    Long userId = loginUser.getUserId();
+
+	    Map<Long, String> imageUrls = new HashMap<>();
+
+	    for (Long imageId : imageIds) {
+	        if (imageId == null) {
+	            continue;
+	        }
+
+	        imageUrls.put(
+	                imageId,
+	                imageAssetFacadeService.getImageUrl(userId, imageId));
+	    }
+
+	    return imageUrls;
 	}
 
 	@PostMapping("/image/folder/rename")
