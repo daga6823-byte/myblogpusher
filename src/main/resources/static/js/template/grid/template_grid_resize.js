@@ -28,6 +28,11 @@ export function startGridResize(event, onSizeChanged) {
 	const edge = handle.dataset.resizeEdge || null;
 
 	const grid = templateState.grid;
+
+	// ドラッグ失敗・キャンセル時に戻すため、グリッド本体のサイズを保持する。
+	const originalGridWidth = grid.style.width;
+	const originalGridHeight = grid.style.height;
+
 	const sizes = getGridTrackSizes();
 
 	const originalSizes = type === "column"
@@ -123,9 +128,11 @@ export function startGridResize(event, onSizeChanged) {
 			(size, trackIndex) => {
 
 				if (isOuter) {
+
 					return trackIndex === index
 						? `${newOuterSize}px`
 						: `${size}px`;
+
 				}
 
 				if (trackIndex === index) {
@@ -137,16 +144,63 @@ export function startGridResize(event, onSizeChanged) {
 				}
 
 				return `${size}px`;
+
 			}
 		);
 
 		if (type === "column") {
+
 			grid.style.gridTemplateColumns = definitions.join(" ");
+
 		} else {
+
 			grid.style.gridTemplateRows = definitions.join(" ");
+
+		}
+
+		// 外周操作では、トラックの合計サイズにグリッド本体も追従させる。
+		if (isOuter) {
+
+			const computedStyle = getComputedStyle(grid);
+
+			const totalTrackSize = originalSizes.reduce(
+				(total, size, trackIndex) => {
+
+					if (trackIndex === index) {
+						return total + newOuterSize;
+					}
+
+					return total + size;
+
+				},
+				0
+			);
+
+			if (type === "column") {
+
+				const extraWidth =
+					(parseFloat(computedStyle.paddingLeft) || 0)
+					+ (parseFloat(computedStyle.paddingRight) || 0)
+					+ (parseFloat(computedStyle.borderLeftWidth) || 0)
+					+ (parseFloat(computedStyle.borderRightWidth) || 0);
+
+				grid.style.width = `${totalTrackSize + extraWidth}px`;
+
+			} else {
+
+				const extraHeight =
+					(parseFloat(computedStyle.paddingTop) || 0)
+					+ (parseFloat(computedStyle.paddingBottom) || 0)
+					+ (parseFloat(computedStyle.borderTopWidth) || 0)
+					+ (parseFloat(computedStyle.borderBottomWidth) || 0);
+
+				grid.style.height = `${totalTrackSize + extraHeight}px`;
+
+			}
 		}
 
 		onSizeChanged();
+
 	};
 
 	/**
@@ -154,17 +208,22 @@ export function startGridResize(event, onSizeChanged) {
 	 */
 	const restoreOriginalSize = () => {
 
-		const definitions = originalSizes.map(
-			size => `${size}px`
-		);
+		const definitions = originalSizes.map(size => `${size}px`);
 
 		if (type === "column") {
+
 			grid.style.gridTemplateColumns = definitions.join(" ");
+			grid.style.width = originalGridWidth;
+
 		} else {
+
 			grid.style.gridTemplateRows = definitions.join(" ");
+			grid.style.height = originalGridHeight;
+
 		}
 
 		onSizeChanged();
+
 	};
 
 	const removePointerEvents = () => {

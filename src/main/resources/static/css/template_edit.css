@@ -1,4 +1,5 @@
 /*
+ * template_edit.css
  * テンプレート編集画面のレイアウトと装飾を担当するCSS
  */
 
@@ -132,7 +133,9 @@
 	display: grid;
 	grid-template-columns: repeat(var(--column-count, 1), minmax(0, 1fr));
 	gap: 0;
-	min-height: 120px;
+	width: fit-content;
+	height: fit-content;
+	min-height: 0;
 	padding: 8px;
 	border: 1px solid #666;
 	overflow: visible;
