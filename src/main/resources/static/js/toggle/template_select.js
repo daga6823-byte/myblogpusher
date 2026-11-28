@@ -159,6 +159,7 @@ function renderTemplatePreview() {
 
 	// IMAGEセルの画像割り当て
 	const placeholders = preview.querySelectorAll(
+		"[data-template-image-cell]"
 	);
 
 	placeholders.forEach(placeholder => {
