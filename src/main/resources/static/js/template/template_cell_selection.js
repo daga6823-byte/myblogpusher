@@ -6,7 +6,10 @@
  * Ctrl / Commandクリックによる複数選択を管理する。
  */
 import { templateState } from "./template_state.js";
+
 import { restoreCellStyle } from "../facade/template_cell_style_facade.js";
+
+import { changeCellType } from "./template_cell_type.js";
 
 /**
  * 選択セルが属する行高・列幅をツールバーへ反映する。
@@ -69,6 +72,80 @@ function restoreSelectedCellSize(cell) {
 }
 
 /**
+ * 選択セルの種類に応じて内容編集欄を表示する。
+ */
+function restoreSelectedCellContent(cell) {
+	const editor = document.getElementById("cellContentEditor");
+	const textEditor = document.getElementById("cellTextEditor");
+	const variableEditor = document.getElementById("cellVariableEditor");
+	const textInput = document.getElementById("cellTextContent");
+	const variableInput = document.getElementById("cellVariableName");
+
+	if (!editor || !textEditor || !variableEditor) {
+		return;
+	}
+
+	editor.hidden = true;
+	textEditor.hidden = true;
+	variableEditor.hidden = true;
+
+	if (!cell) {
+		return;
+	}
+
+	if (cell.dataset.cellType === "TEXT") {
+		textEditor.hidden = false;
+		editor.hidden = false;
+
+		textInput.value =
+			cell.dataset.cellContent ?? cell.textContent;
+
+	} else if (cell.dataset.cellType === "VARIABLE") {
+		variableEditor.hidden = false;
+		editor.hidden = false;
+
+		variableInput.value =
+			cell.dataset.variableName
+			?? cell.textContent.replace(/^\{\{|\}\}$/g, "");
+	}
+}
+
+/**
+ * 編集欄の更新ボタンを登録する。
+ */
+document.addEventListener("DOMContentLoaded", () => {
+	document.getElementById("updateCellContentButton")
+		?.addEventListener("click", () => {
+			const cell = templateState.selectedCell;
+
+			if (!cell) {
+				alert("編集するセルを選択してください。");
+				return;
+			}
+
+			if (cell.dataset.cellType === "TEXT") {
+				changeCellType("TEXT", {
+					cellContent:
+						document.getElementById("cellTextContent").value
+				});
+
+			} else if (cell.dataset.cellType === "VARIABLE") {
+				const variableName =
+					document.getElementById("cellVariableName").value;
+
+				if (!/^[a-zA-Z][a-zA-Z0-9_]*$/.test(variableName)) {
+					alert("変数名は半角英数字とアンダースコアで指定してください。");
+					return;
+				}
+
+				changeCellType("VARIABLE", {
+					variableName
+				});
+			}
+		});
+});
+
+/**
  * セル選択を切り替える。
  *
  * @param {HTMLElement} cell 選択対象セル
@@ -119,4 +196,7 @@ export function selectCell(cell, event = null) {
 
 	// 選択セルが属する行高・列幅をツールバーへ反映する。
 	restoreSelectedCellSize(templateState.selectedCell);
+
+	// 選択セルの種類と内容を編集欄へ反映する。
+	restoreSelectedCellContent(templateState.selectedCell);
 }

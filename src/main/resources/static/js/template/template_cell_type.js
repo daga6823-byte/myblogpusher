@@ -157,7 +157,7 @@ export async function changeCellType(cellType, values = {}) {
 }
 
 /**
- * 固定テキストセルを設定する。
+ * 固定テキストセルの編集欄を表示する。
  */
 function setTextCell() {
 	if (!templateState.selectedCell) {
@@ -167,26 +167,25 @@ function setTextCell() {
 
 	const cell = templateState.selectedCell;
 
+	const editor = document.getElementById("cellContentEditor");
+	const textEditor = document.getElementById("cellTextEditor");
+	const variableEditor = document.getElementById("cellVariableEditor");
+	const textInput = document.getElementById("cellTextContent");
+
 	const currentContent =
-		cell.dataset.cellContent
-		?? cell.textContent;
+		cell.dataset.cellType === "TEXT"
+			? cell.dataset.cellContent ?? cell.textContent
+			: "";
 
-	const content = prompt(
-		"セルに表示するテキストを入力してください。",
-		currentContent
-	);
+	editor.hidden = false;
+	textEditor.hidden = false;
+	variableEditor.hidden = true;
 
-	if (content === null) {
-		return;
-	}
-
-	changeCellType("TEXT", {
-		cellContent: content
-	});
+	textInput.value = currentContent;
 }
 
 /**
- * 変数セルを設定する。
+ * 変数セルの編集欄を表示する。
  */
 function setVariableCell() {
 	if (!templateState.selectedCell) {
@@ -196,27 +195,22 @@ function setVariableCell() {
 
 	const cell = templateState.selectedCell;
 
+	const editor = document.getElementById("cellContentEditor");
+	const textEditor = document.getElementById("cellTextEditor");
+	const variableEditor = document.getElementById("cellVariableEditor");
+	const variableInput = document.getElementById("cellVariableName");
+
 	const currentVariableName =
-		cell.dataset.variableName
-		?? cell.textContent.replace(/^\{\{|\}\}$/g, "");
+		cell.dataset.cellType === "VARIABLE"
+			? cell.dataset.variableName
+			?? cell.textContent.replace(/^\{\{|\}\}$/g, "")
+			: "";
 
-	const variableName = prompt(
-		"変数名を入力してください。",
-		currentVariableName
-	);
+	editor.hidden = false;
+	textEditor.hidden = true;
+	variableEditor.hidden = false;
 
-	if (variableName === null) {
-		return;
-	}
-
-	if (!/^[a-zA-Z][a-zA-Z0-9_]*$/.test(variableName)) {
-		alert("変数名は半角英数字とアンダースコアで指定してください。");
-		return;
-	}
-
-	changeCellType("VARIABLE", {
-		variableName
-	});
+	variableInput.value = currentVariableName;
 }
 
 /**
@@ -230,13 +224,39 @@ function setEmptyCell() {
  * セル種類変更ボタンを登録する。
  */
 document.addEventListener("DOMContentLoaded", () => {
+	document.getElementById("updateCellContentButton")
+		?.addEventListener("click", async () => {
+			const cell = templateState.selectedCell;
 
-	document.getElementById("addTextCellButton")
-		?.addEventListener("click", setTextCell);
+			if (!cell) {
+				alert("編集するセルを選択してください。");
+				return;
+			}
 
-	document.getElementById("addVariableCellButton")
-		?.addEventListener("click", setVariableCell);
+			const textEditor =
+				document.getElementById("cellTextEditor");
 
-	document.getElementById("addEmptyCellButton")
-		?.addEventListener("click", setEmptyCell);
+			const variableEditor =
+				document.getElementById("cellVariableEditor");
+
+			if (!textEditor.hidden) {
+				await changeCellType("TEXT", {
+					cellContent:
+						document.getElementById("cellTextContent").value
+				});
+
+			} else if (!variableEditor.hidden) {
+				const variableName =
+					document.getElementById("cellVariableName").value;
+
+				if (!/^[a-zA-Z][a-zA-Z0-9_]*$/.test(variableName)) {
+					alert("変数名は半角英数字とアンダースコアで指定してください。");
+					return;
+				}
+
+				await changeCellType("VARIABLE", {
+					variableName
+				});
+			}
+		});
 });

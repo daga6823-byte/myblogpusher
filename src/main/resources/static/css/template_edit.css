@@ -296,3 +296,32 @@
 	cursor: row-resize;
 
 }
+
+/* セル内容編集欄 */
+
+#cellContentEditor[hidden],
+#cellTextEditor[hidden],
+#cellVariableEditor[hidden] {
+	display: none !important;
+}
+
+#cellContentEditor:not([hidden]) {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+#cellTextEditor,
+#cellVariableEditor {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+#cellTextContent,
+#cellVariableName {
+	min-width: 200px;
+	padding: 8px;
+	box-sizing: border-box;
+}
