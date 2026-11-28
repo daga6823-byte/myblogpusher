@@ -99,23 +99,11 @@ function createResizeHandle(type, index, edge = null) {
 		handle.style.top = "8px";
 		handle.style.bottom = "8px";
 
-		if (edge === "start") {
-			handle.style.left = "3px";
-		} else if (edge === "end") {
-			handle.style.right = "3px";
-		}
-
 	} else {
 
 		handle.style.height = "10px";
 		handle.style.left = "8px";
 		handle.style.right = "8px";
-
-		if (edge === "start") {
-			handle.style.top = "3px";
-		} else if (edge === "end") {
-			handle.style.bottom = "3px";
-		}
 
 	}
 
@@ -132,7 +120,7 @@ function createResizeHandle(type, index, edge = null) {
  * サイズ変更ハンドルの位置を更新する。
  *
  * 内部ハンドルはトラック間の境界に配置し、
- * 外周ハンドルはグリッドの四辺に配置する。
+ * 外周ハンドルは最初・最後のトラックの境界に配置する。
  */
 export function updateGridResizeHandlePositions() {
 
@@ -143,10 +131,15 @@ export function updateGridResizeHandlePositions() {
 	}
 
 	const sizes = getGridTrackSizes();
+	const style = getComputedStyle(grid);
 
-	const handles = grid.querySelectorAll(
-		".template-resize-handle"
-	);
+	const borderLeft = parseFloat(style.borderLeftWidth) || 0;
+	const borderTop = parseFloat(style.borderTopWidth) || 0;
+
+	const columnStart = sizes.paddingLeft + borderLeft;
+	const rowStart = sizes.paddingTop + borderTop;
+
+	const handles = grid.querySelectorAll(".template-resize-handle");
 
 	handles.forEach(handle => {
 
@@ -156,51 +149,52 @@ export function updateGridResizeHandlePositions() {
 
 		if (type === "column") {
 
+			let position;
+
 			if (edge === "start") {
-				handle.style.left = "3px";
-				handle.style.right = "";
-				return;
-			}
 
-			if (edge === "end") {
-				handle.style.left = "";
-				handle.style.right = "3px";
-				return;
-			}
+				position = columnStart;
 
-			const position = sizes.columns
-				.slice(0, index + 1)
-				.reduce((total, value) => total + value, 0)
-				+ sizes.columnGap * index
-				+ sizes.paddingLeft
-				+ (parseFloat(getComputedStyle(grid).borderLeftWidth) || 0)
-				+ sizes.columnGap / 2;
+			} else {
+
+				position = sizes.columns
+					.slice(0, index + 1)
+					.reduce((total, value) => total + value, 0)
+					+ sizes.columnGap * index
+					+ columnStart;
+
+				if (!edge) {
+					position += sizes.columnGap / 2;
+				}
+			}
 
 			handle.style.left = `${position - 5}px`;
+			handle.style.right = "";
 
 		} else {
 
+			let position;
+
 			if (edge === "start") {
-				handle.style.top = "3px";
-				handle.style.bottom = "";
-				return;
-			}
 
-			if (edge === "end") {
-				handle.style.top = "";
-				handle.style.bottom = "3px";
-				return;
-			}
+				position = rowStart;
 
-			const position = sizes.rows
-				.slice(0, index + 1)
-				.reduce((total, value) => total + value, 0)
-				+ sizes.rowGap * index
-				+ sizes.paddingTop
-				+ (parseFloat(getComputedStyle(grid).borderTopWidth) || 0)
-				+ sizes.rowGap / 2;
+			} else {
+
+				position = sizes.rows
+					.slice(0, index + 1)
+					.reduce((total, value) => total + value, 0)
+					+ sizes.rowGap * index
+					+ rowStart;
+
+				if (!edge) {
+					position += sizes.rowGap / 2;
+				}
+			}
 
 			handle.style.top = `${position - 5}px`;
+			handle.style.bottom = "";
+
 		}
 	});
 }

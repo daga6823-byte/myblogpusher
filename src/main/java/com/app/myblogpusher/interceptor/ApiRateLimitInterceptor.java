@@ -45,7 +45,8 @@ public class ApiRateLimitInterceptor implements HandlerInterceptor {
 			"/health",
 			"/article/link/articles",
 			"/article/link/categories",
-			"/template/api/layout/cell/save");
+			"/template/api/layout/cell/save",
+			"/template/api/save");
 
 	/**
 	 * エラー記録サービス
