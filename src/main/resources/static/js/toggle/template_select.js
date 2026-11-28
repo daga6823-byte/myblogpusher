@@ -7,7 +7,7 @@
  */
 
 import { openImageSelector } from "../image/image_gallery.js";
-import { createCellFromData } from "../template/grid/template_grid_cell_render.js";
+import { restoreGrid } from "../facade/template_grid_facade.js";
 
 let selectedTemplate = null;
 let selectedTemplateSettings = null;
@@ -268,7 +268,11 @@ async function selectTemplate(template) {
 		selectedTemplateSettings =
 			await fetchArticleTemplateSettings(template.templateId);
 
-		renderTemplatePreview(result, selectedTemplateSettings);
+		renderTemplatePreview(
+			result,
+			selectedTemplateSettings,
+			template.backgroundColor
+		);
 
 		const preview = document.getElementById("templatePreview")
 			.querySelector(".template-preview-grid");
@@ -304,7 +308,7 @@ async function selectTemplate(template) {
 /**
  * 選択テンプレートをプレビュー表示する。
  */
-function renderTemplatePreview(result, settings) {
+function renderTemplatePreview(result, settings, masterBackgroundColor) {
 	const previewArea = document.getElementById("templatePreviewArea");
 	const preview = document.getElementById("templatePreview");
 	const assignments = document.getElementById("templateImageAssignments");
@@ -327,75 +331,21 @@ function renderTemplatePreview(result, settings) {
 		throw new Error("テンプレートの行・列情報がありません。");
 	}
 
+	// 編集画面と同じ復元処理を使い、プレビュー用グリッドを生成する。
+	// 選択画面ではセル選択イベントやサイズ変更ハンドルは生成しない。
 	const templateElement = document.createElement("div");
 
 	templateElement.className = "template-grid template-preview-grid";
-	templateElement.style.setProperty("--column-count", columns.length);
 	templateElement.style.display = "grid";
 	templateElement.style.width = "fit-content";
-
-	templateElement.style.gridTemplateColumns = columns.map(column => {
-		const width = column.width ?? 1;
-		const unit = column.widthUnit ?? "fr";
-
-		return unit === "px"
-			? `${width * 5}px`
-			: `${width}${unit}`;
-	}).join(" ");
-
-	templateElement.style.gridTemplateRows = rows.map(row => {
-		const height = row.height ?? "auto";
-		const unit = row.heightUnit ?? "auto";
-
-		if (unit === "auto") {
-			return "auto";
-		}
-
-		return unit === "px"
-			? `${height * 5}px`
-			: `${height}${unit}`;
-	}).join(" ");
-
 	templateElement.style.position = "relative";
 
-	const occupied = new Set();
-
-	cells.forEach(cellData => {
-		const row = cellData.rowNumber - 1;
-		const column = cellData.columnNumber - 1;
-		const rowSpan = cellData.rowSpan ?? 1;
-		const columnSpan = cellData.columnSpan ?? 1;
-
-		for (let r = row; r < row + rowSpan; r++) {
-			for (let c = column; c < column + columnSpan; c++) {
-				occupied.add(`${r}:${c}`);
-			}
-		}
-
-		const cell = createCellFromData(cellData, false);
-
-		templateElement.appendChild(cell);
+	restoreGrid({
+		grid: templateElement,
+		rows,
+		columns,
+		cells
 	});
-
-	for (let row = 0; row < rows.length; row++) {
-		for (let column = 0; column < columns.length; column++) {
-			if (occupied.has(`${row}:${column}`)) {
-				continue;
-			}
-
-			const cell = document.createElement("div");
-
-			cell.className = "template-cell empty";
-			cell.dataset.row = row;
-			cell.dataset.column = column;
-			cell.dataset.cellType = "EMPTY";
-			cell.style.gridRow = `${row + 1}`;
-			cell.style.gridColumn = `${column + 1}`;
-			cell.textContent = "空白";
-
-			templateElement.appendChild(cell);
-		}
-	}
 
 	preview.appendChild(templateElement);
 
@@ -411,10 +361,12 @@ function renderTemplatePreview(result, settings) {
 		settings
 	);
 
+	// 	// マスター背景色を初期値として、記事側の設定があればそちらを優先する。
 	renderBackgroundColorSelector(
 		templateElement,
 		assignments,
-		settings
+		settings,
+		masterBackgroundColor
 	);
 
 	renderImageAssignments(
@@ -479,9 +431,17 @@ function renderBackgroundImageSelector(preview, assignments, settings) {
 }
 
 /**
- * 背景色の選択欄を生成する。
+ * 記事用テンプレートの背景色設定UIを生成する。
+ *
+ * テンプレート編集画面と同じ背景色・透過率の同期処理を使用する。
+ * 記事側の保存値を優先し、未設定の場合はマスターの背景色を初期値にする。
  */
-function renderBackgroundColorSelector(preview, assignments, settings) {
+function renderBackgroundColorSelector(
+	preview,
+	assignments,
+	settings,
+	masterBackgroundColor
+) {
 	const wrapper = document.createElement("div");
 	wrapper.className = "template-background-color-assignment";
 
@@ -490,72 +450,124 @@ function renderBackgroundColorSelector(preview, assignments, settings) {
 
 	const enabled = document.createElement("input");
 	enabled.type = "checkbox";
-	enabled.checked = !!settings?.backgroundColor;
 
 	const colorInput = document.createElement("input");
 	colorInput.type = "color";
-	colorInput.value = settings?.backgroundColor || "#ffffff";
-	colorInput.disabled = !enabled.checked;
 
-	if (enabled.checked) {
-		preview.style.backgroundColor = settings.backgroundColor;
+	const opacityInput = document.createElement("input");
+	opacityInput.type = "range";
+	opacityInput.min = "0";
+	opacityInput.max = "100";
+	opacityInput.step = "1";
+
+	const opacityValue = document.createElement("output");
+
+	const hiddenInput = document.createElement("input");
+	hiddenInput.type = "hidden";
+
+	// 記事側の保存値がある場合だけ有効にする。
+	// マスター背景色は初期表示に使用するだけで、記事側には保存しない。
+	const hasArticleBackgroundColor = !!settings?.backgroundColor;
+
+	const savedColor = settings?.backgroundColor
+		|| masterBackgroundColor
+		|| "#FFFFFF00";
+
+	enabled.checked = hasArticleBackgroundColor;
+
+	/**
+	 * 背景色と透過率の入力値を同期する。
+	 *
+	 * テンプレート編集画面と同じ8桁HEX形式で保持する。
+	 */
+	function updateBackgroundColor() {
+		const color = colorInput.value;
+		const transparency = Number(opacityInput.value);
+
+		const alpha = Math.round(
+			(100 - transparency) * 255 / 100
+		);
+
+		const alphaHex = alpha
+			.toString(16)
+			.padStart(2, "0")
+			.toUpperCase();
+
+		hiddenInput.value = color.toUpperCase() + alphaHex;
+		opacityValue.textContent = `${transparency}%`;
+
+		preview.dataset.backgroundColorEnabled =
+			String(enabled.checked);
+
+		preview.dataset.backgroundColor = hiddenInput.value;
+
+		preview.style.backgroundColor = enabled.checked
+			? hiddenInput.value
+			: "";
 	}
+
+	// 保存済みの8桁HEX形式の背景色を入力欄へ反映する。
+	if (/^#[0-9A-Fa-f]{8}$/.test(savedColor)) {
+		colorInput.value = savedColor.substring(0, 7);
+
+		const alpha = parseInt(savedColor.substring(7, 9), 16);
+
+		opacityInput.value = Math.round(
+			(255 - alpha) * 100 / 255
+		);
+	} else {
+		colorInput.value = "#FFFFFF";
+		opacityInput.value = 100;
+	}
+
+	// マスター背景色は初期表示に反映するが、記事側の設定としては有効にしない。
+	colorInput.disabled = !enabled.checked;
+	opacityInput.disabled = !enabled.checked;
+
+	preview.dataset.backgroundColorEnabled = String(enabled.checked);
+	preview.dataset.backgroundColor = savedColor;
+	preview.style.backgroundColor = savedColor;
+
+	// 色・透過率の変更を同期する。
+	colorInput.addEventListener("input", updateBackgroundColor);
+	opacityInput.addEventListener("input", updateBackgroundColor);
 
 	enabled.addEventListener("change", () => {
 		colorInput.disabled = !enabled.checked;
+		opacityInput.disabled = !enabled.checked;
 
-		preview.style.backgroundColor = enabled.checked
-			? colorInput.value
-			: "";
-	});
-
-	colorInput.addEventListener("input", () => {
-		if (enabled.checked) {
-			preview.style.backgroundColor = colorInput.value;
-		}
+		updateBackgroundColor();
 	});
 
 	label.prepend(enabled);
 
 	wrapper.appendChild(label);
 	wrapper.appendChild(colorInput);
+	wrapper.appendChild(opacityInput);
+	wrapper.appendChild(opacityValue);
+	wrapper.appendChild(hiddenInput);
 
 	assignments.appendChild(wrapper);
 
-	preview.dataset.backgroundColorEnabled = String(enabled.checked);
-	preview.dataset.backgroundColor = colorInput.value;
-
-	enabled.addEventListener("change", () => {
-		preview.dataset.backgroundColorEnabled = String(enabled.checked);
-	});
-
-	colorInput.addEventListener("input", () => {
-		preview.dataset.backgroundColor = colorInput.value;
-	});
+	// 初期値も8桁HEX形式に同期する。
+	updateBackgroundColor();
 }
 
 /**
- * VARIABLEセルごとの入力欄を生成する。
+ * 記事用の変数入力欄を表示する。
  *
- * 同じ変数名のセルは1つの入力欄でまとめて編集する。
+ * テンプレート編集画面で作成済みの表示内容は変更せず、
+ * VARIABLEセルの表示文字だけを記事用の入力値に置き換える。
+ *
+ * 同じ変数名を持つセルは、ひとつの入力欄でまとめて更新する。
+ * マスターテンプレートのHTML・CSSやセル構造は再生成しない。
  */
 function renderVariableInputs(preview, variableInputs, savedCells) {
 	const variableElements = preview.querySelectorAll(
 		'[data-cell-type="VARIABLE"]'
 	);
 
-	if (variableElements.length === 0) {
-		return;
-	}
-
-	const savedCellMap = new Map(
-		savedCells.map(cell => [
-			String(cell.cellId),
-			cell
-		])
-	);
-
-	const variableGroups = new Map();
+	const variableMap = new Map();
 
 	variableElements.forEach(element => {
 		const variableName = element.dataset.variableName;
@@ -564,57 +576,44 @@ function renderVariableInputs(preview, variableInputs, savedCells) {
 			return;
 		}
 
-		if (!variableGroups.has(variableName)) {
-			variableGroups.set(variableName, []);
+		if (!variableMap.has(variableName)) {
+			variableMap.set(variableName, []);
 		}
 
-		variableGroups.get(variableName).push(element);
+		variableMap.get(variableName).push(element);
 	});
 
-	if (variableGroups.size === 0) {
-		return;
-	}
+	variableMap.forEach((elements, variableName) => {
+		const savedCell = savedCells?.find(
+			cell => cell.variableName === variableName
+		);
 
-	const heading = document.createElement("h3");
-	heading.textContent = "テンプレート変数の入力";
-
-	variableInputs.appendChild(heading);
-
-	variableGroups.forEach((elements, variableName) => {
-		const wrapper = document.createElement("div");
-		wrapper.className = "template-variable-input";
+		const savedValue = savedCell?.variableValue ?? "";
 
 		const label = document.createElement("label");
 		label.textContent = variableName;
 
 		const input = document.createElement("input");
-
 		input.type = "text";
 		input.name = "templateVariable_" + variableName;
 		input.placeholder = `「${variableName}」の値を入力`;
-
-		const savedValue = elements
-			.map(element => savedCellMap.get(String(element.dataset.cellId)))
-			.find(cell => cell?.variableValue != null)?.variableValue ?? "";
-
 		input.value = savedValue;
 
-		elements.forEach(element => {
-			element.dataset.articleVariableValue = savedValue;
-			element.textContent = savedValue;
+		const updateDisplay = value => {
+			elements.forEach(element => {
+				element.dataset.articleVariableValue = value;
+				element.textContent = value;
+			});
+		};
+
+		updateDisplay(savedValue);
+
+		input.addEventListener("input", () => {
+			updateDisplay(input.value);
 		});
 
 		label.appendChild(input);
-		wrapper.appendChild(label);
-
-		input.addEventListener("input", () => {
-			elements.forEach(element => {
-				element.dataset.articleVariableValue = input.value;
-				element.textContent = input.value;
-			});
-		});
-
-		variableInputs.appendChild(wrapper);
+		variableInputs.appendChild(label);
 	});
 }
 
