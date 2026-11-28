@@ -86,18 +86,14 @@ function createResizeHandle(type, index) {
 	if (type === "column") {
 
 		handle.style.width = "10px";
-
-		handle.style.top = "0";
-
-		handle.style.bottom = "0";
+		handle.style.top = "8px";
+		handle.style.bottom = "8px";
 
 	} else {
 
 		handle.style.height = "10px";
-
-		handle.style.left = "0";
-
-		handle.style.right = "0";
+		handle.style.left = "8px";
+		handle.style.right = "8px";
 
 	}
 
