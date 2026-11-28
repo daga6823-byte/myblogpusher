@@ -37,6 +37,130 @@ function setImageCell() {
 }
 
 /**
+ * 背景画像をドラッグで移動する。
+ *
+ * セル上からもドラッグできる。
+ * リサイズハンドル上ではドラッグしない。
+ */
+function enableBackgroundDrag(grid) {
+
+	if (grid.dataset.backgroundDragEnabled === "true") {
+		return;
+	}
+
+	grid.dataset.backgroundDragEnabled = "true";
+
+	let dragging = false;
+	let moved = false;
+	let startX = 0;
+	let startY = 0;
+	let backgroundX = 0;
+	let backgroundY = 0;
+	let pointerId = null;
+	let suppressNextClick = false;
+
+	grid.addEventListener("pointerdown", event => {
+
+		if (!grid.dataset.previewBackgroundImageUrl) {
+			return;
+		}
+
+		if (event.button !== 0) {
+			return;
+		}
+
+		// リサイズハンドル上では操作しない。
+		if (event.target.closest(".template-resize-handle")) {
+			return;
+		}
+
+		const position = getComputedStyle(grid)
+			.backgroundPosition.split(" ");
+
+		backgroundX = parseFloat(position[0]) || 0;
+		backgroundY = parseFloat(position[1]) || 0;
+
+		startX = event.clientX;
+		startY = event.clientY;
+
+		pointerId = event.pointerId;
+		dragging = true;
+		moved = false;
+
+		grid.setPointerCapture(pointerId);
+		grid.style.cursor = "grabbing";
+
+		event.preventDefault();
+
+	});
+
+	grid.addEventListener("pointermove", event => {
+
+		if (!dragging || event.pointerId !== pointerId) {
+			return;
+		}
+
+		const moveX = event.clientX - startX;
+		const moveY = event.clientY - startY;
+
+		if (Math.abs(moveX) > 3 || Math.abs(moveY) > 3) {
+			moved = true;
+		}
+
+		if (!moved) {
+			return;
+		}
+
+		grid.style.backgroundPosition =
+			`${backgroundX + moveX}px ${backgroundY + moveY}px`;
+
+	});
+
+	const stopDragging = event => {
+
+		if (!dragging || event.pointerId !== pointerId) {
+			return;
+		}
+
+		dragging = false;
+		pointerId = null;
+
+		grid.style.cursor = "grab";
+
+		if (moved) {
+			suppressNextClick = true;
+		}
+
+	};
+
+	grid.addEventListener("pointerup", stopDragging);
+	grid.addEventListener("pointercancel", stopDragging);
+
+	grid.addEventListener("lostpointercapture", () => {
+
+		dragging = false;
+		pointerId = null;
+		grid.style.cursor = "grab";
+
+	});
+
+	// ドラッグ後に発生するセル選択クリックを抑制する。
+	grid.addEventListener("click", event => {
+
+		if (!suppressNextClick) {
+			return;
+		}
+
+		suppressNextClick = false;
+
+		event.preventDefault();
+		event.stopPropagation();
+		event.stopImmediatePropagation();
+
+	}, true);
+}
+
+/**
  * 背景画像を選択してプレビューに反映する。
  */
 function selectBackgroundImage() {
@@ -59,7 +183,8 @@ function selectBackgroundImage() {
 
 			grid.style.backgroundImage = `url("${image.url}")`;
 			grid.style.backgroundSize = "auto";
-			grid.style.backgroundPosition = "top center";
+			grid.style.backgroundPosition = "0px 0px";
+			grid.style.cursor = "grab";
 			grid.style.backgroundRepeat = "no-repeat";
 
 			if (grid.dataset.originalMinHeight === undefined) {
@@ -86,6 +211,88 @@ function selectBackgroundImage() {
 		background.src = image.url;
 
 	});
+
+	/**
+ * 背景画像をドラッグで移動する。
+ *
+ * セルやリサイズハンドルの操作とは競合させない。
+ */
+	function enableBackgroundDrag() {
+
+		const grid = templateState.grid;
+
+		if (!grid) {
+			return;
+		}
+
+		let dragging = false;
+		let startX = 0;
+		let startY = 0;
+		let backgroundX = 0;
+		let backgroundY = 0;
+
+		grid.addEventListener("pointerdown", event => {
+
+			if (!grid.dataset.previewBackgroundImageUrl) {
+				return;
+			}
+
+			// セルやリサイズハンドル上ではドラッグしない。
+			if (event.target !== grid) {
+				return;
+			}
+
+			if (event.button !== 0) {
+				return;
+			}
+
+			const position = getComputedStyle(grid).backgroundPosition
+				.split(" ");
+
+			backgroundX = parseFloat(position[0]) || 0;
+			backgroundY = parseFloat(position[1]) || 0;
+
+			startX = event.clientX;
+			startY = event.clientY;
+
+			dragging = true;
+
+			grid.setPointerCapture(event.pointerId);
+			grid.style.cursor = "grabbing";
+
+			event.preventDefault();
+
+		});
+
+		grid.addEventListener("pointermove", event => {
+
+			if (!dragging) {
+				return;
+			}
+
+			const moveX = event.clientX - startX;
+			const moveY = event.clientY - startY;
+
+			grid.style.backgroundPosition =
+				`${backgroundX + moveX}px ${backgroundY + moveY}px`;
+
+		});
+
+		const stopDragging = () => {
+
+			if (!dragging) {
+				return;
+			}
+
+			dragging = false;
+			grid.style.cursor = "grab";
+
+		};
+
+		grid.addEventListener("pointerup", stopDragging);
+		grid.addEventListener("pointercancel", stopDragging);
+		grid.addEventListener("lostpointercapture", stopDragging);
+	}
 
 }
 /**
@@ -131,6 +338,8 @@ function clearBackgroundImage() {
 	}
 
 	grid.style.backgroundImage = "none";
+	grid.style.backgroundPosition = "0px 0px";
+	grid.style.cursor = "";
 
 	delete grid.dataset.previewBackgroundImageId;
 	delete grid.dataset.previewBackgroundImageUrl;
@@ -155,4 +364,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 	document.getElementById("clearBackgroundImageButton")
 		?.addEventListener("click", clearBackgroundImage);
+
+	enableBackgroundDrag();
+
 });
