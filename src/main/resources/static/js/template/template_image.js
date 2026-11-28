@@ -12,6 +12,10 @@ import { changeCellType } from "../facade/template_cell_facade.js";
 import { openImageSelector } from "../image/image_gallery.js";
 import { templateState } from "./template_state.js";
 
+// 背景画像のプレビュー表示倍率。
+// DBには保存せず、編集画面の表示にだけ適用する。
+const PREVIEW_SCALE = 5;
+
 /**
  * 画像配置用のセルを設定する。
  */
@@ -163,7 +167,8 @@ function selectBackgroundImage() {
 
 		background.onload = () => {
 			grid.style.backgroundImage = `url("${image.url}")`;
-			grid.style.backgroundSize = "auto";
+			grid.style.backgroundSize =
+				`${background.naturalWidth * PREVIEW_SCALE}px ${background.naturalHeight * PREVIEW_SCALE}px`;
 			grid.style.backgroundPosition = "0px 0px";
 			grid.style.cursor = "grab";
 			grid.style.backgroundRepeat = "no-repeat";
@@ -214,8 +219,11 @@ function adjustGridHeight(image) {
 		parseFloat(style.borderTopWidth)
 		+ parseFloat(style.borderBottomWidth);
 
+	const scaledImageHeight =
+		image.naturalHeight * PREVIEW_SCALE;
+
 	const requiredHeight =
-		image.naturalHeight + verticalPadding + verticalBorder;
+		scaledImageHeight + verticalPadding + verticalBorder;
 
 	grid.style.minHeight = `${requiredHeight}px`;
 }

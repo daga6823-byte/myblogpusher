@@ -173,19 +173,15 @@ export function startGridResize(event, onSizeChanged) {
 		applySizes();
 
 		try {
-
 			await saveGridTrackSizes(
 				type,
 				index,
-				newFirstSize,
-				newSecondSize
+				newFirstSize / 5,
+				newSecondSize / 5
 			);
-
 		} catch (error) {
-
 			restoreOriginalSize();
 			alert(error.message);
-
 		}
 
 	};

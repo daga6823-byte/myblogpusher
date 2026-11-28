@@ -42,10 +42,15 @@ export function restoreGrid() {
 		return;
 	}
 
+	const PREVIEW_SCALE = 5;
+
 	const columnWidths = columns.map(column => {
 		const width = column.width ?? 1;
 		const unit = column.widthUnit ?? "fr";
-		return `${width}${unit}`;
+
+		return unit === "px"
+			? `${width * PREVIEW_SCALE}px`
+			: `${width}${unit}`;
 	});
 
 	grid.style.gridTemplateColumns = columnWidths.join(" ");
@@ -53,7 +58,14 @@ export function restoreGrid() {
 	const rowHeights = rows.map(row => {
 		const height = row.height ?? "auto";
 		const unit = row.heightUnit ?? "auto";
-		return unit === "auto" ? "auto" : `${height}${unit}`;
+
+		if (unit === "auto") {
+			return "auto";
+		}
+
+		return unit === "px"
+			? `${height * PREVIEW_SCALE}px`
+			: `${height}${unit}`;
 	});
 
 	grid.style.gridTemplateRows = rowHeights.join(" ");

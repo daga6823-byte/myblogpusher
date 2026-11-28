@@ -83,22 +83,18 @@ export async function saveGridTrackSizes(
 	await callLayoutApi(endpoint, payload);
 
 	// DB保存成功後に画面復元用のデータを更新する。
-	if (isColumn) {
+	const PREVIEW_SCALE = 5;
 
+	if (isColumn) {
 		firstItem.width = firstSize;
 		firstItem.widthUnit = "px";
-
 		secondItem.width = secondSize;
 		secondItem.widthUnit = "px";
-
 	} else {
-
 		firstItem.height = firstSize;
 		firstItem.heightUnit = "px";
-
 		secondItem.height = secondSize;
 		secondItem.heightUnit = "px";
-
 	}
 
 	grid.dataset[dataKey] = JSON.stringify(items);

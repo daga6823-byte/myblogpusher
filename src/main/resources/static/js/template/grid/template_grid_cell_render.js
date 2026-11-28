@@ -9,6 +9,9 @@
 import { TEXT_ALIGN_TO_JUSTIFY } from "../template_color_utils.js";
 import { createCell } from "./template_grid_cell.js";
 
+// 編集画面のプレビュー表示倍率
+const PREVIEW_SCALE = 5;
+
 /**
  * セルの装飾をDBの値から設定する。
  */
@@ -33,18 +36,13 @@ function applyCellStyle(cell, cellData) {
 
 	// 文字の縁取りの太さ
 	if (cellData.textStrokeWidth != null) {
-
 		cell.style.webkitTextStrokeWidth =
-			`${cellData.textStrokeWidth}px`;
-
-		cell.style.paintOrder = "stroke fill";
-
+			`${cellData.textStrokeWidth * PREVIEW_SCALE}px`;
 	}
 
-	if (cellData.fontSize) {
-
-		cell.style.fontSize = `${cellData.fontSize}px`;
-
+	if (cellData.fontSize != null) {
+		cell.style.fontSize =
+			`${cellData.fontSize * PREVIEW_SCALE}px`;
 	}
 
 	if (cellData.fontWeight) {
@@ -67,7 +65,8 @@ function applyCellStyle(cell, cellData) {
 
 	if (cellData.padding != null) {
 		const unit = cellData.paddingUnit ?? "px";
-		cell.style.padding = `${cellData.padding}${unit}`;
+		cell.style.padding =
+			`${cellData.padding * PREVIEW_SCALE}${unit}`;
 	}
 }
 
@@ -97,7 +96,8 @@ function applyCellContent(cell, cellData) {
 				image.style.objectFit = "contain";
 
 				if (cellData.imageWidth) {
-					image.style.width = `${cellData.imageWidth}px`;
+					image.style.width =
+						`${cellData.imageWidth * PREVIEW_SCALE}px`;
 				}
 
 				cell.replaceChildren(image);
