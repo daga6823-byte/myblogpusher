@@ -69,17 +69,21 @@ export async function saveCellStyle(property, value) {
 		return;
 	}
 
-	if (value === undefined || value === "") {
-
+	if (
+		value === undefined ||
+		(value === "" && property !== "backgroundColor")
+	) {
 		return;
-
 	}
 
 	const params = {};
 
 	if (property === "fontSize" && value === null) {
 		params.clearFontSize = true;
-	} else if (property === "backgroundColor" && value === null) {
+	} else if (
+		property === "backgroundColor" &&
+		(value === null || value === "")
+	) {
 		params.backgroundColor = "";
 	} else {
 		params[property] = value;
