@@ -74,21 +74,23 @@ function applyCellStyle(cell, cellData) {
  * セル種別に応じた表示内容を設定する。
  */
 function applyCellContent(cell, cellData) {
-
 	switch (cellData.cellType) {
 		case "TEXT":
-			cell.textContent = cellData.cellContent ?? "";
+			cell.dataset.cellContent =
+				cellData.cellContent ?? "";
+			cell.textContent = cell.dataset.cellContent;
 			break;
 
 		case "VARIABLE":
+			cell.dataset.variableName =
+				cellData.variableName ?? "";
 			cell.textContent =
-				`{{${cellData.variableName ?? ""}}}`;
+				`{{${cell.dataset.variableName}}}`;
 			break;
 
 		case "IMAGE":
 			if (cellData.imageUrl) {
 				const image = document.createElement("img");
-
 				image.src = cellData.imageUrl;
 				image.alt = "テンプレート画像";
 				image.style.maxWidth = "100%";
@@ -97,7 +99,7 @@ function applyCellContent(cell, cellData) {
 
 				if (cellData.imageWidth) {
 					image.style.width =
-						`${cellData.imageWidth * PREVIEW_SCALE}px`;
+						`${cellData.imageWidth}px`;
 				}
 
 				cell.replaceChildren(image);
@@ -107,9 +109,7 @@ function applyCellContent(cell, cellData) {
 			break;
 
 		case "EMPTY":
-
 			cell.textContent = "空白";
-
 			break;
 	}
 }
@@ -128,6 +128,15 @@ export function createCellFromData(cellData) {
 	cell.dataset.cellId = cellData.cellId;
 	cell.dataset.cellType = cellData.cellType;
 	cell.dataset.imageAssetId = cellData.imageAssetId ?? "";
+
+	// 既存セルの編集時に現在の内容を取得できるよう保持する。
+	if (cellData.cellType === "TEXT") {
+		cell.dataset.cellContent = cellData.cellContent ?? "";
+	}
+
+	if (cellData.cellType === "VARIABLE") {
+		cell.dataset.variableName = cellData.variableName ?? "";
+	}
 
 	cell.style.gridRow =
 		`${cellData.rowNumber} / span ${rowSpan}`;

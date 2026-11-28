@@ -16,11 +16,28 @@ function updateCellDisplay(
 	cellType,
 	content,
 	imageUrl = null,
-	imageWidth = null
+	imageWidth = null,
+	variableName = null
 ) {
 	cell.className = `template-cell ${cellType.toLowerCase()}`;
 	cell.dataset.cellType = cellType;
+
+	delete cell.dataset.cellContent;
+	delete cell.dataset.variableName;
+
 	cell.replaceChildren();
+
+	if (cellType === "TEXT") {
+		cell.dataset.cellContent = content ?? "";
+		cell.textContent = content ?? "";
+		return;
+	}
+
+	if (cellType === "VARIABLE") {
+		cell.dataset.variableName = variableName ?? "";
+		cell.textContent = `{{${variableName ?? ""}}}`;
+		return;
+	}
 
 	if (cellType === "IMAGE" && imageUrl) {
 		const image = document.createElement("img");
@@ -38,7 +55,7 @@ function updateCellDisplay(
 		return;
 	}
 
-	cell.textContent = content;
+	cell.textContent = content ?? "";
 }
 
 /**
@@ -143,13 +160,21 @@ export async function changeCellType(cellType, values = {}) {
  * 固定テキストセルを設定する。
  */
 function setTextCell() {
-
 	if (!templateState.selectedCell) {
 		alert("編集するセルを選択してください。");
 		return;
 	}
 
-	const content = prompt("セルに表示するテキストを入力してください。");
+	const cell = templateState.selectedCell;
+
+	const currentContent =
+		cell.dataset.cellContent
+		?? cell.textContent;
+
+	const content = prompt(
+		"セルに表示するテキストを入力してください。",
+		currentContent
+	);
 
 	if (content === null) {
 		return;
@@ -164,13 +189,21 @@ function setTextCell() {
  * 変数セルを設定する。
  */
 function setVariableCell() {
-
 	if (!templateState.selectedCell) {
 		alert("編集するセルを選択してください。");
 		return;
 	}
 
-	const variableName = prompt("変数名を入力してください。");
+	const cell = templateState.selectedCell;
+
+	const currentVariableName =
+		cell.dataset.variableName
+		?? cell.textContent.replace(/^\{\{|\}\}$/g, "");
+
+	const variableName = prompt(
+		"変数名を入力してください。",
+		currentVariableName
+	);
 
 	if (variableName === null) {
 		return;
