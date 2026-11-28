@@ -7,7 +7,6 @@
  * 記事の保存やGitHubへの投稿処理は担当しない。
  */
 package com.app.myblogpusher.service.Publish;
-
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -18,6 +17,8 @@ import com.app.myblogpusher.entity.UserRepositoryEntity;
 import com.app.myblogpusher.entity.Article.ArticleEntity;
 import com.app.myblogpusher.entity.Article.ArticleWorkEntity;
 import com.app.myblogpusher.util.SlugUtil;
+import com.vladsch.flexmark.html.HtmlRenderer;
+import com.vladsch.flexmark.parser.Parser;
 
 @Service
 public class PublishPreviewService {
@@ -67,9 +68,9 @@ public class PublishPreviewService {
 		String slug;
 
 		if (existingArticle != null && primarySlug != null && !primarySlug.isBlank()) {
-		    slug = primarySlug;
+			slug = primarySlug;
 		} else if (existingArticle != null && fallbackSlug != null && !fallbackSlug.isBlank()) {
-		    slug = fallbackSlug;
+			slug = fallbackSlug;
 		} else {
 			// 形態素解析結果から辞典変換済みのスラッグを生成する。
 			slug = slugUtil.generateSlugFromAnalysis(analysis);
@@ -79,7 +80,11 @@ public class PublishPreviewService {
 		PublishPreviewForm form = new PublishPreviewForm();
 		form.setArticleId(workId);
 		form.setArticleTitle(title);
+		// 投稿用Markdown本文は加工せず、そのまま保持する
 		form.setArticleContent(content);
+
+		// プレビュー表示用HTMLだけを生成する
+		form.setPreviewHtml(convertToPreviewHtml(content));
 		form.setCategoryId(categoryId);
 		form.setSlug(slug);
 
@@ -130,5 +135,27 @@ public class PublishPreviewService {
 		public List<SlugAnalysisDto> getAnalysis() {
 			return analysis;
 		}
+	}
+
+	/**
+	 * 投稿前確認画面用にMarkdown本文をHTMLへ変換する
+	 *
+	 * 投稿用の本文データには変更を加えない。
+	 */
+	private String convertToPreviewHtml(String content) {
+
+		if (content == null || content.isBlank()) {
+			return "";
+		}
+
+		// Hugo Front Matterをプレビュー対象から除外する
+		String body = content.replaceFirst(
+				"\\A\\+\\+\\+\\s*\\R[\\s\\S]*?\\R\\+\\+\\+\\s*(?:\\R|$)",
+				"");
+
+		Parser parser = Parser.builder().build();
+		HtmlRenderer renderer = HtmlRenderer.builder().build();
+
+		return renderer.render(parser.parse(body));
 	}
 }

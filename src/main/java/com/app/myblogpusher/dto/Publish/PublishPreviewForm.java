@@ -16,10 +16,16 @@ public class PublishPreviewForm {
 	private Long articleId;
 	private Long categoryId;
 	private String articleTitle;
+
+	/** 投稿用のMarkdown本文（変更せず保持する） */
 	private String articleContent;
+
+	/** 投稿前確認画面に表示するHTML */
+	private String previewHtml;
+
 	private String slug;
 	private String thumbnailUrl;
 	private String repoOwner;
 	private String repoName;
-	
+
 }

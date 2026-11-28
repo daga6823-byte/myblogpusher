@@ -150,7 +150,12 @@ function renderTemplatePreview(result) {
 
 	// テンプレート全体を囲む要素。
 	const templateElement = document.createElement("div");
-	templateElement.className = "template-preview-grid";
+	templateElement.className = "template-grid template-preview-grid";
+
+	templateElement.style.setProperty(
+		"--column-count",
+		columns.length
+	);
 
 	templateElement.style.display = "grid";
 	templateElement.style.width = "fit-content";
