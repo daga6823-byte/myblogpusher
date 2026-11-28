@@ -89,6 +89,29 @@
 
 }
 
+/* 文字位置ボタン */
+
+.template-editor-toolbar .text-align-button,
+.template-editor-toolbar .vertical-align-button {
+	background-color: #e0e0e0;
+	color: #333;
+	border: 1px solid #aaa;
+	min-width: 36px;
+	padding: 8px;
+}
+
+.template-editor-toolbar .text-align-button:hover,
+.template-editor-toolbar .vertical-align-button:hover {
+	background-color: #ccc;
+}
+
+.template-editor-toolbar .text-align-button[aria-pressed="true"],
+.template-editor-toolbar .vertical-align-button[aria-pressed="true"] {
+	background-color: #4285f4;
+	color: #fff;
+	border-color: #2b6fcf;
+}
+
 .template-editor-toolbar button:disabled,
 .template-editor-footer button:disabled {
 

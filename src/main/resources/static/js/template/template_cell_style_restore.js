@@ -10,6 +10,9 @@ import {
 	toHexColor
 } from "./template_color_utils.js";
 
+// プレビュー表示倍率。編集UIには元の設定値を表示する。
+const PREVIEW_SCALE = 5;
+
 /**
  * 選択セルの装飾値をツールバーへ反映する。
  *
@@ -51,9 +54,9 @@ export function restoreCellStyle(cell) {
 	}
 
 	// 文字の縁取りの太さ
-	const strokeWidth = parseFloat(
-		computedStyle.webkitTextStrokeWidth
-	);
+	const strokeWidth =
+		parseFloat(computedStyle.webkitTextStrokeWidth)
+		/ PREVIEW_SCALE;
 
 	const strokeWidthInput =
 		document.getElementById("cellTextStrokeWidth");
@@ -67,7 +70,7 @@ export function restoreCellStyle(cell) {
 	if (fontSizeInput) {
 		// セル自身に文字サイズが指定されていない場合は空欄にする。
 		fontSizeInput.value = cell.style.fontSize
-			? String(parseFloat(cell.style.fontSize))
+			? String(parseFloat(cell.style.fontSize) / PREVIEW_SCALE)
 			: "";
 	}
 
