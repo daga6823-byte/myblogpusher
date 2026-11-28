@@ -116,7 +116,7 @@ public class TemplateController {
 	 * @param session ログインセッション
 	 * @return テンプレート表示用データ
 	 */
-	@GetMapping("/api/{templateId}/data")
+	@GetMapping("/template/api/{templateId}/data")
 	@ResponseBody
 	public ResponseEntity<?> getTemplateData(
 			@PathVariable Long templateId,
