@@ -130,7 +130,7 @@
 .template-grid {
 	position: relative;
 	display: grid;
-	grid-template-columns: repeat(var(--column-count, 1), minmax(80px, 1fr));
+	grid-template-columns: repeat(var(--column-count, 1), minmax(0, 1fr));
 	gap: 0;
 	min-height: 120px;
 	padding: 8px;
@@ -161,7 +161,7 @@
 	position: relative;
 	z-index: 1;
 	min-width: 0;
-	min-height: 400px;
+	min-height: 0;
 	padding: 8px;
 	border: none;
 	border-right: 1px solid #666;
@@ -173,6 +173,7 @@
 	font-size: 50px;
 	font-weight: normal;
 	box-sizing: border-box;
+	overflow: hidden;
 }
 
 .template-cell.selected {
