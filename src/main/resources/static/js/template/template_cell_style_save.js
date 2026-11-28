@@ -84,7 +84,7 @@ export async function saveCellStyle(property, value) {
 		property === "backgroundColor" &&
 		(value === null || value === "")
 	) {
-		params.backgroundColor = "";
+		params.clearBackgroundColor = true;
 	} else {
 		params[property] = value;
 	}

@@ -42,9 +42,8 @@ function setImageCell() {
  * セル上からもドラッグできる。
  * リサイズハンドル上ではドラッグしない。
  */
-function enableBackgroundDrag(grid) {
-
-	if (grid.dataset.backgroundDragEnabled === "true") {
+function enableBackgroundDrag(grid = templateState.grid) {
+	if (!grid || grid.dataset.backgroundDragEnabled === "true") {
 		return;
 	}
 
@@ -60,7 +59,6 @@ function enableBackgroundDrag(grid) {
 	let suppressNextClick = false;
 
 	grid.addEventListener("pointerdown", event => {
-
 		if (!grid.dataset.previewBackgroundImageUrl) {
 			return;
 		}
@@ -69,7 +67,6 @@ function enableBackgroundDrag(grid) {
 			return;
 		}
 
-		// リサイズハンドル上では操作しない。
 		if (event.target.closest(".template-resize-handle")) {
 			return;
 		}
@@ -82,20 +79,15 @@ function enableBackgroundDrag(grid) {
 
 		startX = event.clientX;
 		startY = event.clientY;
-
 		pointerId = event.pointerId;
+
 		dragging = true;
 		moved = false;
 
 		grid.setPointerCapture(pointerId);
-		grid.style.cursor = "grabbing";
-
-		event.preventDefault();
-
 	});
 
 	grid.addEventListener("pointermove", event => {
-
 		if (!dragging || event.pointerId !== pointerId) {
 			return;
 		}
@@ -111,13 +103,13 @@ function enableBackgroundDrag(grid) {
 			return;
 		}
 
+		event.preventDefault();
+
 		grid.style.backgroundPosition =
 			`${backgroundX + moveX}px ${backgroundY + moveY}px`;
-
 	});
 
 	const stopDragging = event => {
-
 		if (!dragging || event.pointerId !== pointerId) {
 			return;
 		}
@@ -130,23 +122,19 @@ function enableBackgroundDrag(grid) {
 		if (moved) {
 			suppressNextClick = true;
 		}
-
 	};
 
 	grid.addEventListener("pointerup", stopDragging);
 	grid.addEventListener("pointercancel", stopDragging);
 
 	grid.addEventListener("lostpointercapture", () => {
-
 		dragging = false;
 		pointerId = null;
 		grid.style.cursor = "grab";
-
 	});
 
-	// ドラッグ後に発生するセル選択クリックを抑制する。
+	// 背景画像を動かした場合だけセル選択クリックを抑制する。
 	grid.addEventListener("click", event => {
-
 		if (!suppressNextClick) {
 			return;
 		}
@@ -156,7 +144,6 @@ function enableBackgroundDrag(grid) {
 		event.preventDefault();
 		event.stopPropagation();
 		event.stopImmediatePropagation();
-
 	}, true);
 }
 
@@ -164,33 +151,27 @@ function enableBackgroundDrag(grid) {
  * 背景画像を選択してプレビューに反映する。
  */
 function selectBackgroundImage() {
-
 	openImageSelector(image => {
-
 		const grid = templateState.grid;
 
 		if (!grid) {
-
 			alert("テンプレートのグリッドが見つかりません。");
-
 			return;
-
 		}
 
 		const background = new Image();
 
 		background.onload = () => {
-
 			grid.style.backgroundImage = `url("${image.url}")`;
 			grid.style.backgroundSize = "auto";
 			grid.style.backgroundPosition = "0px 0px";
 			grid.style.cursor = "grab";
 			grid.style.backgroundRepeat = "no-repeat";
 
+			enableBackgroundDrag(grid);
+
 			if (grid.dataset.originalMinHeight === undefined) {
-
 				grid.dataset.originalMinHeight = grid.style.minHeight;
-
 			}
 
 			// 画像のアスペクト比に合わせてグリッドの高さを調整する。
@@ -199,102 +180,16 @@ function selectBackgroundImage() {
 			// プレビュー専用情報。テンプレートマスターには保存しない。
 			grid.dataset.previewBackgroundImageId = image.imageId;
 			grid.dataset.previewBackgroundImageUrl = image.url;
-
 		};
 
 		background.onerror = () => {
-
 			alert("背景画像を読み込めませんでした。");
-
 		};
 
 		background.src = image.url;
-
 	});
-
-	/**
- * 背景画像をドラッグで移動する。
- *
- * セルやリサイズハンドルの操作とは競合させない。
- */
-	function enableBackgroundDrag() {
-
-		const grid = templateState.grid;
-
-		if (!grid) {
-			return;
-		}
-
-		let dragging = false;
-		let startX = 0;
-		let startY = 0;
-		let backgroundX = 0;
-		let backgroundY = 0;
-
-		grid.addEventListener("pointerdown", event => {
-
-			if (!grid.dataset.previewBackgroundImageUrl) {
-				return;
-			}
-
-			// セルやリサイズハンドル上ではドラッグしない。
-			if (event.target !== grid) {
-				return;
-			}
-
-			if (event.button !== 0) {
-				return;
-			}
-
-			const position = getComputedStyle(grid).backgroundPosition
-				.split(" ");
-
-			backgroundX = parseFloat(position[0]) || 0;
-			backgroundY = parseFloat(position[1]) || 0;
-
-			startX = event.clientX;
-			startY = event.clientY;
-
-			dragging = true;
-
-			grid.setPointerCapture(event.pointerId);
-			grid.style.cursor = "grabbing";
-
-			event.preventDefault();
-
-		});
-
-		grid.addEventListener("pointermove", event => {
-
-			if (!dragging) {
-				return;
-			}
-
-			const moveX = event.clientX - startX;
-			const moveY = event.clientY - startY;
-
-			grid.style.backgroundPosition =
-				`${backgroundX + moveX}px ${backgroundY + moveY}px`;
-
-		});
-
-		const stopDragging = () => {
-
-			if (!dragging) {
-				return;
-			}
-
-			dragging = false;
-			grid.style.cursor = "grab";
-
-		};
-
-		grid.addEventListener("pointerup", stopDragging);
-		grid.addEventListener("pointercancel", stopDragging);
-		grid.addEventListener("lostpointercapture", stopDragging);
-	}
-
 }
+
 /**
  * 背景画像の原寸に合わせてグリッドの高さを調整する。
  *
@@ -303,7 +198,6 @@ function selectBackgroundImage() {
  * @param {HTMLImageElement} image
  */
 function adjustGridHeight(image) {
-
 	const grid = templateState.grid;
 
 	if (!grid || !image.naturalWidth || !image.naturalHeight) {
@@ -330,7 +224,6 @@ function adjustGridHeight(image) {
  * 背景画像のプレビューを解除する。
  */
 function clearBackgroundImage() {
-
 	const grid = templateState.grid;
 
 	if (!grid) {
@@ -345,17 +238,12 @@ function clearBackgroundImage() {
 	delete grid.dataset.previewBackgroundImageUrl;
 
 	if (grid.dataset.originalMinHeight !== undefined) {
-
 		grid.style.minHeight = grid.dataset.originalMinHeight;
-
 		delete grid.dataset.originalMinHeight;
-
 	}
-
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-
 	document.getElementById("addImageCellButton")
 		?.addEventListener("click", setImageCell);
 
@@ -365,6 +253,5 @@ document.addEventListener("DOMContentLoaded", () => {
 	document.getElementById("clearBackgroundImageButton")
 		?.addEventListener("click", clearBackgroundImage);
 
-	enableBackgroundDrag();
-
+	enableBackgroundDrag(templateState.grid);
 });

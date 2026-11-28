@@ -306,6 +306,7 @@ public class TemplateLayoutApiController {
 			@RequestParam(required = false) BigDecimal imageHeight,
 			@RequestParam(required = false) String textColor,
 			@RequestParam(required = false) String backgroundColor,
+			@RequestParam(required = false, defaultValue = "false") boolean clearBackgroundColor,
 			@RequestParam(required = false) BigDecimal fontSize,
 			@RequestParam(required = false, defaultValue = "false") boolean clearFontSize,
 			@RequestParam(required = false) String fontWeight,
@@ -371,10 +372,11 @@ public class TemplateLayoutApiController {
 			cell.setTextColor(textColor);
 		}
 
-		// 背景色が空文字の場合は個別設定を解除する。
-		if (backgroundColor != null) {
-			cell.setBackgroundColor(
-					backgroundColor.isBlank() ? null : backgroundColor);
+		// 背景色の解除が指定された場合はNULLを保存する。
+		if (clearBackgroundColor) {
+		    cell.setBackgroundColor(null);
+		} else if (backgroundColor != null) {
+		    cell.setBackgroundColor(backgroundColor);
 		}
 
 		if (clearFontSize) {
