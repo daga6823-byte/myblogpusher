@@ -3,7 +3,7 @@
  *
  * 空セル要素の生成を担当する。
  */
-import { selectCell } from "../facade/template_cell_facade.js";
+import { selectCell } from "../../facade/template_cell_facade.js";
 
 /**
  * セル要素を生成する。
