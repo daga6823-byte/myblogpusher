@@ -105,8 +105,7 @@ function restoreSelectedCellContent(cell) {
 		editor.hidden = false;
 
 		variableInput.value =
-			cell.dataset.variableName
-			?? cell.textContent.replace(/^\{\{|\}\}$/g, "");
+			cell.textContent.replace(/^\{\{|\}\}$/g, "").trim();
 	}
 }
 
