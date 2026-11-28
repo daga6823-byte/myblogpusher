@@ -28,16 +28,36 @@ function applyCellStyle(cell, cellData) {
 	}
 
 	// 文字の縁取り色
-	if (cellData.textStrokeColor) {
+	// 後から装飾を変更するときに使う縁取り設定を保持する。
+	cell.dataset.textStrokeColor = cellData.textStrokeColor ?? "";
+	cell.dataset.textStrokeWidth = cellData.textStrokeWidth ?? "";
 
-		cell.style.webkitTextStrokeColor = cellData.textStrokeColor;
+	// 文字の塗り部分を維持し、背面に縁取りを描画する。
+	if (cellData.textStrokeColor
+		&& cellData.textStrokeWidth != null
+		&& cellData.textStrokeWidth > 0) {
 
-	}
+		const strokeWidth =
+			cellData.textStrokeWidth * PREVIEW_SCALE;
 
-	// 文字の縁取りの太さ
-	if (cellData.textStrokeWidth != null) {
-		cell.style.webkitTextStrokeWidth =
-			`${cellData.textStrokeWidth * PREVIEW_SCALE}px`;
+		const shadows = [];
+
+		for (let i = 0; i < 16; i++) {
+
+			const angle = (2 * Math.PI * i) / 16;
+
+			const offsetX =
+				(Math.cos(angle) * strokeWidth).toFixed(2);
+
+			const offsetY =
+				(Math.sin(angle) * strokeWidth).toFixed(2);
+
+			shadows.push(
+				`${offsetX}px ${offsetY}px 0 ${cellData.textStrokeColor}`
+			);
+		}
+
+		cell.style.textShadow = shadows.join(", ");
 	}
 
 	if (cellData.fontSize != null) {

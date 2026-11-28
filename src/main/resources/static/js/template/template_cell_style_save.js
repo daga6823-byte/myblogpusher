@@ -13,21 +13,28 @@ import { TEXT_ALIGN_TO_JUSTIFY } from "./template_color_utils.js";
  * 装飾項目の値をセルの見た目に反映する。
  */
 function applyStyleToCell(cell, property, value) {
+
+	if (property === "textStrokeColor") {
+		cell.dataset.textStrokeColor = value;
+	}
+
+	if (property === "textStrokeWidth") {
+		cell.dataset.textStrokeWidth = value;
+	}
+
 	switch (property) {
 		case "textColor":
 			cell.style.color = value;
 			break;
 		case "textStrokeColor":
-			cell.style.webkitTextStrokeColor = value;
-			cell.style.paintOrder = "stroke fill";
-			break;
 		case "textStrokeWidth":
-			cell.style.webkitTextStrokeWidth = `${value}px`;
-			cell.style.paintOrder = "stroke fill";
+			applyTextStrokeShadow(cell);
 			break;
+
 		case "backgroundColor":
 			cell.style.backgroundColor = value ?? "transparent";
 			break;
+
 		case "fontSize":
 
 			cell.style.fontSize = value === null
@@ -35,9 +42,11 @@ function applyStyleToCell(cell, property, value) {
 				: `${value}px`;
 
 			break;
+
 		case "fontWeight":
 			cell.style.fontWeight = value;
 			break;
+
 		case "textAlign":
 
 			cell.style.textAlign = value;
@@ -56,6 +65,36 @@ function applyStyleToCell(cell, property, value) {
 
 			break;
 	}
+}
+
+/**
+ * 文字本体を侵食しない縁取りをtext-shadowで描画する。
+ */
+function applyTextStrokeShadow(cell) {
+
+	const color = cell.dataset.textStrokeColor;
+	const width = Number(cell.dataset.textStrokeWidth);
+
+	if (!color || !Number.isFinite(width) || width <= 0) {
+		cell.style.textShadow = "";
+		return;
+	}
+
+	const shadows = [];
+
+	for (let i = 0; i < 16; i++) {
+
+		const angle = (2 * Math.PI * i) / 16;
+
+		const offsetX = (Math.cos(angle) * width).toFixed(2);
+		const offsetY = (Math.sin(angle) * width).toFixed(2);
+
+		shadows.push(
+			`${offsetX}px ${offsetY}px 0 ${color}`
+		);
+	}
+
+	cell.style.textShadow = shadows.join(", ");
 }
 
 /**

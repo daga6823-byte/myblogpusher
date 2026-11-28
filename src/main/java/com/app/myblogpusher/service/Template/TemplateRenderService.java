@@ -135,11 +135,11 @@ public class TemplateRenderService {
 
 			if ("TEXT".equals(cellType)) {
 
-			    html.append(escapeHtml(cell.getCellContent()));
+				html.append(escapeHtml(cell.getCellContent()));
 
 			} else if ("EMPTY".equals(cellType)) {
 
-			    // 空セルのため、HTMLには内容を出力しない。
+				// 空セルのため、HTMLには内容を出力しない。
 
 			} else if ("IMAGE".equals(cellType)) {
 
@@ -243,19 +243,7 @@ public class TemplateRenderService {
 			appendCssProperty(css, "text-align", cell.getTextAlign());
 
 			// 文字の縁取り
-			appendCssProperty(css, "-webkit-text-stroke-color",
-					cell.getTextStrokeColor());
-
-			if (cell.getTextStrokeWidth() != null
-					&& cell.getTextStrokeWidth().compareTo(BigDecimal.ZERO) > 0
-					&& cell.getTextStrokeWidth().compareTo(new BigDecimal("3.0")) <= 0) {
-
-				css.append("-webkit-text-stroke-width:")
-						.append(cell.getTextStrokeWidth().toPlainString())
-						.append("px;");
-
-				css.append("paint-order:stroke fill;");
-			}
+			appendTextStrokeShadow(css, cell);
 
 			if (cell.getFontSize() != null) {
 				css.append("font-size:")
@@ -423,5 +411,65 @@ public class TemplateRenderService {
 				.replace(">", "&gt;")
 				.replace("\"", "&quot;")
 				.replace("'", "&#39;");
+	}
+
+	/**
+	 * 文字本体を侵食しないよう、複数方向のtext-shadowで縁取りを描画する。
+	 *
+	 * text-shadowは文字本体の背面に描画されるため、
+	 * 文字色を維持したまま輪郭に縁取りを追加できる。
+	 */
+	private void appendTextStrokeShadow(
+			StringBuilder css,
+			TemplateCellEntity cell) {
+
+		BigDecimal width = cell.getTextStrokeWidth();
+		String color = cell.getTextStrokeColor();
+
+		if (width == null
+				|| width.compareTo(BigDecimal.ZERO) <= 0
+				|| width.compareTo(new BigDecimal("3.0")) > 0
+				|| color == null
+				|| color.isBlank()) {
+			return;
+		}
+
+		String safeColor = color.trim();
+
+		if (!safeColor.matches("[a-zA-Z0-9#(),.%\\s-]+")) {
+			return;
+		}
+
+		BigDecimal radius = width.stripTrailingZeros();
+
+		int directions = 16;
+		StringBuilder shadow = new StringBuilder();
+
+		for (int i = 0; i < directions; i++) {
+
+			double angle = (2.0 * Math.PI * i) / directions;
+
+			BigDecimal offsetX = BigDecimal.valueOf(Math.cos(angle))
+					.multiply(radius)
+					.setScale(2, java.math.RoundingMode.HALF_UP);
+
+			BigDecimal offsetY = BigDecimal.valueOf(Math.sin(angle))
+					.multiply(radius)
+					.setScale(2, java.math.RoundingMode.HALF_UP);
+
+			if (shadow.length() > 0) {
+				shadow.append(",");
+			}
+
+			shadow.append(offsetX.toPlainString())
+					.append("px ")
+					.append(offsetY.toPlainString())
+					.append("px 0 ")
+					.append(safeColor);
+		}
+
+		css.append("text-shadow:")
+				.append(shadow)
+				.append(";");
 	}
 }
