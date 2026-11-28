@@ -14,8 +14,8 @@ import { saveGridTrackSizes } from "./template_grid_resize_save.js";
 /**
  * サイズ変更を開始する。
  *
- * onSizeChanged は、サイズを画面に反映するたびに呼ぶ処理
- * (ハンドル位置の更新)を受け取る。
+ * 内部境界は隣接2トラックを調整し、
+ * 外周は対象トラックだけを調整する。
  */
 export function startGridResize(event, onSizeChanged) {
 
@@ -25,25 +25,51 @@ export function startGridResize(event, onSizeChanged) {
 	const handle = event.currentTarget;
 	const type = handle.dataset.resizeType;
 	const index = Number(handle.dataset.resizeIndex);
-	const grid = templateState.grid;
+	const edge = handle.dataset.resizeEdge || null;
 
+	const grid = templateState.grid;
 	const sizes = getGridTrackSizes();
 
 	const originalSizes = type === "column"
 		? [...sizes.columns]
 		: [...sizes.rows];
 
+	const isOuter = edge !== null;
+
 	if (
-		!Number.isInteger(index) ||
-		index < 0 ||
-		index >= originalSizes.length - 1
+		!Number.isInteger(index)
+		|| index < 0
+		|| index >= originalSizes.length
+	) {
+		return;
+	}
+
+	if (isOuter && originalSizes.length < 2) {
+		return;
+	}
+
+	if (!isOuter && index >= originalSizes.length - 1) {
+		return;
+	}
+
+	if (
+		isOuter
+		&& (
+			(edge === "start" && index !== 0)
+			|| (edge === "end" && index !== originalSizes.length - 1)
+		)
 	) {
 		return;
 	}
 
 	const originalFirstSize = originalSizes[index];
-	const originalSecondSize = originalSizes[index + 1];
-	const totalSize = originalFirstSize + originalSecondSize;
+	const originalSecondSize = isOuter
+		? null
+		: originalSizes[index + 1];
+
+	const totalSize = isOuter
+		? null
+		: originalFirstSize + originalSecondSize;
 
 	const startPosition = type === "column"
 		? event.clientX
@@ -55,13 +81,27 @@ export function startGridResize(event, onSizeChanged) {
 
 	let newFirstSize = originalFirstSize;
 	let newSecondSize = originalSecondSize;
+	let newOuterSize = originalFirstSize;
 
 	/**
-	 * 現在のドラッグ位置から隣接する2トラックのサイズを計算する。
+	 * ドラッグ位置からサイズを計算する。
 	 */
 	const calculateSizes = currentPosition => {
 
 		const difference = currentPosition - startPosition;
+
+		if (isOuter) {
+
+			// 左端・上端は逆方向、右端・下端は同方向に変化する。
+			const direction = edge === "start" ? -1 : 1;
+
+			newOuterSize = Math.max(
+				20,
+				originalFirstSize + difference * direction
+			);
+
+			return;
+		}
 
 		newFirstSize = Math.max(
 			20,
@@ -72,19 +112,21 @@ export function startGridResize(event, onSizeChanged) {
 		);
 
 		newSecondSize = totalSize - newFirstSize;
-
 	};
 
 	/**
-	 * ドラッグ中のサイズを画面に反映する。
-	 *
-	 * ドラッグ開始時の実サイズを基準にし、
-	 * 操作対象の隣接2トラックだけを変更する。
+	 * 現在のサイズをグリッドに反映する。
 	 */
 	const applySizes = () => {
 
 		const definitions = originalSizes.map(
 			(size, trackIndex) => {
+
+				if (isOuter) {
+					return trackIndex === index
+						? `${newOuterSize}px`
+						: `${size}px`;
+				}
 
 				if (trackIndex === index) {
 					return `${newFirstSize}px`;
@@ -95,43 +137,34 @@ export function startGridResize(event, onSizeChanged) {
 				}
 
 				return `${size}px`;
-
 			}
 		);
 
 		if (type === "column") {
-
 			grid.style.gridTemplateColumns = definitions.join(" ");
-
 		} else {
-
 			grid.style.gridTemplateRows = definitions.join(" ");
-
 		}
 
 		onSizeChanged();
-
 	};
 
 	/**
-	 * ドラッグ開始時の実サイズに戻す。
+	 * ドラッグ開始時のサイズに戻す。
 	 */
 	const restoreOriginalSize = () => {
 
-		const definitions = originalSizes.map(size => `${size}px`);
+		const definitions = originalSizes.map(
+			size => `${size}px`
+		);
 
 		if (type === "column") {
-
 			grid.style.gridTemplateColumns = definitions.join(" ");
-
 		} else {
-
 			grid.style.gridTemplateRows = definitions.join(" ");
-
 		}
 
 		onSizeChanged();
-
 	};
 
 	const removePointerEvents = () => {
@@ -139,7 +172,6 @@ export function startGridResize(event, onSizeChanged) {
 		handle.removeEventListener("pointermove", onPointerMove);
 		handle.removeEventListener("pointerup", onPointerUp);
 		handle.removeEventListener("pointercancel", onPointerCancel);
-
 	};
 
 	const onPointerMove = moveEvent => {
@@ -154,7 +186,6 @@ export function startGridResize(event, onSizeChanged) {
 
 		calculateSizes(currentPosition);
 		applySizes();
-
 	};
 
 	const onPointerUp = async upEvent => {
@@ -173,17 +204,44 @@ export function startGridResize(event, onSizeChanged) {
 		applySizes();
 
 		try {
-			await saveGridTrackSizes(
-				type,
-				index,
-				newFirstSize / 5,
-				newSecondSize / 5
-			);
+
+			if (isOuter) {
+
+				// 既存APIに渡す隣接2トラックの位置を決める。
+				const saveIndex = edge === "start"
+					? 0
+					: originalSizes.length - 2;
+
+				const firstSize = edge === "start"
+					? newOuterSize
+					: originalSizes[saveIndex];
+
+				const secondSize = edge === "start"
+					? originalSizes[1]
+					: newOuterSize;
+
+				await saveGridTrackSizes(
+					type,
+					saveIndex,
+					firstSize / 5,
+					secondSize / 5
+				);
+
+			} else {
+
+				await saveGridTrackSizes(
+					type,
+					index,
+					newFirstSize / 5,
+					newSecondSize / 5
+				);
+			}
+
 		} catch (error) {
+
 			restoreOriginalSize();
 			alert(error.message);
 		}
-
 	};
 
 	const onPointerCancel = cancelEvent => {
@@ -194,11 +252,9 @@ export function startGridResize(event, onSizeChanged) {
 
 		removePointerEvents();
 		restoreOriginalSize();
-
 	};
 
 	handle.addEventListener("pointermove", onPointerMove);
 	handle.addEventListener("pointerup", onPointerUp);
 	handle.addEventListener("pointercancel", onPointerCancel);
-
 }

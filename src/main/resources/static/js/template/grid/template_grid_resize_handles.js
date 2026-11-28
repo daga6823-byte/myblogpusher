@@ -28,25 +28,31 @@ export function createGridResizeHandles() {
 
 	const sizes = getGridTrackSizes();
 
+	// 列間のハンドル
 	sizes.columns.forEach((width, index) => {
-
 		if (index < sizes.columns.length - 1) {
-
 			createResizeHandle("column", index);
-
 		}
-
 	});
 
+	// 行間のハンドル
 	sizes.rows.forEach((height, index) => {
-
 		if (index < sizes.rows.length - 1) {
-
 			createResizeHandle("row", index);
-
 		}
-
 	});
+
+	// 左右の外周ハンドル
+	if (sizes.columns.length >= 2) {
+		createResizeHandle("column", 0, "start");
+		createResizeHandle("column", sizes.columns.length - 1, "end");
+	}
+
+	// 上下の外周ハンドル
+	if (sizes.rows.length >= 2) {
+		createResizeHandle("row", 0, "start");
+		createResizeHandle("row", sizes.rows.length - 1, "end");
+	}
 
 	updateGridResizeHandlePositions();
 
@@ -58,7 +64,7 @@ export function createGridResizeHandles() {
  * @param {"row"|"column"} type
  * @param {number} index
  */
-function createResizeHandle(type, index) {
+function createResizeHandle(type, index, edge = null) {
 
 	const grid = templateState.grid;
 
@@ -69,6 +75,10 @@ function createResizeHandle(type, index) {
 	handle.dataset.resizeType = type;
 
 	handle.dataset.resizeIndex = index;
+
+	if (edge) {
+		handle.dataset.resizeEdge = edge;
+	}
 
 	handle.style.position = "absolute";
 
@@ -89,11 +99,23 @@ function createResizeHandle(type, index) {
 		handle.style.top = "8px";
 		handle.style.bottom = "8px";
 
+		if (edge === "start") {
+			handle.style.left = "3px";
+		} else if (edge === "end") {
+			handle.style.right = "3px";
+		}
+
 	} else {
 
 		handle.style.height = "10px";
 		handle.style.left = "8px";
 		handle.style.right = "8px";
+
+		if (edge === "start") {
+			handle.style.top = "3px";
+		} else if (edge === "end") {
+			handle.style.bottom = "3px";
+		}
 
 	}
 
@@ -108,56 +130,77 @@ function createResizeHandle(type, index) {
 
 /**
  * サイズ変更ハンドルの位置を更新する。
+ *
+ * 内部ハンドルはトラック間の境界に配置し、
+ * 外周ハンドルはグリッドの四辺に配置する。
  */
 export function updateGridResizeHandlePositions() {
 
 	const grid = templateState.grid;
 
 	if (!grid || !grid.isConnected) {
-
 		return;
-
 	}
 
 	const sizes = getGridTrackSizes();
-	const style = getComputedStyle(grid);
 
-	const borderLeft = parseFloat(style.borderLeftWidth) || 0;
-	const borderTop = parseFloat(style.borderTopWidth) || 0;
-
-	const handles = grid.querySelectorAll(".template-resize-handle");
+	const handles = grid.querySelectorAll(
+		".template-resize-handle"
+	);
 
 	handles.forEach(handle => {
 
 		const type = handle.dataset.resizeType;
 		const index = Number(handle.dataset.resizeIndex);
+		const edge = handle.dataset.resizeEdge;
 
 		if (type === "column") {
+
+			if (edge === "start") {
+				handle.style.left = "3px";
+				handle.style.right = "";
+				return;
+			}
+
+			if (edge === "end") {
+				handle.style.left = "";
+				handle.style.right = "3px";
+				return;
+			}
 
 			const position = sizes.columns
 				.slice(0, index + 1)
 				.reduce((total, value) => total + value, 0)
 				+ sizes.columnGap * index
 				+ sizes.paddingLeft
-				+ borderLeft
+				+ (parseFloat(getComputedStyle(grid).borderLeftWidth) || 0)
 				+ sizes.columnGap / 2;
 
 			handle.style.left = `${position - 5}px`;
 
 		} else {
 
+			if (edge === "start") {
+				handle.style.top = "3px";
+				handle.style.bottom = "";
+				return;
+			}
+
+			if (edge === "end") {
+				handle.style.top = "";
+				handle.style.bottom = "3px";
+				return;
+			}
+
 			const position = sizes.rows
 				.slice(0, index + 1)
 				.reduce((total, value) => total + value, 0)
 				+ sizes.rowGap * index
 				+ sizes.paddingTop
-				+ borderTop
+				+ (parseFloat(getComputedStyle(grid).borderTopWidth) || 0)
 				+ sizes.rowGap / 2;
 
 			handle.style.top = `${position - 5}px`;
-
 		}
-
 	});
-
 }
