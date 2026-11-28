@@ -7,7 +7,7 @@
  */
 import { templateState } from "./template_state.js";
 import { callLayoutApi } from "./template_api.js";
-import { TEXT_ALIGN_TO_JUSTIFY } from "../template_color_utils.js";
+import { TEXT_ALIGN_TO_JUSTIFY } from "./template_color_utils.js";
 
 /**
  * 装飾項目の値をセルの見た目に反映する。

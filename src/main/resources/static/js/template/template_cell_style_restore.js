@@ -8,7 +8,7 @@ import {
 	TEXT_ALIGN_TO_JUSTIFY,
 	syncColorInputs,
 	toHexColor
-} from "../template_color_utils.js";
+} from "./template_color_utils.js";
 
 /**
  * 選択セルの装飾値をツールバーへ反映する。

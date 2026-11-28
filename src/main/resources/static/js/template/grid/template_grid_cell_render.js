@@ -6,7 +6,7 @@
  * 位置と結合範囲、装飾(色・縁取り・文字サイズ・配置・余白)、
  * セル種別ごとの表示内容(文字・変数・画像・空白)を設定する。
  */
-import { TEXT_ALIGN_TO_JUSTIFY } from "../template_color_utils.js";
+import { TEXT_ALIGN_TO_JUSTIFY } from "./template_color_utils.js";
 import { createCell } from "./template_grid_cell.js";
 
 /**
