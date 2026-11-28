@@ -41,12 +41,12 @@ function setImageCell() {
 }
 
 /**
- * 背景画像をドラッグで移動する。
+ * 背景画像の移動操作を登録する。
  *
- * セル上からもドラッグできる。
- * リサイズハンドル上ではドラッグしない。
+ * 通常時はセル操作を優先し、移動モード中だけ背景画像を動かす。
  */
 function enableBackgroundDrag(grid = templateState.grid) {
+
 	if (!grid || grid.dataset.backgroundDragEnabled === "true") {
 		return;
 	}
@@ -63,6 +63,11 @@ function enableBackgroundDrag(grid = templateState.grid) {
 	let suppressNextClick = false;
 
 	grid.addEventListener("pointerdown", event => {
+
+		if (grid.dataset.backgroundMoveMode !== "true") {
+			return;
+		}
+
 		if (!grid.dataset.previewBackgroundImageUrl) {
 			return;
 		}
@@ -92,6 +97,7 @@ function enableBackgroundDrag(grid = templateState.grid) {
 	});
 
 	grid.addEventListener("pointermove", event => {
+
 		if (!dragging || event.pointerId !== pointerId) {
 			return;
 		}
@@ -114,14 +120,13 @@ function enableBackgroundDrag(grid = templateState.grid) {
 	});
 
 	const stopDragging = event => {
+
 		if (!dragging || event.pointerId !== pointerId) {
 			return;
 		}
 
 		dragging = false;
 		pointerId = null;
-
-		grid.style.cursor = "grab";
 
 		if (moved) {
 			suppressNextClick = true;
@@ -134,11 +139,11 @@ function enableBackgroundDrag(grid = templateState.grid) {
 	grid.addEventListener("lostpointercapture", () => {
 		dragging = false;
 		pointerId = null;
-		grid.style.cursor = "grab";
 	});
 
 	// 背景画像を動かした場合だけセル選択クリックを抑制する。
 	grid.addEventListener("click", event => {
+
 		if (!suppressNextClick) {
 			return;
 		}
@@ -148,7 +153,90 @@ function enableBackgroundDrag(grid = templateState.grid) {
 		event.preventDefault();
 		event.stopPropagation();
 		event.stopImmediatePropagation();
+
 	}, true);
+
+	// キーボードによる背景画像移動。
+	document.addEventListener("keydown", event => {
+
+		if (grid.dataset.backgroundMoveMode !== "true") {
+			return;
+		}
+
+		if (!grid.dataset.previewBackgroundImageUrl) {
+			return;
+		}
+
+		const directions = {
+			ArrowLeft: [-1, 0],
+			ArrowRight: [1, 0],
+			ArrowUp: [0, -1],
+			ArrowDown: [0, 1]
+		};
+
+		const direction = directions[event.key];
+
+		if (!direction) {
+			return;
+		}
+
+		event.preventDefault();
+
+		const step = event.shiftKey ? 10 : 1;
+
+		const position = getComputedStyle(grid)
+			.backgroundPosition.split(" ");
+
+		const currentX = parseFloat(position[0]) || 0;
+		const currentY = parseFloat(position[1]) || 0;
+
+		grid.style.backgroundPosition =
+			`${currentX + direction[0] * step}px ` +
+			`${currentY + direction[1] * step}px`;
+	});
+}
+
+/**
+ * 背景画像の移動モードを切り替える。
+ */
+function toggleBackgroundMoveMode() {
+
+	const grid = templateState.grid;
+	const button = document.getElementById("moveBackgroundImageButton");
+
+	if (!grid || !grid.dataset.previewBackgroundImageUrl) {
+		alert("先に背景画像を選択してください。");
+		return;
+	}
+
+	const enabled = grid.dataset.backgroundMoveMode !== "true";
+
+	grid.dataset.backgroundMoveMode = String(enabled);
+
+	grid.style.cursor = enabled ? "grab" : "";
+
+	if (button) {
+		button.textContent = enabled
+			? "背景画像の移動を終了"
+			: "背景画像を移動";
+
+		button.setAttribute("aria-pressed", String(enabled));
+	}
+}
+
+/**
+ * 背景画像の位置を初期位置に戻す。
+ */
+function resetBackgroundImagePosition() {
+
+	const grid = templateState.grid;
+
+	if (!grid || !grid.dataset.previewBackgroundImageUrl) {
+		alert("背景画像が選択されていません。");
+		return;
+	}
+
+	grid.style.backgroundPosition = "0px 0px";
 }
 
 /**
@@ -170,7 +258,15 @@ function selectBackgroundImage() {
 			grid.style.backgroundSize =
 				`${background.naturalWidth * PREVIEW_SCALE}px ${background.naturalHeight * PREVIEW_SCALE}px`;
 			grid.style.backgroundPosition = "0px 0px";
-			grid.style.cursor = "grab";
+			grid.style.cursor = "";
+			grid.dataset.backgroundMoveMode = "false";
+			const moveButton = document.getElementById("moveBackgroundImageButton");
+
+			if (moveButton) {
+				moveButton.textContent = "背景画像を移動";
+				moveButton.setAttribute("aria-pressed", "false");
+			}
+			
 			grid.style.backgroundRepeat = "no-repeat";
 
 			enableBackgroundDrag(grid);
@@ -249,6 +345,15 @@ function clearBackgroundImage() {
 		grid.style.minHeight = grid.dataset.originalMinHeight;
 		delete grid.dataset.originalMinHeight;
 	}
+
+	grid.dataset.backgroundMoveMode = "false";
+
+	const moveButton = document.getElementById("moveBackgroundImageButton");
+
+	if (moveButton) {
+		moveButton.textContent = "背景画像を移動";
+		moveButton.setAttribute("aria-pressed", "false");
+	}
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -260,6 +365,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
 	document.getElementById("clearBackgroundImageButton")
 		?.addEventListener("click", clearBackgroundImage);
+
+	document.getElementById("moveBackgroundImageButton")
+		?.addEventListener("click", toggleBackgroundMoveMode);
+
+	document.getElementById("resetBackgroundImagePositionButton")
+		?.addEventListener("click", resetBackgroundImagePosition);
 
 	enableBackgroundDrag(templateState.grid);
 });
